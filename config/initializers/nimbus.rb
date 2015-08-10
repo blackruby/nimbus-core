@@ -485,6 +485,7 @@ module Modelo
       }
       self.class_eval("def empresa;#{cad_emp};end") unless cad_emp.empty?
 
+=begin
       if (self.to_s != 'Ejercicio')
         cad_eje = ''
         cl = self
@@ -501,6 +502,7 @@ module Modelo
         }
         self.class_eval("def ejercicio;#{cad_eje};end") unless cad_eje.empty?
       end
+=end
 
       after_initialize :_ini_campos
     end
