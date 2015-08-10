@@ -5,8 +5,10 @@
 namespace :nimbus do
   desc 'Generar mantenimientos a partir de los esquemas definidos'
   task :genmant, [:file] => :environment do |task, args|
+
     def trata_def(tipo, fic, modulo, ar)
-      mod = Pathname(fic).basename.to_s[0..-5]
+      mod = fic[fic.rindex('/')+1..-5]
+      path = fic[0..fic.rindex('/')].gsub('esquemas', '.')
       modc = mod.capitalize
       modp = mod.pluralize
       modcp = modc.pluralize
@@ -21,7 +23,7 @@ namespace :nimbus do
         tableh = modulo + '_h_' + modp
       end
 
-      return if tipo == :new and File.exists?("app/controllers/#{modulo}/#{modp}_controller.rb")
+      return if tipo == :new and File.exists?("#{path}app/controllers/#{modulo}/#{modp}_controller.rb")
 
       begin
         puts "Procesando #{fic}..."
@@ -137,8 +139,7 @@ namespace :nimbus do
             ActiveRecord::Migration.drop_table(tableh)
           rescue
           end
-          `rm -f db/migrate/*_create_#{table}.rb`
-          `rm -f nimbus/migrate/#{modulo}/*_create_#{table}.rb`
+          `rm -f #{path}db/migrate/#{modulo}/*_create_#{table}.rb`
         end
 
         # Generar la migración
@@ -165,7 +166,7 @@ namespace :nimbus do
         mig.puts('=end') unless prop[:mig]
         mig.puts('end')
         mig.rewind
-        File.write("db/migrate/#{ar[:version].strftime('%Y%m%d%H%M%S')}_create_#{table}.rb", mig.read)
+        File.write("#{path}db/migrate/#{ar[:version].strftime('%Y%m%d%H%M%S')}_create_#{table}.rb", mig.read)
         ar[:version] += 1
 
         # Generar el modelo
@@ -194,7 +195,7 @@ namespace :nimbus do
         end
         modelo.rewind
 
-        File.write("app/models/#{modulo}/#{mod}.rb", modelo.read)
+        File.write("#{path}app/models/#{modulo}/#{mod}.rb", modelo.read)
 
         # Generar el controlador
         controller.puts('  }')
@@ -215,22 +216,20 @@ namespace :nimbus do
         controller.puts('end')
         controller.rewind
 
-        File.write("app/controllers/#{modulo}/#{modp}_controller.rb", controller.read)
+        File.write("#{path}app/controllers/#{modulo}/#{modp}_controller.rb", controller.read)
 
         # Generar las vistas
-        f = "app/views/#{modulo}/#{modp}"
+        f = "#{path}app/views/#{modulo}/#{modp}"
         begin
           Dir.mkdir(f)
-          #FileUtils.cp('app/views/shared/new.html.erb', f)
-          #FileUtils.cp('app/views/shared/edit.html.erb', f)
-          FileUtils.cp('nimbus/views/index.html.erb', f)
-          FileUtils.cp('nimbus/views/_form.html.erb', f)
+          FileUtils.cp('modulos/nimbus-core/privado/views/index.html.erb', f)
+          FileUtils.cp('modulos/nimbus-core/privado/views/_form.html.erb', f)
         rescue
           puts('  Ya existe el directorio de vistas. Se respetará su contenido')
         end
 
         # Generar las rutas
-        f = "nimbus/rutas/#{modulo == '' ? 'nimbus' : modulo}.rb"
+        f = "#{path}config/routes.rb"
         r = File.read(f)
         cad = "'#{modp}'"
         if r.index(cad).nil?
@@ -247,41 +246,7 @@ namespace :nimbus do
 
     def busca_esquemas(path, modulo, ar)
       Dir.glob(path + '/*').each {|fic|
-        ficb = Pathname(fic).basename.to_s
-
-        if File.directory?(fic)
-          next if modulo != ''
-
-          # Crear, si es necesario las carpetas asociadas al módulo
-          ['app/controllers/', 'app/views/', 'nimbus/migrate/'].each {|f|
-            f << ficb
-            Dir.mkdir(f) unless File.exists?(f)
-          }
-          f = "app/models/#{ficb}"
-          unless File.exists?(f)
-            Dir.mkdir(f)
-            File.write(f + '.rb', "module #{ficb.capitalize}\n  def self.table_name_prefix\n    '#{ficb}_'\n  end\nend\n")
-          end
-
-          fi = "nimbus/rutas/#{ficb}.rb"
-          unless File.exists?(fi)
-            File.open(fi, 'w') { |f|
-              f.puts "modulo = '#{ficb}'"
-              f.puts
-              f.puts "[].each{|c|"
-              f.puts '  get "#{modulo}/#{c}" => "#{modulo}/#{c}#index"'
-              f.puts '  get "#{modulo}/#{c}/new" => "#{modulo}/#{c}#new"'
-              f.puts '  get "#{modulo}/#{c}/:id/edit" => "#{modulo}/#{c}#edit"'
-              f.puts "  ['validar', 'validar_cell', 'list', 'grabar', 'borrar', 'cancelar'].each {|m|"
-              f.puts '    post "#{modulo}/#{c}/#{m}" => "#{modulo}/#{c}##{m}"'
-              f.puts '  }'
-              f.puts '}'
-            }
-          end
-
-          busca_esquemas(fic, ficb, ar)
-        end
-
+        next if File.directory?(fic)
         next unless fic.ends_with?('.def')
 
         trata_def(:new, fic, modulo, ar)
@@ -305,25 +270,31 @@ namespace :nimbus do
 
     f = args[:file]
     if f
-      f << '.def' unless f.ends_with?('.def')
-      trata_def(:reg, "nimbus/esquemas/#{f}", f.include?('/') ? f.split('/')[0] : '', ar)
+      if f.start_with?('esquemas/') or f.start_with?('modulos/nimbus-core/')
+        mod = ''
+      elsif File.directory?(f[0..f.rindex('/')-1].gsub('esquemas', '.git'))
+        mod = f[8..f.index('/', 8)-1]
+      else
+        mod = ''
+      end
+      trata_def(:reg, f, mod, ar)
     else
-      busca_esquemas('nimbus/esquemas', '', ar)
+      busca_esquemas('esquemas', '', ar)
+      Dir.glob('modulos/*/esquemas').each {|d|
+        nmod = d[8..d.rindex('/')-1]
+        mod = (nmod != 'nimbus-core' and File.directory?(d[0..d.rindex('/')] + '.git')) ? nmod : ''
+        busca_esquemas(d, mod, ar)
+      }
     end
 
 
     # Actualizar ficheros de idioma
     locales.each {|l|
       ar[:loc][l][l.to_s] = ar[:loc][l][l.to_s].sort.to_h # Ordenamos el locale en orden alfabético de claves
-      File.write("config/locales/nimbus_#{l.to_s}.yml", YAML.dump(ar[:loc][l]))
+      File.write("modulos/idiomas/config/locales/nimbus_#{l.to_s}.yml", YAML.dump(ar[:loc][l]))
     }
 
     # Ejecutar migraciones
     Rake::Task['db:migrate'].invoke
-
-    # Mover migraciones a sus carpetas de módulos
-    ar[:modulos].each {|m|
-      `mv db/migrate/*_#{m}_* nimbus/migrate/#{m} >/dev/null 2>&1`
-    }
   end
 end
