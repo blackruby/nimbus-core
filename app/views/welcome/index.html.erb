@@ -1,0 +1,52 @@
+<div id='main'>
+  <h1> Bienvenido a Nimbus </h1>
+  <br>
+  <br>
+  <br>
+  <%= form_tag("/login", method: "post") do %>
+    <table id="tabla">
+      <tr>
+        <td><label for="usuario"><%= nt('usuario') %></label></td>
+        <td><input name="usuario" id="usuario" autocomplete="off"/></td>
+      </tr>
+      <tr>
+        <td><label for="password"><%= nt('password') %></label></td>
+        <td><input name="password" id="password" type="password"/></td>
+      </tr>
+    </table>
+    <br/>
+    <br/>
+    <br/>
+    <input name="commit" type="submit" value=<%= nt('entrar') %> />
+  <% end %>
+</div>
+
+<style>
+	body {
+    background: #303030;
+  }
+
+  #tabla {
+    margin-left: 20px;
+    text-align: left;
+  }
+
+  #main {
+    text-align: center;
+		position:fixed;
+		top: 50%;
+		left: 50%;
+		width:30em;
+		height:18em;
+		margin-top: -9em; /*set to a negative number 1/2 of your height*/
+		margin-left: -15em; /*set to a negative number 1/2 of your width*/
+		border: 1px solid #ccc;
+    border-radius: 10px;
+		background-color: #f3f3ff;
+	}
+</style>
+
+<script>
+  $('#usuario').val(null).focus();
+  $('#password').val(null);
+</script>

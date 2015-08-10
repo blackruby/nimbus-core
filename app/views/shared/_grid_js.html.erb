@@ -1,0 +1,22 @@
+function editInLine() {
+  id = $(grid).jqGrid('getGridParam','selrow');
+  if (id != null)
+    $(grid).jqGrid('editRow', id, true);
+  else
+    alert("Seleccione un registro");
+}
+
+function editInForm() {
+  id = $(grid).jqGrid('getGridParam','selrow');
+  if (id != null) {
+    $("#ficha").attr('src', '<%= @url_base %>' + id + '/edit' + '<%= @arg_edit %>');
+    $("#dialog").dialog("open");
+  } else
+    alert("Seleccione un registro");
+}
+
+function newFicha() {
+  $("#ficha").attr('src', '<%= @url_new %>');
+  $("#dialog").dialog("open");
+}
+

@@ -1,0 +1,54 @@
+<table id="grid"></table>
+<div id="toolgrid"></div>
+
+<div id='dialog'>
+	<iframe id="ficha" class="ficha"> </iframe>
+</div>
+
+<script>
+	$('#dialog').dialog({
+		autoOpen: false,
+		height: 600,
+		width: 750,
+	});
+
+	grid = '#grid';
+	toolgrid = '#toolgrid';
+
+	var vgrid = $(grid).jqGrid({
+		<%= render "shared/grid_def" %>
+
+		height: 300,
+		rowNum:50,
+
+		cellEdit: true,
+		gridview: true,	// Acelera la velocidad de renderizado. Poner a false con trees y subgrids
+
+		pager: '#toolgrid',
+		rowList:[10,20,30,50,100,500,1000],
+		altRows: true,	// filas tipo cebra
+		sortable: true,	// Si las columnas se pueden reordenar (cambiar de sitio)
+		viewrecords: true,	// Muestra información del total de registros en la toolbar
+
+		//ondblClickRow: editInForm,
+
+		//shrinkToFit: false,
+		//multiSort: true,
+		//multiselect: true,
+		//rownumbers: true,
+		scroll: true,
+	});
+
+	
+	$(grid).jqGrid('gridResize', {minWidth: 350, maxWidth: 1200, minHeight: 80, maxHeight: 600});
+	$(grid).jqGrid('navGrid', toolgrid, {edit: false, add: false, del: true}, {}, {}, {}, {multipleSearch: true, multipleGroup: true, showQuery: true});
+	$(grid).jqGrid('filterToolbar', {stringResult: true, searchOperators: true}); vgrid[0].toggleToolbar();
+	$(grid).jqGrid('bindKeys');
+
+	$(grid).jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Barra de búsqueda", buttonicon :'ui-icon-pin-s', onClickButton:function(){vgrid[0].toggleToolbar()}});
+	//$(grid).jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Edición en línea", buttonicon :'ui-icon-carat-2-e-w', onClickButton: editInLine});
+	$(grid).jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Formulario", buttonicon :'ui-icon-carat-2-n-s', onClickButton: editInForm});
+	$(grid).jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Nueva Alta", buttonicon :'ui-icon-plus', onClickButton: newFicha});
+
+	<%= render "shared/grid_js" %>
+</script>
