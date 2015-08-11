@@ -60,7 +60,6 @@ namespace :nimbus do
         mig.puts('  def change')
         mig.puts('    col = lambda {|t|')
 
-        cont = 0
         refs = []
         cmps.each { |cmp|
           cmpn = cmp[:cmp]
@@ -70,7 +69,7 @@ namespace :nimbus do
             ls = l.to_s
             if cmp[:locale] and cmp[:locale][l]
               if ar[:loc][l][ls][cmpn] and ar[:loc][l][ls][cmpn][0] != '#'
-                puts '  Ya existe la clave ' + cmpn + ' en el locale "' + ls + '"'
+                puts('  Ya existe la clave ' + cmpn + ' en el locale "' + ls + '"') if ar[:loc][l][ls][cmpn] != cmp[:locale][l]
               else
                 ar[:loc][l][ls][cmpn] = cmp[:locale][l]
               end
@@ -103,30 +102,64 @@ namespace :nimbus do
             end
           end
 
-          manti = 'manti: '
-          if cmpn == 'codigo'
-            manti << '5'
-          else
-            case ty
-              when 'boolean'
-                manti << '6'
-              when 'integer'
-                manti << '7'
-              when 'decimal'
-                manti << '7, decim: 2'
-              when 'date'
-                manti << '8'
-              when 'text'
-                manti << '50'
-              else
-                manti << '30'
+          if cmp[:manti].nil?
+            if cmpn == 'codigo'
+              cmp[:manti] = 5
+            else
+              case ty
+                when 'boolean'
+                  cmp[:manti] = 6
+                when 'integer'
+                  cmp[:manti] = 7
+                when 'decimal'
+                  cmp[:manti] = 7
+                when 'date'
+                  cmp[:manti] = 8
+                when 'text'
+                  cmp[:manti] = 50
+                else
+                  cmp[:manti] = 30
+              end
             end
           end
 
-          modelo.puts("    #{cmpn}: {#{manti}#{cmp[:pk] ? ', pk: ' + cmp[:pk].to_s : ''}},")
+          cmp[:decim] = 2 if cmp[:decim].nil? and ty == 'decimal'
 
-          controller.puts("    #{cmpn}: {div: 'g1'#{cont<5 ? ', grid:{}' : ''}},") unless ['empresa_id', 'ejercicio_id'].include?(cmpn)
-          cont += 1
+          modelo.print("    #{cmpn}: {")
+          if cmp[:manti].class == String
+            modelo.print('manti: \'' + cmp[:manti] + '\'')
+          else
+            modelo.print('manti: ' + cmp[:manti].to_s)
+          end
+          if cmp[:decim]
+            if cmp[:manti].class == String
+              modelo.print('decim: \'' + cmp[:decim] + '\'')
+            else
+              modelo.print(', decim: ' + cmp[:decim].to_s)
+            end
+          end
+
+          modelo.print(', pk: ' + cmp[:pk].to_s) if cmp[:pk]
+          modelo.print(', nil: ' + cmp[:nil].to_s) if cmp[:nil]
+          modelo.print(', ro: :' + cmp[:ro].to_s) if cmp[:ro]
+          modelo.print(', signo: ' + cmp[:signo].to_s) if cmp[:signo]
+          modelo.print(', req: ' + cmp[:req].to_s) if cmp[:req]
+          modelo.print(', may: ' + cmp[:may].to_s) if cmp[:may]
+          modelo.print(', rows: ' + cmp[:rows].to_s) if cmp[:rows]
+          modelo.print(', code: ' + cmp[:code].to_s) if cmp[:code]
+          modelo.print(', sel: ' + cmp[:sel].to_s) if cmp[:sel]
+          modelo.print(', mask: \'' + cmp[:mask].to_s + '\'') if cmp[:mask]
+          modelo.puts('},')
+
+          if cmp[:div] or cmp[:grid]
+            controller.print("    #{cmpn}: {")
+            controller.print('div: \'' + cmp[:div] + '\'') if cmp[:div]
+            if cmp[:grid]
+              controller.print(', ') if cmp[:div]
+              controller.print('grid: ' + cmp[:grid].to_s)
+            end
+            controller.puts('},')
+          end
         }
 
         # Borrar la tabla y la migración (si procede)
@@ -238,7 +271,6 @@ namespace :nimbus do
           File.write(f, r.insert(ifc, cad))
         end
 
-        ar[:modulos] << modulo unless ar[:modulos].include?(modulo)
       #rescue
         #puts "Error al procesar #{fic}"
       end
@@ -258,7 +290,7 @@ namespace :nimbus do
     Dir.chdir(Rails.root)
 
     # Hash conteniendo todos los datos globales necesarios en las funciones auxiliares
-    ar = {modulos: [], version: Time.now, loc: {}}
+    ar = {version: Time.now, loc: {}}
 
     locales = I18n.available_locales
 
