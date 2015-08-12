@@ -7,10 +7,6 @@
 </div>
 
 <style>
-  #dficha {
-    width: 350px;
-  }
-
   #dgrid, #dficha {
     display: inline-block;
     vertical-align: top;
@@ -19,15 +15,8 @@
 
 <script>
   fon = function(id, v){
-    if (v[0] == "A") return(" class='negrita'")
+    if (v[0] == "A") return(" class='negrita'");
   }
-
-  /*
-  $("#dficha").resizable();
-   */
-  $("#ficha").load(function() {
-    $(this).parent().css("height", this.contentWindow.document.body.offsetHeight + 20 + 'px');
-  });
 
 	grid = '#grid';
 	toolgrid = '#grid_toppager';
@@ -48,7 +37,7 @@
 		sortable: true,	// Si las columnas se pueden reordenar (cambiar de sitio)
 		viewrecords: true,	// Muestra información del total de registros en la toolbar
 
-		//ondblClickRow: editInForm,
+		ondblClickRow: editInForm,
 
 		//shrinkToFit: false,
 		//multiSort: true,
@@ -57,17 +46,12 @@
 		scroll: true,
 	});
 
-  function grid_reload() {
-    $(grid).trigger('reloadGrid');
-  }
-	
 	$(grid).jqGrid('gridResize', {minWidth: 500, minHeight: 80});
 	$(grid).jqGrid('navGrid', toolgrid, {edit: false, add: false, del: true}, {}, {}, {}, {multipleSearch: true, multipleGroup: true, showQuery: true});
 	$(grid).jqGrid('filterToolbar', {stringResult: true, searchOperators: true}); vgrid[0].toggleToolbar();
 	$(grid).jqGrid('bindKeys');
 
 	$(grid).jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Barra de búsqueda", buttonicon :'ui-icon-pin-s', onClickButton:function(){vgrid[0].toggleToolbar()}});
-	//$(grid).jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Edición en línea", buttonicon :'ui-icon-carat-2-e-w', onClickButton: editInLine});
 	$(grid).jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Formulario", buttonicon :'ui-icon-carat-2-n-s', onClickButton: editInForm});
 	$(grid).jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Nueva Alta", buttonicon :'ui-icon-plus', onClickButton: newFicha});
 

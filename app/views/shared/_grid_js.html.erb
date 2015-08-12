@@ -20,3 +20,13 @@ function newFicha() {
   $("#dialog").dialog("open");
 }
 
+$("#ficha").load(function() {
+  $(this).parent().css("height", this.contentWindow.document.body.offsetHeight + 100 + 'px');
+  w = this.contentWindow._anchura;
+  if (w == undefined) w = "400px"
+  $(this).parent().css("width", w);
+});
+
+function grid_reload() {
+  $(grid).trigger('reloadGrid');
+}

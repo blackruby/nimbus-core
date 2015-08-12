@@ -1,37 +1,39 @@
-<table id="grid"></table>
-<div id="toolgrid"></div>
-
-<div id='dialog'>
-	<iframe id="ficha" class="ficha"> </iframe>
+<div id="dgrid">
+  <table id="grid"></table>
 </div>
 
-<script>
-	$('#dialog').dialog({
-		autoOpen: false,
-		height: 380,
-		width: 370,
-	});
+<div id='dficha'>
+  <iframe id="ficha" class="ficha"> </iframe>
+</div>
 
+<style>
+  #dgrid, #dficha {
+    display: inline-block;
+    vertical-align: top;
+  }
+</style>
+
+<script>
 	grid = '#grid';
-	toolgrid = '#toolgrid';
+  toolgrid = '#grid_toppager';
 
 	var vgrid = $(grid).jqGrid({
 		<%= render "shared/grid_def" %>
 
-		height: 360,
-		width: 620,
+		height: 170,
+		width: 300,
 		rowNum:50,
 
 		cellEdit: true,
 		gridview: true,	// Acelera la velocidad de renderizado. Poner a false con trees y subgrids
 
-		pager: '#toolgrid',
+    toppager: true,
 		rowList:[10,20,30,50,100,500,1000],
 		altRows: true,	// filas tipo cebra
 		sortable: true,	// Si las columnas se pueden reordenar (cambiar de sitio)
 		viewrecords: true,	// Muestra información del total de registros en la toolbar
 
-		//ondblClickRow: editInForm,
+		ondblClickRow: editInForm,
 
 		//shrinkToFit: false,
 		//multiSort: true,
