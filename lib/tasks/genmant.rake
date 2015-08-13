@@ -172,6 +172,13 @@ namespace :nimbus do
             ActiveRecord::Migration.drop_table(tableh)
           rescue
           end
+          begin
+            version = Dir.glob("#{path}db/migrate/#{modulo}/*_create_#{table}.rb")[0]
+            us = version.rindex('/') + 1
+            version = version[us..version.index('_', us)-1]
+            ActiveRecord::Base.connection.execute("delete from schema_migrations where version = '#{version}'")
+          rescue
+          end
           `rm -f #{path}db/migrate/#{modulo}/*_create_#{table}.rb`
         end
 
