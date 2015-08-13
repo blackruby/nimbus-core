@@ -38,7 +38,7 @@ class ApplicationController < ActionController::Base
           render js: 'alert(js_t("no_session"))'
         end
       else
-        render file: 'public/401.html', status: 401, layout: false
+        render file: '/public/401.html', status: 401, layout: false
       end
     end
 

@@ -4,8 +4,9 @@ class WelcomeController < ApplicationController
   skip_before_action :ini_controller, only: [:index, :login]
 
   def index
-    if session[:uid]
-      redirect_to '/menu' if session[:uid]
+    #if session[:uid]
+    unless sesion_invalida
+      redirect_to '/menu'
       return
     end
     I18n.locale = cookies[:locale] || session[:locale] || I18n.default_locale
@@ -28,5 +29,28 @@ class WelcomeController < ApplicationController
   def logout
     session[:uid] = nil
     render :nothing => true
+  end
+
+  def gen_menu(hm)
+    hm.each {|k, v|
+      if v.class == Hash
+        @menu << "<li><span>#{k}</span><ul>"
+        gen_menu(v)
+        @menu << '</ul></li>'
+      else
+        @menu << "<li class=menu-ref><a href=#{v}>#{k}</a></li>"
+      end
+    }
+  end
+
+  def menu
+    @menu = ''
+    hmenu = YAML.load(File.read('modulos/nimbus-core/menu.yml'))
+    Dir.glob('modulos/*/menu.yml').each {|m|
+      next if m == 'modulos/nimbus-core/menu.yml'
+      hmenu.merge!(YAML.load(File.read(m)))
+    }
+    hmenu.deep_merge!(YAML.load(File.read('menu.yml'))) if File.exists?('menu.yml')
+    gen_menu(hmenu)
   end
 end

@@ -14,40 +14,9 @@
 
 <nav id="nim-menu">
   <ul>
-    <li><span>Comunes</span>
-      <ul>
-        <li class="drag-true"><a href="/usuarios">Usuarios</a></li>
-        <li class="drag-true"><a href="/divisas">Divisas</a></li>
-        <li class="drag-true"><a href="/empresas">Empresas</a></li>
-        <li class="drag-true"><a href="/ejercicios">Ejercicios</a></li>
-      </ul>
-    </li>
+    <%= @menu.html_safe %>
 
-    <li><span>Contabilidad</span>
-      <ul>
-        <li class="drag-true"><a href="/conta/diarios">Diarios</a></li>
-        <li class="drag-true"><a href="/conta/cuentas">Plan Contable</a></li>
-        <li class="drag-true"><a href="/conta/asientos">Movimientos</a></li>
-      </ul>
-    </li>
-
-    <li><span>Ayuda</span>
-      <ul>
-        <li class="drag-true"><a href="#">Temas de ayuda</a></li>
-        <li><a href="#">Contactar</a></li>
-        <li class="drag-true"><a href="/usuarios/<%= session[:uid] %>/edit"><%= nt('preferencias') %></a></li>
-      </ul>
-    </li>
-
-    <li><span>Sistema</span>
-      <div>
-        <p>Opciones generales pensadas para ser comunes a toda la aplicación</p>
-        <ul>
-          <li id="bSave"><a href="#">Guardar panel</a></li>
-          <li id="bCerrar"><a href="#">Cerrar sesión</a></li>
-        </ul>
-      </div>
-    </li>
+    <li class="menu-ref"><a href="/usuarios/<%= session[:uid] %>/edit"><%= nt('preferencias') %></a></li>
     <li>
       <span>Activar panel</span>
       <input id="actPan" type="checkbox" class="Toggle"/>
@@ -56,6 +25,8 @@
       <span>Ampliar horizontal</span>
       <input id="ampHor" type="checkbox" class="Toggle"/>
     </li>
+    <li id="bSave"><a href="#">Guardar panel</a></li>
+    <li id="bCerrar"><a href="#">Cerrar sesión</a></li>
   </ul>
 </nav>
 
@@ -186,7 +157,7 @@
     noticias();
   });
 
-  $(".drag-true").click(function (e) {
+  $(".menu-ref").click(function (e) {
     e.preventDefault();
     s = $(this)[0].innerHTML;
     ih = s.indexOf('href') + 6;
