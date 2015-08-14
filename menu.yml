@@ -1,16 +1,5 @@
 General:
-  Usuarios: /usuarios
-  Empresas: /empresas
-  Países: /paises
-  Divisas: /divisas
-Ayuda:
-  'Página de ayuda': /ayuda
-  Temas:
-    Uno: /uno
-    Dos: /dos
-    Subtemas:
-      Tres: /tres
-      Cuatro: /cuatro 
-    Final: /final
-Otros:
-  Fin: /fin
+  usuarios: /usuarios
+  empresas: /empresas
+  paises: /paises
+  divisas: /divisas

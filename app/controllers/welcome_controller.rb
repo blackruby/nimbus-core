@@ -34,11 +34,11 @@ class WelcomeController < ApplicationController
   def gen_menu(hm)
     hm.each {|k, v|
       if v.class == Hash
-        @menu << "<li><span>#{k}</span><ul>"
+        @menu << "<li><span>#{nt(k)}</span><ul>"
         gen_menu(v)
         @menu << '</ul></li>'
       else
-        @menu << "<li class=menu-ref><a href=#{v}>#{k}</a></li>"
+        @menu << "<li class=menu-ref><a href=#{v}>#{nt(k)}</a></li>"
       end
     }
   end

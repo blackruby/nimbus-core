@@ -80,7 +80,7 @@ class ApplicationController < ActionController::Base
       modelo = (modulo + tab).constantize # Para cargar los modelos
       modeloh = (modulo + 'H' + tab).constantize # Para ver si existe (si tiene histórico)
     rescue
-      render '/public/404.html', status: 404, layout: false
+      render file: '/public/404.html', status: 404, layout: false
       return
     end
 
@@ -144,7 +144,7 @@ class ApplicationController < ActionController::Base
   def index
     self.respond_to?('before_index') ? r = before_index : r = true
     unless r
-      render file: 'public/401.html', status: 401, layout: false
+      render file: '/public/401.html', status: 401, layout: false
       return
     end
 
@@ -158,10 +158,10 @@ class ApplicationController < ActionController::Base
 
     unless params[:mod]
       if clm.column_names.include?('empresa_id') and eid.nil?
-        render '/public/no_emp', layout: false
+        render file: '/public/no_emp.html', layout: false
         return
       elsif clm.column_names.include?('ejercicio_id') and jid.nil?
-        render'/public/no_eje', layout: false
+        render file: '/public/no_eje.html', layout: false
         return
       end
     end
@@ -333,7 +333,7 @@ class ApplicationController < ActionController::Base
 
     self.respond_to?('before_new') ? r = before_new : r = true
     unless r
-      render file: 'public/401.html', status: 401, layout: false
+      render file: '/public/401.html', status: 401, layout: false
       return
     end
 
@@ -365,14 +365,14 @@ class ApplicationController < ActionController::Base
 
       if clm.column_names.include?('empresa_id')
         if eid.nil?
-          render '/public/no_emp', layout: false
+          render file: '/public/no_emp', layout: false
           return
         else
           @fact.empresa_id = eid.to_i
         end
       elsif clm.column_names.include?('ejercicio_id')
         if jid.nil?
-          render'/public/no_eje', layout: false
+          render file: '/public/no_eje', layout: false
           return
         else
           @fact.ejercicio_id = jid.to_i
@@ -394,12 +394,12 @@ class ApplicationController < ActionController::Base
     clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
     fh = clmh.find_by id: params[:id][1..-1]
     if fh.nil?
-      render '/public/404.html', status: 404, layout: false
+      render file: '/public/404.html', status: 404, layout: false
       return
     end
     fo = clmh.where('idid = ?', fh.idid).order(:created_at).first
     if fo.nil?
-      render '/public/404.html', status: 404, layout: false
+      render file: '/public/404.html', status: 404, layout: false
       return
     end
     @fact = clm.new
@@ -430,7 +430,7 @@ class ApplicationController < ActionController::Base
     if clm.mant?
       @fact = clm.find_by id: params[:id]
       if @fact.nil?
-        render file: 'public/404.html', status: 404, layout: false
+        render file: '/public/404.html', status: 404, layout: false
         return
       end
     end
