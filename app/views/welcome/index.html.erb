@@ -1,5 +1,17 @@
+<% if File.exists?('public/logo.png') %>
+  <img id="logo" src="/logo.png">
+
+  <style>
+    #logo {
+      margin-left: 40px;
+      margin-top: 40px;
+    }
+  </style>
+<% end %>
+
+
 <div id='main'>
-  <h1> Bienvenido a Nimbus </h1>
+  <h1> <%= nt('hola_nimbus') %> </h1>
   <br>
   <br>
   <br>
@@ -16,14 +28,13 @@
     </table>
     <br/>
     <br/>
-    <br/>
     <input name="commit" type="submit" value=<%= nt('entrar') %> />
   <% end %>
 </div>
 
 <style>
 	body {
-    background: #303030;
+    background: #505050;
   }
 
   #tabla {

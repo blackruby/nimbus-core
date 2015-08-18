@@ -1,28 +1,4 @@
-<div id="toolbar" class="ui-widget-header ui-corner-all">
-  <button id="grabar" onclick="mant_grabar()"> Grabar </button>
-  <button id="borrar" onclick="mant_borrar()"> Borrar </button>
-  <button id="cancelar" onclick="mant_cancelar()"> Cancelar </button>
-  <button id="salir" onclick="mant_cerrar()"> Salir </button>
-  <label id="encurso"></label>
-</div>
-
 <script>
-  <% if @fact.respond_to?('id') and @fact.id.nil? %>
-    encurso = "Nuevo"
-  <% else %>
-    encurso = "Editando"
-  <% end %>
-
-  if (parent.$("#dialog").length > 0)
-    parent.$("#dialog").dialog('option', 'title', encurso);
-  else
-    $("#encurso").text(encurso);
-
-  $("#grabar").button({text: false, icons: {primary: "ui-icon-pencil"}});
-  $("#borrar").button({text: false, icons: {primary: "ui-icon-trash"}});
-  $("#cancelar").button({text: false, icons: {primary: "ui-icon-arrowreturnthick-1-s"}});
-  $("#salir").button({text: false, icons: {primary: "ui-icon-extlink"}});
-
   <%= @ajax.html_safe %>
 
   $("input,select,textarea").filter(":enabled").first().focus();

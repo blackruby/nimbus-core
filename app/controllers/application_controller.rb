@@ -428,10 +428,19 @@ class ApplicationController < ActionController::Base
     end
 
     if clm.mant?
-      @fact = clm.find_by id: params[:id]
-      if @fact.nil?
-        render file: '/public/404.html', status: 404, layout: false
+      if params[:id] == '0'   # Para mostrar fichas vacías con todo deshabilitado
+        @fact = clm.new
+        @fact.id = 0
+        @ajax = ''
+        envia_ficha
+        render 'shared/edit'
         return
+      else
+        @fact = clm.find_by id: params[:id]
+        if @fact.nil?
+          render file: '/public/404.html', status: 404, layout: false
+          return
+        end
       end
     end
 
@@ -761,6 +770,10 @@ class_mant.campos.each {|cs, h|
   end
 
   def borrar
+    clm = class_mant
+    vid = params[:vista].to_i
+    @fact = $h[vid][:fact]
+    @fact.destroy
     render js: ''
   end
 
@@ -937,6 +950,10 @@ class_mant.campos.each {|cs, h|
   end
 
   def gen_js
+    if @fact.id == 0
+      return '$(":input").attr("disabled", "disabled");'.html_safe
+    end
+
     clm = class_mant
     sal = ''
 
@@ -979,6 +996,14 @@ class_mant.campos.each {|cs, h|
         sal << 'numero("#' + cs + '",' + manti + ',' + decim.to_s + ',' + signo.to_s + ');'
       end
     }
+
+    if clm.mant?
+      if @fact.id.nil?
+        sal << %Q{$("#encurso").text("#{nt('nuevo')}");}
+      elsif @fact.id !=0
+        sal << %Q{$("#encurso").text("#{nt('editando')}");}
+      end
+    end
 
     sal.html_safe
   end

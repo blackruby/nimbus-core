@@ -339,11 +339,17 @@ function mant_grabar() {
 }
 
 function mant_borrar() {
+  $("#dialog-borrar").dialog("open");
+}
+
+function mant_borrar_ok() {
   $.ajax({
     url: '/' + _controlador + '/borrar',
     type: "POST",
     data: {vista: _vista}
   });
+  if (parent != self && $.isFunction(parent.grid_reload)) parent.grid_reload();
+  window.location.replace('/' + _controlador + '/0/edit');
 }
 
 function mant_cancelar() {

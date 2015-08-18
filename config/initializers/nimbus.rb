@@ -267,6 +267,14 @@ module MantMod
       if @mant
         @titulo ||= self.superclass.to_s
 
+        self.superclass.column_names.each{|c|
+          cs = c.to_sym
+          unless c == 'id' or @campos.include?(cs)
+            @campos[cs] = self.superclass.propiedades[cs]
+            @campos[cs][:type] = self.superclass.columns_hash[c].type
+          end
+        }
+
         if @orden_grid.nil?
           cn = self.superclass.column_names
           @orden_grid = {sentido: 'asc'}
@@ -285,14 +293,6 @@ module MantMod
           cs = c.to_sym
           @orden_grid[:campo] = @campos[cs][:grid] ? @campos[cs][:grid][:index].to_json : self.table_name + '.' + c
         end
-
-        self.superclass.column_names.each{|c|
-          cs = c.to_sym
-          unless c == 'id' or @campos.include?(cs)
-            @campos[cs] = self.superclass.propiedades[cs]
-            @campos[cs][:type] = self.superclass.columns_hash[c].type
-          end
-        }
 
         after_initialize :_ini_campos_ctrl
       else
