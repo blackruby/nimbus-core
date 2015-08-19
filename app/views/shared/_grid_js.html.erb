@@ -21,7 +21,9 @@ function newFicha() {
 }
 
 $("#ficha").load(function() {
-  $(this).parent().css("height", this.contentWindow.document.body.offsetHeight + 100 + 'px');
+  h = this.contentWindow._altura;
+  if (h == undefined) h = this.contentWindow.document.body.offsetHeight + 100 + 'px';
+  $(this).parent().css("height", h);
   w = this.contentWindow._anchura;
   if (w == undefined) w = "400px"
   $(this).parent().css("width", w);

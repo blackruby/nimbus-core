@@ -470,6 +470,7 @@ module Modelo
       @pk.compact!
 
       # Definición de funciones para acceder a la empresa y al ejercicio en cualquier modelo
+=begin
       cad_emp = ''
       cl = self
       loop {
@@ -485,7 +486,6 @@ module Modelo
       }
       self.class_eval("def empresa;#{cad_emp};end") unless cad_emp.empty?
 
-=begin
       if (self.to_s != 'Ejercicio')
         cad_eje = ''
         cl = self
