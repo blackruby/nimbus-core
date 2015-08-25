@@ -1,3 +1,4 @@
+<!--
 <div id="solapas">
 	<ul>
 		<li><a href="#general">General</a></li>
@@ -10,13 +11,124 @@
 	</div>
 </div>
 
+<link rel="stylesheet" href="/material.min.css">
+<script src="/material.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link href='https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en' rel='stylesheet' type='text/css'>
+-->
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<div id="conte">
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+  <header class="mdl-layout__header">
+    <div class="mdl-layout__header-row">
+      <span class="mdl-layout-title">Países</span>
+      <div class="mdl-layout-spacer"></div>
+      <nav class="mdl-navigation">
+        <label>
+          Propiedades
+        </label>
+        &nbsp; &nbsp;
+        <button id="bot-save" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
+          <i class="material-icons">save</i>
+        </button>
+        &nbsp; &nbsp;
+        <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
+          <i class="material-icons">delete</i>
+        </button>
+        &nbsp; &nbsp;
+        <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
+          <i class="material-icons">cancel</i>
+        </button>
+      </nav>
+    </div>
+    <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+      <a href="#g1" class="mdl-layout__tab is-active">General</a>
+      <a href="#g2" class="mdl-layout__tab">Parámetros</a>
+      <a href="#g3" class="mdl-layout__tab">Valores iniciales</a>
+      <a href="#g4" class="mdl-layout__tab">Tab 4</a>
+      <a href="#g5" class="mdl-layout__tab">Tab 5</a>
+      <a href="#g6" class="mdl-layout__tab">Tab 6</a>
+    </div>
+  </header>
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">Title 1</span>
+    <span class="mdl-layout-title">Title 2</span>
+  </div>
+  <main id="prcon" class="mdl-layout__content">
+    <section class="mdl-layout__tab-panel is-active" id="g1">
+      <div class="page-content">
+        <%= gen_form({div: 'g1'}) %>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input id="desc" class="mdl-textfield__input" type="text" id="sample1" />
+          <label class="mdl-textfield__label" for="sample1">Descripción</label>
+        </div>
+      </div>
+    </section>
+    <section class="mdl-layout__tab-panel" id="g2">
+      <div class="page-content"></div>
+    </section>
+    <section class="mdl-layout__tab-panel" id="g3">
+      <div class="page-content"></div>
+    </section>
+    <section class="mdl-layout__tab-panel" id="g4">
+      <div class="page-content"></div>
+    </section>
+    <section class="mdl-layout__tab-panel" id="g5">
+      <div class="page-content"></div>
+    </section>
+    <section class="mdl-layout__tab-panel" id="g6">
+      <div class="page-content"></div>
+    </section>
+  </main>
+</div>
+</div>
+
 <style>
+  body {
+    background-color: #ffffff;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+  }
+  #conte {
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 3px 1px -2px rgba(0, 0, 0, 0.2),
+    0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    width: 100%;
+    position: relative;
+    height: 300px;
+  }
+  #prcon {
+    height: 350px;
+  }
+  #bot-save {
+    height: 40px;
+    min-width: 40px;
+    width: 40px;
+  }
+  select {
+    border-width: 0px;
+  }
+
+  input {
+    border-width: 0px;
+    border-bottom-width: 2px;
+  }
+  input:focus{
+    outline:none;
+    border-bottom-color: purple;
+  }
+  .page-content {
+    margin: 5px;
+  }
 </style>
-
 <script>
-  var _anchura = "350px"
+  var _anchura = "550px"
+  //var _altura = "500px"
 
-	$("#solapas").tabs();
+  //$("#solapas").tabs();
 
-	<%= gen_js  %>
+  <%= gen_js  %>
+  $("#toolbar").css('display', 'none');
+  componentHandler.upgradeDom();
 </script>

@@ -1,5 +1,4 @@
 /*
- *= require nimbus
  *= require ui/jquery-ui.min
  *= require ui/jquery-ui.structure.min
  *= require ui/humanity/jquery-ui
@@ -8,4 +7,8 @@
  *= require jquery.mmenu.all
  *= require font-awesome/css/font-awesome.min
  *= require jqtree
+ *= require mdl/material.min
+ *= require mdl/roboto
+ *= require mdl/iconfont
+ *= require nimbus
  */

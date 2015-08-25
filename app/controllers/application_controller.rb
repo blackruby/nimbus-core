@@ -899,7 +899,10 @@ class_mant.campos.each {|cs, h|
       next if plus == 'stop'
 
       ro = eval_cad(v[:ro])
-      manti = eval_cad(v[:manti]).to_s
+      manti = eval_cad(v[:manti])
+      decim = eval_cad(v[:decim])
+      size = manti + decim + manti/3 + 1
+      manti = manti.to_s
       rows = eval_cad(v[:rows])
       sel = eval_cad(v[:sel])
       if v[:code]
@@ -934,7 +937,7 @@ class_mant.campos.each {|cs, h|
       elsif cs.ends_with?('_id')
         sal << '<input id="' + cs + '" size=' + manti + ' ' + plus + '/>'
       else
-        sal << '<input id="' + cs + '" size=' + manti + ' onchange="validar($(this))"'
+        sal << '<input id="' + cs + '" size=' + size.to_s + ' onchange="validar($(this))"'
         sal << ' maxlength=' + manti if v[:type] == :string
         sal << ' ' + plus + '/>'
       end

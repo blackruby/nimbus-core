@@ -246,6 +246,8 @@ module MantMod
           end
         end
 
+        v[:decim] ||= 0
+
         # Cálculo de la anchura de las columnas
         if hay_grid and v[:grid][:width].nil?
           m = v[:manti].is_a?(Fixnum) ? v[:manti] : 0
