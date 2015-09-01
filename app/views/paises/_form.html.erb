@@ -15,11 +15,10 @@
 <script src="/material.min.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 <link href='https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en' rel='stylesheet' type='text/css'>
--->
 
+-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<div id="conte">
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
@@ -34,13 +33,33 @@
           <i class="material-icons">save</i>
         </button>
         &nbsp; &nbsp;
-        <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
+        <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
           <i class="material-icons">delete</i>
         </button>
         &nbsp; &nbsp;
         <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
           <i class="material-icons">cancel</i>
         </button>
+        <button id="demo-menu-lower-left" class="mdl-button mdl-js-button mdl-button--icon">
+          <i class="material-icons">more_vert</i>
+        </button>
+
+        <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="demo-menu-lower-left">
+          <li class="mdl-menu__item">Opción uno</li>
+          <li class="mdl-menu__item">Otra opción</li>
+          <li disabled class="mdl-menu__item">Opción inactiva</li>
+          <li class="mdl-menu__item">Una más</li>
+          <li class="mdl-menu__item">
+            <label>Submenú</label>
+            <button id="menu-recur" class="mdl-button mdl-js-button mdl-button--icon">
+              <i class="material-icons">more_vert</i>
+            </button>
+          </li>
+        </ul>
+        <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="menu-recur">
+          <li class="mdl-menu__item">Recur</li>
+          <li class="mdl-menu__item">Recur2</li>
+        </ul>
       </nav>
     </div>
     <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
@@ -60,14 +79,95 @@
     <section class="mdl-layout__tab-panel is-active" id="g1">
       <div class="page-content">
         <%= gen_form({div: 'g1'}) %>
-        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-          <input id="desc" class="mdl-textfield__input" type="text" id="sample1" />
+        <div id="myi" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input class="mdl-textfield__input" type="text" id="sample1" />
           <label class="mdl-textfield__label" for="sample1">Descripción</label>
         </div>
+
+        <div class="nim-group">
+          <input id="mynum" type="text" size="7" required>
+          <label class="nim-label">Número</label>
+        </div>
+        <br>
+        <div class="nim-group">
+          <input type="text" size="20" required>
+          <label class="nim-label">Otro Texto</label>
+        </div>
+
       </div>
     </section>
     <section class="mdl-layout__tab-panel" id="g2">
-      <div class="page-content"></div>
+      <div class="page-content">
+        <div class="mdl-grid">
+          <div class="mdl-cell mdl-cell--4-col mdl-cell--12-col-phone">
+            <div class="nim-group">
+              <input type="text" size="30" required>
+              <label class="nim-label">Forma de pago</label>
+            </div>
+          </div>
+          <div class="mdl-cell mdl-cell--3-col mdl-cell--12-col-phone">
+            <div class="nim-group">
+              <input type="text" size="20" required>
+              <label class="nim-label">Texto central</label>
+            </div>
+          </div>
+          <div class="mdl-cell mdl-cell--2-col mdl-cell--12-col-phone">
+            <div class="nim-group">
+              <input type="text" size="10" required>
+              <label class="nim-label">Otro Texto</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="mdl-grid">
+          <div class="mdl-cell mdl-cell--4-col mdl-cell--12-col-phone">
+            <div class="nim-group">
+              <input type="text" size="20" required>
+              <label class="nim-label">Descripción</label>
+            </div>
+          </div>
+          <div class="mdl-cell mdl-cell--3-col mdl-cell--12-col-phone">
+            <div class="nim-group">
+              <input type="text" size="20" required>
+              <label class="nim-label">Pie factura</label>
+            </div>
+          </div>
+          <div class="mdl-cell mdl-cell--2-col mdl-cell--12-col-phone">
+            <div class="nim-group">
+              <input type="text" size="12" required>
+              <label class="nim-label">Nota Albarán</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="mdl-grid">
+          <div class="mdl-cell mdl-cell--12-col">
+            _____________________________________________________________________________________________________________________________________________
+          </div>
+        </div>
+
+        <div class="mdl-grid">
+          <div class="mdl-cell mdl-cell--bottom mdl-cell--2-col">
+            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkbox-2">
+              <input type="checkbox" id="checkbox-2" class="mdl-checkbox__input" />
+              <span class="mdl-checkbox__label">Preferente</span>
+            </label>
+          </div>
+          <div class="mdl-cell mdl-cell--bottom mdl-cell--2-col">
+            <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-1">
+              <input type="checkbox" id="switch-1" class="mdl-switch__input" />
+              <span class="mdl-switch__label">Activar Notas</span>
+            </label>
+          </div>
+          <div class="mdl-cell mdl-cell--2-col mdl-cell--12-col-phone">
+            <div class="nim-group">
+              <input type="text" size="12" required>
+              <label class="nim-label">Nota Albarán</label>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
     </section>
     <section class="mdl-layout__tab-panel" id="g3">
       <div class="page-content"></div>
@@ -83,46 +183,81 @@
     </section>
   </main>
 </div>
-</div>
 
 <style>
+  * {box-sizing:border-box;}
+
   body {
     background-color: #ffffff;
     font-family: Roboto, Arial, Helvetica, sans-serif;
   }
   #conte {
+  /*
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
     0 3px 1px -2px rgba(0, 0, 0, 0.2),
     0 1px 5px 0 rgba(0, 0, 0, 0.12);
     width: 100%;
     position: relative;
-    height: 300px;
+    height: 200px;
+  */
   }
   #prcon {
     height: 350px;
   }
-  #bot-save {
-    height: 40px;
-    min-width: 40px;
-    width: 40px;
-  }
   select {
     border-width: 0px;
+    border-bottom-width: 1px;
+    background-color: #ffffff;
+    outline:none;
+    transition: border-bottom-color 0.5s ease;
   }
 
   input {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-size:16px;
     border-width: 0px;
     border-bottom-width: 2px;
+    outline:none;
+    transition: border-bottom-color 0.5s ease;
+  }
+  select:focus{
+    border-bottom-color: #673AB7;
   }
   input:focus{
-    outline:none;
-    border-bottom-color: purple;
+    border-bottom-color: #673AB7;
   }
   .page-content {
     margin: 5px;
   }
+
+  /** Experimento **/
+
+  .nim-group {
+    position:relative;
+    margin-top:10px;
+  }
+
+  .nim-label {
+    color: #d3d3d3;
+    font-size:16px;
+    font-weight:normal;
+    position:absolute;
+    pointer-events:none;
+    left:1px;
+    top:0px;
+    transition:0.2s ease all;
+    -moz-transition:0.2s ease all;
+    -webkit-transition:0.2s ease all;
+  }
+
+  input:focus ~ .nim-label, input:valid ~ .nim-label {
+    top:-18px;
+    font-size:12px;
+    color: #673AB7;
+  }
 </style>
 <script>
+  numero("#mynum", 5, 2, true);
   var _anchura = "550px"
   //var _altura = "500px"
 

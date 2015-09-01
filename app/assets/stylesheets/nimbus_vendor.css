@@ -1,8 +1,7 @@
 /*
- *= require ui/jquery-ui.min
  *= require ui/jquery-ui.structure.min
- *= require ui/humanity/jquery-ui
- *  require ui/smooth/jquery-ui
+ *= require ui/mdl/jquery-ui.min
+ *= require ui/mdl/jquery-ui.theme.min
  *= require jqGrid/ui.jqgrid
  *= require jquery.mmenu.all
  *= require font-awesome/css/font-awesome.min
