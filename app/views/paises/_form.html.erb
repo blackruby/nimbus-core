@@ -19,6 +19,7 @@
 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<div id="conte">
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
@@ -75,6 +76,7 @@
     <span class="mdl-layout-title">Title 1</span>
     <span class="mdl-layout-title">Title 2</span>
   </div>
+
   <main id="prcon" class="mdl-layout__content">
     <section class="mdl-layout__tab-panel is-active" id="g1">
       <div class="page-content">
@@ -96,10 +98,11 @@
 
       </div>
     </section>
+
     <section class="mdl-layout__tab-panel" id="g2">
       <div class="page-content">
         <div class="mdl-grid">
-          <div class="mdl-cell mdl-cell--4-col mdl-cell--12-col-phone">
+          <div class="mdl-cell mdl-cell--3-col mdl-cell--12-col-phone">
             <div class="nim-group">
               <input type="text" size="30" required>
               <label class="nim-label">Forma de pago</label>
@@ -120,7 +123,7 @@
         </div>
 
         <div class="mdl-grid">
-          <div class="mdl-cell mdl-cell--4-col mdl-cell--12-col-phone">
+          <div class="mdl-cell mdl-cell--3-col mdl-cell--12-col-phone">
             <div class="nim-group">
               <input type="text" size="20" required>
               <label class="nim-label">Descripción</label>
@@ -166,7 +169,6 @@
             </div>
           </div>
         </div>
-        </div>
       </div>
     </section>
     <section class="mdl-layout__tab-panel" id="g3">
@@ -183,6 +185,7 @@
     </section>
   </main>
 </div>
+</div>
 
 <style>
   * {box-sizing:border-box;}
@@ -198,11 +201,10 @@
     0 1px 5px 0 rgba(0, 0, 0, 0.12);
     width: 100%;
     position: relative;
-    height: 200px;
   */
+    height: 500px;
   }
   #prcon {
-    height: 350px;
   }
   select {
     border-width: 0px;
@@ -258,8 +260,8 @@
 </style>
 <script>
   numero("#mynum", 5, 2, true);
-  var _anchura = "550px"
-  //var _altura = "500px"
+  var _anchura = "700";
+  var _altura = "500px";
 
   //$("#solapas").tabs();
 
