@@ -1,0 +1,7 @@
+<% content_for :otra do %>
+  <hr>
+  <p>OTRA</p>
+  <p>Y OTRA</p>
+<% end %>
+
+<p>HOLA</p>

@@ -1,9 +1,9 @@
 class PaisesMod < Pais
   @campos = {
-    codigo: {div: 'g1', grid:{cellattr: '~fon~'}},
-    nombre: {div: 'g1', grid:{}},
-    tipo: {div: 'g1', grid:{}},
-    codigo_cr: {div: 'g1', grid:{}},
+    codigo: {div: 'g1', gcols: 1, grid:{cellattr: '~fon~'}},
+    nombre: {div: 'g1', gcols: 4, grid:{}},
+    tipo: {div: 'g1', gcols: 2, grid:{}},
+    codigo_cr: {div: 'g1', gcols: 2, grid:{}},
   }
 
   #@hijos = []

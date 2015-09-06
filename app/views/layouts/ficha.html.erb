@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= @titulo.nil? ? 'Nimbus' : @titulo %></title>
+  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
+  <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+  <%= csrf_meta_tags %>
+</head>
+
+<body>
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+  <header class="mdl-layout__header">
+    <div class="mdl-layout__header-row">
+      <span class="mdl-layout-title"> <%= @titulo %> </span>
+      <div class="mdl-layout-spacer"></div>
+      <nav class="mdl-navigation">
+        <label id="encurso"> </label>
+        &nbsp; &nbsp;
+        <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_grabar()">
+          <i class="material-icons">save</i>
+        </button>
+        &nbsp; &nbsp;
+        <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_borrar()">
+          <i class="material-icons">delete</i>
+        </button>
+        <% if @menu_r %>
+          &nbsp; &nbsp;
+          <button id="menu-r" class="mdl-button mdl-js-button mdl-button--icon">
+            <i class="material-icons">more_vert</i>
+          </button>
+
+          <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="menu-r">
+            <% @menu_r.each {|k, v| %>
+              <li class="mdl-menu__item"> <%= nt(k) %> </li>
+            <% } %>
+          </ul>
+        <% end %>
+      </nav>
+    </div>
+
+    <% if @tabs.size > 1 %>
+      <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+        <% @tabs.each_with_index {|t, i| %>
+          <a href="#<%= t %>" class="mdl-layout__tab <%= i==0 ? 'is-active' : '' %>"> <%= nt(t) %> </a>
+        <% } %>
+      </div>
+    <% end %>
+  </header>
+
+  <% if @menu_l %>
+    <div class="mdl-layout__drawer">
+      <% @menu_r.each {|k, v| %>
+        <span class="mdl-layout-title"> <%= nt(k) %> </span>
+      <% } %>
+    </div>
+  <% end %>
+
+  <main class="mdl-layout__content">
+    <% if @tabs.size > 1 %>
+      <% @tabs.each_with_index {|t, i| %>
+        <section class="mdl-layout__tab-panel <%= i==0 ? 'is-active' : '' %>" id="<%= t %>">
+          <div class="page-content">
+            <%= gen_form({div: t}) %>
+          </div>
+          <%= yield t.to_sym%>
+        </section>
+      <% } %>
+    <% else %>
+      <div class="page-content">
+        <%= gen_form({div: 'g1'}) %>
+      </div>
+    <% end %>
+
+    <%= yield %>
+
+  </main>
+</div>
+
+<div id="dialog-borrar" title="Borrado">
+  <p>
+    <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+    El registro será eliminado. ¿Está seguro?
+  </p>
+</div>
+
+</body>
+<style>
+  body {
+    margin-top: 0px;
+  }
+</style>
+
+<script>
+  $( "#dialog-borrar" ).dialog({
+    autoOpen: false,
+    resizable: false,
+    height:150,
+    modal: true,
+    buttons: {
+      "Sí": function() {
+        $( this ).dialog( "close" );
+        mant_borrar_ok();
+      },
+      No: function() {
+        $( this ).dialog( "close" );
+      }
+    }
+  });
+
+  <%= gen_js  %>
+  <%= @ajax.html_safe %>
+
+  $("input,select,textarea").filter(":enabled").first().focus();
+
+  componentHandler.upgradeDom();
+</script>
+
+</html>

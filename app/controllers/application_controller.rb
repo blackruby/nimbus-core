@@ -328,9 +328,15 @@ class ApplicationController < ActionController::Base
     render :json => res
   end
 
-  def new
-    #return unless sesion_valida
+  def ficha_render
+    begin
+      render action: 'ficha', layout: 'ficha'
+    rescue
+      render html: '', layout: 'ficha'
+    end
+  end
 
+  def new
     self.respond_to?('before_new') ? r = before_new : r = true
     unless r
       render file: '/public/401.html', status: 401, layout: false
@@ -338,6 +344,9 @@ class ApplicationController < ActionController::Base
     end
 
     clm = class_mant
+
+    @titulo = nt(clm.titulo)
+    @tabs = ['general', 'otra']
 
     if params[:vista]
       v = Vista.new
@@ -384,7 +393,8 @@ class ApplicationController < ActionController::Base
     #sincro_ficha
     envia_ficha
 
-    render 'shared/new'
+    #render 'shared/new'
+    ficha_render
   end
 
   def edith
@@ -413,14 +423,19 @@ class ApplicationController < ActionController::Base
 
     @ajax = ''
     envia_ficha
-    @ajax << '$(".nimbus_entry").attr("disabled", "disabled");'
-    @ajax << '$(".nimbus_entry").css("color", "black");'
+    @ajax << '$(":input").attr("disabled", true);'
     @ajax << dif
     render 'shared/edith'
   end
 
   def edit
     clm = class_mant
+
+    @titulo = nt(clm.titulo)
+    @tabs = []
+    clm.campos.each{|c, v|
+      @tabs << v[:div] if v[:div] and !@tabs.include?(v[:div])
+    }
 
     if clm.mant? and params[:id][0] == 'h'
       edith
@@ -433,7 +448,7 @@ class ApplicationController < ActionController::Base
         @fact.id = 0
         @ajax = ''
         envia_ficha
-        render 'shared/edit'
+        ficha_render
         return
       else
         @fact = clm.find_by id: params[:id]
@@ -455,8 +470,6 @@ class ApplicationController < ActionController::Base
       ini_campos if self.respond_to?('ini_campos')
     end
 
-    @titulo = nt(clm.titulo)
-
     if params[:vista]
       v = Vista.new
       v.id = params[:vista]
@@ -474,11 +487,10 @@ class ApplicationController < ActionController::Base
     @ajax = 'var _vista=' + v.id.to_s + ';var _controlador="' + params['controller'] + '";'
 
     sincro_hijos(v.id)
-    #sincro_ficha
     before_envia_ficha if self.respond_to?('before_envia_ficha')
     envia_ficha
 
-    render 'shared/edit' if clm.mant?
+    ficha_render if clm.mant?
   end
 
   def auto
@@ -865,21 +877,9 @@ class_mant.campos.each {|cs, h|
   def gen_form(h={})
     clm = class_mant
 
-    if h[:table] != nil
-      tab = h[:table]
-    else
-      tab = true
-    end
-
-    if tab
-      sal = '<table>'
-      pref = '<td>'
-      suf = '</td>'
-    else
-      sal = ''
-      pref = ''
-      suf = ''
-    end
+    sal = ''
+    ncols = 0
+    prim = true
 
     #@e = clm.column_names.include?('empresa_id') ? @fact.empresa : nil
     #@j = clm.column_names.include?('ejercicio_id') ? @fact.ejercicio : nil
@@ -890,18 +890,10 @@ class_mant.campos.each {|cs, h|
       cs = c.to_s
       next if v[:div].nil? or v[:div] != h[:div]
 
-      if block_given?
-        plus = yield(cs)
-      else
-        plus = ''
-      end
-
-      next if plus == 'stop'
-
       ro = eval_cad(v[:ro])
       manti = eval_cad(v[:manti])
       decim = eval_cad(v[:decim])
-      size = manti + decim + manti/3 + 1
+      size = v[:size] ? v[:size].to_s : (manti + decim + manti/3 + 1).to_s
       manti = manti.to_s
       rows = eval_cad(v[:rows])
       sel = eval_cad(v[:sel])
@@ -911,50 +903,85 @@ class_mant.campos.each {|cs, h|
         code_rell = eval_cad(code[:relleno])
       end
 
-      plus = '' if plus.class != String
 
+      plus = ''
       plus << ' disabled' if ro == :all or ro == params[:action].to_sym
-      plus << ' class="nimbus_entry"'
 
-      sal << '<tr>' if tab
-      sal << pref + '<label for="' + cs + '">' + nt(v[:label]) + ':</label>' + suf
+      if prim or ncols >= 12
+        sal << '</div>' unless prim
+        sal << '<div class="mdl-grid">'
+        ncols = 0
+        prim = false
+      end
 
-      sal << pref
+      ncols += v[:gcols]
+
+      sal << '<div class="mdl-cell mdl-cell--' + v[:gcols].to_s + '-col">'
 
       if v[:type] == :boolean
-        sal << '<input id="' + cs + '" type="checkbox" onchange="vali_check($(this))" ' + plus + '/>'
+        sal << '<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="' + cs + '">'
+        sal << '<input id="' + cs + '" type="checkbox" class="mdl-checkbox__input" onchange="vali_check($(this))" ' + plus + '/>'
+        sal << '<span class="mdl-checkbox__label">' + nt(v[:label]) + '</span>'
+        sal << '</label>'
       elsif v[:type] == :text
-        sal << '<textarea id="' + cs + '" cols=' + manti + ' rows=' + rows.to_s + ' onchange="validar($(this))" ' + plus + '>'
+        sal << '<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">'
+        sal << '<textarea class="mdl-textfield__input" type="text" id="' + cs + '" cols=' + size + ' rows=' + rows.to_s + ' onchange="validar($(this))" ' + plus + '>'
         sal << '</textarea>'
+        sal << '<label class="mdl-textfield__label">' + nt(v[:label]) + '</label>'
+        sal << '</div>'
+=begin
+        sal << '<div class="nim-group">'
+        sal << '<textarea id="' + cs + '" cols=' + size + ' rows=' + rows.to_s + ' required onchange="validar($(this))" ' + plus + '>'
+        sal << '</textarea>'
+        sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
+        sal << '</div>'
+=end
       elsif v[:code]
-          sal << '<input id="' + cs + '" size=' + manti + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" ' + plus + '/>'
+          sal << '<input id="' + cs + '" size=' + v[:size].to_s + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" ' + plus + '/>'
       elsif sel
-        sal << '<select id="' + cs + '" onchange="validar($(this))" ' + plus + '>'
+        sal << '<div class="nim-group">'
+        sal << '<select id="' + cs + '" required onchange="validar($(this))" ' + plus + '>'
         sel.each{|k, tex|
           sal << '<option value="' + k.to_s + '">' + nt(tex) + '</option>'
         }
         sal << '</select>'
+        sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
+        sal << '</div>'
       elsif cs.ends_with?('_id')
-        sal << '<input id="' + cs + '" size=' + manti + ' ' + plus + '/>'
+        sal << '<div class="nim-group">'
+        #sal << '<input id="' + cs + '" size=' + v[:size].to_s + ' required ' + plus + '/>'
+        sal << '<input id="' + cs + '" required style="max-width: ' + size + 'em" ' + plus + '/>'
+        sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
+=begin
+        sal << '<button id="_acb_' + cs + '" class="nim-autocomp-button mdl-button mdl-js-button mdl-button--icon">'
+        sal << '<i class="material-icons">more_vert</i>'
+        sal << '</button>'
+        sal << '<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="_acb_' + cs + '">'
+        sal << '<li class="mdl-menu__item">Buscar</li>'
+        sal << '<li class="mdl-menu__item">Ir a</li>'
+        sal << '</ul>'
+=end
+        sal << '</div>'
       else
-        sal << '<input id="' + cs + '" size=' + size.to_s + ' onchange="validar($(this))"'
-        sal << ' maxlength=' + manti if v[:type] == :string
+        sal << '<div class="nim-group">'
+        #sal << '<input id="' + cs + '" size=' + size + ' required onchange="validar($(this))"'
+        sal << '<input id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
+        sal << ' maxlength=' + size if v[:type] == :string
         sal << ' ' + plus + '/>'
+        sal << '<label class="nim-label" for="' + cs + '">' + nt(v[:label]) + '</label>'
+        sal << '</div>'
       end
 
-      sal << suf
-
-      sal << '</tr>' if tab
+      sal << '</div>'
     }
-
-    sal << '</table>' if tab
+    sal << '</div>' # Fin de <div class="mdl-grid">
 
     sal.html_safe
   end
 
   def gen_js
     if @fact.id == 0
-      return '$(":input").attr("disabled", "disabled");'.html_safe
+      return '$(":input").attr("disabled", true);'.html_safe
     end
 
     clm = class_mant

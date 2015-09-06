@@ -239,7 +239,7 @@ module MantMod
           end
         when :text
           v[:manti] ||= 50
-          v[:rows] ||= 10
+          v[:rows] ||= 5
           if hay_grid
             v[:grid][:edittype] ||= 'textarea'
             v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc','nu','nn']
@@ -247,6 +247,8 @@ module MantMod
         end
 
         v[:decim] ||= 0
+        v[:gcols] ||= 3
+        v[:size] ||= v[:manti]
 
         # Cálculo de la anchura de las columnas
         if hay_grid and v[:grid][:width].nil?
