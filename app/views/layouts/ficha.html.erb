@@ -39,10 +39,10 @@
       </nav>
     </div>
 
-    <% if @tabs.size > 1 %>
+    <% if @tabs.size > 0 %>
       <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
         <% @tabs.each_with_index {|t, i| %>
-          <a href="#<%= t %>" class="mdl-layout__tab <%= i==0 ? 'is-active' : '' %>"> <%= nt(t) %> </a>
+          <a href="#t_<%= t %>" class="mdl-layout__tab <%= i==0 ? 'is-active' : '' %>"> <%= nt(t) %> </a>
         <% } %>
       </div>
     <% end %>
@@ -57,23 +57,32 @@
   <% end %>
 
   <main class="mdl-layout__content">
-    <% if @tabs.size > 1 %>
-      <% @tabs.each_with_index {|t, i| %>
-        <section class="mdl-layout__tab-panel <%= i==0 ? 'is-active' : '' %>" id="<%= t %>">
-          <div class="page-content">
-            <%= gen_form({div: t}) %>
-          </div>
-          <%= yield t.to_sym%>
-        </section>
-      <% } %>
-    <% else %>
-      <div class="page-content">
-        <%= gen_form({div: 'g1'}) %>
+    <div class="page-content">
+      <div id="_d-input-pk_" class="nim-group" style="display: none">
+        <input id="_input-pk_" required style="max-width: 40em"/>
+        <label class="nim-label-fix">Búsqueda</label>
       </div>
-    <% end %>
 
-    <%= yield %>
+      <%= gen_form({tab: 'pre'}) %>
+      <%= yield :pre %>
 
+      <% if @tabs.size > 0 %>
+        <% @tabs.each_with_index {|t, i| %>
+          <section class="mdl-layout__tab-panel <%= i==0 ? 'is-active' : '' %>" id="t_<%= t %>">
+            <div class="page-content">
+              <%= gen_form({tab: t}) %>
+              <% if @hijos.map{|h| h[:tab]}.include?(t) %>
+                <iframe id="<%= t %>" style="height: 600px"></iframe>
+              <% end %>
+              <%= yield t.to_sym%>
+            </div>
+          </section>
+        <% } %>
+      <% end %>
+
+      <%= gen_form({tab: 'post'}) %>
+      <%= yield %>
+    </div>
   </main>
 </div>
 
@@ -95,7 +104,8 @@
   $( "#dialog-borrar" ).dialog({
     autoOpen: false,
     resizable: false,
-    height:150,
+    height:170,
+    width: 350,
     modal: true,
     buttons: {
       "Sí": function() {

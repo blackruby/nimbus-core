@@ -1,8 +1,12 @@
 class DivisasMod < Divisa
   @campos = {
-    codigo: {div: 'g1', grid:{}},
-    descripcion: {div: 'g1', grid:{}},
-    decimales: {div: 'g1', grid:{}},
+    codigo: {tab: 'pre', grid:{}},
+    descripcion: {tab: 'pre', grid:{}},
+    decimales: {tab: 'pre', grid:{}},
+  }
+
+  @grid = {
+    scroll: true,
   }
 
   #@hijos = []

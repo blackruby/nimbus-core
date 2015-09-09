@@ -1,14 +1,18 @@
 class EjerciciosMod < Ejercicio
   @campos = {
-    codigo: {div: 'g1', grid:{}},
-    descripcion: {div: 'g1', grid:{}},
-    ej_anterior_id: {div: 'g1'},
-    ej_siguiente_id: {div: 'g1'},
-    divisa_id: {div: 'g1', manti: 10},
-    fec_inicio: {div: 'g1', grid:{}},
-    fec_fin: {div: 'g1', grid:{}},
+    codigo: {tab: 'pre', grid:{}},
+    descripcion: {tab: 'pre', grid:{}},
+    ej_anterior_id: {tab: 'pre'},
+    ej_siguiente_id: {tab: 'pre'},
+    divisa_id: {tab: 'pre', manti: 10},
+    fec_inicio: {tab: 'pre', grid:{}},
+    fec_fin: {tab: 'pre', grid:{}},
   }
 
+  @grid = {
+    height: 100,
+    scroll: true,
+  }
   #@hijos = []
 
   #after_initialize :ini_campos_ctrl

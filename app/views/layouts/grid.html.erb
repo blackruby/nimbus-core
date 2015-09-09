@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= @titulo.nil? ? 'Nimbus' : @titulo %></title>
+  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
+  <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+  <%= csrf_meta_tags %>
+</head>
+
+<body>
+<%= yield :before %>
+
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+<header class="mdl-layout__header">
+  <div class="mdl-layout__header-row">
+    <span class="mdl-layout-title"> <%= @titulo %> </span>
+    <div class="mdl-layout-spacer"></div>
+    <nav class="mdl-navigation">
+      <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="searchBar()">
+        <i class="material-icons">search</i>
+      </button>
+      &nbsp; &nbsp;
+      <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="editInForm()">
+        <i class="material-icons">edit</i>
+      </button>
+      &nbsp; &nbsp;
+      <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="newFicha()">
+        <i class="material-icons">add</i>
+      </button>
+      &nbsp; &nbsp; &nbsp; &nbsp;
+      <button id="b-collapse" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
+        <i class="material-icons">swap_vert</i>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<table id="grid"></table>
+
+<iframe id="ficha" class="ficha"> </iframe>
+
+<%= yield %>
+</div>
+
+<style>
+  #dficha{
+    /*display: inline-block;*/
+    vertical-align: top;
+    margin: 3px;
+    border-style: solid;
+  }
+  #dficha {
+    /*
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 3px 1px -2px rgba(0, 0, 0, 0.2),
+    0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    */
+  }
+</style>
+
+<script>
+	grid = $("#grid");
+	toolgrid = '#grid_toppager';
+
+	var vgrid = grid.jqGrid({
+    colModel: <%= raw @view[:col_model] %>,
+    //caption: '<%= @titulo %>',
+    sortname: <%= raw @view[:orden_grid][:campo] %>,
+    sortorder: '<%= @view[:orden_grid][:sentido] %>',
+    url:'<%= @view[:url_list].html_safe %>',
+    cellurl:'<%= @view[:url_cell].html_safe %>',
+    beforeProcessing: jqg_before_processing,
+    beforeEditCell: jqg_before_edit_cell,
+    beforeEditCell: jqg_before_edit_cell,
+    beforeSubmitCell: jqg_before_submit_cell,
+    afterSubmitCell: jqg_after_submit_cell,
+    afterSaveCell: jqg_after_save_cell,
+    datatype: "json",
+    mtype: 'POST',
+
+		height: <%= @view[:grid][:height] %>,
+    //width: 500,
+    autowidth: true,
+		rowNum:50,
+
+		cellEdit: true,
+		gridview: true,	// Acelera la velocidad de renderizado. Poner a false con trees y subgrids
+
+    //toppager: true,
+		rowList:[10,20,30,50,100,500,1000],
+		altRows: true,	// filas tipo cebra
+		sortable: true,	// Si las columnas se pueden reordenar (cambiar de sitio)
+		viewrecords: true,	// Muestra información del total de registros en la toolbar
+
+		ondblClickRow: editInForm,
+
+    shrinkToFit: true,
+		//multiSort: true,
+		//multiselect: true,
+		//rownumbers: true,
+		scroll: <%= @view[:grid][:scroll] %>,
+	});
+
+	grid.jqGrid('gridResize', {handles: "s", minHeight: 80});
+	grid.jqGrid('navGrid', toolgrid, {edit: false, add: false, del: true}, {}, {}, {}, {multipleSearch: true, multipleGroup: true, showQuery: true});
+	grid.jqGrid('filterToolbar', {stringResult: true, searchOperators: true}); vgrid[0].toggleToolbar();
+	grid.jqGrid('bindKeys');
+
+	grid.jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Barra de búsqueda", buttonicon :'ui-icon-pin-s', onClickButton:function(){vgrid[0].toggleToolbar()}});
+	grid.jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Formulario", buttonicon :'ui-icon-carat-2-n-s', onClickButton: editInForm});
+	grid.jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Nueva Alta", buttonicon :'ui-icon-plus', onClickButton: newFicha});
+
+  function editInLine() {
+    id = grid.jqGrid('getGridParam','selrow');
+    if (id != null)
+      grid.jqGrid('editRow', id, true);
+    else
+      alert("Seleccione un registro");
+  }
+
+  function searchBar() {vgrid[0].toggleToolbar();}
+
+  function editInForm() {
+    id = grid.jqGrid('getGridParam','selrow');
+    if (id != null) {
+      $("#ficha").attr('src', '<%= @view[:url_base] %>' + id + '/edit' + '<%= @view[:arg_edit] %>');
+      $("#dialog").dialog("open");
+    } else
+      alert("Seleccione un registro");
+  }
+
+  function newFicha() {
+    $("#ficha").attr('src', '<%= @view[:url_new] %>');
+    $("#dialog").dialog("open");
+  }
+
+  $("#ficha").load(function() {
+    /*
+    h = this.contentWindow._altura;
+    if (h == undefined) h = this.contentWindow.document.body.offsetHeight + 100 + 'px';
+    $(this).parent().css("height", h);
+     w = this.contentWindow._anchura;
+     if (w == undefined) w = "400px"
+     $(this).parent().css("width", w);
+     */
+    $(this).css("height", $("#ficha").contents().find('.mdl-layout__content')[0].scrollHeight + 130 + "px");
+  });
+
+  function grid_reload() {
+    grid.trigger('reloadGrid');
+  }
+
+  $("#ficha").attr('src', '<%= @view[:url_base] %>0/edit');
+
+  // Recalcular la anchura del grid cuando se redimensione la ventana
+
+  //$("#dficha").css("height", $(window).height() - $("#gbox_grid").height() - 10);
+  $(window).resize(function () {
+    var jqGridWrapperId = "#gbox_" + grid.attr('id');
+    grid.setGridWidth($(jqGridWrapperId).parent().width()-1, true);
+   // $("#dficha").css("height", $(window).height() - $("#gbox_grid").height() - 10);
+  });
+
+  $("#b-collapse").click(function () {
+    if ($("#gbox_grid").attr('data-status') != 'hidden' || $("#gbox_grid").attr('data-status') == undefined) {
+      $("#gbox_grid").attr('data-status', 'hidden');
+      $("#gbox_grid").css('display', 'none');
+    } else {
+      $("#gbox_grid").attr('data-status', 'active');
+      $("#gbox_grid").css('display', 'block');
+    }
+    //$("#gbox_grid").css({'height': 'auto'});
+    //$("#dficha").css("height", $(window).height() - $("#gbox_grid").height() - 10);
+  });
+</script>
+
+<%= yield :after %>
+
+</body>
+</html>

@@ -10,12 +10,13 @@ class Pais < ActiveRecord::Base
   after_initialize :ini_campos
 
   def ini_campos
-    tipo = 'R'
+    self.tipo = 'R'
   end
 end
 
 class Pais < ActiveRecord::Base
   include Modelo
+
 end
 
 class HPais < ActiveRecord::Base

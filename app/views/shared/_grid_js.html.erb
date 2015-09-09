@@ -23,13 +23,12 @@ function newFicha() {
 $("#ficha").load(function() {
   h = this.contentWindow._altura;
   if (h == undefined) h = this.contentWindow.document.body.offsetHeight + 100 + 'px';
-alert(h);
   $(this).parent().css("height", h);
+/*
   w = this.contentWindow._anchura;
-alert(w);
   if (w == undefined) w = "400px"
-alert(w);
   $(this).parent().css("width", w);
+*/
 });
 
 function grid_reload() {

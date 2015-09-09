@@ -8,18 +8,20 @@
 
 <style>
   #dgrid, #dficha {
-    display: inline-block;
+    /*display: inline-block;*/
     vertical-align: top;
+    margin: 3px;
   }
   #dficha {
+    /*
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
     0 3px 1px -2px rgba(0, 0, 0, 0.2),
     0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    */
   }
 </style>
 
 <script>
-  $("#dficha").resizable();
   fon = function(id, v){
     if (v[0] == "A") return(" class='negrita'");
   }
@@ -31,7 +33,8 @@
 		<%= render "shared/grid_def" %>
 
 		height: 300,
-		width: 500,
+    //width: null,
+    autowidth: true,
 		rowNum:50,
 
 		cellEdit: true,
@@ -45,14 +48,14 @@
 
 		ondblClickRow: editInForm,
 
-		//shrinkToFit: false,
+    shrinkToFit: true,
 		//multiSort: true,
 		//multiselect: true,
 		//rownumbers: true,
 		scroll: true,
 	});
 
-	$(grid).jqGrid('gridResize', {minWidth: 500, minHeight: 80});
+	$(grid).jqGrid('gridResize', {handles: "s", minWidth: 500, minHeight: 80});
 	$(grid).jqGrid('navGrid', toolgrid, {edit: false, add: false, del: true}, {}, {}, {}, {multipleSearch: true, multipleGroup: true, showQuery: true});
 	$(grid).jqGrid('filterToolbar', {stringResult: true, searchOperators: true}); vgrid[0].toggleToolbar();
 	$(grid).jqGrid('bindKeys');
@@ -62,4 +65,10 @@
 	$(grid).jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Nueva Alta", buttonicon :'ui-icon-plus', onClickButton: newFicha});
 
 	<%= render "shared/grid_js" %>
+
+  var $targetGrid = $("#myGridId");
+  $(window).resize(function () {
+    var jqGridWrapperId = "#gbox_" + $(grid).attr('id');
+    $(grid).setGridWidth($(jqGridWrapperId).parent().width()-1, true);
+  });
 </script>

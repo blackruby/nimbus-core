@@ -1,23 +1,28 @@
 class EmpresasMod < Empresa
   @campos = {
-    codigo: {div: 'general', grid:{}},
-    nombre: {div: 'general', grid:{}},
-    cif: {div: 'general', grid:{}},
-    direccion: {div: 'general'},
-    cod_postal: {div: 'general'},
-    poblacion: {div: 'general'},
-    provincia: {div: 'general'},
-    telefono: {div: 'general', grid: {}},
-    fax: {div: 'general'},
-    email: {div: 'general'},
-    p_long: {div: 'parametros'},
-    p_mod_fiscal: {div: 'parametros'},
-    p_dec_cantidad: {div: 'parametros'},
-    p_dec_precio_r: {div: 'parametros'},
-    p_dec_precio_v: {div: 'parametros'},
+    codigo: {tab: 'pre', grid:{}},
+    nombre: {tab: 'pre', grid:{}},
+    cif: {tab: 'general', grid:{}},
+    direccion: {tab: 'general'},
+    cod_postal: {tab: 'general'},
+    poblacion: {tab: 'general'},
+    provincia: {tab: 'general'},
+    telefono: {tab: 'general', grid: {}},
+    fax: {tab: 'general'},
+    email: {tab: 'general'},
+    p_long: {tab: 'parametros'},
+    p_mod_fiscal: {tab: 'parametros'},
+    p_dec_cantidad: {tab: 'parametros'},
+    p_dec_precio_r: {tab: 'parametros'},
+    p_dec_precio_v: {tab: 'parametros'},
   }
 
-  @hijos = ['ejercicios']
+  @grid = {
+    height: 200,
+    scroll: true,
+  }
+
+  @hijos = [{id: 'ejercicios', tab: 'ejercicios'}]
 
   #after_initialize :ini_campos_ctrl
 

@@ -96,6 +96,10 @@ module MantMod
       @campos_f = []
       @campos_X = []
 
+      @grid ||= {}
+      @grid[:height] ||= 250
+      @grid[:scroll] = false if @grid[:scroll].nil?
+
       refs_ids = [] #Contiene las distintas clases asociadas a los id's que van apareciendo (para calcular bien el index)
       @campos.each {|c, v|
         campo = c.to_s
@@ -120,7 +124,7 @@ module MantMod
           end
         end
 
-        @campos_f << campo if v[:div]
+        @campos_f << campo if v[:tab]
 
         if campo.ends_with?('_id')
           v[:type] = :string
@@ -352,7 +356,7 @@ module MantMod
       campo = c.to_s
       v[:label] ||= campo.ends_with?('_id') ? campo[0..-4] : campo
       @campos[c] = v
-      @campos_f << campo if v[:div]
+      @campos_f << campo if v[:tab]
       add_campo_x(campo, v)
     end
 
@@ -390,6 +394,10 @@ module MantMod
 
     def view?
       @view
+    end
+
+    def grid
+      @grid
     end
   end
 

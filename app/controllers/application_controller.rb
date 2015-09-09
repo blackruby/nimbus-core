@@ -129,7 +129,7 @@ class ApplicationController < ActionController::Base
 
   def sincro_hijos(vid)
     class_mant.hijos.each {|h|
-      @ajax << '$(function(){$("#' + h.split('/')[-1] + '").attr("src", "/' + h
+      @ajax << '$(function(){$("#' + h[:id].split('/')[-1] + '").attr("src", "/' + h[:id]
       @ajax << '?mod=' + class_modelo.to_s
       @ajax << '&id=' + @fact.id.to_s
       @ajax << '&padre=' + vid.to_s
@@ -167,15 +167,17 @@ class ApplicationController < ActionController::Base
     end
 
     @titulo = nt(clm.titulo)
-    @url_base = '/' + params[:controller] + '/'
-    @url_list = @url_base + 'list'
-    @url_new = @url_base + 'new'
-    @arg_edit = '?'
+
+    @view = {grid: clm.grid}
+    @view[:url_base] = '/' + params[:controller] + '/'
+    @view[:url_list] = @view[:url_base] + 'list'
+    @view[:url_new] = @view[:url_base] + 'new'
+    @view[:arg_edit] = '?'
     arg_list_new = '?'
 
     if params[:mod] != nil
       arg_list_new << '&mod=' + params[:mod] + '&id=' + params[:id] + '&padre=' + params[:padre]
-      @arg_edit << '&padre=' + params[:padre]
+      @view[:arg_edit] << '&padre=' + params[:padre]
     end
 
     if eid
@@ -188,12 +190,12 @@ class ApplicationController < ActionController::Base
       @j = Ejercicio.find_by id: jid.to_i
     end
 
-    @url_list << arg_list_new
-    @url_new << arg_list_new
+    @view[:url_list] << arg_list_new
+    @view[:url_new] << arg_list_new
 
     if clm.mant? # No es un proc, y por lo tanto preparamos los datos del grid
-      @orden_grid = clm.orden_grid
-      @url_cell = @url_base + '/validar_cell'
+      @view[:orden_grid] = clm.orden_grid
+      @view[:url_cell] = @view[:url_base] + '/validar_cell'
 
       cm = clm.col_model.deep_dup
       cm.each {|h|
@@ -204,9 +206,10 @@ class ApplicationController < ActionController::Base
           }
         end
       }
-      @col_model = eval_cad(clm.col_model_html(cm))
-      #@col_model = clm.col_model_html(cm)
+      @view[:col_model] = eval_cad(clm.col_model_html(cm))
     end
+
+    pag_render('grid')
   end
 
   def forma_eager(eager, campo)
@@ -328,12 +331,24 @@ class ApplicationController < ActionController::Base
     render :json => res
   end
 
-  def ficha_render
+  def pag_render(pag)
     begin
-      render action: 'ficha', layout: 'ficha'
+      render action: pag, layout: pag
     rescue
-      render html: '', layout: 'ficha'
+      render html: '', layout: pag
     end
+  end
+
+  def var_for_views(clm)
+    @titulo = nt(clm.titulo)
+    @tabs = []
+    @hijos = clm.hijos
+    clm.campos.each{|c, v|
+      @tabs << v[:tab] if v[:tab] and !@tabs.include?(v[:tab]) and v[:tab] != 'pre' and v[:tab] != 'post'
+    }
+    clm.hijos.each{|h|
+      @tabs << h[:tab] if h[:tab] and !@tabs.include?(h[:tab]) and h[:tab] != 'pre' and h[:tab] != 'post'
+    }
   end
 
   def new
@@ -345,8 +360,8 @@ class ApplicationController < ActionController::Base
 
     clm = class_mant
 
+    var_for_views(clm)
     @titulo = nt(clm.titulo)
-    @tabs = ['general', 'otra']
 
     if params[:vista]
       v = Vista.new
@@ -394,7 +409,7 @@ class ApplicationController < ActionController::Base
     envia_ficha
 
     #render 'shared/new'
-    ficha_render
+    pag_render('ficha')
   end
 
   def edith
@@ -431,11 +446,7 @@ class ApplicationController < ActionController::Base
   def edit
     clm = class_mant
 
-    @titulo = nt(clm.titulo)
-    @tabs = []
-    clm.campos.each{|c, v|
-      @tabs << v[:div] if v[:div] and !@tabs.include?(v[:div])
-    }
+    var_for_views(clm)
 
     if clm.mant? and params[:id][0] == 'h'
       edith
@@ -446,10 +457,6 @@ class ApplicationController < ActionController::Base
       if params[:id] == '0'   # Para mostrar fichas vacías con todo deshabilitado
         @fact = clm.new
         @fact.id = 0
-        @ajax = ''
-        envia_ficha
-        ficha_render
-        return
       else
         @fact = clm.find_by id: params[:id]
         if @fact.nil?
@@ -459,7 +466,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    self.respond_to?('before_edit') ? r = before_edit : r = nil
+    (@fact.id != 0 and self.respond_to?('before_edit')) ? r = before_edit : r = nil
     if r
       render file: r, status: 401, layout: false
       return
@@ -486,11 +493,14 @@ class ApplicationController < ActionController::Base
     @fant = clm.new
     @ajax = 'var _vista=' + v.id.to_s + ';var _controlador="' + params['controller'] + '";'
 
-    sincro_hijos(v.id)
-    before_envia_ficha if self.respond_to?('before_envia_ficha')
+    if @fact.id != 0
+      sincro_hijos(v.id)
+      before_envia_ficha if self.respond_to?('before_envia_ficha')
+    end
+
     envia_ficha
 
-    ficha_render if clm.mant?
+    pag_render('ficha') if clm.mant?
   end
 
   def auto
@@ -731,6 +741,15 @@ class ApplicationController < ActionController::Base
     campo = params[:campo]
     valor = params[:valor]
 
+    if campo == '_input-pk_'
+      if valor == ''
+        render :nothing => true
+      else
+        render :js => 'window.location.replace("/' + params[:controller] + '/' + valor + '/edit");'
+      end
+      return
+    end
+
     @fact.method(campo + '=').call(raw_val(campo, valor))
 
 =begin
@@ -888,7 +907,7 @@ class_mant.campos.each {|cs, h|
 
     clm.campos.each{|c, v|
       cs = c.to_s
-      next if v[:div].nil? or v[:div] != h[:div]
+      next if v[:tab].nil? or v[:tab] != h[:tab]
 
       ro = eval_cad(v[:ro])
       manti = eval_cad(v[:manti])
@@ -974,16 +993,12 @@ class_mant.campos.each {|cs, h|
 
       sal << '</div>'
     }
-    sal << '</div>' # Fin de <div class="mdl-grid">
+    sal << '</div>' if sal != ''   # Fin de <div class="mdl-grid">
 
     sal.html_safe
   end
 
   def gen_js
-    if @fact.id == 0
-      return '$(":input").attr("disabled", true);'.html_safe
-    end
-
     clm = class_mant
     sal = ''
 
@@ -992,8 +1007,19 @@ class_mant.campos.each {|cs, h|
     @e = @fact.empresa if @fact.respond_to?('empresa')
     @j = @fact.ejercicio if @fact.respond_to?('ejercicio')
 
+    if @fact.id == 0
+      sal << '$(":input").attr("disabled", true);'
+      sal << '$("#_d-input-pk_").css("display", "block");'
+      sal << '$("#_input-pk_").attr("disabled", false);'
+      sal << 'auto_comp("#_input-pk_","/application/auto?mod=' + clm.superclass.to_s
+      sal << '&eid=' + @e.id.to_s if @e
+      sal << '&jid=' + @j.id.to_s if @j
+      sal << '");'
+      return sal.html_safe
+    end
+
     class_mant.campos.each{|c, v|
-      next unless v[:div]
+      next unless v[:tab]
 
       if block_given?
         plus = yield(c)

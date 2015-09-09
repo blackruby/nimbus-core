@@ -4,7 +4,7 @@
 
 namespace :nimbus do
   desc 'Generar mantenimientos a partir de los esquemas definidos'
-  task :genmant, [:file] => :environment do |task, args|
+  task :genmant, [:file, :opt] => :environment do |task, args|
 
     def trata_def(tipo, fic, modulo, ar)
       mod = fic[fic.rindex('/')+1..-5]
@@ -151,11 +151,11 @@ namespace :nimbus do
           modelo.print(', mask: \'' + cmp[:mask].to_s + '\'') if cmp[:mask]
           modelo.puts('},')
 
-          if cmp[:div] or cmp[:grid]
+          if cmp[:tab] or cmp[:grid]
             controller.print("    #{cmpn}: {")
-            controller.print('div: \'' + cmp[:div] + '\'') if cmp[:div]
+            controller.print('tab: \'' + cmp[:tab] + '\'') if cmp[:tab]
             if cmp[:grid]
-              controller.print(', ') if cmp[:div]
+              controller.print(', ') if cmp[:tab]
               controller.print('grid: ' + cmp[:grid].to_s)
             end
             controller.puts('},')
@@ -206,7 +206,7 @@ namespace :nimbus do
         mig.puts('=end') unless prop[:mig]
         mig.puts('end')
         mig.rewind
-        File.write("#{path}db/migrate/#{ar[:version].strftime('%Y%m%d%H%M%S')}_create_#{table}.rb", mig.read)
+        File.write("#{path}db/migrate/#{ar[:version].strftime('%Y%m%d%H%M%S')}_create_#{table}.rb", mig.read) if tipo != 'ctr'
         ar[:version] += 1
 
         # Generar el modelo
@@ -235,7 +235,7 @@ namespace :nimbus do
         end
         modelo.rewind
 
-        File.write("#{path}app/models/#{modulo}/#{mod}.rb", modelo.read)
+        File.write("#{path}app/models/#{modulo}/#{mod}.rb", modelo.read) if tipo != 'ctr'
 
         # Generar el controlador
         controller.puts('  }')
@@ -262,20 +262,22 @@ namespace :nimbus do
         f = "#{path}app/views/#{modulo}/#{modp}"
         begin
           Dir.mkdir(f)
-          FileUtils.cp('modulos/nimbus-core/privado/views/index.html.erb', f)
-          FileUtils.cp('modulos/nimbus-core/privado/views/_form.html.erb', f)
+          #FileUtils.cp('modulos/nimbus-core/privado/views/index.html.erb', f)
+          #FileUtils.cp('modulos/nimbus-core/privado/views/_form.html.erb', f)
         rescue
-          puts('  Ya existe el directorio de vistas. Se respetará su contenido')
+          #puts('  Ya existe el directorio de vistas. Se respetará su contenido')
         end
 
         # Generar las rutas
-        f = "#{path}config/routes.rb"
-        r = File.read(f)
-        cad = "'#{modp}'"
-        if r.index(cad).nil?
-          ifc = r.index(']')
-          cad.insert(0, ',') if r[ifc - 1] != '['
-          File.write(f, r.insert(ifc, cad))
+        if tipo != 'ctr'
+          f = "#{path}config/routes.rb"
+          r = File.read(f)
+          cad = "'#{modp}'"
+          if r.index(cad).nil?
+            ifc = r.index(']')
+            cad.insert(0, ',') if r[ifc - 1] != '['
+            File.write(f, r.insert(ifc, cad))
+          end
         end
 
       #rescue
@@ -309,6 +311,19 @@ namespace :nimbus do
 
     f = args[:file]
     if f
+      unless File.exists?(f)
+        puts
+        puts 'No existe el esquema'
+        puts
+        exit(1)
+      end
+
+      if args[:opt] != 'ctr' and args[:opt] != 'all'
+        puts
+        puts 'Especifica opción [ctr, all]'
+        puts
+        exit(1)
+      end
       if f.start_with?('esquemas/') or f.start_with?('modulos/nimbus-core/')
         mod = ''
       elsif File.directory?(f[0..f.rindex('/')-1].gsub('esquemas', '.git'))
@@ -316,7 +331,7 @@ namespace :nimbus do
       else
         mod = ''
       end
-      trata_def(:reg, f, mod, ar)
+      trata_def(args[:opt], f, mod, ar)
     else
       busca_esquemas('esquemas', '', ar)
       Dir.glob('modulos/*/esquemas').each {|d|
@@ -327,13 +342,15 @@ namespace :nimbus do
     end
 
 
-    # Actualizar ficheros de idioma
-    locales.each {|l|
-      ar[:loc][l][l.to_s] = ar[:loc][l][l.to_s].sort.to_h # Ordenamos el locale en orden alfabético de claves
-      File.write("modulos/idiomas/config/locales/nimbus_#{l.to_s}.yml", YAML.dump(ar[:loc][l]))
-    }
+    if args[:opt] != 'ctr'
+      # Actualizar ficheros de idioma
+      locales.each {|l|
+        ar[:loc][l][l.to_s] = ar[:loc][l][l.to_s].sort.to_h # Ordenamos el locale en orden alfabético de claves
+        File.write("modulos/idiomas/config/locales/nimbus_#{l.to_s}.yml", YAML.dump(ar[:loc][l]))
+      }
 
-    # Ejecutar migraciones
-    Rake::Task['db:migrate'].invoke
+      # Ejecutar migraciones
+      Rake::Task['db:migrate'].invoke
+    end
   end
 end
