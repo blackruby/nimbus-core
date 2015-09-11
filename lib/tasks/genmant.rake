@@ -158,7 +158,9 @@ namespace :nimbus do
               controller.print(', ') if cmp[:tab]
               controller.print('grid: ' + cmp[:grid].to_s)
             end
+            controller.print(', size: ' + cmp[:size].to_s) if cmp[:size]
             controller.print(', gcols: ' + cmp[:gcols].to_s) if cmp[:gcols]
+            controller.print(', hr: ' + cmp[:hr].to_s) if cmp[:hr]
             controller.puts('},')
           end
         }

@@ -926,8 +926,9 @@ class_mant.campos.each {|cs, h|
       plus = ''
       plus << ' disabled' if ro == :all or ro == params[:action].to_sym
 
-      if prim or ncols >= 12
+      if prim or v[:hr] or ncols >= 12
         sal << '</div>' unless prim
+        sal << '<hr>' if v[:hr]
         sal << '<div class="mdl-grid">'
         ncols = 0
         prim = false
