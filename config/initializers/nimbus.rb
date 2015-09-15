@@ -97,7 +97,15 @@ module MantMod
       @campos_X = []
 
       @grid ||= {}
+      @grid[:ew] ||= :w
+      @grid[:gcols].is_a?(Fixnum) ? @grid[:gcols] = [@grid[:gcols]] : @grid[:gcols] ||= [5]
+      @grid[:gcols][1] ||= (@grid[:gcols][0] - 1)*7/11 + 1
+      @grid[:gcols][2] ||= 4
       @grid[:height] ||= 250
+      @grid[:rowNum] ||= 50
+      @grid[:cellEdit] = true if @grid[:cellEdit].nil?
+      @grid[:shrinkToFit] = true if @grid[:shrinkToFit].nil?
+      @grid[:multiSort] = false if @grid[:multiSort].nil?
       @grid[:scroll] = false if @grid[:scroll].nil?
 
       refs_ids = [] #Contiene las distintas clases asociadas a los id's que van apareciendo (para calcular bien el index)

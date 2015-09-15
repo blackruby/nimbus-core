@@ -128,8 +128,8 @@ class ApplicationController < ActionController::Base
   end
 
   def sincro_hijos(vid)
-    class_mant.hijos.each {|h|
-      @ajax << '$(function(){$("#' + h[:id].split('/')[-1] + '").attr("src", "/' + h[:id]
+    class_mant.hijos.each_with_index {|h, i|
+      @ajax << '$(function(){$("#hijo_' + i.to_s + '").attr("src", "/' + h[:url]
       @ajax << '?mod=' + class_modelo.to_s
       @ajax << '&id=' + @fact.id.to_s
       @ajax << '&padre=' + vid.to_s
@@ -172,8 +172,8 @@ class ApplicationController < ActionController::Base
     @view[:url_base] = '/' + params[:controller] + '/'
     @view[:url_list] = @view[:url_base] + 'list'
     @view[:url_new] = @view[:url_base] + 'new'
-    @view[:arg_edit] = '?'
-    arg_list_new = '?'
+    @view[:arg_edit] = '?head=0'
+    arg_list_new = '?head=0'
 
     if params[:mod] != nil
       arg_list_new << '&mod=' + params[:mod] + '&id=' + params[:id] + '&padre=' + params[:padre]
@@ -349,6 +349,8 @@ class ApplicationController < ActionController::Base
     clm.hijos.each{|h|
       @tabs << h[:tab] if h[:tab] and !@tabs.include?(h[:tab]) and h[:tab] != 'pre' and h[:tab] != 'post'
     }
+    @head = (params[:head] ? params[:head].to_i : 2)
+    @head += 1 if @tabs.size > 0
   end
 
   def new

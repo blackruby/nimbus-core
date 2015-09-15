@@ -10,7 +10,7 @@ body {
 
 .ficha {
   border-width: 0;
-  margin: 3px 0 0 0;
+  margin: 1px 0 0 0;
   padding: 0;
   width: 100%;
   height: 100%;
@@ -113,3 +113,4 @@ input:disabled ~ .nim-label, select:disabled ~ .nim-label {
   font-size:12px;
   color: $color-nim-label;
 }
+

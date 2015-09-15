@@ -18,11 +18,13 @@ class EmpresasMod < Empresa
   }
 
   @grid = {
+    gcols: [4,8],
+    ew: :w,
     height: 200,
     scroll: true,
   }
 
-  @hijos = [{id: 'ejercicios', tab: 'ejercicios'}]
+  @hijos = [{url: 'ejercicios', tab: 'ejercicios'}]
 
   #after_initialize :ini_campos_ctrl
 

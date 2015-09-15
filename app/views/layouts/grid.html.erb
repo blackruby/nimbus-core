@@ -28,6 +28,14 @@
       <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="newFicha()">
         <i class="material-icons">add</i>
       </button>
+      &nbsp; &nbsp;
+      <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mantGrabarGrid()">
+        <i class="material-icons">save</i>
+      </button>
+      &nbsp; &nbsp;
+      <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mantBorrarGrid()">
+        <i class="material-icons">delete</i>
+      </button>
       &nbsp; &nbsp; &nbsp; &nbsp;
       <button id="b-collapse" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
         <i class="material-icons">swap_vert</i>
@@ -36,27 +44,42 @@
   </div>
 </header>
 
-<table id="grid"></table>
+<main class="mdl-layout__content">
+  <div class="page-content">
+    <div class="mdl-grid">
+      <%=
+         gr = '<div id="cell-grid" class="mdl-cell'
+         fi = '<div id="cell-ficha" class="mdl-cell'
+         c = @view[:grid][:gcols][0]
+         gr << ' mdl-cell--' + c.to_s + '-col'
+         fi << ' mdl-cell--' + (c >= 12 ? 12 : 12-c).to_s + '-col'
+         c = @view[:grid][:gcols][1]
+         gr << ' mdl-cell--' + c.to_s + '-col-tablet'
+         fi << ' mdl-cell--' + (c >= 8 ? 8 : 8-c).to_s + '-col-tablet'
+         c = @view[:grid][:gcols][2]
+         gr << ' mdl-cell--' + c.to_s + '-col-phone'
+         fi << ' mdl-cell--' + (c >= 4 ? 4 : 4-c).to_s + '-col-phone'
+         gr << '"><table id="grid"></table></div>'
+         fi << '"><iframe id="ficha" class="ficha"> </iframe></div>'
 
-<iframe id="ficha" class="ficha"> </iframe>
+         ((@view[:grid][:ew] == :w) ? gr + fi : fi + gr).html_safe
+      %>
+    </div>
+  </div>
+</main>
 
 <%= yield %>
 </div>
 
 <style>
-  #dficha{
-    /*display: inline-block;*/
-    vertical-align: top;
-    margin: 3px;
-    border-style: solid;
-  }
-  #dficha {
-    /*
+  #ficha {
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
     0 3px 1px -2px rgba(0, 0, 0, 0.2),
-    0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    */
+    0 1px 2px 0 rgba(0, 0, 0, 0.12);
   }
+  .mdl-cell {margin: 1px;}
+  .mdl-grid {padding: 0;}
+  .mdl-layout__content::-webkit-scrollbar {display: none;}
 </style>
 
 <script>
@@ -81,10 +104,10 @@
 
 		height: <%= @view[:grid][:height] %>,
     //width: 500,
-    autowidth: true,
-		rowNum:50,
+    //autowidth: true,
+		rowNum: <%= @view[:grid][:rowNum] %>,
 
-		cellEdit: true,
+		cellEdit: <%= @view[:grid][:cellEdit] %>,
 		gridview: true,	// Acelera la velocidad de renderizado. Poner a false con trees y subgrids
 
     //toppager: true,
@@ -95,8 +118,8 @@
 
 		ondblClickRow: editInForm,
 
-    shrinkToFit: true,
-		//multiSort: true,
+    shrinkToFit: <%= @view[:grid][:shrinkToFit] %>,
+		multiSort: <%= @view[:grid][:multiSort] %>,
 		//multiselect: true,
 		//rownumbers: true,
 		scroll: <%= @view[:grid][:scroll] %>,
@@ -135,44 +158,80 @@
     $("#dialog").dialog("open");
   }
 
+/*
   $("#ficha").load(function() {
-    /*
     h = this.contentWindow._altura;
     if (h == undefined) h = this.contentWindow.document.body.offsetHeight + 100 + 'px';
     $(this).parent().css("height", h);
      w = this.contentWindow._anchura;
      if (w == undefined) w = "400px"
      $(this).parent().css("width", w);
-     */
-    $(this).css("height", $("#ficha").contents().find('.mdl-layout__content')[0].scrollHeight + 130 + "px");
+    //$(this).css("height", $("#ficha").contents().find('.mdl-layout__content')[0].scrollHeight + 130 + "px");
   });
+*/
 
   function grid_reload() {
-    grid.trigger('reloadGrid');
+    grid.trigger('reloadGrid', [{current:true}]);
   }
 
-  $("#ficha").attr('src', '<%= @view[:url_base] %>0/edit');
+  // Mostrar/Ocultar el grid
 
-  // Recalcular la anchura del grid cuando se redimensione la ventana
-
-  //$("#dficha").css("height", $(window).height() - $("#gbox_grid").height() - 10);
-  $(window).resize(function () {
-    var jqGridWrapperId = "#gbox_" + grid.attr('id');
-    grid.setGridWidth($(jqGridWrapperId).parent().width()-1, true);
-   // $("#dficha").css("height", $(window).height() - $("#gbox_grid").height() - 10);
-  });
+  var classFicha, displayGrid = true;
 
   $("#b-collapse").click(function () {
-    if ($("#gbox_grid").attr('data-status') != 'hidden' || $("#gbox_grid").attr('data-status') == undefined) {
-      $("#gbox_grid").attr('data-status', 'hidden');
-      $("#gbox_grid").css('display', 'none');
+    if (displayGrid) {
+      $("#cell-grid").css('display', 'none');
+      classFicha = $("#cell-ficha").attr('class');
+      $("#cell-ficha").attr('class', 'mdl-cell mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-cell--12-col');
+      displayGrid = false;
     } else {
-      $("#gbox_grid").attr('data-status', 'active');
-      $("#gbox_grid").css('display', 'block');
+      $("#cell-grid").css('display', 'block');
+      $("#cell-ficha").attr('class', classFicha);
+      displayGrid = true;
+      $("#ficha").height(0);
     }
-    //$("#gbox_grid").css({'height': 'auto'});
-    //$("#dficha").css("height", $(window).height() - $("#gbox_grid").height() - 10);
+    redimWindow();
   });
+
+
+  // Recalcular la anchura y altura del grid cuando se redimensione la ventana
+
+  //$("#ficha").css("height", $(window).height() - $("#ficha").offset().top - 40);
+  function redimWindow() {
+    tf = $("#cell-ficha").offset().top;
+    if (displayGrid) {
+      grid.setGridWidth($("#gbox_grid").parent().width()-2, grid.jqGrid('getGridParam', 'shrinkToFit'));
+      tg = $("#cell-grid").offset().top;
+      if (tg == tf) {
+        h = $(window).height() - tf - 35;
+        $("#ficha").css("height", h);
+        grid.setGridHeight(h);
+        $("#gbox_grid").css("height", 'auto');
+      } else {
+        h = $(window).height() / 2;
+        if ($("#cell-grid").height() > h) {
+          grid.setGridHeight(h);
+          $("#gbox_grid").css("height", 'auto');
+        }
+        $("#ficha").css("height", $(window).height() - (tg>tf ? tf : 40) - $("#cell-grid").height() - 40);
+      }
+    } else {
+      $("#ficha").css("height", $(window).height() - tf - 10);
+    }
+  }
+
+  function mantGrabarGrid() {
+    $("#ficha")[0].contentWindow.mant_grabar();
+  }
+
+  function mantBorrarGrid() {
+    $("#ficha")[0].contentWindow.mant_borrar();
+  }
+
+  $(window).resize(redimWindow);
+
+  redimWindow();
+  $("#ficha").attr('src', '<%= @view[:url_base] %>0/edit?head=0');
 </script>
 
 <%= yield :after %>

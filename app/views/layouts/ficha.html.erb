@@ -10,34 +10,37 @@
 
 <body>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+  <% if @head > 0 %>
   <header class="mdl-layout__header">
-    <div class="mdl-layout__header-row">
-      <span class="mdl-layout-title"> <%= @titulo %> </span>
-      <div class="mdl-layout-spacer"></div>
-      <nav class="mdl-navigation">
-        <label id="encurso"> </label>
-        &nbsp; &nbsp;
-        <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_grabar()">
-          <i class="material-icons">save</i>
-        </button>
-        &nbsp; &nbsp;
-        <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_borrar()">
-          <i class="material-icons">delete</i>
-        </button>
-        <% if @menu_r %>
+    <% if @head > 1 %>
+      <div class="mdl-layout__header-row">
+        <span class="mdl-layout-title"> <%= @titulo %> </span>
+        <div class="mdl-layout-spacer"></div>
+        <nav class="mdl-navigation">
+          <label id="encurso"> </label>
           &nbsp; &nbsp;
-          <button id="menu-r" class="mdl-button mdl-js-button mdl-button--icon">
-            <i class="material-icons">more_vert</i>
+          <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_grabar()">
+            <i class="material-icons">save</i>
           </button>
+          &nbsp; &nbsp;
+          <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_borrar()">
+            <i class="material-icons">delete</i>
+          </button>
+          <% if @menu_r %>
+            &nbsp; &nbsp;
+            <button id="menu-r" class="mdl-button mdl-js-button mdl-button--icon">
+              <i class="material-icons">more_vert</i>
+            </button>
 
-          <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="menu-r">
-            <% @menu_r.each {|k, v| %>
-              <li class="mdl-menu__item"> <%= nt(k) %> </li>
-            <% } %>
-          </ul>
-        <% end %>
-      </nav>
-    </div>
+            <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="menu-r">
+              <% @menu_r.each {|k, v| %>
+                <li class="mdl-menu__item"> <%= nt(k) %> </li>
+              <% } %>
+            </ul>
+          <% end %>
+        </nav>
+      </div>
+    <% end %>
 
     <% if @tabs.size > 0 %>
       <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
@@ -47,6 +50,7 @@
       </div>
     <% end %>
   </header>
+  <% end %>
 
   <% if @menu_l %>
     <div class="mdl-layout__drawer">
@@ -71,16 +75,20 @@
           <section class="mdl-layout__tab-panel <%= i==0 ? 'is-active' : '' %>" id="t_<%= t %>">
             <div class="page-content">
               <%= gen_form({tab: t}) %>
-              <% if @hijos.map{|h| h[:tab]}.include?(t) %>
-                <iframe id="<%= t %>" style="height: 600px"></iframe>
-              <% end %>
               <%= yield t.to_sym%>
+              <% @hijos.each_with_index{|h, i| if h[:tab] == t then %>
+                <iframe id="hijo_<%= i %>"></iframe>
+              <% end } %>
             </div>
           </section>
         <% } %>
       <% end %>
 
       <%= gen_form({tab: 'post'}) %>
+      <% @hijos.each_with_index{|h, i| if h[:tab] == 'post' then %>
+        <iframe id="hijo_<%= i %>"></iframe>
+      <% end } %>
+
       <%= yield %>
     </div>
   </main>
@@ -98,6 +106,7 @@
   body {
     margin-top: 0px;
   }
+  .mdl-layout__content::-webkit-scrollbar {display: none;}
 </style>
 
 <script>
@@ -121,9 +130,20 @@
   <%= gen_js  %>
   <%= @ajax.html_safe %>
 
-  $("input,select,textarea").filter(":enabled").first().focus();
+  function redimWindow() {
+    <% @hijos.each_with_index{|h, i| %>
+    f = $("#hijo_<%= i %>");
+    f.height($(window).height() - f.offset().top);
+    <% } %>
+  }
 
-  componentHandler.upgradeDom();
+  $(window).resize(redimWindow);
+
+  $(function(){
+    redimWindow();
+    $("input,select,textarea").filter(":enabled").first().focus();
+    componentHandler.upgradeDom();
+  });
 </script>
 
 </html>
