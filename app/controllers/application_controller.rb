@@ -785,11 +785,8 @@ class_mant.campos.each {|cs, h|
   #Función para ser llamada desde el botón aceptar de los 'procs'
   def fon_server
     @fact = $h[params[:vista].to_i][:fact] if params[:vista]
-    if self.respond_to?(params[:fon])
-      method(params[:fon]).call
-    else
-      render nothing: true
-    end
+    method(params[:fon]).call if self.respond_to?(params[:fon])
+    render nothing: true
   end
 
   #### CANCELAR
