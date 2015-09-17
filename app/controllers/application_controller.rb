@@ -489,6 +489,7 @@ class ApplicationController < ActionController::Base
 
     @vid = v.id
     $h[v.id][:fact] = @fact
+    $h[v.id][:head] = params[:head] if params[:head]
 
     @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
 
@@ -747,7 +748,8 @@ class ApplicationController < ActionController::Base
       if valor == ''
         render :nothing => true
       else
-        render :js => 'window.location.replace("/' + params[:controller] + '/' + valor + '/edit");'
+        head = $h[params[:vista].to_i][:head]
+        render :js => 'window.location.replace("/' + params[:controller] + '/' + valor + '/edit' + (head ? '?head='+head : '') + '");'
       end
       return
     end
@@ -786,7 +788,10 @@ class_mant.campos.each {|cs, h|
   def fon_server
     @fact = $h[params[:vista].to_i][:fact] if params[:vista]
     method(params[:fon]).call if self.respond_to?(params[:fon])
-    render nothing: true
+    begin
+      render nothing: true  # Por si no existe el método o por si éste no hace un render explícito
+    rescue
+    end
   end
 
   #### CANCELAR
