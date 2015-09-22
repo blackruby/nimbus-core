@@ -169,6 +169,7 @@ class ApplicationController < ActionController::Base
     @titulo = nt(clm.titulo)
 
     @view = {grid: clm.grid}
+    @view[:model] = clm.superclass.to_s
     @view[:url_base] = '/' + params[:controller] + '/'
     @view[:url_list] = @view[:url_base] + 'list'
     @view[:url_new] = @view[:url_base] + 'new'

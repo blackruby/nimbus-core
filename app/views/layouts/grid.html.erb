@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= @titulo.nil? ? 'Nimbus' : @titulo %></title>
   <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
@@ -14,35 +15,55 @@
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
 <header class="mdl-layout__header">
   <div class="mdl-layout__header-row">
-    <span class="mdl-layout-title"> <%= @titulo %> </span>
+    <span class="mdl-layout-title grid-title"> <%= @titulo %> </span>
+    <label class="mdl-button mdl-js-button mdl-button--icon" id="_pk_label" onclick="pkSearch()">
+      <i class="material-icons">search</i>
+    </label>
+    <input id="_pk-input" />
     <div class="mdl-layout-spacer"></div>
     <nav class="mdl-navigation">
-      <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="searchBar()">
-        <i class="material-icons">search</i>
+      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="searchBar()">
+        <i class="material-icons">visibility</i>
       </button>
       &nbsp; &nbsp;
-      <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="editInForm()">
+      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="editInForm()">
         <i class="material-icons">edit</i>
       </button>
       &nbsp; &nbsp;
-      <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="newFicha()">
+      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="newFicha()">
         <i class="material-icons">add</i>
       </button>
       &nbsp; &nbsp;
-      <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mantGrabarGrid()">
+      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mantGrabarGrid()">
         <i class="material-icons">save</i>
       </button>
       &nbsp; &nbsp;
-      <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mantBorrarGrid()">
+      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mantBorrarGrid()">
         <i class="material-icons">delete</i>
       </button>
       &nbsp; &nbsp; &nbsp; &nbsp;
       <button id="b-collapse" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
         <i class="material-icons">swap_vert</i>
       </button>
+      <button id="menu-r" class="nim-hbut-f mdl-button mdl-js-button mdl-button--icon">
+        <i class="material-icons">more_vert</i>
+      </button>
+      <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="menu-r">
+        <li class="mdl-menu__item" onclick="searchBar()"> <i class="material-icons">visibility</i> Buscar </li>
+        <li class="mdl-menu__item" onclick="editInForm()"> <i class="material-icons">edit</i> Editar </li>
+        <li class="mdl-menu__item" onclick="newFicha()"> <i class="material-icons">add</i> Nueva </li>
+        <li class="mdl-menu__item" onclick="mantGrabarGrid()"> <i class="material-icons">save</i> Grabar </li>
+        <li class="mdl-menu__item" onclick="mantBorrarGrid()"> <i class="material-icons">delete</i> Eliminar </li>
+      </ul>
     </nav>
   </div>
 </header>
+  <div class="mdl-layout__drawer">
+    <nav class="mdl-navigation">
+      <a class="mdl-navigation__link" href="#">Histórico</a>
+      <a class="mdl-navigation__link" href="#">Estadísticas</a>
+    </nav>
+  </div>
 
 <main class="mdl-layout__content">
   <div class="page-content">
@@ -83,6 +104,27 @@
   .mdl-cell {margin: 1px;}
   .mdl-grid {padding: 0;}
   .mdl-layout__content::-webkit-scrollbar {display: none;}
+
+  @media screen and (min-width: 600px) {
+    .nim-hbut-f {
+      display: none;
+    }
+  }
+  @media screen and (max-width: 600px) {
+    .nim-hbut {
+      display: none;
+    }
+  }
+
+  #_pk-input {
+    display: none;
+    background-color: #D1C4E9;
+    border-radius: 10px;
+    width: 15em;
+  }
+  #_pk-input:focus {
+    display: block;
+  }
 </style>
 
 <script>
@@ -230,6 +272,39 @@
   function mantBorrarGrid() {
     $("#ficha")[0].contentWindow.mant_borrar();
   }
+
+  function pkSearch() {
+    pk = $("#_pk-input");
+    if (pk.css('display') == 'none') {
+      $(".mdl-navigation").css('display', 'none');
+      if ($(window).width() <= 600) $(".grid-title").css('display', 'none');
+      pk.css('display', 'block');
+      pk.focus();
+      pk.val('');
+    } else {
+      pk.css('display', 'none');
+      $(".mdl-navigation").css('display', 'flex');
+      $(".grid-title").css('display', 'block');
+    }
+  }
+
+  /*
+  $("#_pk-input" ).blur(function() {
+    pkSearch();
+    pkBlur = true;
+  });
+  */
+
+  $("#_pk-input").autocomplete({
+    source: "/application/auto?mod=<%= @view[:model] %>",
+    minLength: 1,
+    select: function(e, ui){
+      $("#ficha").attr('src', '<%= @view[:url_base] %>' + ui.item.id + '/edit' + '<%= @view[:arg_edit] %>');
+      pkSearch();
+    },
+    //change: function(e, ui){vali_auto_comp(ui, $(this));},
+    //response: function(e, ui){auto_comp_error(e, ui);}
+  });
 
   $(window).resize(redimWindow);
 
