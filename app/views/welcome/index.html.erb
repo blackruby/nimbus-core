@@ -1,63 +1,54 @@
-<% if File.exists?('public/logo.png') %>
-  <img id="logo" src="/logo.png">
-
-  <style>
-    #logo {
-      margin-left: 40px;
-      margin-top: 40px;
-    }
-  </style>
-<% end %>
-
-
-<div id='main'>
-  <h1> <%= nt('hola_nimbus') %> </h1>
-  <br>
-  <br>
-  <br>
-  <%= form_tag("/login", method: "post") do %>
-    <table id="tabla">
-      <tr>
-        <td><label for="usuario"><%= nt('usuario') %></label></td>
-        <td><input name="usuario" id="usuario" autocomplete="off"/></td>
-      </tr>
-      <tr>
-        <td><label for="password"><%= nt('password') %></label></td>
-        <td><input name="password" id="password" type="password"/></td>
-      </tr>
-    </table>
-    <br/>
-    <br/>
-    <input name="commit" type="submit" value=<%= nt('entrar') %> />
-  <% end %>
-</div>
-
 <style>
-	body {
-    background: #505050;
+  .w-card.mdl-card {
+    width: 350px;
+    position:fixed;
+    top: 50%;
+    left: 50%;
+    margin-left: -175px; /* Tiene que ser la mitad de la anchura*/
   }
-
-  #tabla {
-    margin-left: 20px;
-    text-align: left;
+  .w-card > .mdl-card__title {
+    color: #fff;
+    height: 176px;
+    background: #673AB7 url('/logo.png') no-repeat top left;
   }
-
-  #main {
-    text-align: center;
-		position:fixed;
-		top: 50%;
-		left: 50%;
-		width:30em;
-		height:18em;
-		margin-top: -9em; /*set to a negative number 1/2 of your height*/
-		margin-left: -15em; /*set to a negative number 1/2 of your width*/
-		border: 1px solid #ccc;
-    border-radius: 10px;
-		background-color: #f3f3ff;
-	}
+  .w-card > .mdl-card__menu {
+    color: #fff;
+  }
 </style>
 
+<div class="w-card mdl-card mdl-shadow--2dp">
+  <div class="mdl-card__title">
+    <h2 class="mdl-card__title-text"><%= nt('hola_nimbus') %></h2>
+  </div>
+  <div class="mdl-card__supporting-text">
+    Identifíquese para iniciar sesión
+  </div>
+  <div class="mdl-card__actions mdl-card--border">
+    <%= form_tag("/login", method: "post") do %>
+      <br>
+      <div class="nim-group">
+        <input name="usuario" id="usuario" required style="max-width: 16em"/>
+        <label class="nim-label" for="usuario"> <%= nt('usuario') %> </label>
+      </div>
+      <br>
+      <div class="nim-group">
+        <input type="password" name="password" id="password" required style="max-width: 16em"/>
+        <label class="nim-label" for="password"> <%= nt('password') %> </label>
+      </div>
+      <br>
+      <input name="commit" type="submit" style="display: none"/>
+    <% end %>
+  </div>
+  <div class="mdl-card__menu">
+    <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="$('form').submit()">
+      <i class="material-icons">done</i>
+    </button>
+  </div>
+</div>
+
 <script>
-  $('#usuario').val(null).focus();
-  $('#password').val(null);
+  $("#usuario").val('').focus();
+  $("#password").val(null);
+  wCard = $(".w-card.mdl-card");
+  wCard.css("margin-top", -wCard.height()/2);
 </script>
