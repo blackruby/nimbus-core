@@ -3,7 +3,7 @@ Rails.application.routes.draw do
     get c => "#{c}#index"
     get "#{c}/new" => "#{c}#new"
     get "#{c}/:id/edit" => "#{c}#edit"
-    ['validar', 'validar_cell', 'list', 'grabar', 'borrar', 'cancelar'].each {|m|
+    ['validar', 'validar_cell', 'list', 'grabar', 'borrar', 'cancelar', 'fon_server'].each {|m|
       post "#{c}/#{m}" => "#{c}##{m}"
     }
   }

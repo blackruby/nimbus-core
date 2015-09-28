@@ -37,4 +37,11 @@ class EmpresasMod < Empresa
 end
 
 class EmpresasController < ApplicationController
+  def ejercicio_en_menu
+    if Ejercicio.where('empresa_id = ?', params[:eid]).count == 0
+      render js: '$("#d-ejercicio").css("visibility", "hidden")'
+    else
+      render js: '$("#d-ejercicio").css("visibility", "visible");$("#ejercicio").focus();'
+    end
+  end
 end

@@ -8,7 +8,7 @@
     <label class="nim-label-fix" for="empresa"> <%= nt('empresa') %> </label>
   </div>
 
-  <div class="nim-group div-head" style="width: 200px">
+  <div id="d-ejercicio" class="nim-group div-head" style="width: 200px;visibility:hidden">
     <input id="ejercicio" required size="16" style="max-width: 16em"/>
     <label class="nim-label-fix" for="ejercicio"> <%= nt('ejercicio') %> </label>
   </div>
@@ -143,7 +143,7 @@
 
 <script>
   //$("#nim-menu").mmenu({classes: "mm-slide"});
-  $("#nim-menu").mmenu({onClick: {close: true}, searchfield: true});
+  $("#nim-menu").mmenu({onClick: {close: false}, searchfield: true});
 
   $("#bSave").click(function (e) {
     e.preventDefault();
@@ -367,7 +367,9 @@
   // Tratamiento de la selección de empresa
 
   var empresa_id = null;
+  var empresa_nom = "";
   var ejercicio_id = null;
+  var ejercicio_nom = "";
 
   function session_out() {
     clearTimeout(tmo);
@@ -399,20 +401,32 @@
     document.cookie = "emej=" + empresa_id + ":" + ejercicio_id;
   }
 
+  $("#empresa" ).blur(function() {
+    $(this).val(empresa_nom);
+  });
+
+  $("#ejercicio" ).blur(function() {
+    $(this).val(ejercicio_nom);
+  });
+
   $("#empresa").autocomplete({
     source: '/application/auto?type=grid&mod=Empresa',
     minLength: 1,
-    autoFocus: true,
-    change: function(e, ui){
-      if (ui.item == null) {
-        $("#empresa").val('');
-        empresa_id  = null;
-      } else {
-        empresa_id = ui.item.id;
-      }
-      $("#ejercicio").val('');
+    select: function(e, ui) {
+      empresa_id = ui.item.id;
+      empresa_nom = ui.item.value;
+
       ejercicio_id = null;
-      $("#ejercicio").autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
+      ejercicio_nom = "";
+      $("#ejercicio").val('').autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
+
+      // Consultar si tiene ejercicios la empresa para habilitar el campo ejercicio (lo hace la función del servidor en su respuesta)
+      $.ajax({
+        url: '/empresas/fon_server',
+        type: "POST",
+        data: {fon: 'ejercicio_en_menu', eid: empresa_id},
+      })
+
       graba_emej();
       set_cookie_emej();
     },
@@ -422,14 +436,9 @@
   $("#ejercicio").autocomplete({
     source: '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=null',
     minLength: 1,
-    autoFocus: true,
-    change: function(e, ui){
-      if (ui.item == null) {
-        $("#ejercicio").val('');
-        ejercicio_id = null;
-      } else {
-        ejercicio_id = ui.item.id;
-      }
+    select: function(e, ui){
+      ejercicio_id = ui.item.id;
+      ejercicio_nom = ui.item.value;
       graba_emej();
       set_cookie_emej();
     },
@@ -456,9 +465,16 @@
   // Inicialización de los campos empresa y ejercicio
   empresa_id = <%= @usu.empresa_def_id.to_json %>;
   ejercicio_id = <%= @usu.ejercicio_def_id.to_json %>;
-  $("#empresa").val("<%= @usu.empresa_def_id ? @usu.empresa_def.auto_comp_value(:grid) : ''%>");
-  $("#ejercicio").val("<%= @usu.ejercicio_def_id ? @usu.ejercicio_def.auto_comp_value(:grid) : '' %>");
+  empresa_nom = "<%= @usu.empresa_def_id ? @usu.empresa_def.auto_comp_value(:grid) : ''%>";
+  $("#empresa").val(empresa_nom);
+  ejercicio_nom = "<%= @usu.ejercicio_def_id ? @usu.ejercicio_def.auto_comp_value(:grid) : '' %>";
+  $("#ejercicio").val(ejercicio_nom);
   $("#ejercicio").autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
+
+  <% if Ejercicio.where('empresa_id = ?', @usu.empresa_def_id).count > 0 %>
+    $("#d-ejercicio").css("visibility", "visible");
+  <% end %>
+
   set_cookie_emej();
 </script>
 
