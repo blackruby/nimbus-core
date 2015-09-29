@@ -16,10 +16,10 @@
 <header class="mdl-layout__header">
   <div class="mdl-layout__header-row">
     <span class="mdl-layout-title grid-title"> <%= @titulo %> </span>
-    <label class="mdl-button mdl-js-button mdl-button--icon" id="_pk_label" onclick="pkSearch()">
+    <label class="mdl-button mdl-js-button mdl-button--icon" id="_pk-label" onclick="pkSearch()">
       <i class="material-icons">search</i>
     </label>
-    <input id="_pk-input" />
+    <input id="_pk-input" style="margin-left: 5px" />
     <div class="mdl-layout-spacer"></div>
     <nav class="mdl-navigation">
       <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="searchBar()">
@@ -274,33 +274,25 @@
   }
 
   function pkSearch() {
-    pk = $("#_pk-input");
-    if (pk.css('display') == 'none') {
-      $(".mdl-navigation").css('display', 'none');
-      if ($(window).width() <= 600) $(".grid-title").css('display', 'none');
-      pk.css('display', 'block');
-      pk.focus();
-      pk.val('');
-    } else {
-      pk.css('display', 'none');
-      $(".mdl-navigation").css('display', 'flex');
-      $(".grid-title").css('display', 'block');
-    }
+    $(".mdl-navigation").css('display', 'none');
+    if ($(window).width() <= 600) $(".grid-title").css('display', 'none');
+    $("#_pk-label").css('display', 'none');
+    $("#_pk-input").css('display', 'block').val('').focus();
   }
 
-  /*
-  $("#_pk-input" ).blur(function() {
-    pkSearch();
-    pkBlur = true;
-  });
-  */
+  function pkBlur() {
+    $("#_pk-input").css('display', 'none');
+    $(".grid-title").css('display', 'block');
+    $("#_pk-label").css('display', 'block');
+    $(".mdl-navigation").css('display', 'flex');
+  }
 
-  $("#_pk-input").autocomplete({
+  $("#_pk-input" ).blur(pkBlur).autocomplete({
     source: "/application/auto?mod=<%= @view[:model] %>",
     minLength: 1,
     select: function(e, ui){
       $("#ficha").attr('src', '<%= @view[:url_base] %>' + ui.item.id + '/edit' + '<%= @view[:arg_edit] %>');
-      pkSearch();
+      pkBlur();
     },
     //change: function(e, ui){vali_auto_comp(ui, $(this));},
     //response: function(e, ui){auto_comp_error(e, ui);}

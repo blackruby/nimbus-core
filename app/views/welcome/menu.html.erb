@@ -1,15 +1,24 @@
 <div id="titulo" class="mm-fixed-top">
-  &nbsp;
-  <a id="a-menu" href="#nim-menu"><i class="fa fa-bars"></i></a>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <label for="empresa"><%= nt('empresa') %>:</label>
-  <input id="empresa" size="30"/>
-  <label for="ejercicio"><%= nt('ejercicio') %>:</label>
-  <input id="ejercicio" size="14"/>
-  <a id="a-usuario" target="_blank" href="/usuarios/<%= @usu.id %>/edit">
-    <label><%= @usu.codigo %></label>
-    <img id="foto" src="" width="20" height="20" border="0">
-  </a>
+  <a id="a-menu" href="#nim-menu" style="margin-left: 12px;"><i class="material-icons" style="margin-top: 12px;">menu</i></a>
+
+    <label style="font-size: 20px; margin-left: 15px;"> <%= nt('hola_nimbus') %> </label>
+
+  <div class="nim-group div-head" style="width: 250px">
+    <input id="empresa" required size="20" style="max-width: 20em"/>
+    <label class="nim-label-fix" for="empresa"> <%= nt('empresa') %> </label>
+  </div>
+
+  <div id="d-ejercicio" class="nim-group div-head" style="width: 200px;visibility:hidden">
+    <input id="ejercicio" required size="16" style="max-width: 16em"/>
+    <label class="nim-label-fix" for="ejercicio"> <%= nt('ejercicio') %> </label>
+  </div>
+
+  <div class="div-head">
+    <a id="a-usuario" target="_blank" href="/usuarios/<%= @usu.id %>/edit">
+      <label style="font-size: 20px"><%= @usu.codigo %></label>
+      <img id="foto" src="/admin.jpg" width="32" height="32" border="0" style="margin-left: 8px">
+    </a>
+  </div>
 </div>
 
 <nav id="nim-menu">
@@ -17,15 +26,15 @@
     <%= @menu.html_safe %>
 
     <li class="menu-ref"><a href="/usuarios/<%= session[:uid] %>/edit"><%= nt('preferencias') %></a></li>
-    <li>
+    <li class="nim-wide">
       <span>Activar panel</span>
       <input id="actPan" type="checkbox" class="Toggle"/>
     </li>
-    <li>
+    <li class="nim-wide">
       <span>Ampliar horizontal</span>
       <input id="ampHor" type="checkbox" class="Toggle"/>
     </li>
-    <li id="bSave"><a href="#">Guardar panel</a></li>
+    <li id="bSave" class="nim-wide"><a href="#">Guardar panel</a></li>
     <li id="bCerrar"><a href="#">Cerrar sesión</a></li>
   </ul>
 </nav>
@@ -44,13 +53,36 @@
   }
 
   #titulo {
-    font-size: 1.6em;
-    background: #303030;
+    background: #673AB7;
     color: #ffffff;
     width: 100%;
-    height: 32px;
-    line-height: 32px;
-    z-index: 999;
+    height: 60px;
+    /*line-height: 40px;*/
+    z-index: 1;
+    /*vertical-align: middle;*/
+    white-space: nowrap;
+  }
+
+  .div-head {
+    display: inline-block;
+    margin-left: 15px;
+  }
+
+  @media screen and (max-width: 670px) {
+    #titulo {
+      height: 100%;
+      white-space: normal;
+    }
+    .div-head {
+      display: block;
+      margin-top: 60px;
+    }
+  }
+
+  input {
+    padding-left: 3px;
+    padding-right: 3px;
+    border-radius: 8px;
   }
 
   #ejercicio {
@@ -65,24 +97,20 @@
     color: #ffffff
   }
 
-  #foto {
-    margin-top: 4px;
-  }
-
   #a-menu {
     outline-style: none;
     color: #ffffff
   }
 
   #div-body {
-    padding-top: 35px;
+    padding-top: 60px;
     margin: 0;
     position: absolute;
     left: 0;
     top: 0;
     bottom: 0;
     right: 0;
-    background-color: #505050;
+    background-color: #D1C4E9;
   }
 
   .base {
@@ -90,7 +118,8 @@
     border-radius: 10px;
     width: 500px;
     height: 500px;
-    background: linear-gradient(gainsboro, gray);
+    /*background: linear-gradient(gainsboro, gray);*/
+    background-color: #fff;
     margin: 0;
     padding: 0;
     overflow: hidden;
@@ -114,7 +143,7 @@
 
 <script>
   //$("#nim-menu").mmenu({classes: "mm-slide"});
-  $("#nim-menu").mmenu({onClick: {close: true}, searchfield: true});
+  $("#nim-menu").mmenu({onClick: {close: false}, searchfield: true});
 
   $("#bSave").click(function (e) {
     e.preventDefault();
@@ -154,7 +183,11 @@
   });
 
   $("#a-menu").click(function (e) {
-    noticias();
+    //noticias();
+    if ($(window).width() < 670)
+      $(".nim-wide").css("display", "none");
+    else
+      $(".nim-wide").css("display", "block");
   });
 
   $(".menu-ref").click(function (e) {
@@ -228,7 +261,7 @@
   function calculaPosWin() {
     var ll, lr;
 
-    posWin = {left: 0, top: 35};
+    posWin = {left: 0, top: 60};
     bt = 999999;
     while (true) {
       ll = 999999;
@@ -322,7 +355,7 @@
 
     for (i = 0; i < 2; i++) {
       w = Math.max(wmax, $(window).width());
-      h = Math.max(hmax, $(window).height()) - 35;
+      h = Math.max(hmax, $(window).height());
 
       $("#div-body").css("height", h + "px");
       $("#div-body").css("width", w + "px");
@@ -334,7 +367,9 @@
   // Tratamiento de la selección de empresa
 
   var empresa_id = null;
+  var empresa_nom = "";
   var ejercicio_id = null;
+  var ejercicio_nom = "";
 
   function session_out() {
     clearTimeout(tmo);
@@ -366,20 +401,32 @@
     document.cookie = "emej=" + empresa_id + ":" + ejercicio_id;
   }
 
+  $("#empresa" ).blur(function() {
+    $(this).val(empresa_nom);
+  });
+
+  $("#ejercicio" ).blur(function() {
+    $(this).val(ejercicio_nom);
+  });
+
   $("#empresa").autocomplete({
     source: '/application/auto?type=grid&mod=Empresa',
     minLength: 1,
-    autoFocus: true,
-    change: function(e, ui){
-      if (ui.item == null) {
-        $("#empresa").val('');
-        empresa_id  = null;
-      } else {
-        empresa_id = ui.item.id;
-      }
-      $("#ejercicio").val('');
+    select: function(e, ui) {
+      empresa_id = ui.item.id;
+      empresa_nom = ui.item.value;
+
       ejercicio_id = null;
-      $("#ejercicio").autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
+      ejercicio_nom = "";
+      $("#ejercicio").val('').autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
+
+      // Consultar si tiene ejercicios la empresa para habilitar el campo ejercicio (lo hace la función del servidor en su respuesta)
+      $.ajax({
+        url: '/empresas/fon_server',
+        type: "POST",
+        data: {fon: 'ejercicio_en_menu', eid: empresa_id},
+      })
+
       graba_emej();
       set_cookie_emej();
     },
@@ -389,14 +436,9 @@
   $("#ejercicio").autocomplete({
     source: '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=null',
     minLength: 1,
-    autoFocus: true,
-    change: function(e, ui){
-      if (ui.item == null) {
-        $("#ejercicio").val('');
-        ejercicio_id = null;
-      } else {
-        ejercicio_id = ui.item.id;
-      }
+    select: function(e, ui){
+      ejercicio_id = ui.item.id;
+      ejercicio_nom = ui.item.value;
       graba_emej();
       set_cookie_emej();
     },
@@ -423,9 +465,16 @@
   // Inicialización de los campos empresa y ejercicio
   empresa_id = <%= @usu.empresa_def_id.to_json %>;
   ejercicio_id = <%= @usu.ejercicio_def_id.to_json %>;
-  $("#empresa").val("<%= @usu.empresa_def_id ? @usu.empresa_def.auto_comp_value(:grid) : ''%>");
-  $("#ejercicio").val("<%= @usu.ejercicio_def_id ? @usu.ejercicio_def.auto_comp_value(:grid) : '' %>");
+  empresa_nom = "<%= @usu.empresa_def_id ? @usu.empresa_def.auto_comp_value(:grid) : ''%>";
+  $("#empresa").val(empresa_nom);
+  ejercicio_nom = "<%= @usu.ejercicio_def_id ? @usu.ejercicio_def.auto_comp_value(:grid) : '' %>";
+  $("#ejercicio").val(ejercicio_nom);
   $("#ejercicio").autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
+
+  <% if Ejercicio.where('empresa_id = ?', @usu.empresa_def_id).count > 0 %>
+    $("#d-ejercicio").css("visibility", "visible");
+  <% end %>
+
   set_cookie_emej();
 </script>
 
