@@ -195,7 +195,6 @@ class ApplicationController < ActionController::Base
     @view[:url_new] << arg_list_new
 
     if clm.mant? # No es un proc, y por lo tanto preparamos los datos del grid
-      @view[:orden_grid] = clm.orden_grid
       @view[:url_cell] = @view[:url_base] + '/validar_cell'
 
       cm = clm.col_model.deep_dup

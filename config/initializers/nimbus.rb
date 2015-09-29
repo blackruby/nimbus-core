@@ -102,11 +102,20 @@ module MantMod
       @grid[:gcols][1] ||= (@grid[:gcols][0] - 1)*7/11 + 1
       @grid[:gcols][2] ||= 4
       @grid[:height] ||= 250
-      @grid[:rowNum] ||= 50
+      @grid[:rowNum] ||= 100
       @grid[:cellEdit] = true if @grid[:cellEdit].nil?
       @grid[:shrinkToFit] = true if @grid[:shrinkToFit].nil?
       @grid[:multiSort] = false if @grid[:multiSort].nil?
       @grid[:scroll] = false if @grid[:scroll].nil?
+      @grid[:sortorder] ||= 'asc'
+      if @grid[:sortname].nil?
+        @campos.each {|c, v|
+          if v[:grid]
+            @grid[:sortname] = (v[:grid][:index] ? v[:grid][:index] : self.table_name + '.' + c.to_s)
+            break
+          end
+        }
+      end
 
       refs_ids = [] #Contiene las distintas clases asociadas a los id's que van apareciendo (para calcular bien el index)
       @campos.each {|c, v|
@@ -281,7 +290,8 @@ module MantMod
       }
 
       if @mant
-        @titulo ||= self.superclass.to_s
+        #@titulo ||= self.superclass.to_s.pluralize
+        @titulo ||= self.table_name
 
         self.superclass.column_names.each{|c|
           cs = c.to_sym
@@ -290,25 +300,6 @@ module MantMod
             @campos[cs][:type] = self.superclass.columns_hash[c].type
           end
         }
-
-        if @orden_grid.nil?
-          cn = self.superclass.column_names
-          @orden_grid = {sentido: 'asc'}
-          if cn.include?('numero')
-            c = 'numero'
-          elsif cn.include?('codigo')
-            c = 'codigo'
-          elsif cn.include?('nombre')
-            c = 'nombre'
-          elsif cn.include?('descripcion')
-            c = 'descripcion'
-          else
-            c = self.superclass.column_names[1]
-          end
-          ###@orden_grid[:campo] = self.superclass.table_name + '.' + c
-          cs = c.to_sym
-          @orden_grid[:campo] = @campos[cs][:grid] ? @campos[cs][:grid][:index].to_json : self.table_name + '.' + c
-        end
 
         after_initialize :_ini_campos_ctrl
       else
@@ -390,10 +381,6 @@ module MantMod
 
     def titulo
       @titulo
-    end
-
-    def orden_grid
-      @orden_grid
     end
 
     def mant?

@@ -22,11 +22,11 @@
     <input id="_pk-input" style="margin-left: 5px" />
     <div class="mdl-layout-spacer"></div>
     <nav class="mdl-navigation">
-      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="searchBar()">
+      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="searchBar()">
         <i class="material-icons">visibility</i>
       </button>
       &nbsp; &nbsp;
-      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="editInForm()">
+      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="editInForm()">
         <i class="material-icons">edit</i>
       </button>
       &nbsp; &nbsp;
@@ -49,8 +49,8 @@
         <i class="material-icons">more_vert</i>
       </button>
       <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="menu-r">
-        <li class="mdl-menu__item" onclick="searchBar()"> <i class="material-icons">visibility</i> Buscar </li>
-        <li class="mdl-menu__item" onclick="editInForm()"> <i class="material-icons">edit</i> Editar </li>
+        <li class="mdl-menu__item only-grid" onclick="searchBar()"> <i class="material-icons">visibility</i> Buscar </li>
+        <li class="mdl-menu__item only-grid" onclick="editInForm()"> <i class="material-icons">edit</i> Editar </li>
         <li class="mdl-menu__item" onclick="newFicha()"> <i class="material-icons">add</i> Nueva </li>
         <li class="mdl-menu__item" onclick="mantGrabarGrid()"> <i class="material-icons">save</i> Grabar </li>
         <li class="mdl-menu__item" onclick="mantBorrarGrid()"> <i class="material-icons">delete</i> Eliminar </li>
@@ -110,7 +110,7 @@
       display: none;
     }
   }
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: 599px) {
     .nim-hbut {
       display: none;
     }
@@ -133,9 +133,9 @@
 
 	var vgrid = grid.jqGrid({
     colModel: <%= raw @view[:col_model] %>,
-    //caption: '<%= @titulo %>',
-    sortname: <%= raw @view[:orden_grid][:campo] %>,
-    sortorder: '<%= @view[:orden_grid][:sentido] %>',
+    //caption: '',
+    sortname: '<%= @view[:grid][:sortname] %>',
+    sortorder: '<%= @view[:grid][:sortorder] %>',
     url:'<%= @view[:url_list].html_safe %>',
     cellurl:'<%= @view[:url_cell].html_safe %>',
     beforeProcessing: jqg_before_processing,
@@ -226,11 +226,13 @@
   $("#b-collapse").click(function () {
     if (displayGrid) {
       $("#cell-grid").css('display', 'none');
+      $(".only-grid").attr("disabled", true)
       classFicha = $("#cell-ficha").attr('class');
       $("#cell-ficha").attr('class', 'mdl-cell mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-cell--12-col');
       displayGrid = false;
     } else {
       $("#cell-grid").css('display', 'block');
+      $(".only-grid").attr("disabled", false)
       $("#cell-ficha").attr('class', classFicha);
       displayGrid = true;
       $("#ficha").height(0);
