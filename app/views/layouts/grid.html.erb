@@ -34,11 +34,11 @@
         <i class="material-icons">add</i>
       </button>
       &nbsp; &nbsp;
-      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mantGrabarGrid()">
+      <button class="cl-grabar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" disabled onclick="mantGrabarGrid()">
         <i class="material-icons">save</i>
       </button>
       &nbsp; &nbsp;
-      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mantBorrarGrid()">
+      <button class="cl-borrar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" disabled onclick="mantBorrarGrid()">
         <i class="material-icons">delete</i>
       </button>
       &nbsp; &nbsp; &nbsp; &nbsp;
@@ -52,8 +52,8 @@
         <li class="mdl-menu__item only-grid" onclick="searchBar()"> <i class="material-icons">visibility</i> Buscar </li>
         <li class="mdl-menu__item only-grid" onclick="editInForm()"> <i class="material-icons">edit</i> Editar </li>
         <li class="mdl-menu__item" onclick="newFicha()"> <i class="material-icons">add</i> Nueva </li>
-        <li class="mdl-menu__item" onclick="mantGrabarGrid()"> <i class="material-icons">save</i> Grabar </li>
-        <li class="mdl-menu__item" onclick="mantBorrarGrid()"> <i class="material-icons">delete</i> Eliminar </li>
+        <li class="mdl-menu__item" disabled onclick="mantGrabarGrid()"> <i class="material-icons">save</i> Grabar </li>
+        <li class="mdl-menu__item" disabled onclick="mantBorrarGrid()"> <i class="material-icons">delete</i> Eliminar </li>
       </ul>
     </nav>
   </div>
@@ -122,6 +122,7 @@
     border-radius: 10px;
     width: 15em;
   }
+
   #_pk-input:focus {
     display: block;
   }
@@ -155,7 +156,7 @@
 		cellEdit: <%= @view[:grid][:cellEdit] %>,
 		gridview: true,	// Acelera la velocidad de renderizado. Poner a false con trees y subgrids
 
-    //toppager: true,
+    toppager: true,
 		rowList:[10,20,30,50,100,500,1000],
 		altRows: true,	// filas tipo cebra
 		sortable: true,	// Si las columnas se pueden reordenar (cambiar de sitio)
@@ -171,13 +172,15 @@
 	});
 
 	grid.jqGrid('gridResize', {handles: "s", minHeight: 80});
-	grid.jqGrid('navGrid', toolgrid, {edit: false, add: false, del: true}, {}, {}, {}, {multipleSearch: true, multipleGroup: true, showQuery: true});
+  grid.jqGrid('bindKeys');
 	grid.jqGrid('filterToolbar', {stringResult: true, searchOperators: true}); vgrid[0].toggleToolbar();
-	grid.jqGrid('bindKeys');
 
+  /*
+  grid.jqGrid('navGrid', toolgrid, {edit: false, add: false, del: true}, {}, {}, {}, {multipleSearch: true, multipleGroup: true, showQuery: true});
 	grid.jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Barra de búsqueda", buttonicon :'ui-icon-pin-s', onClickButton:function(){vgrid[0].toggleToolbar()}});
 	grid.jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Formulario", buttonicon :'ui-icon-carat-2-n-s', onClickButton: editInForm});
 	grid.jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Nueva Alta", buttonicon :'ui-icon-plus', onClickButton: newFicha});
+	*/
 
   function editInLine() {
     id = grid.jqGrid('getGridParam','selrow');
@@ -193,14 +196,12 @@
     id = grid.jqGrid('getGridParam','selrow');
     if (id != null) {
       $("#ficha").attr('src', '<%= @view[:url_base] %>' + id + '/edit' + '<%= @view[:arg_edit] %>');
-      $("#dialog").dialog("open");
     } else
       alert("Seleccione un registro");
   }
 
   function newFicha() {
     $("#ficha").attr('src', '<%= @view[:url_new] %>');
-    $("#dialog").dialog("open");
   }
 
 /*
@@ -290,7 +291,7 @@
   }
 
   $("#_pk-input" ).blur(pkBlur).autocomplete({
-    source: "/application/auto?mod=<%= @view[:model] %>",
+    source: "/application/auto?mod=<%= @view[:model] + @view[:arg_ej] %>",
     minLength: 1,
     select: function(e, ui){
       $("#ficha").attr('src', '<%= @view[:url_base] %>' + ui.item.id + '/edit' + '<%= @view[:arg_edit] %>');
@@ -300,6 +301,7 @@
     //response: function(e, ui){auto_comp_error(e, ui);}
   });
 
+  $(".ui-pg-input").height(14); // Para que salga de la altura correcta el input del número de página del grid
   $(window).resize(redimWindow);
 
   redimWindow();

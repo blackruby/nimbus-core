@@ -27,13 +27,13 @@
     <%= form_tag("/login", method: "post") do %>
       <br>
       <div class="nim-group">
-        <input name="usuario" id="usuario" required style="max-width: 16em"/>
+        <input class="nim-input" name="usuario" id="usuario" required style="max-width: 16em"/>
         <label class="nim-label" for="usuario"> <%= nt('usuario') %> </label>
       </div>
       <br>
       <div class="nim-group">
-        <input type="password" name="password" id="password" required style="max-width: 16em"/>
-        <label class="nim-label" for="password"> <%= nt('password') %> </label>
+        <input class="nim-input" type="password" name="password" id="password" required style="max-width: 16em"/>
+        <label class="nim-label-out" for="password"> <%= nt('password') %> </label>
       </div>
       <br>
       <input name="commit" type="submit" style="display: none"/>
@@ -48,7 +48,7 @@
 
 <script>
   $("#usuario").val('').focus();
-  $("#password").val(null);
+  $("#password").val('');
   wCard = $(".w-card.mdl-card");
   wCard.css("margin-top", -wCard.height()/2);
 </script>

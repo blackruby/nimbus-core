@@ -305,6 +305,7 @@ module MantMod
       else
         @titulo = self.to_s[0..-4]
       end
+      @titulo = nt(@titulo)
     end
 
     def add_campo_x(campo, v)
@@ -393,6 +394,10 @@ module MantMod
 
     def grid
       @grid
+    end
+
+    def dialogos
+      @dialogos
     end
   end
 

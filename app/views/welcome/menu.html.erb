@@ -4,12 +4,12 @@
     <label style="font-size: 20px; margin-left: 15px;"> <%= nt('hola_nimbus') %> </label>
 
   <div class="nim-group div-head" style="width: 250px">
-    <input id="empresa" required size="20" style="max-width: 20em"/>
+    <input class="nim-input" id="empresa" required size="20" style="max-width: 20em"/>
     <label class="nim-label-fix" for="empresa"> <%= nt('empresa') %> </label>
   </div>
 
   <div id="d-ejercicio" class="nim-group div-head" style="width: 200px;visibility:hidden">
-    <input id="ejercicio" required size="16" style="max-width: 16em"/>
+    <input class="nim-input" id="ejercicio" required size="16" style="max-width: 16em"/>
     <label class="nim-label-fix" for="ejercicio"> <%= nt('ejercicio') %> </label>
   </div>
 
@@ -79,7 +79,7 @@
     }
   }
 
-  input {
+  .nim-input {
     padding-left: 3px;
     padding-right: 3px;
     border-radius: 8px;

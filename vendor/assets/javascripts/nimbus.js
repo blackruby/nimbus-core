@@ -349,7 +349,8 @@ function mant_borrar_ok() {
     data: {vista: _vista}
   });
   if (parent != self && $.isFunction(parent.grid_reload)) parent.grid_reload();
-  window.location.replace('/' + _controlador + '/0/edit');
+  head = $(".cl-borrar").length == 0 ? '0' : '1';
+  window.location.replace('/' + _controlador + '/0/edit?head=' + head);
 }
 
 function mant_cancelar() {
@@ -368,6 +369,19 @@ function mant_cerrar() {
 function bus(a) {
   if (a.keyCode == 113) // F2
     alert('BUS');
+}
+
+// Función para controlar el estado de los botones de control (Grabar, Borrar...)
+
+function statusBotones(b) {
+  $.each(b, function(k, v) {
+    cl = $(".cl-" + k);
+    if (cl.size() > 0) {
+      cl.attr("disabled", !v);
+    } else {
+      $(".cl-" + k, parent.document).attr("disabled", !v);
+    }
+  });
 }
 
 // Función para traducir textos en javascript

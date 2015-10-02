@@ -166,8 +166,6 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    @titulo = nt(clm.titulo)
-
     @view = {grid: clm.grid}
     @view[:model] = clm.superclass.to_s
     @view[:url_base] = '/' + params[:controller] + '/'
@@ -181,18 +179,26 @@ class ApplicationController < ActionController::Base
       @view[:arg_edit] << '&padre=' + params[:padre]
     end
 
+    @titulo = ''
+
+    arg_ej = ''
     if eid
-      arg_list_new << '&eid=' + eid
+      arg_ej << '&eid=' + eid
       @e = Empresa.find_by id: eid.to_i
+      @titulo << @e.codigo if clm.column_names.include?('empresa_id')
     end
 
     if jid
-      arg_list_new << '&jid=' + jid
+      arg_ej << '&jid=' + jid
       @j = Ejercicio.find_by id: jid.to_i
+      @titulo << '/' + @j.codigo if clm.column_names.include?('ejercicio_id')
     end
 
-    @view[:url_list] << arg_list_new
-    @view[:url_new] << arg_list_new
+    @view[:arg_ej] = arg_ej
+    @titulo << ' ' + clm.titulo
+
+    @view[:url_list] << arg_list_new + arg_ej
+    @view[:url_new] << arg_list_new + arg_ej
 
     if clm.mant? # No es un proc, y por lo tanto preparamos los datos del grid
       @view[:url_cell] = @view[:url_base] + '/validar_cell'
@@ -340,17 +346,17 @@ class ApplicationController < ActionController::Base
   end
 
   def var_for_views(clm)
-    @titulo = nt(clm.titulo)
+    @titulo = clm.titulo
     @tabs = []
     @hijos = clm.hijos
+    @dialogos = clm.dialogos
     clm.campos.each{|c, v|
       @tabs << v[:tab] if v[:tab] and !@tabs.include?(v[:tab]) and v[:tab] != 'pre' and v[:tab] != 'post'
     }
     clm.hijos.each{|h|
       @tabs << h[:tab] if h[:tab] and !@tabs.include?(h[:tab]) and h[:tab] != 'pre' and h[:tab] != 'post'
     }
-    @head = (params[:head] ? params[:head].to_i : 2)
-    @head += 1 if @tabs.size > 0
+    @head = (params[:head] ? params[:head].to_i : 1)
   end
 
   def new
@@ -363,7 +369,6 @@ class ApplicationController < ActionController::Base
     clm = class_mant
 
     var_for_views(clm)
-    @titulo = nt(clm.titulo)
 
     if params[:vista]
       v = Vista.new
@@ -407,7 +412,9 @@ class ApplicationController < ActionController::Base
     end
 
     @ajax = 'var _vista=' + v.id.to_s + ';var _controlador="' + params['controller'] + '";'
-    #sincro_ficha
+    #Activar botones necesarios (Grabar/Borrar)
+    @ajax << 'statusBotones({grabar: true, borrar: false});'
+
     envia_ficha
 
     #render 'shared/new'
@@ -499,6 +506,12 @@ class ApplicationController < ActionController::Base
     if @fact.id != 0
       sincro_hijos(v.id)
       before_envia_ficha if self.respond_to?('before_envia_ficha')
+
+      #Activar botones necesarios (Grabar/Borrar)
+      @ajax << 'statusBotones({grabar: true, borrar: true});'
+    else
+      #Activar botones necesarios (Grabar/Borrar)
+      @ajax << 'statusBotones({grabar: false, borrar: false});'
     end
 
     envia_ficha
@@ -744,16 +757,6 @@ class ApplicationController < ActionController::Base
     campo = params[:campo]
     valor = params[:valor]
 
-    if campo == '_input-pk_'
-      if valor == ''
-        render :nothing => true
-      else
-        head = $h[params[:vista].to_i][:head]
-        render :js => 'window.location.replace("/' + params[:controller] + '/' + valor + '/edit' + (head ? '?head='+head : '') + '");'
-      end
-      return
-    end
-
     @fact.method(campo + '=').call(raw_val(campo, valor))
 
 =begin
@@ -885,6 +888,9 @@ class_mant.campos.each {|cs, h|
 
       #@ajax << 'parent.$("#grid").flexReload();'
       #@ajax << 'alert("Grabación correcta");'
+
+      #Activar botones necesarios (Grabar/Borrar)
+      @ajax << 'statusBotones({borrar: true});'
     else
       @ajax << '$("#' + last_c + '").focus();'
       @ajax << 'alert(' + err.to_json + ');'
@@ -903,6 +909,7 @@ class_mant.campos.each {|cs, h|
     sal = ''
     ncols = 0
     prim = true
+    tab_diag = h[:tab] ? :tab : :diag
 
     #@e = clm.column_names.include?('empresa_id') ? @fact.empresa : nil
     #@j = clm.column_names.include?('ejercicio_id') ? @fact.ejercicio : nil
@@ -911,7 +918,8 @@ class_mant.campos.each {|cs, h|
 
     clm.campos.each{|c, v|
       cs = c.to_s
-      next if v[:tab].nil? or v[:tab] != h[:tab]
+      #next if v[:tab].nil? or v[:tab] != h[:tab]
+      next if v[tab_diag].nil? or v[tab_diag] != h[tab_diag]
 
       ro = eval_cad(v[:ro])
       manti = eval_cad(v[:manti])
@@ -930,7 +938,8 @@ class_mant.campos.each {|cs, h|
       plus = ''
       plus << ' disabled' if ro == :all or ro == params[:action].to_sym
 
-      if prim or v[:hr] or ncols >= 12
+      #if prim or v[:hr] or ncols >= 12
+      if prim or v[:hr]
         sal << '</div>' unless prim
         sal << '<hr>' if v[:hr]
         sal << '<div class="mdl-grid">'
@@ -949,7 +958,7 @@ class_mant.campos.each {|cs, h|
         sal << '</label>'
       elsif v[:type] == :text
         sal << '<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">'
-        sal << '<textarea class="mdl-textfield__input" type="text" id="' + cs + '" cols=' + size + ' rows=' + rows.to_s + ' onchange="validar($(this))" ' + plus + '>'
+        sal << '<textarea class="nim-textarea mdl-textfield__input" type="text" id="' + cs + '" cols=' + size + ' rows=' + rows.to_s + ' onchange="validar($(this))" ' + plus + '>'
         sal << '</textarea>'
         sal << '<label class="mdl-textfield__label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
@@ -961,10 +970,13 @@ class_mant.campos.each {|cs, h|
         sal << '</div>'
 =end
       elsif v[:code]
-          sal << '<input id="' + cs + '" size=' + v[:size].to_s + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" ' + plus + '/>'
+        sal << '<div class="nim-group">'
+        sal << '<input class="nim-input" id="' + cs + '" size=' + v[:size].to_s + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" required style="max-width: ' + size + 'em" ' + plus + '/>'
+        sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
+        sal << '</div>'
       elsif sel
         sal << '<div class="nim-group">'
-        sal << '<select id="' + cs + '" required onchange="validar($(this))" ' + plus + '>'
+        sal << '<select class="nim-select" id="' + cs + '" required onchange="validar($(this))" ' + plus + '>'
         sel.each{|k, tex|
           sal << '<option value="' + k.to_s + '">' + nt(tex) + '</option>'
         }
@@ -974,7 +986,7 @@ class_mant.campos.each {|cs, h|
       elsif cs.ends_with?('_id')
         sal << '<div class="nim-group">'
         #sal << '<input id="' + cs + '" size=' + v[:size].to_s + ' required ' + plus + '/>'
-        sal << '<input id="' + cs + '" required style="max-width: ' + size + 'em" ' + plus + '/>'
+        sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em" ' + plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
 =begin
         sal << '<button id="_acb_' + cs + '" class="nim-autocomp-button mdl-button mdl-js-button mdl-button--icon">'
@@ -989,7 +1001,7 @@ class_mant.campos.each {|cs, h|
       else
         sal << '<div class="nim-group">'
         #sal << '<input id="' + cs + '" size=' + size + ' required onchange="validar($(this))"'
-        sal << '<input id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
+        sal << '<input class="nim-input" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
         sal << ' maxlength=' + size if v[:type] == :string
         sal << ' ' + plus + '/>'
         sal << '<label class="nim-label" for="' + cs + '">' + nt(v[:label]) + '</label>'
@@ -1057,14 +1069,6 @@ class_mant.campos.each {|cs, h|
         sal << 'numero("#' + cs + '",' + manti + ',' + decim.to_s + ',' + signo.to_s + ');'
       end
     }
-
-    if clm.mant?
-      if @fact.id.nil?
-        sal << %Q{$("#encurso").text("#{nt('nuevo')}");}
-      elsif @fact.id !=0
-        sal << %Q{$("#encurso").text("#{nt('editando')}");}
-      end
-    end
 
     sal.html_safe
   end

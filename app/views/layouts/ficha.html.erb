@@ -10,20 +10,18 @@
 
 <body>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-  <% if @head > 0 %>
+  <% if @head > 0 || @tabs.size > 0 %>
   <header class="mdl-layout__header">
-    <% if @head > 1 %>
+    <% if @head > 0 %>
       <div class="mdl-layout__header-row">
         <span class="mdl-layout-title"> <%= @titulo %> </span>
         <div class="mdl-layout-spacer"></div>
         <nav class="mdl-navigation">
-          <label id="encurso"> </label>
-          &nbsp; &nbsp;
-          <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_grabar()">
+          <button class="cl-grabar mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_grabar()">
             <i class="material-icons">save</i>
           </button>
           &nbsp; &nbsp;
-          <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_borrar()">
+          <button class="cl-borrar mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_borrar()">
             <i class="material-icons">delete</i>
           </button>
           <% if @menu_r %>
@@ -89,14 +87,21 @@
   </main>
 </div>
 
+<% @dialogos.each {|d| %>
+  <div id="<%= d[:id] %>">
+    <%= gen_form({diag: d[:id]}) %>
+  </div>
+<% } %>
+
 <div id="dialog-borrar" title="Borrado">
   <p>
     <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
-    El registro será eliminado. ¿Está seguro?
+    El registro será eliminado.<br>¿Está seguro?
   </p>
 </div>
 
 </body>
+
 <style>
   body {
     margin-top: 0px;
@@ -108,8 +113,8 @@
   $( "#dialog-borrar" ).dialog({
     autoOpen: false,
     resizable: false,
-    height:170,
-    width: 350,
+    //height:170,
+    //width: 350,
     modal: true,
     buttons: {
       "Sí": function() {
@@ -121,6 +126,21 @@
       }
     }
   });
+
+  <% @dialogos.each {|d| %>
+    $("#<%= d[:id] %>" ).dialog({
+      autoOpen: false,
+      resizable: false,
+      width: '100%',
+      modal: true,
+      title: "<%= d[:titulo] %>",
+      buttons: {
+        <% d[:botones].each {|b| %>
+          "<%= b[:label] %>": function () {$( this ).dialog( "close" );},
+        <% } %>
+      }
+    });
+  <% } %>
 
   <%= gen_js  %>
   <%= @ajax.html_safe %>
