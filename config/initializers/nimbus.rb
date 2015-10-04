@@ -92,7 +92,7 @@ module MantMod
       @campos ||= {}
       @hijos ||= []
       @dialogos ||= []
-      @manu_r ||= []
+      @menu_r ||= []
       @col_model = []
       @columnas = []
       @campos_f = []
