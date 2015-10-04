@@ -168,6 +168,7 @@ class ApplicationController < ActionController::Base
 
     @view = {grid: clm.grid}
     @view[:model] = clm.superclass.to_s
+    @view[:menu_r] = clm.menu_r
     @view[:url_base] = '/' + params[:controller] + '/'
     @view[:url_list] = @view[:url_base] + 'list'
     @view[:url_new] = @view[:url_base] + 'new'
@@ -784,6 +785,8 @@ class_mant.campos.each {|cs, h|
 
     sincro_ficha :ajax => true, :exclude => campo
 
+    @ajax << 'hayCambios=' + @fact.changed?.to_s + ';'
+
     render :js => @ajax
   end
 
@@ -909,7 +912,7 @@ class_mant.campos.each {|cs, h|
     sal = ''
     ncols = 0
     prim = true
-    tab_diag = h[:tab] ? :tab : :diag
+    tab_dlg = h[:tab] ? :tab : :dlg
 
     #@e = clm.column_names.include?('empresa_id') ? @fact.empresa : nil
     #@j = clm.column_names.include?('ejercicio_id') ? @fact.ejercicio : nil
@@ -919,7 +922,7 @@ class_mant.campos.each {|cs, h|
     clm.campos.each{|c, v|
       cs = c.to_s
       #next if v[:tab].nil? or v[:tab] != h[:tab]
-      next if v[tab_diag].nil? or v[tab_diag] != h[tab_diag]
+      next if v[tab_dlg].nil? or v[tab_dlg] != h[tab_dlg]
 
       ro = eval_cad(v[:ro])
       manti = eval_cad(v[:manti])

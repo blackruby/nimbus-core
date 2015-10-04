@@ -89,7 +89,7 @@
 
 <% @dialogos.each {|d| %>
   <div id="<%= d[:id] %>">
-    <%= gen_form({diag: d[:id]}) %>
+    <%= gen_form({dlg: d[:id]}) %>
   </div>
 <% } %>
 
@@ -145,6 +145,10 @@
   <%= gen_js  %>
   <%= @ajax.html_safe %>
 
+  function abreDialogo(d) {
+    $("#" + d).dialog("open");
+  }
+
   function redimWindow() {
     <% @hijos.each_with_index{|h, i| %>
     f = $("#hijo_<%= i %>");
@@ -152,12 +156,18 @@
     <% } %>
   }
 
+  var hayCambios = false;
+
+  window.onbeforeunload = function() {
+    if (hayCambios) return('Hay cambios pendientes de grabar');
+  }
+
   $(window).resize(redimWindow);
 
   $(function(){
     redimWindow();
     $("input,select,textarea").filter(":enabled").first().focus();
-    componentHandler.upgradeDom();
+    //componentHandler.upgradeDom();
   });
 </script>
 

@@ -45,15 +45,21 @@
       <button id="b-collapse" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
         <i class="material-icons">swap_vert</i>
       </button>
-      <button id="menu-r" class="nim-hbut-f mdl-button mdl-js-button mdl-button--icon">
+      <button id="menu-r" class="nim-phone mdl-button mdl-js-button mdl-button--icon">
         <i class="material-icons">more_vert</i>
       </button>
       <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="menu-r">
-        <li class="mdl-menu__item only-grid" onclick="searchBar()"> <i class="material-icons">visibility</i> Buscar </li>
-        <li class="mdl-menu__item only-grid" onclick="editInForm()"> <i class="material-icons">edit</i> Editar </li>
-        <li class="mdl-menu__item" onclick="newFicha()"> <i class="material-icons">add</i> Nueva </li>
-        <li class="mdl-menu__item" disabled onclick="mantGrabarGrid()"> <i class="material-icons">save</i> Grabar </li>
-        <li class="mdl-menu__item" disabled onclick="mantBorrarGrid()"> <i class="material-icons">delete</i> Eliminar </li>
+        <li class="nim-phone mdl-menu__item only-grid" onclick="liFon(this, searchBar)"> <i class="material-icons">visibility</i> Buscar </li>
+        <li class="nim-phone mdl-menu__item only-grid" onclick="liFon(this, editInForm)"> <i class="material-icons">edit</i> Editar </li>
+        <li class="nim-phone mdl-menu__item" onclick="newFicha()"> <i class="material-icons">add</i> Nueva </li>
+        <li class="cl-grabar nim-phone mdl-menu__item" disabled onclick="liFon(this, mantGrabarGrid)"> <i class="material-icons">save</i> Grabar </li>
+        <li class="cl-borrar nim-phone mdl-menu__item" disabled onclick="liFon(this, mantBorrarGrid)"> <i class="material-icons">delete</i> Eliminar </li>
+        <% if @view[:menu_r].size > 0 %>
+          <hr class="nim-phone">
+          <%  @view[:menu_r].each {|m| %>
+            <li class="mdl-menu__item" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>')"> <%= m[:label] %> </li>
+          <% } %>
+        <% end %>
       </ul>
     </nav>
   </div>
@@ -105,14 +111,18 @@
   .mdl-grid {padding: 0;}
   .mdl-layout__content::-webkit-scrollbar {display: none;}
 
+  .nim-phone {
+    display: none;
+  }
+
   @media screen and (min-width: 600px) {
-    .nim-hbut-f {
-      display: none;
-    }
   }
   @media screen and (max-width: 599px) {
     .nim-hbut {
       display: none;
+    }
+    .nim-phone {
+      display: block;
     }
   }
 
@@ -220,6 +230,16 @@
     grid.trigger('reloadGrid', [{current:true}]);
   }
 
+  function liFon(li, fon, tipo) {
+    if ($(li).attr("disabled") == "disabled") return;
+    if (typeof fon == 'function')
+      fon.call();
+    else if (tipo == 'dlg')
+      $("#ficha")[0].contentWindow.abreDialogo(fon);
+    else
+      $("#ficha")[0].contentWindow.callFonServer(fon);
+  }
+
   // Mostrar/Ocultar el grid
 
   var classFicha, displayGrid = true;
@@ -241,6 +261,10 @@
     redimWindow();
   });
 
+  // Activar menú derecho si existe
+  <% if @view[:menu_r].size > 0 %>
+    $("#menu-r").css("display", "block");
+  <% end %>
 
   // Recalcular la anchura y altura del grid cuando se redimensione la ventana
 

@@ -5,20 +5,20 @@ class PaisesMod < Pais
     tipo: {tab: 'pre', gcols: 2, grid:{}},
     codigo_cr: {tab: 'pre', gcols: 2, grid:{}},
 
-    campo_1: {diag: 'uno', gcols: 12},
-    campo_2: {diag: 'uno', gcols: 12},
-    campo_3: {diag: 'uno', gcols: 12},
-    campo_4: {diag: 'uno', gcols: 12},
-    campo_5: {diag: 'uno', gcols: 12},
-    campo_6: {diag: 'uno', gcols: 12},
-    campo_7: {diag: 'uno', gcols: 12},
-    campo_8: {diag: 'uno', gcols: 12},
-    campo_9: {diag: 'uno', gcols: 12},
-    campo_10: {diag: 'uno', gcols: 12},
-    campo_11: {diag: 'uno', gcols: 12},
-    campo_12: {diag: 'uno', gcols: 12},
-    campo_13: {diag: 'uno', gcols: 12},
-    campo_14: {diag: 'uno', gcols: 12},
+    campo_1: {dlg: 'uno', gcols: 12},
+    campo_2: {dlg: 'uno', gcols: 12},
+    campo_3: {dlg: 'uno', gcols: 12},
+    campo_4: {dlg: 'uno', gcols: 12},
+    campo_5: {dlg: 'uno', gcols: 12},
+    campo_6: {dlg: 'uno', gcols: 12},
+    campo_7: {dlg: 'uno', gcols: 12},
+    campo_8: {dlg: 'uno', gcols: 12},
+    campo_9: {dlg: 'uno', gcols: 12},
+    campo_10: {dlg: 'uno', gcols: 12},
+    campo_11: {dlg: 'uno', gcols: 12},
+    campo_12: {dlg: 'uno', gcols: 12},
+    campo_13: {dlg: 'uno', gcols: 12},
+    campo_14: {dlg: 'uno', gcols: 12},
   }
 
   @grid = {
@@ -27,7 +27,13 @@ class PaisesMod < Pais
   }
 
   @dialogos = [
-    {id: 'uno', titulo: 'mytit', botones: [{label: 'si', accion: ''}]}
+    {id: 'uno', titulo: 'mytit', botones: [{label: 'si', accion: ''}], menu: 'Mi diálogo'},
+  ]
+
+  @menu_r = [
+    {label: 'Opción 1', accion: 'mi_funcion'},
+    {label: 'Opción 2'},
+    {label: 'Opción 3'},
   ]
 
   #@hijos = []
@@ -47,4 +53,7 @@ class PaisesMod < Pais
 end
 
 class PaisesController < ApplicationController
+  def mi_funcion
+    puts '****************** hola *****************'
+  end
 end

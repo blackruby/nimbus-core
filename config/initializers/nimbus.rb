@@ -91,10 +91,18 @@ module MantMod
 
       @campos ||= {}
       @hijos ||= []
+      @dialogos ||= []
+      @manu_r ||= []
       @col_model = []
       @columnas = []
       @campos_f = []
       @campos_X = []
+
+      @dialogos.each {|d|
+        if d[:menu]
+          @menu_r << {label: d[:menu], accion: d[:id], tipo: 'dlg'}
+        end
+      }
 
       @grid ||= {}
       @grid[:ew] ||= :w
@@ -398,6 +406,10 @@ module MantMod
 
     def dialogos
       @dialogos
+    end
+
+    def menu_r
+      @menu_r
     end
   end
 
