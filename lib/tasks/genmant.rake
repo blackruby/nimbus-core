@@ -166,7 +166,7 @@ namespace :nimbus do
         }
 
         # Borrar la tabla y la migración (si procede)
-        if tipo == :reg
+        if tipo == :all
           begin
             ActiveRecord::Migration.drop_table(table)
           rescue
@@ -176,13 +176,13 @@ namespace :nimbus do
           rescue
           end
           begin
-            version = Dir.glob("#{path}db/migrate/#{modulo}/*_create_#{table}.rb")[0]
+            version = Dir.glob("#{path}db/migrate/*_create_#{table}.rb")[0]
             us = version.rindex('/') + 1
             version = version[us..version.index('_', us)-1]
             ActiveRecord::Base.connection.execute("delete from schema_migrations where version = '#{version}'")
           rescue
           end
-          `rm -f #{path}db/migrate/#{modulo}/*_create_#{table}.rb`
+          `cd #{path}db/migrate; git rm *_create_#{table}.rb`
         end
 
         # Generar la migración
@@ -345,13 +345,13 @@ namespace :nimbus do
     end
 
 
-    if args[:opt] != 'ctr'
-      # Actualizar ficheros de idioma
-      locales.each {|l|
-        ar[:loc][l][l.to_s] = ar[:loc][l][l.to_s].sort.to_h # Ordenamos el locale en orden alfabético de claves
-        File.write("modulos/idiomas/config/locales/nimbus_#{l.to_s}.yml", YAML.dump(ar[:loc][l]))
-      }
+    # Actualizar ficheros de idioma
+    locales.each {|l|
+      ar[:loc][l][l.to_s] = ar[:loc][l][l.to_s].sort.to_h # Ordenamos el locale en orden alfabético de claves
+      File.write("modulos/idiomas/config/locales/nimbus_#{l.to_s}.yml", YAML.dump(ar[:loc][l]))
+    }
 
+    if args[:opt] != 'ctr'
       # Ejecutar migraciones
       Rake::Task['db:migrate'].invoke
     end

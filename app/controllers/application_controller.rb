@@ -894,6 +894,8 @@ class_mant.campos.each {|cs, h|
 
       #Activar botones necesarios (Grabar/Borrar)
       @ajax << 'statusBotones({borrar: true});'
+
+      @ajax << 'hayCambios=false;'
     else
       @ajax << '$("#' + last_c + '").focus();'
       @ajax << 'alert(' + err.to_json + ');'
