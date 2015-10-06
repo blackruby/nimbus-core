@@ -976,7 +976,7 @@ class_mant.campos.each {|cs, h|
 =end
       elsif v[:code]
         sal << '<div class="nim-group">'
-        sal << '<input class="nim-input" id="' + cs + '" size=' + v[:size].to_s + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" required style="max-width: ' + size + 'em" ' + plus + '/>'
+        sal << '<input class="nim-input" id="' + cs + '" maxlength=' + size + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" required style="max-width: ' + size + 'em" ' + plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
       elsif sel
