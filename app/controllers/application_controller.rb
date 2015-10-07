@@ -72,6 +72,26 @@ class ApplicationController < ActionController::Base
     render js: ''
   end
 
+  # Funciones para interactuar con el cliente
+
+  def mensaje(h)
+    h = {msg: h} if h.is_a? String
+    h[:tit] ||= nt('aviso')
+    h[:bot] ||= []
+    h[:close] = true if h[:close].nil?
+
+    @ajax << '$("#dialog-nim-alert").html(' + h[:msg].to_json + ')'
+    @ajax << '.dialog("option", "title", "' + h[:tit] + '")'
+    @ajax << '.dialog("option", "buttons", {'
+    h[:bot].each {|b|
+      @ajax << '"' + nt(b[:label]) + '": function(){callFonServer("' + b[:accion] + '");'
+      @ajax << '$("#dialog-nim-alert").dialog("close");' if h[:close]
+      @ajax << '},'
+    }
+    @ajax << '})'
+    @ajax << '.dialog("open");'
+  end
+
   # Funciones para el manejo del histórico de un modelo
   def histo
     begin
@@ -780,7 +800,8 @@ class_mant.campos.each {|cs, h|
     else
       @ajax << '$("#' + campo + '").focus();'
       @ajax << '$("#' + campo + '").addClass("ui-state-error");'
-      @ajax << 'alert(' + err.to_json + ');' if err != ''
+      #@ajax << 'alert(' + err.to_json + ');' if err != ''
+      mensaje(err)
     end
 
     sincro_ficha :ajax => true, :exclude => campo
@@ -826,7 +847,7 @@ class_mant.campos.each {|cs, h|
     @fact = $h[vid][:fact]
     @fant = @fact.dup
     vali = true
-    err = "Hay errores en el registro\n"
+    err = ''
     @ajax = ''
     last_c = nil
     clm.campos.each {|cs, v|
@@ -839,7 +860,7 @@ class_mant.campos.each {|cs, h|
         valor = @fact.method(c).call
         if valor.nil? or ([:string, :text].include?(v[:type]) and valor.strip == '')
           e = "Campo #{c} requerido"
-          err << "\n#{e}"
+          err << '<br>' + e
           vali = false
         end
       else
@@ -847,7 +868,7 @@ class_mant.campos.each {|cs, h|
           e = method(fun).call
           if e != nil
             vali = false
-            err << "\n"+ e if e != ''
+            err << '<br>' + e
           end
         end
 
@@ -855,7 +876,7 @@ class_mant.campos.each {|cs, h|
           e = @fact.method(fun).call
           if e != nil
             vali = false
-            err << "\n"+ e if e != ''
+            err << '<br>' + e
           end
         end
       end
@@ -898,7 +919,8 @@ class_mant.campos.each {|cs, h|
       @ajax << 'hayCambios=false;'
     else
       @ajax << '$("#' + last_c + '").focus();'
-      @ajax << 'alert(' + err.to_json + ');'
+      #@ajax << 'alert(' + err.to_json + ');'
+      mensaje tit: 'Errores en el registro', msg: err
     end
 
     render :js => @ajax

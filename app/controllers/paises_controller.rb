@@ -11,14 +11,6 @@ class PaisesMod < Pais
     campo_4: {dlg: 'uno', gcols: 12},
     campo_5: {dlg: 'uno', gcols: 12},
     campo_6: {dlg: 'uno', gcols: 12},
-    campo_7: {dlg: 'uno', gcols: 12},
-    campo_8: {dlg: 'uno', gcols: 12},
-    campo_9: {dlg: 'uno', gcols: 12},
-    campo_10: {dlg: 'uno', gcols: 12},
-    campo_11: {dlg: 'uno', gcols: 12},
-    campo_12: {dlg: 'uno', gcols: 12},
-    campo_13: {dlg: 'uno', gcols: 12},
-    campo_14: {dlg: 'uno', gcols: 12},
   }
 
   @grid = {
@@ -27,7 +19,7 @@ class PaisesMod < Pais
   }
 
   @dialogos = [
-    {id: 'uno', titulo: 'mytit', botones: [{label: 'si', accion: ''}], menu: 'Mi diálogo'},
+    {id: 'uno', titulo: 'mytit', botones: [{label: 'si', accion: '', close: false}], menu: 'Mi diálogo'},
   ]
 
   @menu_r = [
@@ -55,5 +47,12 @@ end
 class PaisesController < ApplicationController
   def mi_funcion
     puts '****************** hola *****************'
+  end
+
+  def vali_campo_1
+    @fact.codigo.size < 2 ? 'Código corto' : nil
+  end
+  def on_campo_1
+    mensaje tit: 'Hola', msg: 'Un texto cualquiera', bot: [{label: 'Ok', accion: 'mi_funcion'}]
   end
 end

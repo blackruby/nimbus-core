@@ -93,6 +93,9 @@
   </div>
 <% } %>
 
+<div id="dialog-nim-alert">
+</div>
+
 <div id="dialog-borrar" title="Borrado">
   <p>
     <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
@@ -110,6 +113,17 @@
 </style>
 
 <script>
+  $( "#dialog-nim-alert" ).dialog({
+    autoOpen: false,
+    resizable: false,
+    modal: true,
+    buttons: {
+      "Aceptar": function() {
+        $( this ).dialog( "close" );
+      }
+    }
+  });
+
   $( "#dialog-borrar" ).dialog({
     autoOpen: false,
     resizable: false,
@@ -136,7 +150,7 @@
       title: "<%= d[:titulo] %>",
       buttons: {
         <% d[:botones].each {|b| %>
-          "<%= b[:label] %>": function () {$( this ).dialog( "close" );},
+          "<%= b[:label] %>": function () {callFonServer("<%= b[:accion] %>");<%= (b[:close].nil? or b[:close]) ? '$( this ).dialog("close");'.html_safe : '' %>},
         <% } %>
       }
     });

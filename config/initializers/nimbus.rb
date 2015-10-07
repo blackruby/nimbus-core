@@ -28,6 +28,8 @@ end
 
 # Método para traducir personalizado
 def nt(tex)
+  return('') if tex.nil? or tex == ''
+
   r = I18n.t(tex)
   if r.start_with?('translation missing')
     r = I18n.t(tex.downcase)
@@ -149,7 +151,7 @@ module MantMod
           end
         end
 
-        @campos_f << campo if v[:tab]
+        @campos_f << campo if v[:tab] or v[:dlg]
 
         if campo.ends_with?('_id')
           v[:type] = :string
@@ -364,7 +366,7 @@ module MantMod
       campo = c.to_s
       v[:label] ||= campo.ends_with?('_id') ? campo[0..-4] : campo
       @campos[c] = v
-      @campos_f << campo if v[:tab]
+      @campos_f << campo if v[:tab] or v[:dlg]
       add_campo_x(campo, v)
     end
 
