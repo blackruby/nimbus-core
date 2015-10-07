@@ -53,6 +53,7 @@ class PaisesController < ApplicationController
     @fact.codigo.size < 2 ? 'Código corto' : nil
   end
   def on_campo_1
+    disable('campo_3')
     mensaje tit: 'Hola', msg: 'Un texto cualquiera', bot: [{label: 'Ok', accion: 'mi_funcion'}]
   end
 end

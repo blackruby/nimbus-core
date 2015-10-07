@@ -92,6 +92,18 @@ class ApplicationController < ActionController::Base
     @ajax << '.dialog("open");'
   end
 
+  def enable(c)
+    @ajax << '$("#' + c + '").attr("disabled", false);'
+  end
+
+  def disable(c)
+    @ajax << '$("#' + c + '").attr("disabled", true);'
+  end
+
+  def foco(c)
+    @ajax << '$("#' + c + '").focus();'
+  end
+
   # Funciones para el manejo del histórico de un modelo
   def histo
     begin
