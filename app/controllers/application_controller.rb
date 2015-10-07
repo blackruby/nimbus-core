@@ -813,12 +813,18 @@ class_mant.campos.each {|cs, h|
 
   #Función para ser llamada desde el botón aceptar de los 'procs'
   def fon_server
+    @ajax = ''
     @fact = $h[params[:vista].to_i][:fact] if params[:vista]
+    @fant = @fact.dup
     method(params[:fon]).call if self.respond_to?(params[:fon])
+    sincro_ficha :ajax => true
+    render js: @ajax
+=begin
     begin
       render nothing: true  # Por si no existe el método o por si éste no hace un render explícito
     rescue
     end
+=end
   end
 
   #### CANCELAR
