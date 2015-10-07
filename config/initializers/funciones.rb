@@ -17,6 +17,7 @@ class String
   end
 
   def dni?
+    return true if self.length == 0
     return false unless self.length == 9
 
     # We also accept NIFs, NIF validation algoritm taken from:
@@ -49,81 +50,8 @@ class String
       candidate_letter
   end
 
-
-
-  def KO_iban?
-    ibans = self.upcase.scan(/\w/).join
-    ibans = ibans.gsub(/_/, '')
-    iban_length = ibans.length
-    country = ibans.scan(/\A../).join
-    length_correct_for_country = true
-
-    case country
-      when "ES"
-        if iban_length == 24
-          length_correct_for_country = true
-        else
-          length_correct_for_country = false
-        end
-      when "IE"
-        if iban_length == 22
-          length_correct_for_country = true
-        else
-          length_correct_for_country = false
-        end
-      when "AL"
-        if iban_length == 28
-          length_correct_for_country = true
-        else
-          length_correct_for_country = false
-        end
-      when "TR"
-        if iban_length == 26
-          length_correct_for_country = true
-        else
-          length_correct_for_country = false
-        end
-      when "GB"
-        if iban_length == 22
-          length_correct_for_country = true
-        else
-          length_correct_for_country = false
-        end
-      when "VG"
-        if iban_length == 24
-          length_correct_for_country = true
-        else
-          length_correct_for_country = false
-        end
-    end
-
-    first_four_characters = ibans.slice!(0..3)
-    reordered_number = ibans + first_four_characters
-
-    letters_removed = []
-    reordered_number.scan(/./) do |character|
-      case character
-        when "A"
-          letters_removed << 10
-        when "9"
-          letters_removed <<9
-      end
-    end
-
-    letters_removed = letters_removed.join.to_i
-    remainder = letters_removed % 97
-
-    if remainder == 1 && length_correct_for_country
-      return true
-    else
-      return false
-      #remainder = remainder.to_s
-      #errors.add(:iban, " That is not a valid IBAN. The IBAN that is being supplied")
-    end
-
-  end
-
   def iban?
+    return true if self.trim.length == 0
     len = {
       AL: 28, AD: 24, AT: 20, AZ: 28, BE: 16, BH: 22, BA: 20, BR: 29,
       BG: 22, CR: 21, HR: 21, CY: 28, CZ: 24, DK: 18, DO: 28, EE: 20,
