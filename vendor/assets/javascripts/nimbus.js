@@ -335,6 +335,9 @@ function mant_grabar() {
     type: "POST",
     data: {vista: _vista}
   });
+}
+
+function parentGridReload() {
   if (parent != self && $.isFunction(parent.grid_reload)) parent.grid_reload();
 }
 

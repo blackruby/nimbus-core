@@ -27,23 +27,27 @@ class String
 end
 
 # Método para traducir personalizado
-def nt(tex)
+def nt(tex, h={})
   return('') if tex.nil? or tex == ''
 
-  r = I18n.t(tex)
-  if r.start_with?('translation missing')
-    r = I18n.t(tex.downcase)
+  begin
+    r = I18n.t(tex, h)
     if r.start_with?('translation missing')
-      if tex[-1] == 's'
-        r = I18n.t(tex.singularize).pluralize(I18n.locale)
-      elsif tex.ends_with?('_id')
-        r = I18n.t(tex[0..-4])
+      r = I18n.t(tex.downcase, h)
+      if r.start_with?('translation missing')
+        if tex[-1] == 's'
+          r = I18n.t(tex.singularize, h).pluralize(I18n.locale)
+        elsif tex.ends_with?('_id')
+          r = I18n.t(tex[0..-4], h)
+        end
       end
     end
-  end
 
-  return('#' + tex.humanize) if r.start_with?('translation missing')
-  r[0] == '#' ? r[1..-1] : r
+    return('#' + tex.humanize) if r.start_with?('translation missing')
+    r[0] == '#' ? r[1..-1] : r
+  rescue
+    return '####'
+  end
 end
 
 # Extensiones en ActiveRecord (para control histórico)

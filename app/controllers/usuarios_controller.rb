@@ -1,14 +1,14 @@
 class UsuariosMod < Usuario
   @campos = {
-    codigo: {tab: 'pre', grid: {}},
-    nombre: {tab: 'pre', grid: {}},
-    admin: {tab: 'pre', grid: {}},
-    timeout: {tab: 'pre'},
-    locale: {tab: 'pre', sel:{es: 'espanol', en: 'ingles'}, pref:true},
-    password: {tab: 'pre'},
-    password_rep: {tab: 'pre'},
-    empresa_def_id: {tab: 'pre'},
-    ejercicio_def_id: {tab: 'pre'},
+    codigo: {tab: 'pre', gcols: 4, grid: {}},
+    nombre: {tab: 'pre', gcols: 4, grid: {}},
+    admin: {tab: 'pre', gcols: 2, hr: true, grid: {}},
+    timeout: {tab: 'pre', gcols: 4},
+    locale: {tab: 'pre', gcols: 2, sel:{es: 'espanol', en: 'ingles'}, pref:true},
+    password: {tab: 'pre', hr: true, gcols: 4},
+    password_rep: {tab: 'pre', gcols: 4},
+    empresa_def_id: {tab: 'pre', hr: true, gcols: 4},
+    ejercicio_def_id: {tab: 'pre', gcols: 4},
   }
 
   @grid = {

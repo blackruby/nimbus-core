@@ -920,7 +920,14 @@ class_mant.campos.each {|cs, h|
         }
         f.save
       else
-        @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
+        begin
+          @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
+        rescue Exception => e
+          @ajax = ''
+          mensaje 'Grabación cancelada. Ya existe la clave'
+          render :js => @ajax
+          return
+        end
       end
       save if self.respond_to?('save') # Damos la opción de tener un método save (adicional) en el mantenimiento
 
@@ -928,8 +935,8 @@ class_mant.campos.each {|cs, h|
 
       sincro_hijos(vid) if (id_old.nil?)
 
-      #@ajax << 'parent.$("#grid").flexReload();'
-      #@ajax << 'alert("Grabación correcta");'
+      #Refrescar el grid si procede
+      @ajax << 'parentGridReload();'
 
       #Activar botones necesarios (Grabar/Borrar)
       @ajax << 'statusBotones({borrar: true});'
