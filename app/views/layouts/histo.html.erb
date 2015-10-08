@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= @titulo.nil? ? 'Nimbus' : @titulo %></title>
+  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
+  <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+  <%= csrf_meta_tags %>
+</head>
+
+<body>
+<%= yield :before %>
+
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+<header class="mdl-layout__header">
+  <div class="mdl-layout__header-row">
+    <span class="mdl-layout-title grid-title"> <%= @titulo %> </span>
+    <div class="mdl-layout-spacer"></div>
+    <nav class="mdl-navigation">
+      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="searchBar()">
+        <i class="material-icons">visibility</i>
+      </button>
+      &nbsp; &nbsp;
+      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="editInForm()">
+        <i class="material-icons">edit</i>
+      </button>
+      &nbsp; &nbsp; &nbsp; &nbsp;
+      <button id="b-collapse" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
+        <i class="material-icons">swap_vert</i>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="mdl-layout__content">
+  <div class="page-content">
+    <div class="mdl-grid">
+      <div id="cell-grid" class="mdl-cell mdl-cell--3-col mdl-cell--3-col-tablet mdl-cell--4-col-phone">
+        <table id="grid"></table>
+      </div>
+      <div id="cell-ficha" class="mdl-cell mdl-cell--9-col mdl-cell--5-col-tablet mdl-cell--4-col-phone">
+        <iframe id="ficha" class="ficha"> </iframe>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<style>
+  .ui-search-menu {z-index: 1500};
+  .mdl-cell {margin: 1px;}
+  .mdl-grid {padding: 0;}
+  .mdl-layout__content::-webkit-scrollbar {display: none;}
+</style>
+
+<script>
+	grid = $("#grid");
+	toolgrid = '#grid_toppager';
+
+	var vgrid = grid.jqGrid({
+    colModel: [{name: 'fecha', index: 'created_at', label: 'Fecha', width: 12}, {name: 'usuario', index: 'created_by_id', label: 'Usuario', width: 8}],
+    sortname: 'created_at',
+    sortorder: 'asc',
+    url:'<%= @url_list.html_safe %>',
+    datatype: "json",
+    mtype: 'POST',
+    height: 400,
+    rowNum:100,
+    gridview: true,	// Acelera la velocidad de renderizado. Poner a false con trees y subgrids
+    altRows: true,	// filas tipo cebra
+    sortable: true,	// Si las columnas se pueden reordenar (cambiar de sitio)
+    viewrecords: true,	// Muestra información del total de registros en la toolbar
+    ondblClickRow: editInForm,
+    shrinkToFit: true,
+    scroll: true,
+		cellEdit: false,
+    toppager: false,
+	});
+
+	grid.jqGrid('gridResize', {handles: "s", minHeight: 80});
+  grid.jqGrid('bindKeys');
+	grid.jqGrid('filterToolbar', {stringResult: true, searchOperators: true}); vgrid[0].toggleToolbar();
+
+  function searchBar() {vgrid[0].toggleToolbar();}
+
+  function editInForm() {
+    id = $(grid).jqGrid('getGridParam','selrow');
+    if (id != null) $("#ficha").attr('src', '<%= @url_edit %>/h' + id + '/edit?head=0');
+  }
+
+  // Mostrar/Ocultar el grid
+
+  var classFicha, displayGrid = true;
+
+  $("#b-collapse").click(function () {
+    if (displayGrid) {
+      $("#cell-grid").css('display', 'none');
+      $(".only-grid").attr("disabled", true)
+      classFicha = $("#cell-ficha").attr('class');
+      $("#cell-ficha").attr('class', 'mdl-cell mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-cell--12-col');
+      displayGrid = false;
+    } else {
+      $("#cell-grid").css('display', 'block');
+      $(".only-grid").attr("disabled", false)
+      $("#cell-ficha").attr('class', classFicha);
+      displayGrid = true;
+      $("#ficha").height(0);
+    }
+    redimWindow();
+  });
+
+  // Recalcular la anchura y altura del grid cuando se redimensione la ventana
+
+  function redimWindow() {
+    tf = $("#cell-ficha").offset().top;
+    if (displayGrid) {
+      grid.setGridWidth($("#gbox_grid").parent().width()-2, grid.jqGrid('getGridParam', 'shrinkToFit'));
+      tg = $("#cell-grid").offset().top;
+      if (tg == tf) {
+        h = $(window).height() - tf - 35;
+        $("#ficha").css("height", h);
+        grid.setGridHeight(h);
+        $("#gbox_grid").css("height", 'auto');
+      } else {
+        h = $(window).height() / 2;
+        if ($("#cell-grid").height() > h) {
+          grid.setGridHeight(h);
+          $("#gbox_grid").css("height", 'auto');
+        }
+        $("#ficha").css("height", $(window).height() - (tg>tf ? tf : 40) - $("#cell-grid").height() - 40);
+      }
+    } else {
+      $("#ficha").css("height", $(window).height() - tf - 10);
+    }
+  }
+
+  $(".ui-pg-input").height(14); // Para que salga de la altura correcta el input del número de página del grid
+  $(window).resize(redimWindow);
+
+  redimWindow();
+  $("#ficha").attr('src', '<%= @url_edit %>/0/edit?head=0');
+</script>
+
+<%= yield :after %>
+
+</body>
+</html>

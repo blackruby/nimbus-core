@@ -66,7 +66,7 @@
 </header>
   <div class="mdl-layout__drawer">
     <nav class="mdl-navigation">
-      <a class="mdl-navigation__link" href="#">Histórico</a>
+      <a class="mdl-navigation__link" href="#" onclick="grid_historico()">Histórico</a>
       <a class="mdl-navigation__link" href="#">Estadísticas</a>
     </nav>
   </div>
@@ -166,7 +166,7 @@
 		cellEdit: <%= @view[:grid][:cellEdit] %>,
 		gridview: true,	// Acelera la velocidad de renderizado. Poner a false con trees y subgrids
 
-    toppager: true,
+    toppager: <%= !@view[:grid][:scroll] %>,
 		rowList:[10,20,30,50,100,500,1000],
 		altRows: true,	// filas tipo cebra
 		sortable: true,	// Si las columnas se pueden reordenar (cambiar de sitio)
@@ -225,6 +225,9 @@
     //$(this).css("height", $("#ficha").contents().find('.mdl-layout__content')[0].scrollHeight + 130 + "px");
   });
 */
+  function grid_historico() {
+    $("#ficha")[0].contentWindow.historico();
+  }
 
   function grid_reload() {
     grid.trigger('reloadGrid', [{current:true}]);

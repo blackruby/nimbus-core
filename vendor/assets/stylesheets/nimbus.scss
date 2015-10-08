@@ -125,3 +125,9 @@ body {
   color: $color-nim-label;
 }
 
+.nim-campo-cambiado {
+  background-color: $color-1-2;
+}
+.nim-campo-cambiado:disabled {
+  color: grey;
+}

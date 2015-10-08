@@ -121,7 +121,8 @@ class ApplicationController < ActionController::Base
     @url_edit = '/'
     @url_edit << (params[:modulo] ? params[:modulo] + '/': '')
     @url_edit << params[:tabla]
-    render 'shared/histo'
+    #render 'shared/histo'
+    render html: '', layout: 'histo'
   end
 
   def histo_list
@@ -475,14 +476,15 @@ class ApplicationController < ActionController::Base
       next unless @fact.respond_to?(c)
       v = fh.method(c).call
       @fact.method(c + '=').call(v)
-      dif << '$("#' + c + '").css("background-color", "Bisque");' if ( v != fo.method(c).call)
+      #dif << '$("#' + c + '").css("background-color", "Bisque");' if ( v != fo.method(c).call)
+      dif << '$("#' + c + '").addClass("nim-campo-cambiado");' if ( v != fo.method(c).call)
     }
 
     @ajax = ''
     envia_ficha
     @ajax << '$(":input").attr("disabled", true);'
     @ajax << dif
-    render 'shared/edith'
+    render html: '', layout: 'ficha'
   end
 
   def edit
@@ -767,7 +769,7 @@ class ApplicationController < ActionController::Base
     @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
     @fant = @fact.dup
 
-    @fact.method(campo + '=').call(raw_val(campo, valor))
+    @fact.method(campo + '=').call(params[:sel] ? params[:sel] : raw_val(campo, valor))
 
     err = valida_campo(campo)
 
