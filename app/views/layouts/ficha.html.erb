@@ -43,7 +43,7 @@
     <% if @tabs.size > 0 %>
       <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
         <% @tabs.each_with_index {|t, i| %>
-          <a href="#t_<%= t %>" class="mdl-layout__tab <%= i==0 ? 'is-active' : '' %>"> <%= nt(t) %> </a>
+          <a href="#t_<%= t %>" class="mdl-layout__tab <%= i==0 ? 'is-active' : '' %>" onclick="tabClick($('#t_<%= t %>'))"> <%= nt(t) %> </a>
         <% } %>
       </div>
     <% end %>
@@ -178,7 +178,8 @@
     f = $("#hijo_<%= i %>");
     wh = $(window).height();
     fh = wh - f.offset().top;
-    if (fh < wh/2) f.height(wh/2); else f.height(fh);
+    //if (fh < wh/2) f.height(wh/2); else f.height(fh);
+    f.height(fh);
     <% } %>
   }
 
@@ -190,11 +191,17 @@
 
   $(window).resize(redimWindow);
 
-  $(function(){
+  $(window).load(function () {
     redimWindow();
     $("input,select,textarea").filter(":enabled").first().focus();
     //componentHandler.upgradeDom();
   });
+
+  var _activeTab;
+  function tabClick(tab) {
+    _activeTab = tab;
+    setTimeout(function(){_activeTab.find(':input').filter(':enabled').first().focus();},100);
+  }
 </script>
 
 </html>
