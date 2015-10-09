@@ -228,7 +228,7 @@ class ApplicationController < ActionController::Base
       @titulo << '/' + @j.codigo if clm.column_names.include?('ejercicio_id')
     end
 
-    @view[:arg_ej] = arg_ej
+    @view[:arg_auto] = params[:mod] ? '&wh=' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id] : arg_ej
     @titulo << ' ' + clm.titulo
 
     @view[:url_list] << arg_list_new + arg_ej
