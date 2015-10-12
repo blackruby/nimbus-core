@@ -272,6 +272,8 @@ class ApplicationController < ActionController::Base
   def list
     # jqGrid
     #
+    render json: '' unless request.xhr? # Si la petición no es Ajax... ¡Puerta! (Por razones de seguridad)
+
     clm = class_mant
     mod_tab = clm.table_name
 
@@ -296,6 +298,38 @@ class ApplicationController < ActionController::Base
           return
         end
       end
+    end
+
+    if params[:filters]
+      fil = eval(params[:filters])
+      fil[:rules].each {|f|
+        #[:eq,:ne,:lt,:le,:gt,:ge,:bw,:bn,:in,:ni,:ew,:en,:cn,:nc,:nu,:nn]
+        op = f[:op].to_sym
+
+        if op == :nu or op == :nn
+          add_where w, f[:field]
+          w << ' IS'
+          w << ' NOT' if op == :nn
+          w << ' NULL'
+          next
+        end
+
+        ty = f[:field].split('.')
+        ty = ty[-2].model.columns_hash[ty[-1]].type
+        add_where w, ([:bn,:ni,:en,:nc].include?(op) ? 'NOT ' : '') + (ty == :string ? 'UNACCENT(LOWER(' + f[:field] + '))' : f[:field])
+        w << ({eq: '=', ne: '<>', cn: ' LIKE ', bw: ' LIKE ', ew: ' LIKE ', nc: ' LIKE ', bn: ' LIKE ', en: ' LIKE ', in: ' IN (', ni: ' IN (', lt: '<', le: '<=', gt: '>', ge: '>='}[op] || '=')
+        if op == :in or op == :ni
+          f[:data].split(',').each {|d| w << '\'' + I18n.transliterate(d).downcase + '\','}
+          w.chop!
+          w << ')'
+        else
+          w << '\''
+          w << '%' if [:ew,:en,:cn,:nc].include?(op)
+          w << (ty == :string ? I18n.transliterate(f[:data]).downcase : f[:data])
+          w << '%' if [:bw,:bn,:cn,:nc].include?(op)
+          w << '\''
+        end
+      }
     end
 
     tot_records = clm.select(:id).where(w).size
@@ -604,7 +638,7 @@ class ApplicationController < ActionController::Base
     res = []
     wh = '('
     data[:campos].each {|c|
-      wh << 'LOWER(' + c + ') LIKE \'' + patron.downcase + '\'' + ' OR '
+      wh << 'UNACCENT(LOWER(' + c + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
     }
     wh = wh[0..-5] + ')'
     wh << ' AND empresa_id=' + params[:eid] if mod.column_names.include?('empresa_id') and params[:eid]

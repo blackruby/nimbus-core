@@ -24,6 +24,13 @@ class String
   def singularize(l=:es)
     singularize_org(l)
   end
+
+  # Método para proporcionar el modelo asociado a un nombre de table (con posible módulo)
+  def model
+    sp = self.split('_')
+    mod = sp.size > 1 ? sp[0].capitalize + '::' : ''
+    (mod + sp[-1].singularize.capitalize).constantize
+  end
 end
 
 # Método para traducir personalizado
