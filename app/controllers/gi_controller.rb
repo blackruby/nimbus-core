@@ -1,6 +1,6 @@
 class GiMod
   @campos = {
-    formato: {sel: {pdf: 'pdf', xlsx: 'excel', xls: 'excel_old'}, div: 'g1'},
+    formato: {sel: {pdf: 'pdf', xlsx: 'excel', xls: 'excel_old'}, tab: 'post', hr: true},
   }
 end
 
@@ -73,7 +73,7 @@ class GiController < ApplicationController
   end
 
   def graba_fic
-    file = 'nimbus/formatos/gi/' + params[:file]
+    file = 'formatos/' + params[:file]
     if params[:ow] == 'n' and File.exists?(file)
       render text: 'n'
       return
@@ -141,8 +141,13 @@ class GiController < ApplicationController
 
   def ini_campos
     @fact.formato = :pdf
-    form = eval('{' + File.read('nimbus/formatos/gi/' + params[:file]) + '}')
+    form = GI.formato_read(params[:file])
     form[:lim].each {|c, v| GiMod.add_campo(c, v)}
+    if form[:titulo]
+      @titulo = form[:titulo]
+    elsif form[:tabla]
+      @titulo = 'Listado de ' + nt(form[:tabla].table_name)
+    end
   end
 
   def before_envia_ficha
@@ -174,9 +179,36 @@ class GiController < ApplicationController
 end
 
 class GI
+  def self.formato_read(file)
+    path = nil
+    fi = 'formatos/' + file
+    path = fi if File.exists?(fi)
+    if path.nil?
+      Dir.glob('modulos/*/formatos').each {|mod|
+        next if mod.ends_with?('/nimbus-core')
+        fi = mod + '/' + file
+        if File.exists?(fi)
+          path = fi
+          break
+        end
+      }
+    end
+    if path.nil?
+      fi = 'modulos/nimbus-core/formatos/' + file
+      path = fi if File.exists?(fi)
+    end
+
+    if path.nil?
+      {}
+    else
+      eval('{' + File.read(path) + '}')
+    end
+  end
+
   def initialize(form, data=nil, lim={})
     if form.is_a? String
-      @form = eval('{' + File.read('nimbus/formatos/gi/' + form) + '}')
+      #@form = eval('{' + File.read('formatos/' + form) + '}')
+      @form = self.class.formato_read(form)
     else
       @form = form
     end

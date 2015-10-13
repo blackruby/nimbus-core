@@ -544,7 +544,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    (@fact.id != 0 and self.respond_to?('before_edit')) ? r = before_edit : r = nil
+    ((!clm.mant? or @fact.id != 0) and self.respond_to?('before_edit')) ? r = before_edit : r = nil
     if r
       render file: r, status: 401, layout: false
       return
@@ -572,20 +572,23 @@ class ApplicationController < ActionController::Base
     @fant = clm.new
     @ajax = 'var _vista=' + v.id.to_s + ';var _controlador="' + params['controller'] + '";'
 
-    if @fact.id != 0
-      sincro_hijos(v.id)
-      before_envia_ficha if self.respond_to?('before_envia_ficha')
+    if clm.mant?
+      if @fact.id != 0
+        sincro_hijos(v.id)
 
-      #Activar botones necesarios (Grabar/Borrar)
-      @ajax << 'statusBotones({grabar: true, borrar: true});'
-    else
-      #Activar botones necesarios (Grabar/Borrar)
-      @ajax << 'statusBotones({grabar: false, borrar: false});'
+        #Activar botones necesarios (Grabar/Borrar)
+        @ajax << 'statusBotones({grabar: true, borrar: true});'
+      else
+        #Activar botones necesarios (Grabar/Borrar)
+        @ajax << 'statusBotones({grabar: false, borrar: false});'
+      end
     end
 
+    before_envia_ficha if self.respond_to?('before_envia_ficha')
     envia_ficha
 
-    pag_render('ficha') if clm.mant?
+    #pag_render('ficha') if clm.mant?
+    clm.mant? ? pag_render('ficha') : pag_render('proc')
   end
 
   def auto
@@ -820,6 +823,8 @@ class ApplicationController < ActionController::Base
   end
 
   def validar
+    clm = class_mant
+
     @fact = $h[params[:vista].to_i][:fact]
     @fant = @fact.dup
 
@@ -854,7 +859,7 @@ class_mant.campos.each {|cs, h|
 
     sincro_ficha :ajax => true, :exclude => campo
 
-    @ajax << 'hayCambios=' + @fact.changed?.to_s + ';'
+    @ajax << 'hayCambios=' + @fact.changed?.to_s + ';' if clm.mant?
 
     render :js => @ajax
   end
@@ -1012,7 +1017,13 @@ class_mant.campos.each {|cs, h|
       ro = eval_cad(v[:ro])
       manti = eval_cad(v[:manti])
       decim = eval_cad(v[:decim])
-      size = v[:size] ? v[:size].to_s : (manti + decim + manti/3 + 1).to_s
+      if v[:size]
+        size = v[:size].to_s
+      elsif v[:type] == :integer or v[:type] == :decimal
+        size = (manti + decim + manti/3 + 1).to_s
+      else
+        size = manti.to_s
+      end
       manti = manti.to_s
       rows = eval_cad(v[:rows])
       sel = eval_cad(v[:sel])
@@ -1112,7 +1123,7 @@ class_mant.campos.each {|cs, h|
     @e = @fact.empresa if @fact.respond_to?('empresa')
     @j = @fact.ejercicio if @fact.respond_to?('ejercicio')
 
-    if @fact.id == 0
+    if clm.mant? and @fact.id == 0
       sal << '$(":input").attr("disabled", true);'
       sal << '$("#_d-input-pk_").css("display", "block");'
       sal << '$("#_input-pk_").attr("disabled", false);'

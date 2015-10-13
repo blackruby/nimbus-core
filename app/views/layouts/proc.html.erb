@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= @titulo.nil? ? 'Nimbus' : @titulo %></title>
+  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
+  <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+  <%= csrf_meta_tags %>
+</head>
+
+<body>
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+  <% if @head > 0 || @tabs.size > 0 %>
+  <header class="mdl-layout__header">
+    <% if @head > 0 %>
+      <div class="mdl-layout__header-row">
+        <span class="mdl-layout-title"> <%= @titulo %> </span>
+        <div class="mdl-layout-spacer"></div>
+        <nav class="mdl-navigation">
+          <a href="<%= @url %>" target="_blank">
+            <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
+              <i class="material-icons">done</i>
+            </button>
+          </a>
+
+          <% if @menu_r %>
+            <button id="menu-r" class="mdl-button mdl-js-button mdl-button--icon">
+              <i class="material-icons">more_vert</i>
+            </button>
+
+            <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="menu-r">
+              <% @menu_r.each {|k, v| %>
+                <li class="mdl-menu__item"> <%= nt(k) %> </li>
+              <% } %>
+            </ul>
+          <% end %>
+        </nav>
+      </div>
+    <% end %>
+
+    <% if @tabs.size > 0 %>
+      <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+        <% @tabs.each_with_index {|t, i| %>
+          <a href="#t_<%= t %>" class="mdl-layout__tab <%= i==0 ? 'is-active' : '' %>" onclick="tabClick($('#t_<%= t %>'))"> <%= nt(t) %> </a>
+        <% } %>
+      </div>
+    <% end %>
+  </header>
+  <% end %>
+
+  <% if @menu_l %>
+    <div class="mdl-layout__drawer">
+      <% @menu_r.each {|k, v| %>
+        <span class="mdl-layout-title"> <%= nt(k) %> </span>
+      <% } %>
+    </div>
+  <% end %>
+
+  <main class="mdl-layout__content">
+    <div class="page-content">
+      <%= gen_form({tab: 'pre'}) %>
+      <%= yield :pre %>
+
+      <% if @tabs.size > 0 %>
+        <% @tabs.each_with_index {|t, i| %>
+          <section class="mdl-layout__tab-panel <%= i==0 ? 'is-active' : '' %>" id="t_<%= t %>">
+            <div class="page-content">
+              <%= gen_form({tab: t}) %>
+              <%= yield t.to_sym%>
+            </div>
+          </section>
+        <% } %>
+      <% end %>
+
+      <%= gen_form({tab: 'post'}) %>
+
+      <%= yield %>
+    </div>
+  </main>
+</div>
+
+<% @dialogos.each {|d| %>
+  <div id="<%= d[:id] %>">
+    <%= gen_form({dlg: d[:id]}) %>
+  </div>
+<% } %>
+
+<div id="dialog-nim-alert">
+</div>
+
+</body>
+
+<style>
+  body {
+    margin-top: 0px;
+  }
+  .mdl-layout__content::-webkit-scrollbar {display: none;}
+</style>
+
+<script>
+  $( "#dialog-nim-alert" ).dialog({
+    autoOpen: false,
+    resizable: false,
+    modal: true,
+    buttons: {
+      "Aceptar": function() {
+        $( this ).dialog( "close" );
+      }
+    }
+  });
+
+  <% @dialogos.each {|d| %>
+    $("#<%= d[:id] %>" ).dialog({
+      autoOpen: false,
+      resizable: false,
+      width: '100%',
+      modal: true,
+      title: "<%= d[:titulo] %>",
+      buttons: {
+        <% d[:botones].each {|b| %>
+          "<%= b[:label] %>": function () {callFonServer("<%= b[:accion] %>");<%= (b[:close].nil? or b[:close]) ? '$( this ).dialog("close");'.html_safe : '' %>},
+        <% } %>
+      }
+    });
+  <% } %>
+
+  <%= gen_js  %>
+  <%= @ajax.html_safe %>
+
+  function abreDialogo(d) {
+    $("#" + d).dialog("open");
+  }
+
+  $(window).load(function () {
+    $("input,select,textarea").filter(":enabled").first().focus();
+  });
+
+  var _activeTab;
+  function tabClick(tab) {
+    _activeTab = tab;
+    setTimeout(function(){_activeTab.find(':input').filter(':enabled').first().focus();},100);
+  }
+</script>
+
+</html>
