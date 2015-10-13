@@ -52,7 +52,7 @@
 
   <% if @menu_l %>
     <div class="mdl-layout__drawer">
-      <% @menu_r.each {|k, v| %>
+      <% @menu_l.each {|k, v| %>
         <span class="mdl-layout-title"> <%= nt(k) %> </span>
       <% } %>
     </div>

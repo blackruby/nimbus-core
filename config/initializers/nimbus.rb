@@ -106,6 +106,7 @@ module MantMod
       @hijos ||= []
       @dialogos ||= []
       @menu_r ||= []
+      @menu_l ||= []
       @col_model = []
       @columnas = []
       @campos_f = []
@@ -419,6 +420,10 @@ module MantMod
 
     def dialogos
       @dialogos
+    end
+
+    def menu_l
+      @menu_l
     end
 
     def menu_r

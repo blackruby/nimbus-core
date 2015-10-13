@@ -22,6 +22,10 @@ class PaisesMod < Pais
     {id: 'uno', titulo: 'mytit', botones: [{label: 'si', accion: '', close: false}], menu: 'Mi diálogo'},
   ]
 
+  @menu_l = [
+    {label: 'Listado de Países', url: '/gi/edit/pais'},
+  ]
+
   @menu_r = [
     {label: 'Opción 1', accion: 'mi_funcion'},
     {label: 'Opción 2'},

@@ -202,6 +202,7 @@ class ApplicationController < ActionController::Base
     @view = {grid: clm.grid}
     @view[:model] = clm.superclass.to_s
     @view[:menu_r] = clm.menu_r
+    @view[:menu_l] = clm.menu_l
     @view[:url_base] = '/' + params[:controller] + '/'
     @view[:url_list] = @view[:url_base] + 'list'
     @view[:url_new] = @view[:url_base] + 'new'

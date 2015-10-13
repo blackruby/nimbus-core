@@ -68,6 +68,12 @@
     <nav class="mdl-navigation">
       <a class="mdl-navigation__link" href="#" onclick="grid_historico()">Histórico</a>
       <a class="mdl-navigation__link" href="#">Estadísticas</a>
+      <% if @view[:menu_l].size > 0 %>
+        <hr>
+        <% @view[:menu_l].each {|m| %>
+          <a class="mdl-navigation__link" href="<%= m[:url] %>" target="_blank"> <%= nt(m[:label]) %> </a>
+        <% } %>
+      <% end %>
     </nav>
   </div>
 
