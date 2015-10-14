@@ -552,6 +552,7 @@ class ApplicationController < ActionController::Base
     end
 
     if not clm.mant?
+      campos_x if self.respond_to?('campos_x')
       @fact = clm.new
       ini_campos if self.respond_to?('ini_campos')
     end
