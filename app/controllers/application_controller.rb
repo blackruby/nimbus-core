@@ -870,9 +870,9 @@ class_mant.campos.each {|cs, h|
   def fon_server
     @ajax = ''
     @fact = $h[params[:vista].to_i][:fact] if params[:vista]
-    @fant = @fact.dup
+    @fant = @fact.dup if @fact
     method(params[:fon]).call if self.respond_to?(params[:fon])
-    sincro_ficha :ajax => true
+    sincro_ficha :ajax => true if @fact
     render js: @ajax
 =begin
     begin
