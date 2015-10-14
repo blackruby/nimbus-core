@@ -175,7 +175,7 @@ class GiController < ApplicationController
         `libreoffice --headless --convert-to pdf --outdir /tmp /tmp/z.xlsx`
         send_file '/tmp/z.pdf', type: :pdf, disposition: 'inline'
       when 'xls'
-        `libreoffice --headless --convert-to xls --outdir /tmp /tmp/z.xls`
+        `libreoffice --headless --convert-to xls --outdir /tmp /tmp/z.xlsx`
         send_file '/tmp/z.xls'
       when 'xlsx'
         send_file '/tmp/z.xlsx'
