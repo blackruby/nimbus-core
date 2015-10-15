@@ -1,6 +1,7 @@
 class GiMod
   @campos = {
     formato: {sel: {pdf: 'pdf', xlsx: 'excel', xls: 'excel_old'}, tab: 'post', hr: true},
+    form_file: {},
   }
 end
 
@@ -144,7 +145,9 @@ class GiController < ApplicationController
 
   def ini_campos
     @fact.formato = :pdf
+    @fact.form_file = params[:file]
   end
+
   def campos_x
     form = GI.formato_read(params[:file])
     form[:lim].each {|c, v| GiMod.add_campo(c, v)}
@@ -155,8 +158,8 @@ class GiController < ApplicationController
     end
   end
 
-  def before_envia_ficha
-    @url = '/gi/abrir/' + params[:file] + '?vista=' + @vid.to_s
+  def aceptar
+    @ajax << 'window.open("/gi/abrir/' + @fact.form_file + '?vista=' + params[:vista] + '", "_blank", "location=no, menubar=no, status=no, toolbar=no ,height=800, width=1000 ,left=" + (window.screenX + 10) + ",top=" + (window.screenY + 10));'
   end
 
   def abrir

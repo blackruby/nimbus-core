@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   get 'gi/edit/:file' => 'gi#edit'
   post 'gi/graba_fic' => 'gi#graba_fic'
   post 'gi/validar' => 'gi#validar'
+  post 'gi/fon_server' => 'gi#fon_server'
   get 'application/auto' => 'application#auto'
   post 'savepanel' => 'application#savepanel'
   post 'noticias' => 'application#noticias'

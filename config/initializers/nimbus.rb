@@ -239,7 +239,7 @@ module MantMod
 
           if hay_grid
             v[:grid][:editoptions][:maxlength] ||= v[:manti]
-            v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc','nu','nn']
+            v[:grid][:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
 
             if campo.ends_with?('_id')
               v[:grid][:editoptions][:dataInit] ||= "~function(e){auto_comp_grid(e,'" + v[:ref] + "');}~"
@@ -285,7 +285,7 @@ module MantMod
           v[:rows] ||= 5
           if hay_grid
             v[:grid][:edittype] ||= 'textarea'
-            v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc','nu','nn']
+            v[:grid][:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
           end
         end
 
@@ -325,7 +325,7 @@ module MantMod
 
         after_initialize :_ini_campos_ctrl
       else
-        @titulo = self.to_s[0..-4]
+        @titulo ||= self.to_s[0..-4]
       end
       @titulo = nt(@titulo)
     end
