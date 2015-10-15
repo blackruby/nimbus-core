@@ -221,6 +221,8 @@ class GI
       @form = form
     end
 
+    @form[:titulo] ||= ('Listado de ' + (@form[:tabla] ? nt(@form[:tabla].table_name) : ''))
+
     if data
       @data = data
     else
@@ -406,7 +408,7 @@ class GI
     # Opciones varias
     @sh.page_setup.fit_to :width => 1
     #@sh.print_options.grid_lines = true
-    @sh.header_footer.odd_header = '&LEmpresa Frogman S.L.&CDiario de movimientos &R&P de &N'
+    @sh.header_footer.odd_header = '&LCadena Cope&C' + @form[:titulo] + ' &R&P de &N'
 #@sh.column_widths nil, 10, nil
     xls.serialize(name)
     return name
