@@ -873,7 +873,10 @@ class_mant.campos.each {|cs, h|
     @fant = @fact.dup if @fact
     method(params[:fon]).call if self.respond_to?(params[:fon])
     sincro_ficha :ajax => true if @fact
-    render js: @ajax
+    begin
+      render js: @ajax
+    rescue
+    end
 =begin
     begin
       render nothing: true  # Por si no existe el método o por si éste no hace un render explícito
