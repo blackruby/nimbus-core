@@ -325,6 +325,7 @@
   $("#_pk-input" ).blur(pkBlur).autocomplete({
     source: "/application/auto?mod=<%= @view[:model] + @view[:arg_auto] %>",
     minLength: 1,
+    autoFocus: true,
     select: function(e, ui){
       $("#ficha").attr('src', '<%= @view[:url_base] %>' + ui.item.id + '/edit' + '<%= @view[:arg_edit] %>');
       pkBlur();
