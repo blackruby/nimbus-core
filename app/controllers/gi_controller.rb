@@ -7,9 +7,6 @@ end
 
 class GiMod
   include MantMod
-  def initialize
-    _ini_campos_ctrl
-  end
 end
 
 class GiController < ApplicationController
@@ -146,11 +143,10 @@ class GiController < ApplicationController
   def ini_campos
     @fact.formato = :pdf
     @fact.form_file = params[:file]
-  end
 
-  def campos_x
     form = GI.formato_read(params[:file])
-    form[:lim].each {|c, v| GiMod.add_campo(c, v)}
+
+    form[:lim].each {|c, v| @fact.add_campo(c, v)}
     if form[:titulo]
       @titulo = form[:titulo]
     elsif form[:tabla]
@@ -166,7 +162,7 @@ class GiController < ApplicationController
     @fact = $h[params[:vista].to_i][:fact]
 
     lim = {}
-    GiMod.campos.each {|c, v|
+    @fact.campos.each {|c, v|
       lim[c] = @fact.method(c).call
     }
 

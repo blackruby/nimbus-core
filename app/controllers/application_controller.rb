@@ -419,7 +419,7 @@ class ApplicationController < ActionController::Base
     @tabs = []
     @hijos = clm.hijos
     @dialogos = clm.dialogos
-    clm.campos.each{|c, v|
+    @fact.campos.each{|c, v|
       @tabs << v[:tab] if v[:tab] and !@tabs.include?(v[:tab]) and v[:tab] != 'pre' and v[:tab] != 'post'
     }
     clm.hijos.each{|h|
@@ -437,8 +437,6 @@ class ApplicationController < ActionController::Base
 
     clm = class_mant
 
-    var_for_views(clm)
-
     if params[:vista]
       v = Vista.new
       v.id = params[:vista]
@@ -449,9 +447,11 @@ class ApplicationController < ActionController::Base
 
     @fact = $h[v.id][:fact] = clm.new
     @fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord
-    @fant = @fact.dup
+    @fant = @fact.clone
 
     @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
+
+    var_for_views(clm)
 
     # Si es un mant. hijo inicializar el id del padre
     eval('@fact.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id]) if params[:mod]
@@ -525,8 +525,6 @@ class ApplicationController < ActionController::Base
   def edit
     clm = class_mant
 
-    var_for_views(clm)
-
     if clm.mant? and params[:id][0] == 'h'
       edith
       return
@@ -552,10 +550,11 @@ class ApplicationController < ActionController::Base
     end
 
     if not clm.mant?
-      campos_x if self.respond_to?('campos_x')
       @fact = clm.new
-      ini_campos if self.respond_to?('ini_campos')
     end
+
+    var_for_views(clm)
+    ini_campos if self.respond_to?('ini_campos')
 
     if params[:vista]
       v = Vista.new
@@ -656,7 +655,7 @@ class ApplicationController < ActionController::Base
   end
 
   def forma_campo(tipo, ficha, cmp, val={})
-    cp = class_mant.campos[cmp.to_sym]
+    cp = ficha.respond_to?('campos') ? ficha.campos[cmp.to_sym] : class_mant.campos[cmp.to_sym]
     if cmp.ends_with?('_id')
       id = ficha.method(cmp).call
       if id
@@ -696,14 +695,14 @@ class ApplicationController < ActionController::Base
   end
 
   def envia_campo(cmp, val)
-    cp = class_mant.campos[cmp.to_sym]
+    cp = @fact.campos[cmp.to_sym]
 
     case cp[:type]
     when :boolean
       val = false unless val
-      @ajax << '$("#' + cmp + '").prop("checked",' + val.to_s + ');'
+      @ajax << '$("#' + cmp.to_s + '").prop("checked",' + val.to_s + ');'
     else
-      @ajax << '$("#' + cmp + '").val(' + forma_campo(:form, @fact, cmp, val).to_json + ');'
+      @ajax << '$("#' + cmp.to_s + '").val(' + forma_campo(:form, @fact, cmp.to_s, val).to_json + ');'
     end
   end
 
@@ -715,12 +714,11 @@ class ApplicationController < ActionController::Base
   end
 
   def sincro_ficha(h={})
-    clm = class_mant
     vcg = []
     vc = [nil]
     while vc != []
       vc = []
-      clm.campos.each {|cs, ch|
+      @fact.campos.each {|cs, ch|
         c = cs.to_s
         if vcg.include?(c)
           vc.delete_if {|cv| cv[0] == c}
@@ -729,11 +727,12 @@ class ApplicationController < ActionController::Base
 
         v = @fact.method(c).call
         va = @fant.method(c).call
+        puts ch[:form]
         if v != va
           vc << [c, v]
           vcg << c
 
-          if h[:ajax] and c != h[:exclude] and clm.campos_f.include?(c)
+          if h[:ajax] and c != h[:exclude] and ch[:form]
             envia_campo(c, v)
           end
 
@@ -748,15 +747,15 @@ class ApplicationController < ActionController::Base
   end
 
   def envia_ficha
-    class_mant.campos_f.each {|c|
-      envia_campo(c, @fact.method(c).call)
+    @fact.campos.each {|c, v|
+      envia_campo(c, @fact.method(c.to_s).call) if v[:form]
     }
   end
 
   #### VALIDAR
 
   def raw_val(c, v)
-    cp = class_mant.campos[c.to_sym]
+    cp = @fact.campos[c.to_sym]
 
     case cp[:type]
     when :integer, :float, :decimal
@@ -806,7 +805,7 @@ class ApplicationController < ActionController::Base
     end
 
     @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
-    @fant = @fact.dup
+    @fant = @fact.clone
 
     @fact.method(campo + '=').call(params[:sel] ? params[:sel] : raw_val(campo, valor))
 
@@ -828,7 +827,7 @@ class ApplicationController < ActionController::Base
     clm = class_mant
 
     @fact = $h[params[:vista].to_i][:fact]
-    @fant = @fact.dup
+    @fant = @fact.clone
 
     campo = params[:campo]
     valor = params[:valor]
@@ -836,7 +835,7 @@ class ApplicationController < ActionController::Base
     @fact.method(campo + '=').call(raw_val(campo, valor))
 
 =begin
-class_mant.campos.each {|cs, h|
+@fact.campos.each {|cs, h|
   c = cs.to_sym
   v = @fact.method(c).call
   va = @fant.method(c).call
@@ -870,7 +869,7 @@ class_mant.campos.each {|cs, h|
   def fon_server
     @ajax = ''
     @fact = $h[params[:vista].to_i][:fact] if params[:vista]
-    @fant = @fact.dup if @fact
+    @fant = @fact.clone if @fact
     method(params[:fon]).call if self.respond_to?(params[:fon])
     sincro_ficha :ajax => true if @fact
     begin
@@ -909,12 +908,12 @@ class_mant.campos.each {|cs, h|
     clm = class_mant
     vid = params[:vista].to_i
     @fact = $h[vid][:fact]
-    @fant = @fact.dup
+    @fant = @fact.clone
     vali = true
     err = ''
     @ajax = ''
     last_c = nil
-    clm.campos.each {|cs, v|
+    @fact.campos.each {|cs, v|
       c = cs.to_s
 
       fun = 'vali_' << c
@@ -946,7 +945,7 @@ class_mant.campos.each {|cs, h|
       end
 
       if e != nil
-        @ajax << '$("#' + c + '").addClass("ui-state-error");' if clm.campos_f.include?(c)
+        @ajax << '$("#' + c + '").addClass("ui-state-error");' if v[:form]
         last_c = c
       end
     }
@@ -1014,7 +1013,7 @@ class_mant.campos.each {|cs, h|
     @e = @fact.empresa if @fact.respond_to?('empresa')
     @j = @fact.ejercicio if @fact.respond_to?('ejercicio')
 
-    clm.campos.each{|c, v|
+    @fact.campos.each{|c, v|
       cs = c.to_s
       #next if v[:tab].nil? or v[:tab] != h[:tab]
       next if v[tab_dlg].nil? or v[tab_dlg] != h[tab_dlg]
@@ -1139,8 +1138,8 @@ class_mant.campos.each {|cs, h|
       return sal.html_safe
     end
 
-    class_mant.campos.each{|c, v|
-      next unless v[:tab]
+    @fact.campos.each{|c, v|
+      next unless v[:form]
 
       if block_given?
         plus = yield(c)

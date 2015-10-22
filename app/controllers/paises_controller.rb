@@ -53,11 +53,10 @@ class PaisesController < ApplicationController
     puts '****************** hola *****************'
   end
 
-  def vali_campo_1
-    @fact.codigo.size < 2 ? 'Código corto' : nil
-  end
   def on_campo_1
     disable('campo_3')
-    mensaje tit: 'Hola', msg: 'Un texto cualquiera', bot: [{label: 'Ok', accion: 'mi_funcion'}]
+    #mensaje tit: 'Hola', msg: 'Un texto cualquiera', bot: [{label: 'Ok', accion: 'mi_funcion'}]
+    @fact.campo_4 = 'HOLA'
+    foco('campo_6')
   end
 end

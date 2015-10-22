@@ -109,7 +109,6 @@ module MantMod
       @menu_l ||= []
       @col_model = []
       @columnas = []
-      @campos_f = []
       @campos_X = []
 
       @dialogos.each {|d|
@@ -139,78 +138,103 @@ module MantMod
         }
       end
 
-      refs_ids = [] #Contiene las distintas clases asociadas a los id's que van apareciendo (para calcular bien el index)
+      @refs_ids = [] #Contiene las distintas clases asociadas a los id's que van apareciendo (para calcular bien el index)
       @campos.each {|c, v|
-        campo = c.to_s
-        if @mant
-          cmo = self.superclass.columns_hash[campo]
-          cm = self.columns_hash[campo]
-          cm_p = self.superclass.propiedades[c]
-          v.merge!(cm_p) {|k, ov, nv| ov} if cm_p
-          @view = self.superclass.table_name != self.table_name
-        else
-          cm = nil
-          @view = false
-        end
+        ini_campo(c, v, nil)
+      }
 
-        if cm.nil? and self.method_defined?(campo) or cm and cmo.nil?
-          v[:calculado] = true
-          v[:ro] = :all
-        else
-          v[:calculado] = false
-          unless v.include?(:ro)
-            v[:ro] = :edit if v[:pk]
+      if @mant
+        @titulo ||= self.table_name
+        @view = self.superclass.table_name != self.table_name
+
+        self.superclass.column_names.each{|c|
+          cs = c.to_sym
+          unless c == 'id' or @campos.include?(cs)
+            @campos[cs] = self.superclass.propiedades[cs]
+            @campos[cs][:type] = self.superclass.columns_hash[c].type
           end
+        }
+
+        after_initialize :_ini_campos_ctrl
+      else
+        @titulo ||= self.to_s[0..-4]
+        @view = false
+
+        self.class_eval('def initialize;_ini_campos_ctrl;end')
+      end
+
+      @titulo = nt(@titulo)
+    end
+
+    def ini_campo(c, v, context)
+      campo = c.to_s
+      if @mant
+        cmo = self.superclass.columns_hash[campo]
+        cm = self.columns_hash[campo]
+        cm_p = self.superclass.propiedades[c]
+        v.merge!(cm_p) {|k, ov, nv| ov} if cm_p
+      else
+        cm = nil
+      end
+
+      if cm.nil? and self.method_defined?(campo) or cm and cmo.nil?
+        v[:calculado] = true
+        v[:ro] = :all
+      else
+        v[:calculado] = false
+        unless v.include?(:ro)
+          v[:ro] = :edit if v[:pk]
         end
+      end
 
-        @campos_f << campo if v[:tab] or v[:dlg]
+      v[:form] = (v[:tab] or v[:dlg])
 
-        if campo.ends_with?('_id')
-          v[:type] = :string
-          if v[:ref].nil?
-            v[:ref] = self.superclass.reflect_on_association(campo[0..-4].to_sym).options[:class_name] unless cm.nil?
-            v[:ref] ||= campo.split('_')[0].capitalize
-          end
+      if campo.ends_with?('_id')
+        v[:type] = :string
+        if v[:ref].nil?
+          v[:ref] = self.superclass.reflect_on_association(campo[0..-4].to_sym).options[:class_name] unless cm.nil?
+          v[:ref] ||= campo.split('_')[0].capitalize
         end
+      end
 
-        v[:type] ||= cm.type unless cm.nil?
-        v[:type] ||= :string
-        v[:type] = v[:type].to_sym
+      v[:type] ||= cm.type unless cm.nil?
+      v[:type] ||= :string
+      v[:type] = v[:type].to_sym
 
-        v[:label] ||= campo.ends_with?('_id') ? campo[0..-4] : campo
+      v[:label] ||= campo.ends_with?('_id') ? campo[0..-4] : campo
 
-        hay_grid = !v[:grid].nil?
-        if hay_grid
-          v[:grid][:name] = campo
-          v[:grid][:label] ||= v[:label]
-          if v[:grid][:index].nil?
-            if campo.ends_with?('_id')
-              ref = v[:ref].constantize
-              if refs_ids.include?(ref)
-                ###pref =campo[0..-4].pluralize + '_' + self.superclass.table_name
-                pref =campo[0..-4].pluralize + '_' + self.table_name
-              else
-                pref = ref.table_name
-                refs_ids << ref
-              end
-              v[:grid][:index] = pref + '.' + ref.auto_comp_data[:campos][0]
+      hay_grid = !v[:grid].nil?
+      if hay_grid
+        v[:grid][:name] = campo
+        v[:grid][:label] ||= v[:label]
+        if v[:grid][:index].nil?
+          if campo.ends_with?('_id')
+            ref = v[:ref].constantize
+            if @refs_ids.include?(ref)
+              ###pref =campo[0..-4].pluralize + '_' + self.superclass.table_name
+              pref = campo[0..-4].pluralize + '_' + self.table_name
             else
-              ###v[:grid][:index] = self.superclass.table_name + '.' + campo
-              v[:grid][:index] = self.table_name + '.' + campo
+              pref = ref.table_name
+              @refs_ids << ref
             end
+            v[:grid][:index] = pref + '.' + ref.auto_comp_data[:campos][0]
+          else
+            ###v[:grid][:index] = self.superclass.table_name + '.' + campo
+            v[:grid][:index] = self.table_name + '.' + campo
           end
-
-          @col_model << v[:grid]
-          #@columnas << v[:grid][:index]
-          @columnas << campo
-
-          v[:grid][:editable] = !v[:ro] if v[:grid][:editable].nil?
-          v[:grid][:editoptions] ||= {}
-          v[:grid][:searchoptions] ||= {}
-          v[:grid][:formatoptions] ||= {}
         end
 
-        case v[:type]
+        @col_model << v[:grid]
+        #@columnas << v[:grid][:index]
+        @columnas << campo
+
+        v[:grid][:editable] = !v[:ro] if v[:grid][:editable].nil?
+        v[:grid][:editoptions] ||= {}
+        v[:grid][:searchoptions] ||= {}
+        v[:grid][:formatoptions] ||= {}
+      end
+
+      case v[:type]
         when :boolean
           v[:manti] ||= 6
           if hay_grid
@@ -287,79 +311,59 @@ module MantMod
             v[:grid][:edittype] ||= 'textarea'
             v[:grid][:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
           end
-        end
-
-        v[:decim] ||= 0
-        v[:gcols] ||= 3
-        v[:size] ||= v[:manti]
-
-        # Cálculo de la anchura de las columnas
-        if hay_grid and v[:grid][:width].nil?
-          m = v[:manti].is_a?(Fixnum) ? v[:manti] : 0
-          w = [m, v[:grid][:label].size].max
-          if [:integer, :decimal, :date].include?(v[:type]) or v[:code]
-            v[:grid][:width] = w*8
-          else
-            v[:grid][:width] = w*5
-          end
-        end
-
-        # definición de los métodos de acceso para los campos X
-
-        if cm.nil? and !v[:calculado]
-          add_campo_x(campo, v)
-        end
-      }
-
-      if @mant
-        #@titulo ||= self.superclass.to_s.pluralize
-        @titulo ||= self.table_name
-
-        self.superclass.column_names.each{|c|
-          cs = c.to_sym
-          unless c == 'id' or @campos.include?(cs)
-            @campos[cs] = self.superclass.propiedades[cs]
-            @campos[cs][:type] = self.superclass.columns_hash[c].type
-          end
-        }
-
-        after_initialize :_ini_campos_ctrl
-      else
-        @titulo ||= self.to_s[0..-4]
       end
-      @titulo = nt(@titulo)
-    end
 
-    def add_campo_x(campo, v)
-      @campos_X << campo
-      v[:X] = true
+      v[:decim] ||= 0
+      v[:gcols] ||= 3
+      v[:size] ||= v[:manti]
 
-      case v[:type]
-        when :boolean
-          ini = 'false'
-          conv = ''
-        when :integer
-          ini = '0'
-          conv = '.to_i'
-        when :decimal
-          ini = '0.to_d'
-          conv = '.to_d'
-        when :date
-          ini = 'Date.today'
-          conv = '.to_date'
-        when :time
-          ini = 'Time.now'
-          conv = '.to_time'
+      # Cálculo de la anchura de las columnas
+      if hay_grid and v[:grid][:width].nil?
+        m = v[:manti].is_a?(Fixnum) ? v[:manti] : 0
+        w = [m, v[:grid][:label].size].max
+        if [:integer, :decimal, :date].include?(v[:type]) or v[:code]
+          v[:grid][:width] = w*8
         else
-          ini = "''"
-          conv = '.to_s'
+          v[:grid][:width] = w*5
+        end
       end
-      ini = 'nil' if v[:nil]
 
-      p = eval("Proc.new {def #{campo}=(v);@#{campo}=(v.nil? ? #{ini} : v#{conv});end}")
-      self.class_eval(&p)
-      p = eval("Proc.new {def #{campo};@#{campo};end}")
-      self.class_eval(&p)
+      # definición de los métodos de acceso para los campos X
+
+      if cm.nil? and !v[:calculado]
+        v[:X] = true
+
+        case v[:type]
+          when :boolean
+            ini = 'false'
+            conv = ''
+          when :integer
+            ini = '0'
+            conv = '.to_i'
+          when :decimal
+            ini = '0.to_d'
+            conv = '.to_d'
+          when :date
+            ini = 'Date.today'
+            conv = '.to_date'
+          when :time
+            ini = 'Time.now'
+            conv = '.to_time'
+          else
+            ini = "''"
+            conv = '.to_s'
+        end
+        ini = 'nil' if v[:nil]
+
+=begin
+        p = eval("Proc.new {def #{campo}=(v);@#{campo}=(v.nil? ? #{ini} : v#{conv});end}")
+        self.class_eval(&p)
+        p = eval("Proc.new {def #{campo};@#{campo};end}")
+        self.class_eval(&p)
+=end
+        met = "def #{campo}=(v);@#{campo}=(v.nil? ? #{ini} : v#{conv});end;def #{campo};@#{campo};end"
+        context ? context.instance_eval(met) : self.class_eval(met)
+      end
     end
 
     def col_model
@@ -372,22 +376,6 @@ module MantMod
 
     def campos
       @campos
-    end
-
-    def add_campo(c, v)
-      campo = c.to_s
-      v[:label] ||= campo.ends_with?('_id') ? campo[0..-4] : campo
-      @campos[c] = v
-      @campos_f << campo if v[:tab] or v[:dlg]
-      add_campo_x(campo, v)
-    end
-
-    def campos_f
-      @campos_f
-    end
-
-    def campos_X
-      @campos_X
     end
 
     def columnas
@@ -433,28 +421,42 @@ module MantMod
 
   ### Métodos de instancia
 
-  def _ini_campos_ctrl
-    cmps = self.class.campos
-    self.class.campos_X.each {|c|
-      ch = cmps[c.to_sym]
-      unless ch[:nil] or c.ends_with?('_id')
-        case ch[:type]
-          when :boolean
-            ini = 'false'
-          when :integer
-            ini = '0'
-          when :decimal
-            ini = '0.to_d'
-          when :date
-            ini = 'Date.today'
-          when :time
-            ini = 'Time.now'
-          else
-            ini = "''"
-        end
-        eval("self.#{c}=#{ini} if self.#{c}.nil?")
+  def val_campo(c, v)
+    c = c.to_s
+    unless v[:nil] or c.ends_with?('_id')
+      case v[:type]
+        when :boolean
+          ini = 'false'
+        when :integer
+          ini = '0'
+        when :decimal
+          ini = '0.to_d'
+        when :date
+          ini = 'Date.today'
+        when :time
+          ini = 'Time.now'
+        else
+          ini = "''"
       end
-    }
+      eval("self.#{c}=#{ini} if self.#{c}.nil?")
+    end
+  end
+
+  def _ini_campos_ctrl
+    @campos = self.class.campos.deep_dup
+
+    # Inicialización de los campos X a valores razonables cuando no pueden ser nil
+    @campos.each {|c, v| val_campo(c, v) if v[:X]}
+  end
+
+  def add_campo(c, v)
+    @campos[c.to_sym] = v
+    self.class.ini_campo(c, v, self)
+    val_campo(c, v)
+  end
+
+  def campos
+    @campos
   end
 end
 
