@@ -452,7 +452,7 @@ function auto_comp_select_grid(ui, c) {
 
 function auto_comp_grid(e, s) {
   $(e).autocomplete({
-    source: '/application/auto?type=grid&mod=' + s,
+    source: '/application/auto?type=grid&mod=' + s + '&eid=' + eid + '&jid=' + jid,
     minLength: 1,
     autoFocus: true,
     select: function(e, ui){auto_comp_select_grid(ui, $(this));},

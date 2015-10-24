@@ -514,7 +514,6 @@ module Modelo
       @pk.compact!
 
       # Definición de funciones para acceder a la empresa y al ejercicio en cualquier modelo
-=begin
       cad_emp = ''
       cl = self
       loop {
@@ -525,6 +524,7 @@ module Modelo
           cad_emp << cl.pk[0][0..-4] + '.'
           cl = cl.reflect_on_association(cl.pk[0][0..-4].to_sym).options[:class_name].constantize
         else
+          cad_emp = ''
           break
         end
       }
@@ -541,12 +541,12 @@ module Modelo
             cad_eje << cl.pk[0][0..-4] + '.'
             cl = cl.reflect_on_association(cl.pk[0][0..-4].to_sym).options[:class_name].constantize
           else
+            cad_eje = ''
             break
           end
         }
         self.class_eval("def ejercicio;#{cad_eje};end") unless cad_eje.empty?
       end
-=end
 
       after_initialize :_ini_campos
     end

@@ -104,15 +104,10 @@
 </div>
 
 <style>
-  /*
-  #ficha {
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
-    0 3px 1px -2px rgba(0, 0, 0, 0.2),
-    0 1px 2px 0 rgba(0, 0, 0, 0.12);
-  }
-  */
-  .ui-search-menu {z-index: 1500};
+  .ui-search-menu {z-index: 1500;}
   .mdl-cell {margin: 1px;}
+  #gbox_grid {height: auto;}
+
   .mdl-grid {padding: 0;}
   .mdl-layout__content::-webkit-scrollbar {display: none;}
 
@@ -164,6 +159,7 @@
     mtype: 'POST',
 
 		height: <%= @view[:grid][:height] %>,
+    height_def: <%= @view[:grid][:height] %>,
     //width: 500,
     //autowidth: true,
 		rowNum: <%= @view[:grid][:rowNum] %>,
@@ -289,8 +285,13 @@
         $("#gbox_grid").css("height", 'auto');
       } else {
         h = $(window).height() / 2;
-        if ($("#cell-grid").height() > h) {
-          grid.setGridHeight(h);
+        hgn = hg = $("#cell-grid").height();
+        if (hg < 40 || hg > h) hgn = grid.jqGrid('getGridParam', 'height_def');
+        if (hgn > h) hgn = h
+
+        //if ($("#cell-grid").height() > h) {
+        if (hgn != hg) {
+          grid.setGridHeight(hgn);
           $("#gbox_grid").css("height", 'auto');
         }
         $("#ficha").css("height", $(window).height() - (tg>tf ? tf : 40) - $("#cell-grid").height() - 40);
@@ -338,7 +339,10 @@
   $(window).resize(redimWindow);
 
   redimWindow();
-  $("#ficha").attr('src', '<%= @view[:url_base] %>0/edit?head=0');
+  //$("#ficha").attr('src', '<%= @view[:url_base] %>0/edit?head=0');
+  $("#ficha").attr('src', '<%= @view[:url_base] %>0/edit' + '<%= @view[:arg_edit] %>');
+  var eid = "<%= @view[:eid] %>";
+  var jid = "<%= @view[:jid] %>";
 </script>
 
 <%= yield :after %>

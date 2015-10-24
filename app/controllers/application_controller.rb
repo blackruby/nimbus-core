@@ -166,8 +166,10 @@ class ApplicationController < ActionController::Base
       @ajax << '?mod=' + class_modelo.to_s
       @ajax << '&id=' + @fact.id.to_s
       @ajax << '&padre=' + vid.to_s
-      @ajax << '&eid=' + params[:eid] if params[:eid]
-      @ajax << '&jid=' + params[:jid] if params[:jid]
+      #@ajax << '&eid=' + params[:eid] if params[:eid]
+      #@ajax << '&jid=' + params[:jid] if params[:jid]
+      @ajax << '&eid=' + $h[vid][:eid].to_s if $h[vid][:eid]
+      @ajax << '&jid=' + $h[vid][:jid].to_s if $h[vid][:jid]
       @ajax << '");});'
     }
   end
@@ -200,6 +202,8 @@ class ApplicationController < ActionController::Base
     end
 
     @view = {grid: clm.grid}
+    @view[:eid] = eid
+    @view[:jid] = jid
     @view[:model] = clm.superclass.to_s
     @view[:menu_r] = clm.menu_r
     @view[:menu_l] = clm.menu_l
@@ -219,14 +223,14 @@ class ApplicationController < ActionController::Base
     arg_ej = ''
     if eid
       arg_ej << '&eid=' + eid
-      @e = Empresa.find_by id: eid.to_i
-      @titulo << @e.codigo if clm.column_names.include?('empresa_id')
+      e = Empresa.find_by id: eid.to_i
+      @titulo << e.codigo if clm.column_names.include?('empresa_id')
     end
 
     if jid
       arg_ej << '&jid=' + jid
-      @j = Ejercicio.find_by id: jid.to_i
-      @titulo << '/' + @j.codigo if clm.column_names.include?('ejercicio_id')
+      j = Ejercicio.find_by id: jid.to_i
+      @titulo << '/' + j.codigo if clm.column_names.include?('ejercicio_id')
     end
 
     @view[:arg_auto] = params[:mod] ? '&wh=' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id] : arg_ej
@@ -234,6 +238,7 @@ class ApplicationController < ActionController::Base
 
     @view[:url_list] << arg_list_new + arg_ej
     @view[:url_new] << arg_list_new + arg_ej
+    @view[:arg_edit] << arg_ej
 
     if clm.mant? # No es un proc, y por lo tanto preparamos los datos del grid
       @view[:url_cell] = @view[:url_base] + '/validar_cell'
@@ -428,6 +433,11 @@ class ApplicationController < ActionController::Base
     @head = (params[:head] ? params[:head].to_i : 1)
   end
 
+  def set_empeje
+    @e = @fact.empresa if @fact.respond_to?('empresa')
+    @j = @fact.ejercicio if @fact.respond_to?('ejercicio')
+  end
+
   def new
     self.respond_to?('before_new') ? r = before_new : r = true
     unless r
@@ -453,16 +463,19 @@ class ApplicationController < ActionController::Base
 
     var_for_views(clm)
 
-    # Si es un mant. hijo inicializar el id del padre
-    eval('@fact.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id]) if params[:mod]
+    emej = cookies[:emej].split(':')
+    eid = params[:eid]
+    eid ||= emej[0] == 'null' ? nil : emej[0]
+    jid = params[:jid]
+    jid ||= emej[1] == 'null' ? nil : emej[1]
 
-    unless params[:mod]
-      emej = cookies[:emej].split(':')
-      eid = params[:eid]
-      eid ||= emej[0] == 'null' ? nil : emej[0]
-      jid = params[:jid]
-      jid ||= emej[1] == 'null' ? nil : emej[1]
+    $h[v.id][:eid] = eid
+    $h[v.id][:jid] = jid
 
+    if params[:mod]
+      # Si es un mant hijo, inicializar el id del padre
+      eval('@fact.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
+    else
       if clm.column_names.include?('empresa_id')
         if eid.nil?
           render file: '/public/no_emp', layout: false
@@ -479,6 +492,8 @@ class ApplicationController < ActionController::Base
         end
       end
     end
+
+    set_empeje
 
     @ajax = 'var _vista=' + v.id.to_s + ';var _controlador="' + params['controller'] + '";'
     #Activar botones necesarios (Grabar/Borrar)
@@ -514,6 +529,8 @@ class ApplicationController < ActionController::Base
       #dif << '$("#' + c + '").css("background-color", "Bisque");' if ( v != fo.method(c).call)
       dif << '$("#' + c + '").addClass("nim-campo-cambiado");' if ( v != fo.method(c).call)
     }
+
+    set_empeje
 
     @ajax = ''
     envia_ficha
@@ -575,11 +592,21 @@ class ApplicationController < ActionController::Base
 
     if clm.mant?
       if @fact.id != 0
+        $h[v.id][:eid] = @fact.empresa.id if @fact.respond_to?('empresa')
+        $h[v.id][:jid] = @fact.ejercicio.id if @fact.respond_to?('ejercicio')
         sincro_hijos(v.id)
+
+        set_empeje
 
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: true, borrar: true});'
       else
+        $h[v.id][:eid] = params[:eid]
+        $h[v.id][:jid] = params[:jid]
+
+        @e = Empresa.find_by id: params[:eid]
+        @j = Ejercicio.find_by id: params[:jid]
+
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: false, borrar: false});'
       end
@@ -727,7 +754,6 @@ class ApplicationController < ActionController::Base
 
         v = @fact.method(c).call
         va = @fant.method(c).call
-        puts ch[:form]
         if v != va
           vc << [c, v]
           vcg << c
@@ -1008,11 +1034,6 @@ class ApplicationController < ActionController::Base
     prim = true
     tab_dlg = h[:tab] ? :tab : :dlg
 
-    #@e = clm.column_names.include?('empresa_id') ? @fact.empresa : nil
-    #@j = clm.column_names.include?('ejercicio_id') ? @fact.ejercicio : nil
-    @e = @fact.empresa if @fact.respond_to?('empresa')
-    @j = @fact.ejercicio if @fact.respond_to?('ejercicio')
-
     @fact.campos.each{|c, v|
       cs = c.to_s
       #next if v[:tab].nil? or v[:tab] != h[:tab]
@@ -1122,19 +1143,10 @@ class ApplicationController < ActionController::Base
     clm = class_mant
     sal = ''
 
-    #@e = clm.column_names.include?('empresa_id') ? @fact.empresa : nil
-    #@j = clm.column_names.include?('ejercicio_id') ? @fact.ejercicio : nil
-    @e = @fact.empresa if @fact.respond_to?('empresa')
-    @j = @fact.ejercicio if @fact.respond_to?('ejercicio')
-
     if clm.mant? and @fact.id == 0
       sal << '$(":input").attr("disabled", true);'
       sal << '$("#_d-input-pk_").css("display", "block");'
       sal << '$("#_input-pk_").attr("disabled", false);'
-      sal << 'auto_comp("#_input-pk_","/application/auto?mod=' + clm.superclass.to_s
-      sal << '&eid=' + @e.id.to_s if @e
-      sal << '&jid=' + @j.id.to_s if @j
-      sal << '");'
       return sal.html_safe
     end
 
