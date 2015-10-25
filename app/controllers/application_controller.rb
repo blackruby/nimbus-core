@@ -457,7 +457,6 @@ class ApplicationController < ActionController::Base
 
     @fact = $h[v.id][:fact] = clm.new
     @fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord
-    @fant = @fact.clone
 
     @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
 
@@ -587,7 +586,6 @@ class ApplicationController < ActionController::Base
 
     @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
 
-    @fant = clm.new
     @ajax = 'var _vista=' + v.id.to_s + ';var _controlador="' + params['controller'] + '";'
 
     if clm.mant?
@@ -681,6 +679,11 @@ class ApplicationController < ActionController::Base
     render :json => res
   end
 
+  def fact_clone
+    @fant = {}
+    @fact.campos.each {|c, v| @fant[c] = @fact.method(c).call}
+  end
+
   def forma_campo(tipo, ficha, cmp, val={})
     cp = ficha.respond_to?('campos') ? ficha.campos[cmp.to_sym] : class_mant.campos[cmp.to_sym]
     if cmp.ends_with?('_id')
@@ -747,16 +750,16 @@ class ApplicationController < ActionController::Base
       vc = []
       @fact.campos.each {|cs, ch|
         c = cs.to_s
-        if vcg.include?(c)
-          vc.delete_if {|cv| cv[0] == c}
+        if vcg.include?(cs)
+          vc.delete_if {|cv| cv[0] == cs}
           next
         end
 
-        v = @fact.method(c).call
-        va = @fant.method(c).call
+        v = @fact.method(cs).call
+        va = @fant[cs]
         if v != va
-          vc << [c, v]
-          vcg << c
+          vc << [cs, v]
+          vcg << cs
 
           if h[:ajax] and c != h[:exclude] and ch[:form]
             envia_campo(c, v)
@@ -766,8 +769,9 @@ class ApplicationController < ActionController::Base
         end
       }
       vc.each {|cv|
-        c = cv[0] + '='
-        @fant.method(c).call(cv[1]) if @fant.respond_to?(c)
+        #c = cv[0] + '='
+        #@fant.method(c).call(cv[1]) if @fant.respond_to?(c)
+        @fant[cv[0]] = cv[1]
       }
     end
   end
@@ -831,7 +835,7 @@ class ApplicationController < ActionController::Base
     end
 
     @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
-    @fant = @fact.clone
+    fact_clone
 
     @fact.method(campo + '=').call(params[:sel] ? params[:sel] : raw_val(campo, valor))
 
@@ -853,21 +857,12 @@ class ApplicationController < ActionController::Base
     clm = class_mant
 
     @fact = $h[params[:vista].to_i][:fact]
-    @fant = @fact.clone
+    fact_clone
 
     campo = params[:campo]
     valor = params[:valor]
 
     @fact.method(campo + '=').call(raw_val(campo, valor))
-
-=begin
-@fact.campos.each {|cs, h|
-  c = cs.to_sym
-  v = @fact.method(c).call
-  va = @fant.method(c).call
-  puts c + ': <' + v.to_s + '> <' + va.to_s + '>'
-}
-=end
 
     ## Validación
 
@@ -895,7 +890,7 @@ class ApplicationController < ActionController::Base
   def fon_server
     @ajax = ''
     @fact = $h[params[:vista].to_i][:fact] if params[:vista]
-    @fant = @fact.clone if @fact
+    fact_clone
     method(params[:fon]).call if self.respond_to?(params[:fon])
     sincro_ficha :ajax => true if @fact
     begin
@@ -934,7 +929,7 @@ class ApplicationController < ActionController::Base
     clm = class_mant
     vid = params[:vista].to_i
     @fact = $h[vid][:fact]
-    @fant = @fact.clone
+    fact_clone
     vali = true
     err = ''
     @ajax = ''
