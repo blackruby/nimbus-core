@@ -795,26 +795,37 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def valida_campo(campo)
+  def procesa_vali(err)
+    if err.nil? or err == ''
+      return [nil, :blando]
+    elsif err.is_a? String
+      return [err, :duro]
+    else  # Se supone que es un hash con dos claves: :msg (con el texto del error) y :tipo (:duro o :blando)
+      return [err[:msg], err[:tipo]]
+    end
+  end
+
+  def valida_campo(campo, tipo)
     err = nil
+    t1 = t2 = :blando
     fun = 'vali_' << campo
 
     if self.respond_to?(fun)
-      err = method(fun).call
+      err, t1 = procesa_vali(method(fun).call)
     end
 
     if @fact.respond_to?(fun)
-      e = @fact.method(fun).call
+      e, t2 = procesa_vali(@fact.method(fun).call)
       if e != nil
         if err.nil?
           err = e
         else
-          err << e
+          err << '<br>' + e
         end
       end
     end
 
-    err
+    (tipo == :duro and t1 == :blando and t2 == :blando) ? nil : err
   end
 
   def validar_cell
@@ -839,7 +850,7 @@ class ApplicationController < ActionController::Base
 
     @fact.method(campo + '=').call(params[:sel] ? params[:sel] : raw_val(campo, valor))
 
-    err = valida_campo(campo)
+    err = valida_campo(campo, :all)
 
     if err.nil?
       if params[:nocallback]
@@ -866,7 +877,7 @@ class ApplicationController < ActionController::Base
 
     ## Validación
 
-    err = valida_campo(campo)
+    err = valida_campo(campo, :all)
 
     @ajax = ''
 
@@ -930,48 +941,27 @@ class ApplicationController < ActionController::Base
     vid = params[:vista].to_i
     @fact = $h[vid][:fact]
     fact_clone
-    vali = true
     err = ''
     @ajax = ''
     last_c = nil
     @fact.campos.each {|cs, v|
       c = cs.to_s
 
-      fun = 'vali_' << c
-      e = nil
-
       if v[:req]
         valor = @fact.method(c).call
-        if valor.nil? or ([:string, :text].include?(v[:type]) and valor.strip == '')
-          e = "Campo #{c} requerido"
-          err << '<br>' + e
-          vali = false
-        end
+        (valor.nil? or ([:string, :text].include?(v[:type]) and valor.strip == '')) ? e = "Campo #{c} requerido" : e = nil
       else
-        if self.respond_to?(fun)
-          e = method(fun).call
-          if e != nil
-            vali = false
-            err << '<br>' + e
-          end
-        end
-
-        if @fact.respond_to?(fun)
-          e = @fact.method(fun).call
-          if e != nil
-            vali = false
-            err << '<br>' + e
-          end
-        end
+        e = valida_campo(c, :duro)
       end
 
       if e != nil
+        err << '<br>' + e
         @ajax << '$("#' + c + '").addClass("ui-state-error");' if v[:form]
         last_c = c
       end
     }
 
-    if vali
+    if err == ''
       id_old = @fact.id
       before_save if self.respond_to?('before_save')
       if clm.view?
