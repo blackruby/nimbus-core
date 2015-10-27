@@ -801,7 +801,7 @@ class ApplicationController < ActionController::Base
     elsif err.is_a? String
       return [err, :duro]
     else  # Se supone que es un hash con dos claves: :msg (con el texto del error) y :tipo (:duro o :blando)
-      return [err[:msg], err[:tipo]]
+      return [err[:msg], err[:tipo] || :blando]
     end
   end
 

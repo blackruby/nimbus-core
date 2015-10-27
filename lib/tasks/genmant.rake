@@ -194,7 +194,7 @@ namespace :nimbus do
           pk.each {|c| vc << "'#{c}'," unless c.nil?}
           vc.chop!
           mig.puts
-          mig.puts("    add_index '#{table}', [#{vc}], unique: true")
+          mig.puts("    add_index '#{table}', [#{vc}], unique: true, name: '#{table}_nimpk'")
         end
         if prop[:histo]
           mig.puts
