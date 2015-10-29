@@ -829,7 +829,7 @@ class ApplicationController < ActionController::Base
   end
 
   def validar_cell
-    clm = class_modelo  # OJO! aquí clm es del modelo subyacente (para cuando el controlador es una vista)
+    clm = class_mant
     campo = ''
     valor = ''
     params.each {|p, v|
@@ -856,7 +856,16 @@ class ApplicationController < ActionController::Base
       if params[:nocallback]
         @fact.update_column(campo, valor)
       else
-        @fact.save
+        if clm.view?
+          clmod = class_modelo
+          f = clmod.find(@fact.id)
+          clmod.column_names.each {|c|
+            f.method(c+'=').call(@fact.method(c).call)
+          }
+          f.save
+        else
+          @fact.save
+        end
       end
       render text: ''
     else
