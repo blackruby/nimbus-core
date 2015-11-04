@@ -958,7 +958,7 @@ class ApplicationController < ActionController::Base
 
       if v[:req]
         valor = @fact.method(c).call
-        (valor.nil? or ([:string, :text].include?(v[:type]) and valor.strip == '')) ? e = "Campo #{c} requerido" : e = nil
+        (valor.nil? or ([:string, :text].include?(v[:type]) and not c.ends_with?('_id') and valor.strip == '')) ? e = "Campo #{c} requerido" : e = nil
       else
         e = valida_campo(c, :duro)
       end
