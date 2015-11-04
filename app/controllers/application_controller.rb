@@ -531,6 +531,8 @@ class ApplicationController < ActionController::Base
 
     set_empeje
 
+    var_for_views(clm)
+    
     @ajax = ''
     envia_ficha
     @ajax << '$(":input").attr("disabled", true);'
