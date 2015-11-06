@@ -494,7 +494,7 @@ class ApplicationController < ActionController::Base
 
     set_empeje
 
-    @ajax = 'var _vista=' + v.id.to_s + ';var _controlador="' + params['controller'] + '";'
+    @ajax = 'var _vista=' + v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
     #Activar botones necesarios (Grabar/Borrar)
     @ajax << 'statusBotones({grabar: true, borrar: false});'
 
@@ -595,6 +595,7 @@ class ApplicationController < ActionController::Base
         $h[v.id][:eid] = @fact.empresa.id if @fact.respond_to?('empresa')
         $h[v.id][:jid] = @fact.ejercicio.id if @fact.respond_to?('ejercicio')
         sincro_hijos(v.id)
+        @ajax += 'var eid="' + $h[v.id][:eid].to_s + '",jid="' + $h[v.id][:jid].to_s + '";'
 
         set_empeje
 
@@ -911,8 +912,10 @@ class ApplicationController < ActionController::Base
   #Función para ser llamada desde el botón aceptar de los 'procs'
   def fon_server
     @ajax = ''
-    @fact = $h[params[:vista].to_i][:fact] if params[:vista]
-    fact_clone
+    if params[:vista]
+      @fact = $h[params[:vista].to_i][:fact] if params[:vista]
+      fact_clone
+    end
     method(params[:fon]).call if self.respond_to?(params[:fon])
     sincro_ficha :ajax => true if @fact
     begin
@@ -1058,8 +1061,7 @@ class ApplicationController < ActionController::Base
       plus = ''
       plus << ' disabled' if ro == :all or ro == params[:action].to_sym
 
-      #if prim or v[:hr] or ncols >= 12
-      if prim or v[:hr]
+      if prim or v[:hr] or v[:br]
         sal << '</div>' unless prim
         sal << '<hr>' if v[:hr]
         sal << '<div class="mdl-grid">'
