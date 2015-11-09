@@ -87,6 +87,8 @@
   </main>
 </div>
 
+<%= yield :body %>
+
 <% @dialogos.each {|d| %>
   <div id="<%= d[:id] %>">
     <%= gen_form({dlg: d[:id]}) %>
@@ -112,18 +114,21 @@
 </style>
 
 <script>
-  $( "#dialog-nim-alert" ).dialog({
+  <%= gen_js %>
+  <%= @ajax.html_safe %>
+
+  $("#dialog-nim-alert").dialog({
     autoOpen: false,
     resizable: false,
     modal: true,
     buttons: {
       "Aceptar": function() {
-        $( this ).dialog( "close" );
+        $(this).dialog("close");
       }
     }
   });
 
-  $( "#dialog-borrar" ).dialog({
+  $("#dialog-borrar").dialog({
     autoOpen: false,
     resizable: false,
     //height:170,
@@ -131,11 +136,11 @@
     modal: true,
     buttons: {
       "Sí": function() {
-        $( this ).dialog( "close" );
+        $(this).dialog("close");
         mant_borrar_ok();
       },
       No: function() {
-        $( this ).dialog( "close" );
+        $(this).dialog("close");
       }
     }
   });
@@ -154,9 +159,6 @@
       }
     });
   <% } %>
-
-  <%= gen_js  %>
-  <%= @ajax.html_safe %>
 
   function abreDialogo(d) {
     $("#" + d).dialog("open");

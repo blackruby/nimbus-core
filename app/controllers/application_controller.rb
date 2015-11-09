@@ -498,9 +498,9 @@ class ApplicationController < ActionController::Base
     #Activar botones necesarios (Grabar/Borrar)
     @ajax << 'statusBotones({grabar: true, borrar: false});'
 
+    before_envia_ficha if self.respond_to?('before_envia_ficha')
     envia_ficha
 
-    #render 'shared/new'
     pag_render('ficha')
   end
 
@@ -721,6 +721,8 @@ class ApplicationController < ActionController::Base
         return number_with_precision(val, separator: ',', delimiter: '.', precision: cp[:decim])
       when :date
         return val.to_s(:sp)
+      when :time
+        return val.strftime('%H:%M' + (cp[:seg] ? ':%S' : ''))
       else
         return val
       end
@@ -1056,7 +1058,6 @@ class ApplicationController < ActionController::Base
         code_pref = eval_cad(code[:prefijo])
         code_rell = eval_cad(code[:relleno])
       end
-
 
       plus = ''
       plus << ' disabled' if ro == :all or ro == params[:action].to_sym
