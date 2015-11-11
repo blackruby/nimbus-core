@@ -1179,6 +1179,8 @@ class ApplicationController < ActionController::Base
         sal << '});'
       elsif v[:type] == :date
         sal << 'date_pick("#' + cs + '",' + (date_opts == {} ? '{showOn: "button"}' : date_opts.to_json) + ');'
+      elsif v[:type] == :time
+        sal << '$("#' + cs + '").entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true);' : 'false);')
       elsif v[:type] == :integer or v[:type] == :decimal
         sal << 'numero("#' + cs + '",' + manti + ',' + decim.to_s + ',' + signo.to_s + ');'
       end

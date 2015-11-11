@@ -1,4 +1,37 @@
-// EntryN
+jQuery.fn.entrytime = function(segundos, nil) {
+  var lt = (segundos ? 7 : 4);
+  $(this).on("input", function(e) {
+    var l;
+    var v = $(this).val();
+    var cur = $(this).caret().begin;
+    var vn = "";
+    for (var i=0,c; c = v[i]; i++) {
+      l = vn.length;
+      if (c == ':') cur--;
+      if ((l == 0 && (c < '0' || c > '2')) ||
+        (l == 1 && vn[0] == '2' && (c < '0' || c > '3')) ||
+        ((l == 2 || l == 5) && (c < '0' || c > '5'))) {
+        cur --;
+        continue;
+      }
+      if (c >= '0' && c <= '9') {
+        if (l == 2 || l == 5) {vn += ':'; cur++;}
+        vn += c;
+        if (l == lt) break;
+      }
+    }
+    $(this).val(vn);
+    $(this).caret(cur);
+  }).on("blur", function(e) {
+    var v = $(this).val();
+    if (v == "" && nil) return;
+
+    v = v.replace(/:/g, "") + "000000";
+    $(this).val(v.slice(0, 2) + ":" + v.slice(2, 4) + (segundos ? ":" + v.slice(4,6) : ""));
+  });
+
+  return $(this);
+}
 
 jQuery.fn.entryn = function (manti, decim, signo) {
   var lastKey, old_value;
