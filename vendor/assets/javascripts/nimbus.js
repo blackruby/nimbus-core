@@ -7,7 +7,7 @@ jQuery.fn.entrytime = function(segundos, nil) {
     var vn = "";
     for (var i=0,c; c = v[i]; i++) {
       l = vn.length;
-      if (c == ':') cur--;
+      //if (c == ':') cur--;
       if ((l == 0 && (c < '0' || c > '2')) ||
         (l == 1 && vn[0] == '2' && (c < '0' || c > '3')) ||
         ((l == 2 || l == 5) && (c < '0' || c > '5'))) {

@@ -520,7 +520,7 @@ module Modelo
         if cl.column_names.include?('empresa_id')
           cad_emp << 'empresa' unless cad_emp.empty?
           break
-        elsif cl.pk[0].ends_with?('_id')
+        elsif cl.pk[0] and cl.pk[0].ends_with?('_id')
           cad_emp << cl.pk[0][0..-4] + '.'
           cl = cl.reflect_on_association(cl.pk[0][0..-4].to_sym).options[:class_name].constantize
         else
@@ -537,7 +537,7 @@ module Modelo
           if cl.column_names.include?('ejercicio_id')
             cad_eje << 'ejercicio' unless cad_eje.empty?
             break
-          elsif cl.pk[0].ends_with?('_id')
+          elsif cl.pk[0] and cl.pk[0].ends_with?('_id')
             cad_eje << cl.pk[0][0..-4] + '.'
             cl = cl.reflect_on_association(cl.pk[0][0..-4].to_sym).options[:class_name].constantize
           else
