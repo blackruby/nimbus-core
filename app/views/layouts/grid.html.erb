@@ -42,7 +42,7 @@
         <i class="material-icons">delete</i>
       </button>
       &nbsp; &nbsp; &nbsp; &nbsp;
-      <button id="b-collapse" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
+      <button id="b-collapse" onclick="gridCollapse()" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
         <i class="material-icons">swap_vert</i>
       </button>
       <button id="menu-r" class="nim-phone mdl-button mdl-js-button mdl-button--icon">
@@ -248,7 +248,9 @@
 
   var classFicha, displayGrid = true;
 
-  $("#b-collapse").click(function () {
+ // $("#b-collapse").click(function() {gridCollapse();});
+
+  function gridCollapse() {
     if (displayGrid) {
       $("#cell-grid").css('display', 'none');
       $(".only-grid").attr("disabled", true)
@@ -263,7 +265,7 @@
       $("#ficha").height(0);
     }
     redimWindow();
-  });
+  }
 
   // Activar menú derecho si existe
   <% if @view[:menu_r].size > 0 %>
@@ -338,11 +340,14 @@
   $(".ui-pg-input").height(14); // Para que salga de la altura correcta el input del número de página del grid
   $(window).resize(redimWindow);
 
-  redimWindow();
-  //$("#ficha").attr('src', '<%= @view[:url_base] %>0/edit?head=0');
   $("#ficha").attr('src', '<%= @view[:url_base] %>0/edit' + '<%= @view[:arg_edit] %>');
   var eid = "<%= @view[:eid] %>";
   var jid = "<%= @view[:jid] %>";
+  <% if @view[:grid][:visible] %>
+    redimWindow();
+  <% else %>
+    gridCollapse();
+  <% end %>
 </script>
 
 <%= yield :after %>

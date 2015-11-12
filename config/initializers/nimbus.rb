@@ -122,6 +122,7 @@ module MantMod
       @grid[:gcols].is_a?(Fixnum) ? @grid[:gcols] = [@grid[:gcols]] : @grid[:gcols] ||= [5]
       @grid[:gcols][1] ||= (@grid[:gcols][0] - 1)*7/11 + 1
       @grid[:gcols][2] ||= 4
+      @grid[:visible] = true if @grid[:visible].nil?
       @grid[:height] ||= 250
       @grid[:rowNum] ||= 100
       @grid[:cellEdit] = true if @grid[:cellEdit].nil?
