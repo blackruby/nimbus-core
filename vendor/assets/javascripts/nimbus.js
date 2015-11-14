@@ -452,6 +452,15 @@ function auto_comp(e, s) {
   $(e).keydown(function(e) {bus(e);});
 }
 
+function set_auto_comp_filter(cmp, wh) {
+  var s = cmp.autocomplete('option', 'source');
+  var wi = s.indexOf('&wh=');
+  if (wi == -1)
+    cmp.autocomplete('option', 'source', s + '&wh=' + wh);
+  else
+    cmp.autocomplete('option', 'source', s.slice(0, wi+4) + wh);
+}
+
 function date_pick(e, opt) {
   //$(e).datepicker($.extend(true, {onClose: function(){$(this).focus();}}, opt));
     $(e).datepicker($.extend(true, {onClose: function(){$(this).focusNextInputField();}}, opt));

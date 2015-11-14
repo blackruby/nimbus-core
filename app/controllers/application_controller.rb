@@ -620,6 +620,14 @@ class ApplicationController < ActionController::Base
     clm.mant? ? pag_render('ficha') : pag_render('proc')
   end
 
+  def set_auto_comp_filter(cmp, wh)
+    if wh.is_a? Symbol  # En este caso wh es otro campo de @fact
+      v = @fact.method(wh).call
+      wh = wh.to_s + ' = \'' + (v ? v.to_s : '0') + '\''
+    end
+    @ajax << 'set_auto_comp_filter($("#' + cmp.to_s + '"),"' + wh + '");'
+  end
+
   def auto
     unless request.xhr? # Si la petición no es Ajax... ¡Puerta! (para evitar accesos desde la barra de direcciones)
       render json: ''
