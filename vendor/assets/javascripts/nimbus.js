@@ -363,10 +363,17 @@ function vali_code(c, tam, pref, rell) {
 }
 
 function mant_grabar() {
+  var res;
+  if (typeof jsGrabar == "function") {
+    res = jsGrabar();
+    if (res == null) return;
+  }
+  if (typeof res != 'object') res = {};
+
   $.ajax({
     url: '/' + _controlador + '/grabar',
     type: "POST",
-    data: {vista: _vista}
+    data: $.extend(true, {vista: _vista}, res)
   });
 }
 

@@ -1009,7 +1009,7 @@ class ApplicationController < ActionController::Base
           return
         end
       end
-      save if self.respond_to?('save') # Damos la opción de tener un método save (adicional) en el mantenimiento
+      after_save if self.respond_to?('after_save')
 
       sincro_ficha :ajax => true
 
