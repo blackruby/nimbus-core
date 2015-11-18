@@ -803,9 +803,11 @@ class ApplicationController < ActionController::Base
     case cp[:type]
     when :integer, :float, :decimal
       return v.gsub('.', '').gsub(',', '.')
-    else
-      return v
+    when :string
+      return v.upcase if cp[:may]
     end
+
+    return v
   end
 
   def procesa_vali(err)
@@ -1004,14 +1006,13 @@ class ApplicationController < ActionController::Base
           @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
         rescue Exception => e
           @ajax = ''
+          sincro_ficha :ajax => true
           mensaje 'Grabación cancelada. Ya existe la clave'
           render :js => @ajax
           return
         end
       end
       after_save if self.respond_to?('after_save')
-
-      sincro_ficha :ajax => true
 
       sincro_hijos(vid) if (id_old.nil?)
 
@@ -1027,6 +1028,8 @@ class ApplicationController < ActionController::Base
       #@ajax << 'alert(' + err.to_json + ');'
       mensaje tit: 'Errores en el registro', msg: err
     end
+
+    sincro_ficha :ajax => true
 
     render :js => @ajax
   end
@@ -1132,7 +1135,7 @@ class ApplicationController < ActionController::Base
       else
         sal << '<div class="nim-group">'
         #sal << '<input id="' + cs + '" size=' + size + ' required onchange="validar($(this))"'
-        sal << '<input class="nim-input" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
+        sal << '<input class="nim-input' + (v[:may] ? ' nim-may' : '') + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
         sal << ' maxlength=' + size if v[:type] == :string
         sal << ' ' + plus + '/>'
         sal << '<label class="nim-label" for="' + cs + '">' + nt(v[:label]) + '</label>'
@@ -1172,7 +1175,6 @@ class ApplicationController < ActionController::Base
       decim = eval_cad(v[:decim])
       signo = eval_cad(v[:signo])
       mask = eval_cad(v[:mask])
-      may = eval_cad(v[:may])
       date_opts = eval_cad(v[:date_opts])
 
       cs = c.to_s
@@ -1182,9 +1184,10 @@ class ApplicationController < ActionController::Base
         sal << '&jid=' + @j.id.to_s if @j
         sal << '");'
       elsif mask
-        sal << 'mask({elem: "#' + cs + '", mask:"' + mask + '"'
-        sal << ', may:' + may.to_s if may
-        sal << '});'
+        sal << '$("#' + cs + '").mask("' + mask + '",{placeholder: " "});'
+        #sal << 'mask({elem: "#' + cs + '", mask:"' + mask + '"'
+        #sal << ', may:' + may.to_s if may
+        #sal << '});'
       elsif v[:type] == :date
         sal << 'date_pick("#' + cs + '",' + (date_opts == {} ? '{showOn: "button"}' : date_opts.to_json) + ');'
       elsif v[:type] == :time

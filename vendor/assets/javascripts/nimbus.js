@@ -564,10 +564,12 @@ function jqg_custom_value(e) {
 // Añadir nuevas definiciones para las máscaras
 $.mask.definitions['&'] = '[.0-9]';
 
+/*
 function mask(h) {
   $(h.elem).mask(h.mask, {placeholder: ' '});
   if (h.may) $(h.elem).css('text-transform', 'uppercase');
 }
+*/
 
 // Elegido un carácter UTF8 para formatear el aspecto de los booleanos (checks) en el grid
 function format_check(v){
