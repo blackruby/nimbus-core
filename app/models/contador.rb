@@ -3,6 +3,7 @@ class Contador < ActiveRecord::Base
 
   def self.next(mod, cmp, h={})
     cmp = cmp.to_s
+    h = Hash[h.sort]
     tab = mod.table_name
     filt = ''
     ord = ''

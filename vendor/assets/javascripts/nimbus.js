@@ -1,33 +1,83 @@
 jQuery.fn.entrytime = function(segundos, nil) {
-  var lt = (segundos ? 7 : 4);
+  var lt = (segundos ? 8 : 5);
+  var vt = "00:00:00";
+  var ov;
+
   $(this).on("input", function(e) {
-    var l;
-    var v = $(this).val();
-    var cur = $(this).caret().begin;
-    var vn = "";
-    for (var i=0,c; c = v[i]; i++) {
-      l = vn.length;
-      //if (c == ':') cur--;
-      if ((l == 0 && (c < '0' || c > '2')) ||
-        (l == 1 && vn[0] == '2' && (c < '0' || c > '3')) ||
-        ((l == 2 || l == 5) && (c < '0' || c > '5'))) {
-        cur --;
-        continue;
-      }
-      if (c >= '0' && c <= '9') {
-        if (l == 2 || l == 5) {vn += ':'; cur++;}
-        vn += c;
-        if (l == lt) break;
-      }
-    }
-    $(this).val(vn);
-    $(this).caret(cur);
-  }).on("blur", function(e) {
     var v = $(this).val();
     if (v == "" && nil) return;
+    var cur = $(this).caret().begin;
+    var vn = "";
+    var l = 0;
+    var ncur = cur;
 
-    v = v.replace(/:/g, "") + "000000";
-    $(this).val(v.slice(0, 2) + ":" + v.slice(2, 4) + (segundos ? ":" + v.slice(4,6) : ""));
+    for (var i = 0, c, valido; c = v[i]; i++) {
+      if (c == ':') {
+        if (l+1 >= cur) {
+          switch (l) {
+            case 0:
+            case 3:
+            case 6:
+              vn += vt[0]; l++;
+            case 1:
+            case 4:
+            case 7:
+              vn += vt[0]; l++;
+            case 2:
+            case 5:
+              if (l == cur) ncur++;
+              vn += ':'; l++;
+              break;
+          }
+        } else
+          ncur--;
+        continue;
+      } else if (c == ' ')
+        c = vt[0];
+
+      valido = ((c >= '0' && c <= '9') || c == ' ' ? true : false);
+      switch (l) {
+        case 0:
+          if (c > '2') valido = false;
+          break;
+        case 1:
+          if (vn[0] == '2' && c > '3') {valido = false; ncur--;}
+          break;
+        case 2:
+        case 5:
+          if (c > '5') valido = false;
+          break;
+      }
+      if (!valido) {
+        if (cur >= l) ncur--;
+        continue;
+      }
+
+      if (l < cur) {
+        if (l == 2 || l == 5) {
+          vn += ':'; l++;
+          ncur++;
+        }
+      } else {
+        if (l == 2 || l == 5) {
+          if (l == cur && (v[l+2] == ':' || !v[l+2])) {
+            vn = vn.substr(0,l-1)+vt[l-1];
+            vn += ':'; l++;
+            ncur--;
+          } else
+            continue;
+        }
+      }
+
+      vn += c; l++;
+      if (l == lt) break;
+    }
+    $(this).val(vn+vt.substr(l, lt-l));
+    $(this).caret(ncur);
+  }).on("focus", function(e) {
+    ov = $(this).val();
+  }).on("blur", function(e) {
+    if ($(this).val() != ov) $(this).trigger("change");
   });
 
   return $(this);
