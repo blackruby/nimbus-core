@@ -187,7 +187,9 @@
   var hayCambios = false;
 
   window.onbeforeunload = function() {
-    if (hayCambios) return('Hay cambios pendientes de grabar');
+    var jsHay = false;
+    if (typeof jsCambios == "function") jsHay = jsCambios();
+    if (hayCambios || jsHay) return('Hay cambios pendientes de grabar');
   }
 
   $(window).resize(redimWindow);
