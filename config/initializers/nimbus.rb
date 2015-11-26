@@ -574,7 +574,7 @@ module Modelo
   def auto_comp_label(tipo=:form)
     t = ''
     self.class.auto_comp_data[:campos].reverse_each {|c|
-      t << self[c] + ' '
+      t << self[c].to_s + ' '
     }
 
     t[0..-2]
@@ -588,7 +588,7 @@ module Modelo
     else
       t = ''
       self.class.auto_comp_data[:campos].each {|c|
-        t << self[c] + ' '
+        t << self[c].to_s + ' '
       }
 
       t[0..-2]

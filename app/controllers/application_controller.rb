@@ -678,7 +678,11 @@ class ApplicationController < ActionController::Base
     res = []
     wh = '('
     data[:campos].each {|c|
-      wh << 'UNACCENT(LOWER(' + c + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
+      if mod.columns_hash[c].type == :integer
+        wh << c + '=' + p + ' OR '
+      else
+        wh << 'UNACCENT(LOWER(' + c + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
+      end
     }
     wh = wh[0..-5] + ')'
     wh << ' AND empresa_id=' + params[:eid] if mod.column_names.include?('empresa_id') and params[:eid]
