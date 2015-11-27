@@ -93,15 +93,15 @@ class ApplicationController < ActionController::Base
   end
 
   def enable(c)
-    @ajax << '$("#' + c + '").attr("disabled", false);'
+    @ajax << '$("#' + c.to_s + '").attr("disabled", false);'
   end
 
   def disable(c)
-    @ajax << '$("#' + c + '").attr("disabled", true);'
+    @ajax << '$("#' + c.to_s + '").attr("disabled", true);'
   end
 
   def foco(c)
-    @ajax << '$("#' + c + '").focus();'
+    @ajax << '$("#' + c.to_s + '").focus();'
   end
 
   # Funciones para el manejo del histórico de un modelo
