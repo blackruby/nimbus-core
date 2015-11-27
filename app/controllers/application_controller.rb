@@ -338,14 +338,6 @@ class ApplicationController < ActionController::Base
       }
     end
 
-    tot_records = clm.select(:id).where(w).size
-    lim = params[:rows].to_i
-    tot_pages = tot_records / lim
-    tot_pages += 1 if tot_records % lim != 0
-    page = params[:page].to_i
-    page = tot_pages if page > tot_pages
-    page = 1 if page <=0
-
     eager = []
     sel = ''
 
@@ -393,6 +385,14 @@ class ApplicationController < ActionController::Base
     end
     ord = sortname + ' ' + params[:sord]
 =end
+
+    tot_records = clm.select(:id).joins(eager.map{|j| j.to_sym}).where(w).size
+    lim = params[:rows].to_i
+    tot_pages = tot_records / lim
+    tot_pages += 1 if tot_records % lim != 0
+    page = params[:page].to_i
+    page = tot_pages if page > tot_pages
+    page = 1 if page <=0
 
     sql = clm.eager_load(eager).where(w).order(ord).offset((page-1)*lim).limit(lim)
 
