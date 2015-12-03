@@ -358,6 +358,7 @@ function send_validar(c, v) {
   $.ajax({
     url: '/' + _controlador + '/validar',
     type: "POST",
+    async: false,
     data: {vista: _vista, valor: v, campo: c.attr("id")}
   });
 }
