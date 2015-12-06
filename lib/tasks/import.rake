@@ -7,17 +7,18 @@ namespace :nimbus do
 
     # Método recursivo para calcular la clave primaria ampliada (pk_a)
 
-    def pk_a(col, mod, tab, upd, wh)
-      @deep += 1
+    def pk_a(mod, tab, deep)
+      @deep = deep if deep > @deep
       mod.pk.each {|k|
         if k.ends_with?('_id')
           modk = mod.reflect_on_association(k[0..-4].to_sym).options[:class_name].constantize
           tabk = modk.table_name
-          upd << " left outer join #{tabk} on #{tab}.#{k} = #{tabk}.id"
-          pk_a(col, modk, tabk, upd, wh)
+          @alias.next!
+          @upd << " left outer join #{tabk} #{@alias} on #{tab}.#{k} = #{@alias}.id"
+          pk_a(modk, @alias.dup, deep + 1)
         else
-          wh << ' and ' unless wh == ''
-          wh << "#{tab}.#{k}=split_part(#{col},'~',#{@nk})"
+          @wh << ' and ' unless @wh.empty?
+          @wh << "#{tab}.#{k}=split_part(#{@col},'~',#{@nk})"
           @nk += 1
         end
       }
@@ -70,16 +71,15 @@ namespace :nimbus do
         d_c = ''
         cols = []
         cmps.each {|c|
-          next if cmps_o.include?(c)
-          if cmps_o.include?(c + '_id')
+          unless cmps_o.include?(c)
             add_cols << "add column #{c} character varying,"
             d_c << "drop column #{c},"
-            cols << c
+            cols << c if cmps_o.include?(c + '_id')
           end
         }
 
         if add_cols != ''
-          tab_update[mod] = cols
+          tab_update[mod] = cols unless cols.empty?
           drop_cols << "alter table #{tab} #{d_c.chop};"
           ActiveRecord::Base.connection.execute("alter table #{tab} " + add_cols.chop)
         end
@@ -104,13 +104,15 @@ namespace :nimbus do
           cols.delete_if{|col|
             mod_col = mod.reflect_on_association(col.to_sym).options[:class_name].constantize
             tab_col = mod_col.table_name
-            wh = ''
-            upd = ''
+            @wh = ''
+            @upd = ''
             @nk = 1
             @deep = 0
-            pk_a(col, mod_col, tab_col, upd, wh)
+            @col = col
+            @alias = 'a'
+            pk_a(mod_col, 'a', 1)
             if @deep <= vuelta
-              upd_glob << "#{col}_id=(select #{tab_col}.id from #{tab_col} #{upd} where #{wh}),"
+              upd_glob << "#{col}_id=(select a.id from #{tab_col} a #{@upd} where #{@wh}),"
               list_cmps << col
               true  # Para borrar la columna (en el delete_if)
             else
@@ -119,20 +121,21 @@ namespace :nimbus do
           }
 
           if upd_glob != ''
-            otra_vuelta = true
             puts mod.to_s + ' (' + list_cmps.join(',') + ')'
 
             ActiveRecord::Base.connection.execute("update #{tab} set #{upd_glob.chop}")
           end
 
-          vuelta += 1
+          otra_vuelta = true unless cols.empty?
         }
+
+        vuelta += 1
         puts
       end
 
       puts 'Eliminación de columnas auxiliares.'
 
-      ActiveRecord::Base.connection.execute("#{drop_cols}") if drop_cols != ''
+      ActiveRecord::Base.connection.execute("#{drop_cols}") unless drop_cols.empty?
     end
   end
 end
