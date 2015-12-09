@@ -184,13 +184,21 @@
     <% } %>
   }
 
+  // Ctr-k Habilita los campos clave
+  $(document).keydown(function(e) {
+    if (e.ctrlKey && e.which == 75) {
+      e.preventDefault();
+      $("<%= @fact.class.superclass.pk.map{|k| '#' + k}.join(',')%>").attr("disabled", false);
+    }
+  });
+
   var hayCambios = false;
 
   window.onbeforeunload = function() {
     var jsHay = false;
     if (typeof jsCambios == "function") jsHay = jsCambios();
     if (hayCambios || jsHay) return('Hay cambios pendientes de grabar');
-  }
+  };
 
   $(window).resize(redimWindow);
 
