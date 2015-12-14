@@ -6,5 +6,7 @@ class CreateContadores < ActiveRecord::Migration
       t.string :clave
       t.integer :valor
     end
+
+    add_index 'contadores', ['modelo', 'campo', 'clave'], unique: true, name: 'contadores_nimpk'
   end
 end

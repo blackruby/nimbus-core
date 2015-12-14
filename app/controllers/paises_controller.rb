@@ -50,7 +50,7 @@ end
 
 class PaisesController < ApplicationController
   def mi_funcion
-    puts '****************** hola *****************'
+    mensaje tit: 'Hola', msg: '<h1>HOLA</h1><hr><h3>Adios</h3>'
   end
 
   def on_campo_1
