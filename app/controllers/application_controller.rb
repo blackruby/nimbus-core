@@ -394,7 +394,7 @@ class ApplicationController < ActionController::Base
     page = tot_pages if page > tot_pages
     page = 1 if page <=0
 
-    sql = clm.eager_load(eager).where(w).order(ord).offset((page-1)*lim).limit(lim)
+    sql = clm.eager_load(eager).where(w).where(params[:wh]).order(ord).offset((page-1)*lim).limit(lim)
 
     res = {page: page, total: tot_pages, records: tot_records, rows: []}
     sql.each {|s|
@@ -635,7 +635,7 @@ class ApplicationController < ActionController::Base
     end
 
     p = params[:term]
-    if p == '-' or p == '--' or p == '.'
+    if p == '-' or p == '--'
       render json: ''
       return
     end

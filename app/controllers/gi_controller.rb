@@ -10,27 +10,29 @@ class GiMod
 end
 
 class GiController < ApplicationController
-  def gi
-    @titulo = nt('gi')
-    @tablas = {'general' => []}
-
-    Dir.glob('app/models/*').each {|fic|
+  def nuevo_mod(mod, path)
+    Dir.glob(path).each {|fic|
       ficb = Pathname(fic).basename.to_s
 
-      next if ficb == 'concerns'
+      next if File.directory?(fic)
       next if ficb == 'vista.rb'
 
-      ficb.capitalize!
-      if File.directory?(fic)
-        @tablas[ficb] = []
-        Dir.glob(fic + '/*').each {|tab|
-          @tablas[ficb] << ficb + '::' + Pathname(tab).basename.to_s[0..-4].capitalize
-        }
-      else
-        next if File.directory?(fic[0..-4])
-        @tablas['general'] << ficb[0..-4].capitalize
-      end
+      @tablas[mod] ||= []
+      @tablas[mod] << ficb[0..-4].capitalize
     }
+  end
+
+  def gi
+    @titulo = nt('gi')
+    @tablas = {}
+
+    nuevo_mod(Rails.app_class.to_s.split(':')[0], 'app/models/*')
+
+    Dir.glob('modulos/*').each {|mod|
+      nuevo_mod(mod.split('/')[1].capitalize, mod + '/app/models/*')
+    }
+
+
   end
 
   def campos

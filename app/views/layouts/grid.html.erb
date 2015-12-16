@@ -157,6 +157,9 @@
     afterSaveCell: jqg_after_save_cell,
     datatype: "json",
     mtype: 'POST',
+    <% if @view[:grid][:wh] %>
+      postData: {wh: <%= raw @view[:grid][:wh].to_json %>},
+    <% end %>
 
 		height: <%= @view[:grid][:height] %>,
     height_def: <%= @view[:grid][:height] %>,
