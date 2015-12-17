@@ -31,8 +31,6 @@ class GiController < ApplicationController
     Dir.glob('modulos/*').each {|mod|
       nuevo_mod(mod.split('/')[1].capitalize, mod + '/app/models/*')
     }
-
-
   end
 
   def campos
@@ -168,7 +166,9 @@ class GiController < ApplicationController
       lim[c] = @fact.method(c).call
     }
 
-    g = GI.new(params[:file], nil, lim)
+    eid, jid = get_empeje
+
+    g = GI.new(params[:file], nil, lim, eid, jid)
     g.gen_xls('/tmp/z.xlsx')
 
     case @fact.formato
@@ -211,7 +211,7 @@ class GI
     end
   end
 
-  def initialize(form, data=nil, lim={})
+  def initialize(form, data=nil, lim={}, eid=nil, jid=nil)
     if form.is_a? String
       #@form = eval('{' + File.read('formatos/' + form) + '}')
       @form = self.class.formato_read(form)
@@ -219,12 +219,14 @@ class GI
       @form = form
     end
 
-    @form[:titulo] ||= ('Listado de ' + (@form[:tabla] ? nt(@form[:tabla].table_name) : ''))
+    @form[:tit_i] = (eid ? Empresa.find_by(id: eid).nombre : '') if @form[:tit_i].empty?
+    #@form[:titulo] ||= ('Listado de ' + (@form[:tabla] ? nt(@form[:tabla].table_name) : ''))
+    @form[:select] = @form[:tabla].table_name + '.*' if @form[:select].empty?
 
     if data
       @data = data
     else
-      @data = @form[:tabla].joins(@form[:join]).where(@form[:where], lim).order(@form[:orden]).limit(200)
+      @data = @form[:tabla].select(@form[:select]).left_join(@form[:join]).where(@form[:where], lim).order(@form[:orden])
     end
 
     def gen_alias(sym_ban, ban)
@@ -406,7 +408,7 @@ class GI
     # Opciones varias
     @sh.page_setup.fit_to :width => 1
     #@sh.print_options.grid_lines = true
-    @sh.header_footer.odd_header = '&LCadena Cope&C' + @form[:titulo] + ' &R&P de &N'
+    @sh.header_footer.odd_header = '&L' + @form[:tit_i] + '&C' + @form[:tit_c] + ' &R&P de &N'
 #@sh.column_widths nil, 10, nil
     xls.serialize(name)
     return name

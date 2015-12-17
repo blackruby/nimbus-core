@@ -174,6 +174,16 @@ class ApplicationController < ActionController::Base
     }
   end
 
+  def get_empeje
+    emej = cookies[:emej].split(':')
+    eid = params[:eid]
+    eid ||= (emej[0] == 'null' ? nil : emej[0])
+    jid = params[:jid]
+    jid ||= (emej[1] == 'null' ? nil : emej[1])
+
+    return [eid, jid]
+  end
+
   # Método llamado cuando en la url solo se especifica el nombre de la tabla
   # En general la idea es que la vista asociada sea un grid
   def index
@@ -185,11 +195,7 @@ class ApplicationController < ActionController::Base
 
     clm = class_mant
 
-    emej = cookies[:emej].split(':')
-    eid = params[:eid]
-    eid ||= emej[0] == 'null' ? nil : emej[0]
-    jid = params[:jid]
-    jid ||= emej[1] == 'null' ? nil : emej[1]
+    eid, jid = get_empeje
 
     unless params[:mod]
       if clm.column_names.include?('empresa_id') and eid.nil?
@@ -462,11 +468,7 @@ class ApplicationController < ActionController::Base
 
     var_for_views(clm)
 
-    emej = cookies[:emej].split(':')
-    eid = params[:eid]
-    eid ||= emej[0] == 'null' ? nil : emej[0]
-    jid = params[:jid]
-    jid ||= emej[1] == 'null' ? nil : emej[1]
+    eid, jid = get_empeje
 
     $h[v.id][:eid] = eid
     $h[v.id][:jid] = jid

@@ -88,6 +88,54 @@ class ActiveRecord::Base
   end
 end
 
+# Extensiones en ActiveRecord (para poder hacer LEFT JOIN)
+
+class ActiveRecord::Base
+  # Does a left join through an association. Usage:
+  #
+  #     Book.left_join(:category)
+  #     # SELECT "books".* FROM "books"
+  #     # LEFT OUTER JOIN "categories"
+  #     # ON "books"."category_id" = "categories"."id"
+  #
+  # It also works through association's associations, like `joins` does:
+  #
+  #     Book.left_join(category: :master_category)
+
+  def self.left_join(*columns)
+    _do_left_join columns.compact.flatten
+  end
+
+  private
+
+  def self._do_left_join(column, this = self) # :nodoc:
+    collection = self
+    if column.is_a? Array
+      column.each do |col|
+        collection = collection._do_left_join(col, this)
+      end
+    elsif column.is_a? Hash
+      column.each do |key, value|
+        assoc = this.reflect_on_association(key)
+        raise "#{this} has no association: #{key}." unless assoc
+        collection = collection._left_join(assoc)
+        collection = collection._do_left_join value, assoc.klass
+      end
+    else
+      assoc = this.reflect_on_association(column)
+      raise "#{this} has no association: #{column}." unless assoc
+      collection = collection._left_join(assoc)
+    end
+    collection
+  end
+
+  def self._left_join(assoc)
+    source = assoc.active_record.arel_table
+    pk = assoc.association_primary_key.to_sym
+    joins source.join(assoc.klass.arel_table, Arel::Nodes::OuterJoin).on(source[assoc.foreign_key].eq(assoc.klass.arel_table[pk])).join_sources
+  end
+end
+
 # Módulo MantMod para extender las clases de los controladores
 #
 module MantMod
