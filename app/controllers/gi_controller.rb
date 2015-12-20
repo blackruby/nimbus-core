@@ -283,7 +283,7 @@ class GI
         res << val_campo(c[:campo])
       }
       #@sh.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : nil}, widths: [:ignore, 10, :ignore], height: 0
-      @sh.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : nil}
+      @sh.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : @sty[:def]}
       @ri += 1
     }
   end
@@ -396,6 +396,7 @@ class GI
           @ban = "rp#{i}"
           @rupi = i + 1
           add_banda(@form[:rup][i][:pie])
+          @sh.add_page_break("A#{@ri - 1}") if @form[:rup][i][:salto]
         }
       end
     }
@@ -406,8 +407,10 @@ class GI
     add_banda(@form[:pie])
 
     # Opciones varias
-    @sh.page_setup.fit_to :width => 1
+    #@sh.page_setup.fit_to :width => 1
+    #@sh.page_setup.set orientation: :landscape, paper_width: "210mm", paper_height: "297mm"
     #@sh.print_options.grid_lines = true
+    @sh.page_setup.set(@form[:page_setup]) if @form[:page_setup]
     @sh.header_footer.odd_header = '&L' + @form[:tit_i] + '&C' + @form[:tit_c] + ' &R&P de &N'
 #@sh.column_widths nil, 10, nil
     xls.serialize(name)

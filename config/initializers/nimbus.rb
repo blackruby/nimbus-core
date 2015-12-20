@@ -577,7 +577,7 @@ module Modelo
           break
         end
       }
-      self.class_eval("def empresa;#{cad_emp};end") unless cad_emp.empty?
+      self.class_eval("def empresa;#{cad_emp};end;def empresa_path;'#{cad_emp}';end") unless cad_emp.empty?
 
       if (self.to_s != 'Ejercicio')
         cad_eje = ''
@@ -594,7 +594,7 @@ module Modelo
             break
           end
         }
-        self.class_eval("def ejercicio;#{cad_eje};end") unless cad_eje.empty?
+        self.class_eval("def ejercicio;#{cad_eje};end;def ejercicio_path;'#{cad_eje}';end") unless cad_eje.empty?
       end
 
       after_initialize :_ini_campos
