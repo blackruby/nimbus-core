@@ -681,7 +681,11 @@ class ApplicationController < ActionController::Base
     wh = '('
     data[:campos].each {|c|
       if mod.columns_hash[c].type == :integer
-        wh << c + '=' + p + ' OR '
+        begin
+          n = Integer(p)
+          wh << c + '=' + n.to_s + ' OR '
+        rescue
+        end
       else
         wh << 'UNACCENT(LOWER(' + c + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
       end
