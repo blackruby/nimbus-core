@@ -91,6 +91,43 @@ end
 # Extensiones en ActiveRecord (para poder hacer LEFT JOIN)
 
 class ActiveRecord::Base
+  def self.ljoin(*columns)
+    cad_join = ''
+    tab_proc = {}
+    ali_auto = 'sz' # Para que el primer alias automático sea 'ta'
+    columns.flatten.compact.each {|col|
+      mod = self
+      ali = mod.table_name
+      tab_ex = ''
+      col.to_s.split('.').each {|tab|
+        ali_ant = ali
+        puts tab + ' ' + ali_ant
+        ip = tab.index('(')
+        if ip
+          ali = tab[ip+1..tab.index(')')-1]
+          tab = tab[0..ip-1]
+        end
+        mod = mod.reflect_on_association(tab).klass
+        tab_ex << '~' + tab
+        if tab_proc.include?(tab_ex)
+          ali = tab_proc[tab_ex]
+          next
+        end
+
+        ali = ali_auto.next!.dup unless ip
+
+        cad_join << ' LEFT JOIN ' + mod.table_name + ' ' + ali + ' ON ' + ali + '.id=' + ali_ant + '.' + tab + '_id'
+
+        tab_proc[tab_ex] = ali
+      }
+    }
+
+    joins cad_join
+  end
+end
+
+=begin
+class ActiveRecord::Base
   # Does a left join through an association. Usage:
   #
   #     Book.left_join(:category)
@@ -135,6 +172,7 @@ class ActiveRecord::Base
     joins source.join(assoc.klass.arel_table, Arel::Nodes::OuterJoin).on(source[assoc.foreign_key].eq(assoc.klass.arel_table[pk])).join_sources
   end
 end
+=end
 
 # Módulo MantMod para extender las clases de los controladores
 #

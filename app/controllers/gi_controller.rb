@@ -166,9 +166,9 @@ class GiController < ApplicationController
       lim[c] = @fact.method(c).call
     }
 
-    eid, jid = get_empeje
+    lim[:eid], lim[:jid] = get_empeje
 
-    g = GI.new(params[:file], nil, lim, eid, jid)
+    g = GI.new(params[:file], nil, lim)
     g.gen_xls('/tmp/z.xlsx')
 
     case @fact.formato
@@ -211,7 +211,7 @@ class GI
     end
   end
 
-  def initialize(form, data=nil, lim={}, eid=nil, jid=nil)
+  def initialize(form, data=nil, lim={})
     if form.is_a? String
       #@form = eval('{' + File.read('formatos/' + form) + '}')
       @form = self.class.formato_read(form)
@@ -219,14 +219,14 @@ class GI
       @form = form
     end
 
-    @form[:tit_i] = (eid ? Empresa.find_by(id: eid).nombre : '') if @form[:tit_i].empty?
+    @form[:tit_i] = (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') if @form[:tit_i].empty?
     #@form[:titulo] ||= ('Listado de ' + (@form[:tabla] ? nt(@form[:tabla].table_name) : ''))
     @form[:select] = @form[:tabla].table_name + '.*' if @form[:select].empty?
 
     if data
       @data = data
     else
-      @data = @form[:tabla].select(@form[:select]).left_join(@form[:join]).where(@form[:where], lim).order(@form[:orden])
+      @data = @form[:tabla].select(@form[:select]).ljoin(@form[:join]).where(@form[:where], lim).order(@form[:orden])
     end
 
     def gen_alias(sym_ban, ban)
