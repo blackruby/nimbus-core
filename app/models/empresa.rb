@@ -10,19 +10,18 @@ class Empresa < ActiveRecord::Base
     telefono: {manti: 30},
     fax: {manti: 30},
     email: {manti: 70},
-    p_long: {manti: 2},
-    p_mod_fiscal: {sel: {C: 'territorio_comun', A: 'alava', N: 'navarra'}},
-    p_dec_cantidad: {manti: 1},
-    p_dec_precio_r: {manti: 1},
-    p_dec_precio_v: {manti: 1},
+    web: {manti: 70},
+    param: {},
   }
 
+  serialize :param
 
   after_save :control_histo
-  #after_initialize :ini_campos
+  after_initialize :ini_campos
 
-  #def ini_campos
-  #end
+  def ini_campos
+    self.param ||= {}
+  end
 end
 
 class Empresa < ActiveRecord::Base

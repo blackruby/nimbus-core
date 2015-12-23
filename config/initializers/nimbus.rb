@@ -238,6 +238,7 @@ module MantMod
           cs = c.to_sym
           unless c == 'id' or @campos.include?(cs)
             @campos[cs] = self.superclass.propiedades[cs]
+            @campos[cs] ||= {}
             @campos[cs][:type] = self.superclass.columns_hash[c].type
           end
         }

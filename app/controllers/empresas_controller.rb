@@ -2,19 +2,15 @@ class EmpresasMod < Empresa
   @campos = {
     codigo: {tab: 'pre', grid:{}},
     nombre: {tab: 'pre', grid:{}},
-    cif: {tab: 'general', grid:{}},
-    direccion: {tab: 'general'},
-    cod_postal: {tab: 'general'},
-    poblacion: {tab: 'general'},
-    provincia: {tab: 'general'},
-    telefono: {tab: 'general', grid: {}},
-    fax: {tab: 'general'},
-    email: {tab: 'general'},
-    p_long: {tab: 'parametros'},
-    p_mod_fiscal: {tab: 'parametros'},
-    p_dec_cantidad: {tab: 'parametros'},
-    p_dec_precio_r: {tab: 'parametros'},
-    p_dec_precio_v: {tab: 'parametros'},
+    cif: {tab: 'pre', grid:{}},
+    direccion: {tab: 'pre'},
+    cod_postal: {tab: 'pre'},
+    poblacion: {tab: 'pre'},
+    provincia: {tab: 'pre'},
+    telefono: {tab: 'pre', grid: {}},
+    fax: {tab: 'pre'},
+    email: {tab: 'pre'},
+    web: {tab: 'pre'},
   }
 
   @grid = {
@@ -24,7 +20,7 @@ class EmpresasMod < Empresa
     scroll: true,
   }
 
-  @hijos = [{url: 'ejercicios', tab: 'ejercicios'}]
+  @hijos = [{url: 'ejercicios', tab: 'post'}]
 
   #after_initialize :ini_campos_ctrl
 
