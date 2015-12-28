@@ -742,12 +742,12 @@ class ApplicationController < ActionController::Base
     cp = ficha.respond_to?('campos') ? ficha.campos[cmp.to_sym] : class_mant.campos[cmp.to_sym]
     if cmp.ends_with?('_id')
       id = ficha.method(cmp).call
-      if id
+      if id and id != 0 and id != ''
         if class_modelo.attribute_names.include?(cmp)
           val = {}
           cmpr = cmp[0..-4] + ".auto_comp_value(:#{tipo})"
         else
-          val =  cp[:ref].constantize.find(id).method('auto_comp_value').call(tipo)
+          val =  cp[:ref].constantize.find(id.to_i).method('auto_comp_value').call(tipo)
         end
       else
         val = nil
