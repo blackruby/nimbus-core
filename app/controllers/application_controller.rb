@@ -104,6 +104,18 @@ class ApplicationController < ActionController::Base
     @ajax << '$("#' + c.to_s + '").focus();'
   end
 
+  def abre_dialogo(diag)
+    @ajax << "$('#{diag}').dialog('open');"
+  end
+
+  def cierra_dialogo(diag)
+    @ajax << "$('#{diag}').dialog('close');"
+  end
+
+  def edita_ficha(id)
+    @ajax << "window.open('/#{params[:controller]}/#{id}/edit', '_self');"
+  end
+
   # Funciones para el manejo del histórico de un modelo
   def histo
     begin
@@ -439,9 +451,18 @@ class ApplicationController < ActionController::Base
     @head = (params[:head] ? params[:head].to_i : 1)
   end
 
-  def set_empeje
-    @e = @fact.empresa if @fact.respond_to?('empresa')
-    @j = @fact.ejercicio if @fact.respond_to?('ejercicio')
+  def set_empeje(eid=0, jid=0)
+    if eid == 0
+      @e = @fact.empresa if @fact.respond_to?('empresa')
+    else
+      @e = Empresa.find_by id: eid
+    end
+
+    if eid == 0
+      @j = @fact.ejercicio if @fact.respond_to?('ejercicio')
+    else
+      @j = Ejercicio.find_by id: jid
+    end
   end
 
   def new
@@ -462,6 +483,7 @@ class ApplicationController < ActionController::Base
     end
 
     @fact = $h[v.id][:fact] = clm.new
+    @fact.user_id = session[:uid]
     @fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord
 
     @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
@@ -494,7 +516,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    set_empeje
+    set_empeje(eid, jid)
 
     @ajax = 'var _vista=' + v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
     #Activar botones necesarios (Grabar/Borrar)
@@ -560,6 +582,7 @@ class ApplicationController < ActionController::Base
           render file: '/public/404.html', status: 404, layout: false
           return
         end
+        @fact.user_id = session[:uid]
       end
     end
 
@@ -594,12 +617,22 @@ class ApplicationController < ActionController::Base
 
     if clm.mant?
       if @fact.id != 0
-        $h[v.id][:eid] = @fact.empresa.id if @fact.respond_to?('empresa')
-        $h[v.id][:jid] = @fact.ejercicio.id if @fact.respond_to?('ejercicio')
+        if @fact.respond_to?('empresa')
+          $h[v.id][:eid] = @fact.empresa.id
+        elsif clm.superclass.to_s == 'Empresa'
+          $h[v.id][:eid] = @fact.id
+        end
+
+        if @fact.respond_to?('ejercicio')
+          $h[v.id][:jid] = @fact.ejercicio.id
+        elsif clm.superclass.to_s == 'Empresa'
+          $h[v.id][:jid] = @fact.id
+        end
+
         sincro_hijos(v.id)
         @ajax += 'var eid="' + $h[v.id][:eid].to_s + '",jid="' + $h[v.id][:jid].to_s + '";'
 
-        set_empeje
+        set_empeje($h[v.id][:eid], $h[v.id][:jid])
 
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: true, borrar: true});'

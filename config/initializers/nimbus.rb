@@ -57,9 +57,21 @@ def nt(tex, h={})
   end
 end
 
-# Extensiones en ActiveRecord (para control histórico)
+# Método para ejecutar sentencias SQL (abreviado)
+
+def sql_exe(cad)
+  ActiveRecord::Base.connection.execute(cad)
+end
+
+# Extensiones a ActiveRecord::Base
 
 class ActiveRecord::Base
+  # Crear un accessor para guardar temporalmente el id de usuario (y usarlo luego en históricos, etc.)
+
+  attr_accessor :user_id
+
+  # Extensiones en ActiveRecord (para control histórico)
+
   before_save :hubo_cambios
 
   def hubo_cambios
@@ -77,7 +89,7 @@ class ActiveRecord::Base
     cls = cl.split('::')
     clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
     h = clmh.new
-    h.created_by_id = 1
+    h.created_by_id = user_id
     h.created_at = Time.now
     h.idid = id
     self.class.column_names.each {|c|
@@ -86,11 +98,9 @@ class ActiveRecord::Base
     }
     h.save
   end
-end
 
-# Extensiones en ActiveRecord (para poder hacer LEFT JOIN)
+  # Método para poder hacer LEFT JOIN. Sintaxis: ljoin('assoc[(alias)][.<idem>]', [<idem>...])
 
-class ActiveRecord::Base
   def self.ljoin(*columns)
     cad_join = ''
     tab_proc = {}
@@ -123,6 +133,43 @@ class ActiveRecord::Base
     }
 
     joins cad_join
+  end
+
+  # Método para duplicar un registro incluyendo sus hijos
+
+  def dup_in_db(campos={}, *hijos)
+    uid = defined?(session) ? session[:uid] : 'nada'
+    nueva_ficha = self.dup
+    campos.each {|k, v| nueva_ficha[k] = v}
+    cl = self.class.to_s.ends_with?('Mod') ? self.class.superclass.to_s : self.class.to_s
+    pk = cl.downcase + '_id'
+    ActiveRecord::Base.connection.transaction {
+      nueva_ficha.save
+      hijos.flatten.each {|mod|
+        campos = []
+        valores = []
+        mod.column_names.each {|c|
+          next if c == 'id'
+          campos << c
+          valores << (c == pk ? nueva_ficha.id : c)
+        }
+        tab_name = mod.table_name
+        reg = sql_exe("INSERT INTO #{tab_name} (#{campos.join(',')}) SELECT #{valores.join(',')} FROM #{tab_name} WHERE #{pk} = #{self.id} RETURNING id")
+        next if reg.count == 0
+
+        begin
+          # Insertar los registros en el histórico (si hay histórico)
+          modh = ('H' + mod.to_s).constantize
+          tabh_name = modh.table_name
+          campos << 'idid' << 'created_by_id' << 'created_at'
+          valores << 'id' << self.user_id << "'#{Time.now.to_json[1..-2]}'"
+          sql_exe("INSERT INTO #{tabh_name} (#{campos.join(',')}) SELECT #{valores.join(',')} FROM #{tab_name} WHERE id IN (#{reg.map{|r| r['id']}.join(',')})")
+        rescue NameError
+          # No existe histórico y por lo tanto no hacer nada
+        end
+      }
+    }
+    return nueva_ficha.id
   end
 end
 
@@ -451,6 +498,11 @@ module MantMod
 =end
         met = "def #{campo}=(v);@#{campo}=(v.nil? ? #{ini} : v#{conv});end;def #{campo};@#{campo};end"
         context ? context.instance_eval(met) : self.class_eval(met)
+
+        if campo.ends_with?('_id')
+          met = "def #{campo[0..-4]};#{v[:ref]}.find_by(id: self.#{campo});end"
+          context ? context.instance_eval(met) : self.class_eval(met)
+        end
       end
     end
 
