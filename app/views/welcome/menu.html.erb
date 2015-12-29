@@ -255,14 +255,13 @@
   }
 
   var nPan = 0;
-  var posWin = {};
   var propWin = {w: 500, h: 500};
 
   function calculaPosWin() {
-    var ll, lr;
+    var ll, lr, t, l, r, b;
 
-    posWin = {left: 0, top: 60};
-    bt = 999999;
+    var posWin = {left: 0, top: 60};
+    var bt = 999999;
     while (true) {
       ll = 999999;
       $(".base").each(function () {
@@ -270,14 +269,14 @@
         l = parseInt($(this).css("left"));
         r = l + parseInt($(this).css("width")) - 1;
         b = t + parseInt($(this).css("height")) - 1;
-        if (t >= posWin.top + propWin.h || b < posWin.top || l >= posWin.left + propWin.w || r < posWin.left) return(true);
+        if (t >= posWin.top + propWin.h || b < posWin.top || l >= posWin.left + propWin.w || r < posWin.left) return(posWin);
         if (l < ll) {
           ll = l;
           lr = r;
         }
         if (b < bt) bt = b;
       });
-      wr = posWin.left + propWin.w;
+      var wr = posWin.left + propWin.w;
       if (ll == 999999) {
         if (wr > $(window).width() && !$("#ampHor").is(":checked")) {
           posWin.left = 0;
@@ -288,19 +287,26 @@
       } else
         posWin.left = lr + 1;
     }
+    return(posWin)
   }
 
-  function creaWin(url) {
-    calculaPosWin();
-    did = "d" + nPan;
-    fid = "f" + nPan;
-    tid = "t" + nPan;
+  function creaWin(url, prop) {
+    if (prop == undefined) {
+      var p = calculaPosWin();
+      prop = {top: p.top, left: p.left, width: propWin.w, height: propWin.h}
+    }
+
+    var did = "d" + nPan;
+    var fid = "f" + nPan;
+    var tid = "t" + nPan;
     $("<div class='base' id='" + did + "'>").
       appendTo($("#div-body")).
       draggable({snap: true, handle: "div", containment: "parent", scroll: true, start: fonStartDrag, stop: fonStopDrag, drag: fonDrag}).
       resizable({containment: "parent", handles: "n, e, s, w, se", autoHide: true, start: fonStartDrag, stop: fonStopDrag}).
-      css('left', posWin.left + "px").
-      css('top', posWin.top + "px").
+      css('left', prop.left + "px").
+      css('top', prop.top + "px").
+      css('width', prop.width + "px").
+      css('height', prop.height + "px").
       css('z-index', nPan).
       append(
         '<div id="rt' + nPan + '" class="res-tit"></div>' +

@@ -105,11 +105,11 @@ class ApplicationController < ActionController::Base
   end
 
   def abre_dialogo(diag)
-    @ajax << "$('#{diag}').dialog('open');"
+    @ajax << "$('##{diag}').dialog('open');"
   end
 
   def cierra_dialogo(diag)
-    @ajax << "$('#{diag}').dialog('close');"
+    @ajax << "$('##{diag}').dialog('close');"
   end
 
   def edita_ficha(id)
