@@ -34,6 +34,7 @@
       <span>Ampliar horizontal</span>
       <input id="ampHor" type="checkbox" class="Toggle"/>
     </li>
+    <li id="bAddToPanel" class="nim-wide"><a href="#">Añadir a panel</a></li>
     <li id="bSave" class="nim-wide"><a href="#">Guardar panel</a></li>
     <li id="bCerrar"><a href="#">Cerrar sesión</a></li>
   </ul>
@@ -145,6 +146,11 @@
   //$("#nim-menu").mmenu({classes: "mm-slide"});
   $("#nim-menu").mmenu({onClick: {close: false}, searchfield: true});
 
+  $("#bAddToPanel").click(function (e) {
+    var url = prompt('URL:');
+    if (url != null) creaWin(url);
+  });
+
   $("#bSave").click(function (e) {
     e.preventDefault();
     //h = {wMenu: wMenu, win: []};
@@ -165,9 +171,9 @@
     });
 
     $.ajax({
-      url: '/savepanel',
+      url: '/pref_user',
       type: 'POST',
-      data: {data: h}
+      data: {pref: "panel", data: JSON.stringify(h)}
     });
   });
 
@@ -218,17 +224,17 @@
   }
 
   function myZoom(fr, factor) {
-    b = fr.contents().find("body");
+    var b = fr.contents().find("body");
 
     // Zoom con 'transform' (Mozilla)
-    t = b.css("-moz-transform");
+    var t = b.css("-moz-transform");
     if (typeof t != "undefined" && t.startsWith("matrix")) {
-      z = parseFloat(t.slice(t.indexOf('(') + 1)) + 0.1 * factor;
+      var z = parseFloat(t.slice(t.indexOf('(') + 1)) + 0.1 * factor;
     } else {
-      z = 1 + 0.1 * factor;
+      var z = 1 + 0.1 * factor;
     }
-    ofs = Math.round(250 * (z - 1));
-    matrix = "matrix(" + z + ",0,0," + z + "," + ofs + "," + ofs + ")";
+    var ofs = Math.round(250 * (z - 1));
+    var matrix = "matrix(" + z + ",0,0," + z + "," + ofs + "," + ofs + ")";
     b.css("-moz-transform", matrix);
 
     // Zoom con 'zoom' (Resto de navegadores)
@@ -293,7 +299,7 @@
   function creaWin(url, prop) {
     if (prop == undefined) {
       var p = calculaPosWin();
-      prop = {top: p.top, left: p.left, width: propWin.w, height: propWin.h}
+      prop = {top: p.top, left: p.left, width: propWin.w, height: propWin.h, zi: npan, vtit: 'block', zoom: 1}
     }
 
     var did = "d" + nPan;
@@ -303,14 +309,14 @@
       appendTo($("#div-body")).
       draggable({snap: true, handle: "div", containment: "parent", scroll: true, start: fonStartDrag, stop: fonStopDrag, drag: fonDrag}).
       resizable({containment: "parent", handles: "n, e, s, w, se", autoHide: true, start: fonStartDrag, stop: fonStopDrag}).
-      css('left', prop.left + "px").
-      css('top', prop.top + "px").
-      css('width', prop.width + "px").
-      css('height', prop.height + "px").
-      css('z-index', nPan).
+      css('left', prop.left).
+      css('top', prop.top).
+      css('width', prop.width).
+      css('height', prop.height).
+      css('z-index', prop.zi).
       append(
         '<div id="rt' + nPan + '" class="res-tit"></div>' +
-        '<div id="' + tid + '" class="div-titulo ui-widget-header">' +
+        '<div id="' + tid + '" class="div-titulo ui-widget-header" style="display:' + prop.vtit + '">' +
         '<button id="bzm' + nPan + '" onclick="myZoom($(\'#' + fid + '\'), -1)">Zoom -</button>' +
         '<button id="bzp' + nPan + '" onclick="myZoom($(\'#' + fid + '\'), +1)">Zoom +</button>' +
         '<button id="brl' + nPan + '" onclick="$(\'#' + fid + '\').attr(\'src\', function(i,v){return v;})">Recargar contenido</button>' +
@@ -482,6 +488,12 @@
   <% end %>
 
   set_cookie_emej();
+
+  var panel = <%= raw @panel %>;
+
+  for (i in panel.win) {
+    creaWin(panel.win[i].src, panel.win[i]);
+  }
 </script>
 
 </body>

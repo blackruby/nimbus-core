@@ -4,7 +4,6 @@ class WelcomeController < ApplicationController
   skip_before_action :ini_controller, only: [:index, :login]
 
   def index
-    #if session[:uid]
     unless sesion_invalida
       redirect_to '/menu'
       return
@@ -52,5 +51,7 @@ class WelcomeController < ApplicationController
     }
     hmenu.deep_merge!(YAML.load(File.read('menu.yml'))) if File.exists?('menu.yml')
     gen_menu(hmenu)
+
+    @panel = @usu.pref['panel']
   end
 end

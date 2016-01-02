@@ -1245,8 +1245,4 @@ class ApplicationController < ActionController::Base
 
   helper_method :gen_form
   helper_method :gen_js
-
-  def savepanel
-    render nothing: true;
-  end
 end

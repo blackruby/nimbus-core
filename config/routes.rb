@@ -24,6 +24,6 @@ Rails.application.routes.draw do
   post 'gi/validar' => 'gi#validar'
   post 'gi/fon_server' => 'gi#fon_server'
   get 'application/auto' => 'application#auto'
-  post 'savepanel' => 'application#savepanel'
+  post 'pref_user' => 'usuarios#pref_user'
   post 'noticias' => 'application#noticias'
 end

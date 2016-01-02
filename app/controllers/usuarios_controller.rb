@@ -14,6 +14,21 @@ class UsuariosMod < Usuario
   @grid = {
     scroll: true,
   }
+
+  after_initialize :ini_campos_ctrl
+  before_save :graba_pref
+
+  def ini_campos_ctrl
+    self.class.campos.each {|c, v|
+      self.method("#{c}=").call(self.pref[c]) if v[:pref]
+    }
+  end
+
+  def graba_pref
+    self.class.campos.each {|c, v|
+      self.pref[c] = self.method(c).call if v[:pref]
+    }
+  end
 end
 
 class UsuariosMod < Usuario
@@ -32,15 +47,11 @@ class UsuariosController < ApplicationController
   end
 
   def before_edit
-    return '/public/401.html' unless @usu.admin or @fact.id == @usu.id
-
-    unless @fact.pref.nil?
-      UsuariosMod.campos.each{|c, v|
-        @fact.method(c.to_s + '=').call(@fact.pref[c]) if v[:pref]
-      }
+    unless @usu.admin or @fact.id == @usu.id
+      return '/public/401.html'
+    else
+      return nil
     end
-
-    return nil
   end
 
   def before_save
@@ -50,17 +61,16 @@ class UsuariosController < ApplicationController
       @fact.password_fec_mod = Time.now
     end
 
-    h = {}
-    UsuariosMod.campos.each{|c, v|
-      val = @fact.method(c).call
-      h[c] = val if v[:pref] and (v[:type] != :string or val != '')
-    }
-    @fact.pref = h
-
     cookies.permanent[:locale] = session[:locale] = @fact.pref[:locale] || I18n.default_locale
   end
 
   def vali_password_rep
     @fact.password != @fact.password_rep ? nt('errors.messages.pass_mismatch') : nil
+  end
+
+  def pref_user
+    @usu.pref[params[:pref]] = params[:data]
+    @usu.update_column(:pref, @usu.pref)
+    render nothing: true;
   end
 end

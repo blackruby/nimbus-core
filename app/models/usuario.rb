@@ -13,16 +13,17 @@ class Usuario < ActiveRecord::Base
     pref: {},
   }
 
+  serialize :pref
+
   belongs_to :empresa_def, :class_name => 'Empresa'
   belongs_to :ejercicio_def, :class_name => 'Ejercicio'
 
   after_save :control_histo
-  #after_initialize :ini_campos
+  after_initialize :ini_campos
 
-  #def ini_campos
-  #end
-
-  serialize :pref
+  def ini_campos
+    self.pref ||= {}
+  end
 end
 
 class Usuario < ActiveRecord::Base
