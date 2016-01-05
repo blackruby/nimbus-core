@@ -18,7 +18,10 @@ namespace :nimbus do
           pk_a(modk, @alias.dup, deep + 1)
         else
           @wh << ' and ' unless @wh.empty?
-          @wh << "#{tab}.#{k}=split_part(#{@col},'~',#{@nk})"
+          @wh << "#{tab}.#{k}="
+          @wh << "CAST(" if mod.columns_hash[k].type == :integer
+          @wh << "split_part(#{@col},'~',#{@nk})"
+          @wh << " AS INTEGER)" if mod.columns_hash[k].type == :integer
           @nk += 1
         end
       }
