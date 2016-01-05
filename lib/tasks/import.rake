@@ -14,7 +14,7 @@ namespace :nimbus do
           modk = mod.reflect_on_association(k[0..-4].to_sym).options[:class_name].constantize
           tabk = modk.table_name
           @alias.next!
-          @upd << " left outer join #{tabk} #{@alias} on #{tab}.#{k} = #{@alias}.id"
+          @upd << " LEFT OUTER JOIN #{tabk} #{@alias} ON #{tab}.#{k} = #{@alias}.id"
           pk_a(modk, @alias.dup, deep + 1)
         else
           @wh << ' and ' unless @wh.empty?
