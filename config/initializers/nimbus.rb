@@ -1,3 +1,7 @@
+# Variable global para activar/desactivar mensajes de debug
+
+$nim_debug = false
+
 # Poner i18n por defecto
 
 I18n.config.enforce_available_locales = false
@@ -50,7 +54,7 @@ def nt(tex, h={})
       end
     end
 
-    return('#' + tex.humanize) if r.start_with?('translation missing')
+    return(($nim_debug ? '#' : '') + tex.humanize) if r.start_with?('translation missing')
     r[0] == '#' ? r[1..-1] : r
   rescue
     return '####'
