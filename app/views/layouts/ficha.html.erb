@@ -90,15 +90,15 @@
 <%= yield :body %>
 
 <% @dialogos.each {|d| %>
-  <div id="<%= d[:id] %>">
+  <div id="<%= d[:id] %>" style="display: none">
     <%= gen_form({dlg: d[:id]}) %>
   </div>
 <% } %>
 
-<div id="dialog-nim-alert">
+<div id="dialog-nim-alert" style="display: none">
 </div>
 
-<div id="dialog-borrar" title="Borrado">
+<div id="dialog-borrar" title="Borrado" style="display: none">
   <p>
     <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
     El registro será eliminado.<br>¿Está seguro?

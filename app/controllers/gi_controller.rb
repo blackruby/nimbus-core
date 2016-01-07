@@ -147,8 +147,8 @@ class GiController < ApplicationController
     form = GI.formato_read(params[:file])
 
     form[:lim].each {|c, v| @fact.add_campo(c, v)}
-    if form[:titulo]
-      @titulo = form[:titulo]
+    if form[:tit_c]
+      @titulo = form[:tit_c]
     elsif form[:tabla]
       @titulo = 'Listado de ' + nt(form[:tabla].table_name)
     end
