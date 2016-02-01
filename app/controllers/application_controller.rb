@@ -734,7 +734,7 @@ class ApplicationController < ActionController::Base
   end
 
   def fact_clone
-    @fant = {id: @fact.id}
+    @fant = @fact.respond_to?(:id) ? {id: @fact.id} : {}
     @fact.campos.each {|c, v| @fant[c] = @fact.method(c).call}
   end
 
