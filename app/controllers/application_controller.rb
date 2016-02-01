@@ -734,7 +734,7 @@ class ApplicationController < ActionController::Base
   end
 
   def fact_clone
-    @fant = {}
+    @fant = {id: @fact.id}
     @fact.campos.each {|c, v| @fant[c] = @fact.method(c).call}
   end
 
