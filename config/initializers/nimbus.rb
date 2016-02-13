@@ -115,7 +115,6 @@ class ActiveRecord::Base
       tab_ex = ''
       col.to_s.split('.').each {|tab|
         ali_ant = ali
-        puts tab + ' ' + ali_ant
         ip = tab.index('(')
         if ip
           ali = tab[ip+1..tab.index(')')-1]
@@ -754,9 +753,11 @@ module Modelo
             when :decimal
               ini = '0.to_d'
             when :date
-              ini = 'Date.today'
+              #ini = 'Date.today'
+              ini = 'nil'
             when :time
-              ini = 'Time.now'
+              #ini = 'Time.now'
+              ini = 'nil'
             else
               ini = "''"
           end
