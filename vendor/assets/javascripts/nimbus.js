@@ -493,7 +493,7 @@ function js_t(label) {
 }
 
 function auto_comp_error(e, ui) {
-  if (typeof(ui.content) != "undefined" && ui.content[0].error == 1) alert(js_t("no_session"));
+  if (typeof(ui.content) != "undefined" && ui.content[0] != undefined && ui.content[0].error == 1) alert(js_t("no_session"));
 }
 
 function auto_comp(e, s) {
