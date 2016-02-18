@@ -111,7 +111,7 @@ namespace :nimbus do
             @upd = ''
             @nk = 1
             @deep = 0
-            @col = col
+            @col = tab + '.' + col
             @alias = 'a'
             pk_a(mod_col, 'a', 1)
             if @deep <= vuelta
