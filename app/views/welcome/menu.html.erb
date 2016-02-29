@@ -206,11 +206,14 @@
     if ($("#actPan").is(":checked")) {
       creaWin(url);
     } else {
+      /*
       w = window.open(url, "_blank", "location=no, menubar=no, status=no, toolbar=no" +
         ",height=800, width=1000" +
         ",left=" + (window.screenX + 10) +
         ",top=" + (window.screenY + 10)
       );
+      */
+      w = window.open(url, "_blank");
     }
   });
 
