@@ -371,8 +371,11 @@ function vali_auto_comp(ui, c) {
   if (ui.item == null) {
     c.val('');
     send_validar(c, '');
-  } else
+    c.attr("dbid", null);
+  } else {
     send_validar(c, ui.item.id);
+    c.attr("dbid", ui.item.id);
+  }
 }
 
 function vali_check(c) {
@@ -468,6 +471,8 @@ function bus(a) {
 // Función para controlar el estado de los botones de control (Grabar, Borrar...)
 
 function statusBotones(b) {
+  var cl;
+
   $.each(b, function(k, v) {
     cl = $(".cl-" + k);
     if (cl.size() > 0) {
@@ -496,7 +501,7 @@ function auto_comp_error(e, ui) {
   if (typeof(ui.content) != "undefined" && ui.content[0] != undefined && ui.content[0].error == 1) alert(js_t("no_session"));
 }
 
-function auto_comp(e, s) {
+function auto_comp(e, s, cntr) {
   $(e).autocomplete({
     source: s,
     minLength: 1,
@@ -505,7 +510,7 @@ function auto_comp(e, s) {
     response: function(e, ui){auto_comp_error(e, ui);}
   });
 
-  $(e).addClass('auto_comp');
+  $(e).attr('controller', cntr).addClass('auto_comp');
 
   $(e).keydown(function(e) {bus(e);});
 }
@@ -638,3 +643,39 @@ if (self != top)
     return false;
   });
 */
+
+function autoCompIrAFicha() {
+  /*
+  var inp = $("#_auto_comp_button_").parent().find("input");
+  var si = inp.autocomplete("instance").selectedItem;
+  if (si == undefined) return;
+  window.open('/' + inp.attr("controller") + '/' + si.id + '/edit', '_blank', '');
+  */
+  var inp = $("#_auto_comp_button_").parent().find("input");
+  var dbid = inp.attr("dbid");
+  if (dbid == undefined) return;
+  window.open('/' + inp.attr("controller") + '/' + dbid + '/edit', '_blank', '');
+}
+
+function autoCompNuevaFicha() {
+  window.open('/' +  $("#_auto_comp_button_").parent().find("input").attr("controller") + '/new', '_blank', '');
+}
+
+$(window).load(function() {
+  $("body").on("focus", ".nim-input", function (e) {
+    $("#_auto_comp_button_").remove();
+  });
+  $("body").on("focus", ".auto_comp", function (e) {
+    $(this).parent().append(
+      '<button id="_auto_comp_button_" class="mdl-button mdl-js-button mdl-button--icon" style="position: absolute;top: -4px;right: -4px" tabindex=-1>'+
+      '<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
+      '</button>' +
+      '<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="_auto_comp_button_" style="z-index: 5000">'+
+      '<li class="mdl-menu__item">Buscar</li>'+
+      '<li class="mdl-menu__item" onClick="autoCompIrAFicha()">Ir a</li>'+
+      '<li class="mdl-menu__item" onClick="autoCompNuevaFicha()">Nueva alta</li>'+
+      '</ul>'
+    );
+    componentHandler.upgradeDom();
+  });
+});

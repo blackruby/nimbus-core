@@ -781,14 +781,17 @@ class ApplicationController < ActionController::Base
   end
 
   def envia_campo(cmp, val)
+    cmp_s = cmp.to_s
     cp = @fact.campos[cmp.to_sym]
 
     case cp[:type]
     when :boolean
       val = false unless val
-      @ajax << '$("#' + cmp.to_s + '").prop("checked",' + val.to_s + ');'
+      @ajax << '$("#' + cmp_s + '").prop("checked",' + val.to_s + ');'
     else
-      @ajax << '$("#' + cmp.to_s + '").val(' + forma_campo(:form, @fact, cmp.to_s, val).to_json + ');'
+      @ajax << '$("#' + cmp_s + '").val(' + forma_campo(:form, @fact, cmp_s, val).to_json + ')'
+      @ajax << '.attr("dbid",' + val.to_s + ')' if cmp_s.ends_with?('_id') and val
+      @ajax << ';'
     end
   end
 
@@ -1166,7 +1169,7 @@ class ApplicationController < ActionController::Base
         sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em" ' + plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
 =begin
-        sal << '<button id="_acb_' + cs + '" class="nim-autocomp-button mdl-button mdl-js-button mdl-button--icon">'
+        sal << '<button id="_acb_' + cs + '" class="nim-autocomp-button mdl-button mdl-js-button mdl-button--icon" style="position: absolute;top: -8px; right: 0">'
         sal << '<i class="material-icons">more_vert</i>'
         sal << '</button>'
         sal << '<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="_acb_' + cs + '">'
@@ -1225,7 +1228,7 @@ class ApplicationController < ActionController::Base
         sal << 'auto_comp("#' + cs + '","/application/auto?mod=' + v[:ref]
         sal << '&eid=' + @e.id.to_s if @e
         sal << '&jid=' + @j.id.to_s if @j
-        sal << '");'
+        sal << '","' + v[:ref].constantize.table_name + '");'
       elsif mask
         sal << '$("#' + cs + '").mask("' + mask + '",{placeholder: " "});'
         #sal << 'mask({elem: "#' + cs + '", mask:"' + mask + '"'
