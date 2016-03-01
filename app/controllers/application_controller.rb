@@ -93,11 +93,19 @@ class ApplicationController < ActionController::Base
   end
 
   def enable(c)
-    @ajax << '$("#' + c.to_s + '").attr("disabled", false);'
+    if class_mant.campos[c.to_sym][:type] == :date
+      @ajax << '$("#' + c.to_s + '").datepicker("enable");'
+    else
+      @ajax << '$("#' + c.to_s + '").attr("disabled", false);'
+    end
   end
 
   def disable(c)
-    @ajax << '$("#' + c.to_s + '").attr("disabled", true);'
+    if class_mant.campos[c.to_sym][:type] == :date
+      @ajax << '$("#' + c.to_s + '").datepicker("disable");'
+    else
+      @ajax << '$("#' + c.to_s + '").attr("disabled", true);'
+    end
   end
 
   def foco(c)
@@ -1222,6 +1230,7 @@ class ApplicationController < ActionController::Base
       signo = eval_cad(v[:signo])
       mask = eval_cad(v[:mask])
       date_opts = eval_cad(v[:date_opts])
+      ro = eval_cad(v[:ro])
 
       cs = c.to_s
       if cs.ends_with?('_id')
@@ -1236,6 +1245,7 @@ class ApplicationController < ActionController::Base
         #sal << '});'
       elsif v[:type] == :date
         sal << 'date_pick("#' + cs + '",' + (date_opts == {} ? '{showOn: "button"}' : date_opts.to_json) + ');'
+        sal << "$('##{cs}').datepicker('disable');" if ro == :all or ro == params[:action].to_sym
       elsif v[:type] == :time
         sal << '$("#' + cs + '").entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true);' : 'false);')
       elsif v[:type] == :integer or v[:type] == :decimal
