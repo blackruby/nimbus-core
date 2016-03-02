@@ -25,11 +25,16 @@
 <script>
   var _controlador = 'bus';
 
-  $("#tree_campos").tree({selectable: false, dataUrl: '/gi/campos?node=<%= @mod %>', onCanSelectNode: function(node){
-    return node.load_on_demand != undefined ? false : true;
-  }});
+  $("#tree_campos").tree({
+    selectable: false,
+    dataUrl: '/gi/campos?node=<%= @mod %>',
+    dragAndDrop: true
+    //onCanSelectNode: function(node){return node.load_on_demand != undefined ? false : true;}
+  });
 
-  $('#tree_campos').bind('tree.dblclick', function(event) {
+  $('#tree_campos').bind('tree.click', function(event) {
+    if (event.node.load_on_demand) return;
+
     var name = event.node.name;
     var p = event.node.parent;
     while (p.name != undefined) {
