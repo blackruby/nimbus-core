@@ -13,9 +13,11 @@ Rails.application.routes.draw do
   get 'histo/:modulo/:tabla/:id' => 'application#histo'
   get 'histo/:tabla/:id' => 'application#histo'
   post 'histo_list' => 'application#histo_list'
+
   post 'login' => 'welcome#login'
   get 'logout' => 'welcome#logout'
   get 'menu' => 'welcome#menu'
+
   get 'gi' => 'gi#gi'
   get 'gi/campos' => 'gi#campos'
   get 'gi/abrir/:file' => 'gi#abrir'
@@ -23,7 +25,13 @@ Rails.application.routes.draw do
   post 'gi/graba_fic' => 'gi#graba_fic'
   post 'gi/validar' => 'gi#validar'
   post 'gi/fon_server' => 'gi#fon_server'
+
   get 'application/auto' => 'application#auto'
+
   post 'pref_user' => 'usuarios#pref_user'
   post 'noticias' => 'application#noticias'
+
+  get 'bus' => 'bus#bus'
+  post 'bus/list' => 'bus#list'
+  post 'bus/fon_server' => 'bus#fon_server'
 end

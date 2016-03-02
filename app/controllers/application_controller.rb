@@ -302,9 +302,11 @@ class ApplicationController < ActionController::Base
 
   # Método que provee de datos a las peticiones del grid
   def list
-    # jqGrid
-    #
-    render json: '' unless request.xhr? # Si la petición no es Ajax... ¡Puerta! (Por razones de seguridad)
+    # Si la petición no es Ajax... ¡Puerta! (Por razones de seguridad)
+    unless request.xhr?
+      render json: ''
+      return
+    end
 
     clm = class_mant
     mod_tab = clm.table_name
@@ -979,8 +981,8 @@ class ApplicationController < ActionController::Base
   def fon_server
     @ajax = ''
     if params[:vista]
-      @fact = $h[params[:vista].to_i][:fact] if params[:vista]
-      fact_clone
+      @fact = $h[params[:vista].to_i][:fact]
+      fact_clone if @fact
     end
     method(params[:fon]).call if self.respond_to?(params[:fon])
     sincro_ficha :ajax => true if @fact
