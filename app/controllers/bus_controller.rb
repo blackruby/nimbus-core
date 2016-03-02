@@ -9,7 +9,7 @@ class BusController < ApplicationController
     end
 
     @vid = Vista.create.id
-    $h[@vid] = {mod: @mod.constantize, cols: {}}
+    $h[@vid] = {mod: @mod.constantize, cols: []}
   end
 
   def list
@@ -111,15 +111,15 @@ class BusController < ApplicationController
     page = 1 if page <=0
 
     #sql = clm.eager_load(eager).where(w).where(params[:wh]).order(ord).offset((page-1)*lim).limit(lim)
-    sql = clm.select('id,' + dat[:cols].map{|k,v| k}.join(',')).where(w).order(ord).offset((page-1)*lim).limit(lim)
+    sql = clm.select('id,' + dat[:cols].map{|c| c[:col]}.join(',')).where(w).order(ord).offset((page-1)*lim).limit(lim)
     puts sql.inspect
 
     res = {page: page, total: tot_pages, records: tot_records, rows: []}
     sql.each {|s|
       h = {:id => s.id, :cell => []}
-      dat[:cols].each {|c,v|
+      dat[:cols].each {|c|
         begin
-          h[:cell] << s[c].to_s
+          h[:cell] << s[c[:col]].to_s
         rescue
           h[:cell] << ''
         end
@@ -134,14 +134,21 @@ class BusController < ApplicationController
     render json: '' unless vid
 
     dat = $h[vid]
+     col = params[:col]
 
-    if dat[:cols].include?(params[:col])
-      dat[:cols].delete(params[:col])
+    if params[:modo] == 'del'
+      (dat[:cols].size - 1).downto(0).each {|i|
+        if dat[:cols][i][:col] == col
+          dat[:cols].delete_at(i)
+          break
+        end
+      }
+      dat[:cols].delete(col)
     else
-      dat[:cols][params[:col]] = {}
+      dat[:cols] << {col: col}
     end
 
-    col_mod = dat[:cols].map{|k, v| {name: k}}.to_json
+    col_mod = dat[:cols].map{|c| {name: c[:col]}}.to_json
     @ajax << "$('#grid').jqGrid('GridUnload');generaGrid(#{col_mod});"
   end
 end

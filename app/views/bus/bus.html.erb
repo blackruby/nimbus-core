@@ -27,12 +27,11 @@
 
   $("#tree_campos").tree({
     selectable: false,
-    dataUrl: '/gi/campos?node=<%= @mod %>',
-    dragAndDrop: true
+    dataUrl: '/gi/campos?node=<%= @mod %>'
     //onCanSelectNode: function(node){return node.load_on_demand != undefined ? false : true;}
   });
 
-  $('#tree_campos').bind('tree.click', function(event) {
+  function selCampo(event, modo) {
     if (event.node.load_on_demand) return;
 
     var name = event.node.name;
@@ -41,8 +40,10 @@
       name = p.name + '.' + name;
       p = p.parent;
     }
-    callFonServer("nueva_col", {col: name});
-  });
+    callFonServer("nueva_col", {col: name, modo: modo});
+  }
+
+  $('#tree_campos').bind('tree.click', function(event) {selCampo(event, 'add')}).bind('tree.contextmenu', function(event) {selCampo(event, 'del')});
 
 
   function generaGrid(colMod) {
