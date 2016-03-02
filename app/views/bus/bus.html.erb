@@ -30,8 +30,12 @@
   }});
 
   $('#tree_campos').bind('tree.dblclick', function(event) {
-    a = (event.node.parent.name == undefined) ? a = "" : a = $(event.node.table.split('_')).get(-1) + '_';
-    name = a + event.node.name;
+    var name = event.node.name;
+    var p = event.node.parent;
+    while (p.name != undefined) {
+      name = p.name + '.' + name;
+      p = p.parent;
+    }
     callFonServer("nueva_col", {col: name});
   });
 
@@ -73,7 +77,8 @@
     //vgrid[0].toggleToolbar();
   }
 
-  generaGrid([{name: 'codigo'},{name: 'cuna'}]);
+  //generaGrid([{name: 'codigo'},{name: 'cuna'}]);
+  generaGrid([]);
 
   function gridSelect() {
 
