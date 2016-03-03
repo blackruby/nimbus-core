@@ -148,6 +148,10 @@ class BusController < ApplicationController
       dat[:cols] << {col: col}
     end
 
+    dat[:cols].each {|c|
+
+    }
+
     col_mod = dat[:cols].map{|c| {name: c[:col]}}.to_json
     @ajax << "$('#grid').jqGrid('GridUnload');generaGrid(#{col_mod});"
   end

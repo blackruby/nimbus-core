@@ -114,9 +114,6 @@
 </style>
 
 <script>
-  <%= gen_js %>
-  <%= @ajax.html_safe %>
-
   $("#dialog-nim-alert").dialog({
     autoOpen: false,
     resizable: false,
@@ -160,6 +157,9 @@
       }
     });
   <% } %>
+
+  <%= gen_js %>
+  <%= @ajax.html_safe %>
 
   function abreDialogo(d) {
     $("#" + d).dialog("open");

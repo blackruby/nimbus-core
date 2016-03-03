@@ -108,6 +108,19 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # Métodos para hacer visibles/invisibles campos. El argumento collapse a true hará
+  # que desaparezca el elemento y su hueco, acomodándose el resto de elementos al
+  # nuevo layout. Por el contrario si vale false el elemento desaparece
+  # pero el hueco continúa
+
+  def visible(c)
+    @ajax << "$('##{c}').parent().css('display', 'block').parent().css('display', 'block');"
+  end
+
+  def invisible(c, collapse=false)
+    @ajax << "$('##{c}').parent().#{collapse ? 'parent().' : ''}css('display', 'none');"
+  end
+
   def foco(c)
     @ajax << '$("#' + c.to_s + '").focus();'
   end
@@ -265,6 +278,12 @@ class ApplicationController < ActionController::Base
     @view[:url_list] << arg_list_new + arg_ej
     @view[:url_new] << arg_list_new + arg_ej
     @view[:arg_edit] << arg_ej
+
+    # Pasar como herencia el argumento especial 'arg'
+    if params[:arg]
+      @view[:url_new] << '&arg=' + params[:arg]
+      @view[:arg_edit] << '&arg=' + params[:arg]
+    end
 
     if clm.mant? # No es un proc, y por lo tanto preparamos los datos del grid
       @view[:url_cell] = @view[:url_base] + '/validar_cell'
@@ -1044,7 +1063,6 @@ class ApplicationController < ActionController::Base
     }
 
     if err == ''
-      id_old = @fact.id
       before_save if self.respond_to?('before_save')
       if clm.view?
         clmod = class_modelo
@@ -1070,13 +1088,15 @@ class ApplicationController < ActionController::Base
       end
       after_save if self.respond_to?('after_save')
 
-      sincro_hijos(vid) if (id_old.nil?)
+      if clm.mant?
+        sincro_hijos(vid) if @fant[:id].nil?
 
-      #Refrescar el grid si procede
-      @ajax << 'parentGridReload();'
+        #Refrescar el grid si procede
+        @ajax << 'parentGridReload();'
 
-      #Activar botones necesarios (Grabar/Borrar)
-      @ajax << 'statusBotones({borrar: true});'
+        #Activar botones necesarios (Grabar/Borrar)
+        @ajax << 'statusBotones({borrar: true});'
+      end
 
       @ajax << 'hayCambios=false;'
     else

@@ -154,7 +154,7 @@ class GiController < ApplicationController
     end
   end
 
-  def aceptar
+  def after_save
     @ajax << 'window.open("/gi/abrir/' + @fact.form_file + '?vista=' + params[:vista] + '", "_blank", "location=no, menubar=no, status=no, toolbar=no ,height=800, width=1000 ,left=" + (window.screenX + 10) + ",top=" + (window.screenY + 10));'
   end
 
