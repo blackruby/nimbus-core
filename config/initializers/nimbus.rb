@@ -67,6 +67,70 @@ def sql_exe(cad)
   ActiveRecord::Base.connection.execute(cad)
 end
 
+# Método para generar left joins. Recibe como argumentos el modelo y un número variable (o un array) de campos de la forma [tabla[.tabla[...]]] (ej.: cliente.pais)
+# cada tabla intermedia puede ir seguida de un valor para el alias entre paréntesis. ej.: cliente(cli).pais(p)
+# Si no especifican alias se usarán unos automáticos de la forma 'ta', 'tb', 'tc'...
+# devuelve un hash con dos claves: ':cad' que es una cadena ya construida con los joins y ':tab' que es otro hash cuyas claves son las tablas usadas en el join y sus valores los alias utilizados
+
+def ljoin_parse(modelo, *columns)
+  cad_join = ''
+  tab_proc = {}
+  ali_auto = 'sz' # Para que el primer alias automático sea 'ta'
+  columns.flatten.compact.each {|col|
+    mod = modelo
+    ali = mod.table_name
+    tab_ex = ''
+    col.to_s.split('.').each {|tab|
+      ali_ant = ali
+      ip = tab.index('(')
+      if ip
+        ali = tab[ip+1..tab.index(')')-1]
+        tab = tab[0..ip-1]
+      end
+      mod = mod.reflect_on_association(tab).klass
+      tab_ex << '.' unless tab_ex.empty?
+      tab_ex << tab
+      if tab_proc.include?(tab_ex)
+        ali = tab_proc[tab_ex]
+        next
+      end
+
+      ali = ali_auto.next!.dup unless ip
+
+      cad_join << ' LEFT JOIN ' + mod.table_name + ' ' + ali + ' ON ' + ali + '.id=' + ali_ant + '.' + tab + '_id'
+
+      tab_proc[tab_ex] = ali
+    }
+  }
+
+  {cad: cad_join, alias: tab_proc}
+end
+
+# Método para generar select de múltiples tablas con sus left join correspondientes
+
+def mselect_parse(modelo, *columns)
+  tn = modelo.table_name
+  cols = columns.flatten.compact
+  ljp = ljoin_parse(modelo, cols.map {|col| col.split('.')[0..-2].join('.')})
+  cad_sel = ''
+  tab_alias = {}
+  cols.each {|col|
+    sp = col.split('.')
+    tab = sp[0..-2].map{|t| t.gsub(/\(.*\)/, '')}.join('.')
+    cad_sel << ',' unless cad_sel.empty?
+    if tab.empty?
+      cmp_db = tn + '.' + sp[-1]
+    else
+      cmp_db = ljp[:alias][tab] + '.' + sp[-1] + (sp[-1].include?(' ') ? '' : ' ' + ljp[:alias][tab] + '_' + sp[-1])
+    end
+    cad_sel << cmp_db
+    cmp_db_s = cmp_db.split(' ')
+    cmp_puro = sp[-1].split(' ')[0]
+    tab_alias[(tab.empty? ? '' : tab + '.') + cmp_puro] = {cmp_db: cmp_db_s[0], alias: cmp_db_s.size > 1 ? cmp_db_s[1] : cmp_puro}
+  }
+  {cad_sel: cad_sel, cad_join: ljp[:cad], alias_tab: ljp[:alias], alias_cmp: tab_alias}
+end
+
 # Extensiones a ActiveRecord::Base
 
 class ActiveRecord::Base
@@ -106,36 +170,49 @@ class ActiveRecord::Base
   # Método para poder hacer LEFT JOIN. Sintaxis: ljoin('assoc[(alias)][.<idem>]', [<idem>...])
 
   def self.ljoin(*columns)
-    cad_join = ''
-    tab_proc = {}
-    ali_auto = 'sz' # Para que el primer alias automático sea 'ta'
-    columns.flatten.compact.each {|col|
-      mod = self
-      ali = mod.table_name
-      tab_ex = ''
-      col.to_s.split('.').each {|tab|
-        ali_ant = ali
-        ip = tab.index('(')
-        if ip
-          ali = tab[ip+1..tab.index(')')-1]
-          tab = tab[0..ip-1]
-        end
-        mod = mod.reflect_on_association(tab).klass
-        tab_ex << '~' + tab
-        if tab_proc.include?(tab_ex)
-          ali = tab_proc[tab_ex]
-          next
-        end
+    joins ljoin_parse(self, columns)[:cad]
+  end
 
-        ali = ali_auto.next!.dup unless ip
+  # Método para poder hacer select de campos de múltiples tablas. Los argumentos son variables (strings) o un array de cadenas.
+  # Cada uno de ellos representa un campo con su 'ruta' completa. ej.: cliente.producto.sector.codigo
+  # Se genererán los joins precisos para hacer la consulta. Se pueden dar alias específicos a cada tabla intermedia
+  # entre paréntesis (sólo válido en la primera aparición de la tabla).
+  # Si no hay alias se utilizarán 'ta', 'tb', 'tc', etc. para las sucesivas tablas.
+  # También se puede dar un alias para el campo dejando un espacio en blanco y especificando el alias.
+  # Si no se especifica una alias para el campo, se proporcionará uno automático sólo en el caso de que el campo
+  # no sea de la tabla principal, y estará formado por el alias de la tabla correspondiente más un '_' y el propio campo.
+  #
+  # Un ejemplo completo sería:
+  #
+  # fichas = Modelo.mselect('codigo', 'cliente(cl).nombre', 'cliente.pais.nombre cpn', 'agente(ag).provincia(pr).nombre', 'agente.pais.nombre')
+  #
+  # En este caso tendríamos para las tablas los siguientes alias:
+  #
+  # clientes cl
+  # clientes-paises ta (por no haber especificado alias explícito)
+  # agentes ag
+  # agentes-provincias pr
+  # agentes-paises tb
+  #
+  # En cuanto a los alias de los campos la nomenclatura sería la siguiente:
+  #
+  # codigo: No tiene alias y no se le da por ser del modelo. Para acceder: fichas[i].codigo
+  # cliente.nombre: No tiene alias. Se le da automáticamente cl_nombre. Para acceder: ficha[i].cl_nombre
+  # cliente.pais.nombre: Tiene alias explícito. Para acceder: ficha[i].cpn
+  # agente.provincia.nombre: No tiene alias. Se le da automáticamente pr_nombre. Para acceder: ficha[i].pr_nombre
+  # agente.pais.nombre: No tiene alias. Se le da automáticamente tb_nombre. Para acceder: ficha[i].pr_nombre
+  #
+  # Si queremos usar cualquier campo de estos en la claúsula where hay que tener en cuenta que no se puede
+  # usar su alias (por limitaciones del SQL) y por lo tanto habría que usar la notación alias_de_tabla.campo
+  # En el ejemplo anterior, si quisiéramos usar el campo cliente.pais.nombre en el 'where' no podríamos usar
+  # 'cpn', en su lugar tendríamos que usar: ta.nombre
+  #
+  # En la claúsula 'order' se puede usar indistintamente el alias o la notación anterior.
+  #
 
-        cad_join << ' LEFT JOIN ' + mod.table_name + ' ' + ali + ' ON ' + ali + '.id=' + ali_ant + '.' + tab + '_id'
-
-        tab_proc[tab_ex] = ali
-      }
-    }
-
-    joins cad_join
+  def self.mselect(*columns)
+    r = mselect_parse(self, columns)
+    select(r[:cad_sel]).joins(r[:cad_join])
   end
 
   # Método para duplicar un registro incluyendo sus hijos
