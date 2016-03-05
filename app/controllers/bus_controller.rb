@@ -148,22 +148,7 @@ class BusController < ApplicationController
       dat[:cols] << {col: col}
     end
 
-    tab_proc = {}
-    ali_auto = 'sz' # Para que el primer alias automático sea 'ta'
-    dat[:cols].each {|c|
-      tab_ex = ''
-      c[:col].split('.').each {|tab|
-        tab_ex << '.' + tab
-        if tab_proc.include?(tab_ex)
-          ali = tab_proc[tab_ex]
-          next
-        end
-
-        ali = ali_auto.next!.dup unless ip
-
-        tab_proc[tab_ex] = ali
-      }
-    }
+    mp = mselect_parse(dat[:mod], dat[:cols].map{|c| c[:col]})
 
     col_mod = dat[:cols].map{|c| {name: c[:col]}}.to_json
     @ajax << "$('#grid').jqGrid('GridUnload');generaGrid(#{col_mod});"

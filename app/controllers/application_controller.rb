@@ -137,6 +137,14 @@ class ApplicationController < ActionController::Base
     @ajax << "window.open('/#{params[:controller]}/#{id}/edit', '_self');"
   end
 
+  def open_url(url)
+    @ajax << "window.open('#{url}', '_blank');"
+  end
+
+  def grid_reload
+    @ajax << 'parentGridReload();'
+  end
+
   # Funciones para el manejo del histórico de un modelo
   def histo
     begin
@@ -1092,7 +1100,7 @@ class ApplicationController < ActionController::Base
         sincro_hijos(vid) if @fant[:id].nil?
 
         #Refrescar el grid si procede
-        @ajax << 'parentGridReload();'
+        grid_reload
 
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({borrar: true});'
