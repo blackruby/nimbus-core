@@ -501,7 +501,7 @@ function auto_comp_error(e, ui) {
   if (typeof(ui.content) != "undefined" && ui.content[0] != undefined && ui.content[0].error == 1) alert(js_t("no_session"));
 }
 
-function auto_comp(e, s, cntr) {
+function auto_comp(e, s, modelo, cntr) {
   $(e).autocomplete({
     source: s,
     minLength: 1,
@@ -510,7 +510,7 @@ function auto_comp(e, s, cntr) {
     response: function(e, ui){auto_comp_error(e, ui);}
   });
 
-  $(e).attr('controller', cntr).addClass('auto_comp');
+  $(e).attr('modelo', modelo).attr('controller', cntr).addClass('auto_comp');
 
   $(e).keydown(function(e) {bus(e);});
 }
@@ -644,6 +644,12 @@ if (self != top)
   });
 */
 
+function autoCompBuscar() {
+  var inp = $("#_auto_comp_button_").parent().find("input");
+  var w = window.open('/bus?mod=' + inp.attr("modelo") + '&eid=' + eid + '&jid=' + jid, "_blank", "width=700, height=500");
+  w._autoCompField = inp
+}
+
 function autoCompIrAFicha() {
   /*
   var inp = $("#_auto_comp_button_").parent().find("input");
@@ -671,7 +677,7 @@ $(window).load(function() {
       '<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
       '</button>' +
       '<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="_auto_comp_button_" style="z-index: 5000">'+
-      '<li class="mdl-menu__item">Buscar</li>'+
+      '<li class="mdl-menu__item" onclick="autoCompBuscar()">Buscar</li>'+
       '<li class="mdl-menu__item" onClick="autoCompIrAFicha()">Ir a</li>'+
       '<li class="mdl-menu__item" onClick="autoCompNuevaFicha()">Nueva alta</li>'+
       '</ul>'

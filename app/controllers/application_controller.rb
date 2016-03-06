@@ -1267,6 +1267,7 @@ class ApplicationController < ActionController::Base
         sal << 'auto_comp("#' + cs + '","/application/auto?mod=' + v[:ref]
         sal << '&eid=' + @e.id.to_s if @e
         sal << '&jid=' + @j.id.to_s if @j
+        sal << '","' + v[:ref]
         sal << '","' + v[:ref].constantize.table_name + '");'
       elsif mask
         sal << '$("#' + cs + '").mask("' + mask + '",{placeholder: " "});'

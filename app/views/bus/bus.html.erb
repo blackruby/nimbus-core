@@ -1,6 +1,5 @@
 <div id="tree_campos"> </div>
-<div id="d-grid">
-</div>
+<div id="d-grid"> </div>
 
 <style>
   #tree_campos {
@@ -40,7 +39,7 @@
       name = p.name + '.' + name;
       p = p.parent;
     }
-    callFonServer("nueva_col", {col: name, modo: modo});
+    callFonServer("nueva_col", {col: name, modo: modo, type: event.node.type});
   }
 
   $('#tree_campos').bind('tree.click', function(event) {selCampo(event, 'add')}).bind('tree.contextmenu', function(event) {selCampo(event, 'del')});
@@ -48,8 +47,8 @@
 
   function generaGrid(colMod) {
     $("#d-grid").append("<table id='grid'></table>");
-    var grid = $("#grid");
-    var toolgrid = '#grid_toppager';
+    grid = $("#grid");
+    //var toolgrid = '#grid_toppager';
 
     var vgrid = grid.jqGrid({
       height: '500',
@@ -63,7 +62,7 @@
       gridview: true,
 
       toppager: true,
-      scroll: true,
+      scroll: false,
 
       rowList: [100, 500, 1000],
       altRows: true,	// filas tipo cebra
@@ -72,8 +71,8 @@
 
       ondblClickRow: gridSelect,
 
-      shrinkToFit: true,
-      multiSort: false,
+      shrinkToFit: false,
+      multiSort: true,
       //multiselect: true,
     });
 
@@ -81,12 +80,19 @@
     grid.jqGrid('bindKeys');
     grid.jqGrid('filterToolbar', {stringResult: true, searchOperators: true});
     //vgrid[0].toggleToolbar();
+
+    $(".ui-pg-input").height(14); // Para que salga de la altura correcta el input del número de página del grid
   }
 
-  //generaGrid([{name: 'codigo'},{name: 'cuna'}]);
-  generaGrid([]);
+  //generaGrid([]);
 
   function gridSelect() {
-
+    id = grid.jqGrid('getGridParam','selrow');
+    if (id != null) {
+      _autoCompField.attr("dbid", id);
+      callFonServer("bus_value", {id: id});
+      window.opener.send_validar(_autoCompField, id)
+    } else
+      alert("Seleccione un registro");
   }
 </script>

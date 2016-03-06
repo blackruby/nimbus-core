@@ -9,52 +9,30 @@ class BusController < ApplicationController
     end
 
     @vid = Vista.create.id
-    $h[@vid] = {mod: @mod.constantize, cols: []}
+
+    ej = get_empeje
+
+    $h[@vid] = {mod: @mod.constantize, cols: [], types:{}, eid: ej[0], jid: ej[1]}
   end
 
   def list
     # Si la petición no es Ajax... ¡Puerta! (Por razones de seguridad)
-    unless request.xhr?
-      render json: ''
-      return
-    end
+    return unless request.xhr?
 
     vid = params[:vista].to_i
-    unless vid
-      render json: ''
-      return
-    end
+    return unless vid
 
     dat = $h[vid]
 
-    if dat[:cols].empty?
-      render json: ''
-      return
-    end
+    return if dat[:cols].empty?
 
     clm = dat[:mod]
     tabla = clm.table_name
 
     w = ''
-=begin
-    if clm.column_names.include?('empresa_id')
-      if params[:eid]
-        add_where(w, mod_tab + '.empresa_id=' + params[:eid])
-      else
-        render json: {error: 'no_emp'}
-        return
-      end
-    end
 
-    if clm.column_names.include?('ejercicio_id')
-      if params[:jid]
-        add_where(w, mod_tab + '.ejercicio_id=' + params[:jid])
-      else
-        render json: {error: 'no_eje'}
-        return
-      end
-    end
-=end
+    add_where(w, tabla + '.empresa_id=' + dat[:eid]) if clm.column_names.include?('empresa_id')
+    add_where(w, tabla + '.ejercicio_id=' + dat[:jid]) if clm.column_names.include?('ejercicio_id')
 
     if params[:filters]
       fil = eval(params[:filters])
@@ -70,9 +48,8 @@ class BusController < ApplicationController
           next
         end
 
-        ty = f[:field].split('.')
-        ty = ty[-2].model.columns_hash[ty[-1]].type
-        add_where w, ([:bn,:ni,:en,:nc].include?(op) ? 'NOT ' : '') + (ty == :string ? 'UNACCENT(LOWER(' + f[:field] + '))' : f[:field])
+        ty = dat[:types][f[:field]]
+        add_where w, ([:bn,:ni,:en,:nc].include?(op) ? 'NOT ' : '') + (ty == 'string' ? 'UNACCENT(LOWER(' + f[:field] + '))' : f[:field])
         w << ({eq: '=', ne: '<>', cn: ' LIKE ', bw: ' LIKE ', ew: ' LIKE ', nc: ' LIKE ', bn: ' LIKE ', en: ' LIKE ', in: ' IN (', ni: ' IN (', lt: '<', le: '<=', gt: '>', ge: '>='}[op] || '=')
         if op == :in or op == :ni
           f[:data].split(',').each {|d| w << '\'' + I18n.transliterate(d).downcase + '\','}
@@ -81,14 +58,12 @@ class BusController < ApplicationController
         else
           w << '\''
           w << '%' if [:ew,:en,:cn,:nc].include?(op)
-          w << (ty == :string ? I18n.transliterate(f[:data]).downcase : f[:data])
+          w << (ty == 'string' ? I18n.transliterate(f[:data]).downcase : f[:data])
           w << '%' if [:bw,:bn,:cn,:nc].include?(op)
           w << '\''
         end
       }
     end
-
-    sel = ''
 
     # Formar la cadena de ordenación y seguir incluyendo tablas en eager-load
     #
@@ -102,7 +77,7 @@ class BusController < ApplicationController
     ord = ord[0..-2] + ' ' + params[:sord] if ord != ''
 
     #tot_records = clm.select(:id).joins(eager.map{|j| j.to_sym}).where(w).size
-    tot_records = clm.select(:id).where(w).size
+    tot_records = clm.select(:id).joins(dat[:cad_join]).where(w).size
     lim = params[:rows].to_i
     tot_pages = tot_records / lim
     tot_pages += 1 if tot_records % lim != 0
@@ -111,7 +86,8 @@ class BusController < ApplicationController
     page = 1 if page <=0
 
     #sql = clm.eager_load(eager).where(w).where(params[:wh]).order(ord).offset((page-1)*lim).limit(lim)
-    sql = clm.select('id,' + dat[:cols].map{|c| c[:col]}.join(',')).where(w).order(ord).offset((page-1)*lim).limit(lim)
+    #sql = clm.select('id,' + dat[:cols].map{|c| c[:col]}.join(',')).where(w).order(ord).offset((page-1)*lim).limit(lim)
+    sql = clm.select(tabla + '.id,' + dat[:cad_sel]).joins(dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
     puts sql.inspect
 
     res = {page: page, total: tot_pages, records: tot_records, rows: []}
@@ -119,7 +95,7 @@ class BusController < ApplicationController
       h = {:id => s.id, :cell => []}
       dat[:cols].each {|c|
         begin
-          h[:cell] << s[c[:col]].to_s
+          h[:cell] << s[dat[:alias_cmp][c[:col]][:alias]].to_s
         rescue
           h[:cell] << ''
         end
@@ -131,7 +107,7 @@ class BusController < ApplicationController
 
   def nueva_col
     vid = params[:vista].to_i
-    render json: '' unless vid
+    return unless vid
 
     dat = $h[vid]
     col = params[:col]
@@ -146,11 +122,44 @@ class BusController < ApplicationController
       dat[:cols].delete(col)
     else
       dat[:cols] << {col: col}
+      dat[:types][col] = params[:type]
     end
 
     mp = mselect_parse(dat[:mod], dat[:cols].map{|c| c[:col]})
+    dat[:cad_sel] = mp[:cad_sel]
+    dat[:cad_join] = mp[:cad_join]
+    dat[:alias_cmp] = mp[:alias_cmp]
 
-    col_mod = dat[:cols].map{|c| {name: c[:col]}}.to_json
-    @ajax << "$('#grid').jqGrid('GridUnload');generaGrid(#{col_mod});"
+    puts dat.inspect
+
+    col_mod = dat[:cols].map{|c|
+      h = {name: c[:col], index: mp[:alias_cmp][c[:col]][:cmp_db], searchoptions: {}}
+      case dat[:types][c[:col]]
+        when 'boolean'
+          h[:align] = 'center'
+          h[:formatter] = '~format_check~'
+          h[:searchoptions][:sopt] = ['eq']
+        when 'integer', 'decimal'
+          h[:align] = 'right'
+          h[:searchoptions][:sopt] = ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
+        when 'date'
+          h[:align] = 'center'
+          h[:searchoptions][:sopt] = ['eq','ne','lt','le','gt','ge','nu','nn']
+        else
+          h[:searchoptions][:sopt] = ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
+      end
+      h
+    }
+
+    @ajax << "$('#grid').jqGrid('GridUnload');generaGrid(#{col_mod.to_json.gsub('"~', '').gsub('~"', '')});"
+  end
+
+  def bus_value
+    vid = params[:vista].to_i
+    return '' unless vid
+
+    val =  $h[vid][:mod].find(params[:id].to_i).auto_comp_value(:form)
+    @ajax << "_autoCompField.val('#{val}');"
+    @ajax << 'window.close();'
   end
 end
