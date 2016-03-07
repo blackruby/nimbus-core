@@ -248,7 +248,13 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    @view = {grid: clm.grid}
+    if self.respond_to?(:grid_conf)
+      grid = clm.grid.deep_dup
+      grid_conf(grid)
+    else
+      grid = clm.grid
+    end
+    @view = {grid: grid}
     @view[:eid] = eid
     @view[:jid] = jid
     @view[:model] = clm.superclass.to_s
@@ -750,6 +756,7 @@ class ApplicationController < ActionController::Base
     res = []
     wh = '('
     data[:campos].each {|c|
+=begin
       if mod.columns_hash[c].type == :integer
         begin
           n = Integer(p)
@@ -759,11 +766,15 @@ class ApplicationController < ActionController::Base
       else
         wh << 'UNACCENT(LOWER(' + c + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
       end
+=end
+      wh << 'UNACCENT(LOWER(' + c + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
     }
+
     wh = wh[0..-5] + ')'
-    wh << ' AND empresa_id=' + params[:eid] if mod.column_names.include?('empresa_id') and params[:eid]
-    wh << ' AND ejercicio_id=' + params[:jid] if mod.column_names.include?('ejercicio_id') and params[:jid]
-    mod.where(params[:wh]).where(wh).order(data[:orden]).limit(15).each {|r|
+    wh << ' AND ' + mod.table_name + '.' + 'empresa_id=' + params[:eid] if mod.column_names.include?('empresa_id') and params[:eid]
+    wh << ' AND ' + mod.table_name + '.' + 'ejercicio_id=' + params[:jid] if mod.column_names.include?('ejercicio_id') and params[:jid]
+
+    mod.mselect(mod.auto_comp_mselect).where(params[:wh]).where(wh).order(data[:orden]).limit(15).each {|r|
       res << {value: r.auto_comp_value(type), id: r[:id], label: r.auto_comp_label(type)}
     }
 

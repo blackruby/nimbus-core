@@ -122,13 +122,13 @@ class BusController < ApplicationController
       dat[:cols].delete(col)
     else
       dat[:cols] << {col: col}
-      dat[:types][col] = params[:type]
     end
 
     mp = mselect_parse(dat[:mod], dat[:cols].map{|c| c[:col]})
     dat[:cad_sel] = mp[:cad_sel]
     dat[:cad_join] = mp[:cad_join]
     dat[:alias_cmp] = mp[:alias_cmp]
+    dat[:types][dat[:alias_cmp][col][:cmp_db]] = params[:type]
 
     puts dat.inspect
 

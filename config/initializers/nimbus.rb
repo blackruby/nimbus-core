@@ -719,6 +719,10 @@ module Modelo
         @auto_comp_data = h
       end
 
+      if @auto_comp_mselect
+        @auto_comp_mselect << 'id' unless @auto_comp_mselect.include?('id')
+      end
+
       # Cálculo del vector de claves primarias (pk)
       @pk = []
       @propiedades.each {|c, h|
@@ -781,6 +785,10 @@ module Modelo
 
     def auto_comp_data
       @auto_comp_data
+    end
+
+    def auto_comp_mselect
+      @auto_comp_mselect ? @auto_comp_mselect : '*'
     end
 
     def hijo?
