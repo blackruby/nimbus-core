@@ -17,14 +17,23 @@ class BusController < ApplicationController
 
   def list
     # Si la petición no es Ajax... ¡Puerta! (Por razones de seguridad)
-    return unless request.xhr?
+    unless request.xhr?
+      render nothing: true
+      return
+    end
 
     vid = params[:vista].to_i
-    return unless vid
+    unless vid
+      render nothing: true
+      return
+    end
 
     dat = $h[vid]
 
-    return if dat[:cols].empty?
+    if dat[:cols].empty?
+      render nothing: true
+      return
+    end
 
     clm = dat[:mod]
     tabla = clm.table_name
@@ -128,7 +137,7 @@ class BusController < ApplicationController
     dat[:cad_sel] = mp[:cad_sel]
     dat[:cad_join] = mp[:cad_join]
     dat[:alias_cmp] = mp[:alias_cmp]
-    dat[:types][dat[:alias_cmp][col][:cmp_db]] = params[:type]
+    dat[:types][dat[:alias_cmp][col][:cmp_db]] = params[:type] if params[:modo] == 'add'
 
     puts dat.inspect
 

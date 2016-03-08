@@ -1,10 +1,19 @@
-<div id="tree_campos"> </div>
+<div id="d-titulo">&nbsp;&nbsp;Búsqueda</div>
+<div id="tree-campos"> </div>
 <div id="d-grid"> </div>
 
 <style>
-  #tree_campos {
+  #d-titulo {
+    background-color: #673AB7;
+    color: #ffffff;
+    height: 40px;
+    line-height: 40px;
+    font-size: large;
+  }
+  #tree-campos {
     float: left;
-    /*height: 400px;*/
+    overflow-x: hidden;
+    overflow-y: auto;
     vertical-align: top;
     background-color: #d3d3d3;
     padding-left: 3px;
@@ -13,7 +22,8 @@
     padding-bottom: 10px;
   }
   #d-grid {
-    float: left;
+    position: absolute;
+    top: 40px;
   }
 </style>
 
@@ -24,14 +34,13 @@
 <script>
   var _controlador = 'bus';
 
-  $("#tree_campos").tree({
+  $("#tree-campos").tree({
     selectable: false,
     dataUrl: '/gi/campos?node=<%= @mod %>'
-    //onCanSelectNode: function(node){return node.load_on_demand != undefined ? false : true;}
   });
 
   function selCampo(event, modo) {
-    if (event.node.load_on_demand) return;
+    if (event.node.load_on_demand != undefined) return;
 
     var name = event.node.name;
     var p = event.node.parent;
@@ -42,8 +51,11 @@
     callFonServer("nueva_col", {col: name, modo: modo, type: event.node.type});
   }
 
-  $('#tree_campos').bind('tree.click', function(event) {selCampo(event, 'add')}).bind('tree.contextmenu', function(event) {selCampo(event, 'del')});
-
+  $('#tree-campos')
+    .bind('tree.click', function(event) {selCampo(event, 'add')})
+    .bind('tree.contextmenu', function(event) {selCampo(event, 'del')})
+    .bind('tree.open', gridLeft)
+    .bind('tree.close', gridLeft);
 
   function generaGrid(colMod) {
     $("#d-grid").append("<table id='grid'></table>");
@@ -73,7 +85,6 @@
 
       shrinkToFit: false,
       multiSort: true,
-      //multiselect: true,
     });
 
     grid.jqGrid('gridResize', {handles: "s,e", minHeight: 80});
@@ -82,9 +93,10 @@
     //vgrid[0].toggleToolbar();
 
     $(".ui-pg-input").height(14); // Para que salga de la altura correcta el input del número de página del grid
-  }
 
-  //generaGrid([]);
+    gridLeft();
+    gridHeight();
+  }
 
   function gridSelect() {
     id = grid.jqGrid('getGridParam','selrow');
@@ -95,4 +107,24 @@
     } else
       alert("Seleccione un registro");
   }
+
+  function gridLeft() {
+    $("#d-grid").css("left", ($("#tree-campos").width() + 8) + "px");
+  }
+
+  function gridHeight() {
+    if (typeof(grid) == "undefined") return;
+    var h = $(window).height() - $("#d-titulo").height() - 77;
+    grid.setGridHeight(h);
+  }
+
+  function redimWindow() {
+    var h = $(window).height() - $("#d-titulo").height();
+    $("#tree-campos").css("height", h);
+    gridHeight();
+  }
+
+  $(window).resize(redimWindow);
+
+  redimWindow();
 </script>
