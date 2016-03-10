@@ -1082,6 +1082,11 @@ class ApplicationController < ActionController::Base
     }
 
     if err == ''
+      err = vali_save if self.respond_to?('vali_save')
+      err ||= ''
+    end
+
+    if err == ''
       before_save if self.respond_to?('before_save')
       if clm.view?
         clmod = class_modelo
@@ -1119,7 +1124,7 @@ class ApplicationController < ActionController::Base
 
       @ajax << 'hayCambios=false;'
     else
-      @ajax << '$("#' + last_c + '").focus();'
+      @ajax << '$("#' + last_c + '").focus();' if last_c
       #@ajax << 'alert(' + err.to_json + ');'
       mensaje tit: 'Errores en el registro', msg: err
     end
