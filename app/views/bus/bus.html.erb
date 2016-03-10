@@ -41,6 +41,7 @@
 
   function selCampo(event, modo) {
     if (event.node.load_on_demand != undefined) return;
+    z=event.node;
 
     var name = event.node.name;
     var p = event.node.parent;
@@ -48,7 +49,31 @@
       name = p.name + '.' + name;
       p = p.parent;
     }
-    callFonServer("nueva_col", {col: name, modo: modo, type: event.node.type});
+
+    // Calcular los decimales (son el último carácter del estilo)
+    if (event.node.estilo == undefined)
+      var dec = 0;
+    else {
+      var dec = parseInt(event.node.estilo.slice(-1));
+      if (isNaN(dec)) dec = 0;
+    }
+
+
+    // Construir el vector de columnas
+    var gcols;
+    if (typeof(grid) == "undefined") {
+      lastScroll = 0;
+      gcols = [];
+    } else {
+      lastScroll = $("#d-grid .ui-jqgrid-bdiv").scrollTop();
+      gcols = grid.jqGrid('getGridParam', 'colModel');
+    }
+    var cols = [];
+    for (i in gcols) {
+      cols.push({col: gcols[i].label, w: gcols[i].width});
+    }
+
+    callFonServer("nueva_col", {dat: JSON.stringify({col: name, modo: modo, type: event.node.type, dec: dec, cols: cols})});
   }
 
   $('#tree-campos')
@@ -57,15 +82,16 @@
     .bind('tree.open', gridLeft)
     .bind('tree.close', gridLeft);
 
-  function generaGrid(colMod) {
+  function generaGrid(colMod, sortname, sortorder, keepScroll) {
+    $('#d-grid').html('');
     $("#d-grid").append("<table id='grid'></table>");
     grid = $("#grid");
     //var toolgrid = '#grid_toppager';
 
     var vgrid = grid.jqGrid({
-      height: '500',
       colModel: colMod,
-      //caption: '',
+      sortname: sortname,
+      sortorder: sortorder,
       url: '/bus/list?vista=' + _vista,
       datatype: "json",
       mtype: 'POST',
@@ -85,6 +111,9 @@
 
       shrinkToFit: false,
       multiSort: true,
+      loadComplete: function() {
+        $("#d-grid .ui-jqgrid-bdiv").scrollLeft(10000).scrollTop(keepScroll ? lastScroll : 0);
+      }
     });
 
     grid.jqGrid('gridResize', {handles: "s,e", minHeight: 80});
@@ -95,11 +124,14 @@
     $(".ui-pg-input").height(14); // Para que salga de la altura correcta el input del número de página del grid
 
     gridLeft();
-    gridHeight();
+    gridDim();
+
+    //$("#grid").jqGrid('setGridParam', {url: '/bus/list?vista=' + _vista, datatype: 'json', mtype: 'POST', postData: {filters: '{"groupOp":"AND","rules":[{"field":"anunciantes.codigo","op":"cn","data":"000"}]}'}})
+    //grid.trigger('reloadGrid')
   }
 
   function gridSelect() {
-    id = grid.jqGrid('getGridParam','selrow');
+    id = grid.jqGrid("getGridParam","selrow");
     if (id != null) {
       _autoCompField.attr("dbid", id);
       callFonServer("bus_value", {id: id});
@@ -112,16 +144,18 @@
     $("#d-grid").css("left", ($("#tree-campos").width() + 8) + "px");
   }
 
-  function gridHeight() {
+  function gridDim() {
     if (typeof(grid) == "undefined") return;
+    var w = $(window).width() - $("#tree-campos").width() - 12;
     var h = $(window).height() - $("#d-titulo").height() - 77;
+    grid.setGridWidth(w);
     grid.setGridHeight(h);
   }
 
   function redimWindow() {
     var h = $(window).height() - $("#d-titulo").height();
     $("#tree-campos").css("height", h);
-    gridHeight();
+    gridDim();
   }
 
   $(window).resize(redimWindow);

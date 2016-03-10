@@ -76,6 +76,8 @@ class BusController < ApplicationController
 
     # Formar la cadena de ordenación y seguir incluyendo tablas en eager-load
     #
+    dat[:sortname] = params[:sidx]
+    dat[:sortorder] = params[:sord]
     ord = ''
     sort_elem = params[:sidx].split(',')  #Partimos por ',' así tenemos un vector de campos por los que ordenar
     sort_elem.each{|c|
@@ -119,30 +121,60 @@ class BusController < ApplicationController
     return unless vid
 
     dat = $h[vid]
-    col = params[:col]
+    arg = eval(params[:dat])
+    col = arg[:col]
 
-    if params[:modo] == 'del'
+    dat[:cols] = arg[:cols]
+
+    keep_scroll = true
+
+    if arg[:modo] == 'del'
       (dat[:cols].size - 1).downto(0).each {|i|
         if dat[:cols][i][:col] == col
           dat[:cols].delete_at(i)
           break
         end
       }
-      dat[:cols].delete(col)
+
+      # Construir el array de order
+      ord = []
+      cmp = nil
+      (dat[:sortname] + dat[:sortorder]).gsub(',', '').split(' ').each_with_index { |s, i|
+        if i.odd?
+          ord << [cmp, s]
+        else
+          dat[:alias_cmp].each{|k, v|
+            if v[:cmp_db] == s
+              cmp = k
+              break
+            end
+          }
+        end
+      }
+
+      # Eliminar la columna col del array de order si está incluida
+      (ord.size - 1).downto(0).each {|i|
+        if ord[i][0] == col
+          ord.delete_at(i)
+          keep_scroll = false
+          break
+        end
+      }
+
     else
-      dat[:cols] << {col: col}
+      dat[:cols] << {col: col, w: 150}
     end
 
     mp = mselect_parse(dat[:mod], dat[:cols].map{|c| c[:col]})
     dat[:cad_sel] = mp[:cad_sel]
     dat[:cad_join] = mp[:cad_join]
     dat[:alias_cmp] = mp[:alias_cmp]
-    dat[:types][dat[:alias_cmp][col][:cmp_db]] = params[:type] if params[:modo] == 'add'
+    dat[:types][dat[:alias_cmp][col][:cmp_db]] = arg[:type] if arg[:modo] == 'add'
 
     puts dat.inspect
 
-    col_mod = dat[:cols].map{|c|
-      h = {name: c[:col], index: mp[:alias_cmp][c[:col]][:cmp_db], searchoptions: {}}
+    col_mod = dat[:cols].map.with_index{|c, i|
+      h = {name: 'c' + i.to_s, label: c[:col], index: mp[:alias_cmp][c[:col]][:cmp_db], width: c[:w], searchoptions: {}}
       case dat[:types][c[:col]]
         when 'boolean'
           h[:align] = 'center'
@@ -160,7 +192,23 @@ class BusController < ApplicationController
       h
     }
 
-    @ajax << "$('#grid').jqGrid('GridUnload');generaGrid(#{col_mod.to_json.gsub('"~', '').gsub('~"', '')});"
+    # Construir cadena de ordenación
+    if arg[:modo] == 'del'
+      dat[:sortname] = ''
+      ord.each {|s|
+        dat[:sortname] << dat[:alias_cmp][s[0]][:cmp_db] + ' ' + s[1] + ', '
+      }
+      if dat[:sortname].empty?
+        dat[:sortorder] = ''
+      else
+        dat[:sortname].chop!.chop!
+        lb = dat[:sortname].rindex(' ')
+        dat[:sortorder] = dat[:sortname][lb+1..-1]
+        dat[:sortname] = dat[:sortname][0..lb]
+      end
+    end
+
+    @ajax << "generaGrid(#{col_mod.to_json.gsub('"~', '').gsub('~"', '')}, '#{dat[:sortname]}', '#{dat[:sortorder]}', #{keep_scroll});"
   end
 
   def bus_value
