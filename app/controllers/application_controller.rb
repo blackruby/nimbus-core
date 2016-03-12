@@ -673,7 +673,6 @@ class ApplicationController < ActionController::Base
         end
 
         sincro_hijos(v.id)
-        @ajax += 'var eid="' + $h[v.id][:eid].to_s + '",jid="' + $h[v.id][:jid].to_s + '";'
 
         set_empeje($h[v.id][:eid], $h[v.id][:jid])
 
@@ -689,8 +688,17 @@ class ApplicationController < ActionController::Base
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: false, borrar: false});'
       end
+    else
+      eid, jid = get_empeje
+
+      $h[v.id][:eid] = eid
+      $h[v.id][:jid] = jid
+
+      set_empeje(eid, jid)
     end
 
+    @ajax += 'var eid="' + $h[v.id][:eid].to_s + '",jid="' + $h[v.id][:jid].to_s + '";'
+    
     before_envia_ficha if self.respond_to?('before_envia_ficha')
     envia_ficha
 

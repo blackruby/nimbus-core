@@ -25,6 +25,12 @@
     position: absolute;
     top: 40px;
   }
+
+  /*
+  .ui-menu-item {
+    height: 40px;
+  }
+  */
 </style>
 
 <script>
@@ -70,7 +76,7 @@
     }
     var cols = [];
     for (i in gcols) {
-      cols.push({col: gcols[i].label, w: gcols[i].width});
+      cols.push({col: gcols[i].label, w: gcols[i].width, type: gcols[i].type});
     }
 
     callFonServer("nueva_col", {dat: JSON.stringify({col: name, modo: modo, type: event.node.type, dec: dec, cols: cols})});
@@ -82,7 +88,7 @@
     .bind('tree.open', gridLeft)
     .bind('tree.close', gridLeft);
 
-  function generaGrid(colMod, sortname, sortorder, keepScroll) {
+  function generaGrid(colMod, sortname, sortorder, postdata, keepScroll) {
     $('#d-grid').html('');
     $("#d-grid").append("<table id='grid'></table>");
     grid = $("#grid");
@@ -92,6 +98,7 @@
       colModel: colMod,
       sortname: sortname,
       sortorder: sortorder,
+      postData: postdata,
       url: '/bus/list?vista=' + _vista,
       datatype: "json",
       mtype: 'POST',

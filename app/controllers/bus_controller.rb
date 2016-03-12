@@ -12,7 +12,7 @@ class BusController < ApplicationController
 
     ej = get_empeje
 
-    $h[@vid] = {mod: @mod.constantize, cols: [], types:{}, eid: ej[0], jid: ej[1]}
+    $h[@vid] = {mod: @mod.constantize, cols: [], types:{}, filters: {rules: []}, eid: ej[0], jid: ej[1]}
   end
 
   def list
@@ -44,8 +44,8 @@ class BusController < ApplicationController
     add_where(w, tabla + '.ejercicio_id=' + dat[:jid]) if clm.column_names.include?('ejercicio_id')
 
     if params[:filters]
-      fil = eval(params[:filters])
-      fil[:rules].each {|f|
+      dat[:filters] = eval(params[:filters])
+      dat[:filters][:rules].each {|f|
         #[:eq,:ne,:lt,:le,:gt,:ge,:bw,:bn,:in,:ni,:ew,:en,:cn,:nc,:nu,:nn]
         op = f[:op].to_sym
 
@@ -72,6 +72,8 @@ class BusController < ApplicationController
           w << '\''
         end
       }
+    else
+      dat[:filters] = {rules: []}
     end
 
     # Formar la cadena de ordenación y seguir incluyendo tablas en eager-load
@@ -116,6 +118,13 @@ class BusController < ApplicationController
     render :json => res
   end
 
+  def get_cmp_from_db(c, dat)
+    dat[:alias_cmp].each {|k, v|
+      return k if v[:cmp_db] == c
+    }
+    nil
+  end
+
   def nueva_col
     vid = params[:vista].to_i
     return unless vid
@@ -127,6 +136,10 @@ class BusController < ApplicationController
     dat[:cols] = arg[:cols]
 
     keep_scroll = true
+
+    rul = dat[:filters][:rules]
+    # Cambiar en filters los valores de los campos (que son cmp_db) por los expandidos
+    rul.each {|r| r[:field] = get_cmp_from_db(r[:field], dat)}
 
     if arg[:modo] == 'del'
       (dat[:cols].size - 1).downto(0).each {|i|
@@ -140,16 +153,7 @@ class BusController < ApplicationController
       ord = []
       cmp = nil
       (dat[:sortname] + dat[:sortorder]).gsub(',', '').split(' ').each_with_index { |s, i|
-        if i.odd?
-          ord << [cmp, s]
-        else
-          dat[:alias_cmp].each{|k, v|
-            if v[:cmp_db] == s
-              cmp = k
-              break
-            end
-          }
-        end
+        i.odd? ? ord << [cmp, s] : cmp = get_cmp_from_db(s, dat)
       }
 
       # Eliminar la columna col del array de order si está incluida
@@ -161,8 +165,16 @@ class BusController < ApplicationController
         end
       }
 
+      # Eliminar la columna col del hash de filter si está incluida y cambiar los valores de los campos (que son cmp_db) por los expandidos
+      (rul.size - 1).downto(0).each {|i|
+        if rul[i][:field] == col
+          rul.delete_at(i)
+          keep_scroll = false
+          break
+        end
+      }
     else
-      dat[:cols] << {col: col, w: 150}
+      dat[:cols] << {col: col, w: 150, type: arg[:type]}
     end
 
     mp = mselect_parse(dat[:mod], dat[:cols].map{|c| c[:col]})
@@ -171,11 +183,9 @@ class BusController < ApplicationController
     dat[:alias_cmp] = mp[:alias_cmp]
     dat[:types][dat[:alias_cmp][col][:cmp_db]] = arg[:type] if arg[:modo] == 'add'
 
-    puts dat.inspect
-
     col_mod = dat[:cols].map.with_index{|c, i|
-      h = {name: 'c' + i.to_s, label: c[:col], index: mp[:alias_cmp][c[:col]][:cmp_db], width: c[:w], searchoptions: {}}
-      case dat[:types][c[:col]]
+      h = {name: 'c' + i.to_s, label: c[:col], index: mp[:alias_cmp][c[:col]][:cmp_db], type: c[:type], width: c[:w], searchoptions: {}}
+      case c[:type]
         when 'boolean'
           h[:align] = 'center'
           h[:formatter] = '~format_check~'
@@ -192,8 +202,9 @@ class BusController < ApplicationController
       h
     }
 
-    # Construir cadena de ordenación
+    # Construir cadena de ordenación (sólo si se borra una columna. Si no, es válida la actual)
     if arg[:modo] == 'del'
+      # Ordenación
       dat[:sortname] = ''
       ord.each {|s|
         dat[:sortname] << dat[:alias_cmp][s[0]][:cmp_db] + ' ' + s[1] + ', '
@@ -208,7 +219,21 @@ class BusController < ApplicationController
       end
     end
 
-    @ajax << "generaGrid(#{col_mod.to_json.gsub('"~', '').gsub('~"', '')}, '#{dat[:sortname]}', '#{dat[:sortorder]}', #{keep_scroll});"
+    # Construir filters
+    #cad_on_load = ''
+    #dat[:cols].each {|c| c[:flag] = false} # Poner los flags de campo usado a false
+    rul.each {|r|
+      col_mod.each {|c|
+        if c[:label] == r[:field] and c[:searchoptions][:defaultValue].nil?
+          c[:searchoptions][:defaultValue] = r[:data]
+          #cad_on_load << "$('#gs_c#{i}').val(#{r[:data].to_json});"
+        end
+      }
+      r[:field] = dat[:alias_cmp][r[:field]][:cmp_db]
+    }
+    postdata = {filters: dat[:filters].to_json}
+
+    @ajax << "generaGrid(#{col_mod.to_json.gsub('"~', '').gsub('~"', '')}, '#{dat[:sortname]}', '#{dat[:sortorder]}', #{postdata.to_json}, #{keep_scroll});"
   end
 
   def bus_value
