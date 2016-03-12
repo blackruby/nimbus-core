@@ -698,7 +698,7 @@ class ApplicationController < ActionController::Base
     end
 
     @ajax += 'var eid="' + $h[v.id][:eid].to_s + '",jid="' + $h[v.id][:jid].to_s + '";'
-    
+
     before_envia_ficha if self.respond_to?('before_envia_ficha')
     envia_ficha
 

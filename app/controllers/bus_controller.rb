@@ -220,13 +220,15 @@ class BusController < ApplicationController
     end
 
     # Construir filters
-    #cad_on_load = ''
-    #dat[:cols].each {|c| c[:flag] = false} # Poner los flags de campo usado a false
     rul.each {|r|
       col_mod.each {|c|
         if c[:label] == r[:field] and c[:searchoptions][:defaultValue].nil?
           c[:searchoptions][:defaultValue] = r[:data]
-          #cad_on_load << "$('#gs_c#{i}').val(#{r[:data].to_json});"
+          i = c[:searchoptions][:sopt].index(r[:op])
+          if i > 0
+            c[:searchoptions][:sopt].delete_at(i)
+            c[:searchoptions][:sopt].unshift(r[:op])
+          end
         end
       }
       r[:field] = dat[:alias_cmp][r[:field]][:cmp_db]
