@@ -799,12 +799,14 @@ class ApplicationController < ActionController::Base
     if cmp.ends_with?('_id')
       id = ficha.method(cmp).call
       if id and id != 0 and id != ''
-        if class_modelo.attribute_names.include?(cmp)
-          val = {}
-          cmpr = cmp[0..-4] + ".auto_comp_value(:#{tipo})"
-        else
-          val =  cp[:ref].constantize.find(id.to_i).method('auto_comp_value').call(tipo)
-        end
+        #if class_modelo.attribute_names.include?(cmp)
+          #val = {}
+          #cmpr = cmp[0..-4] + ".auto_comp_value(:#{tipo})"
+          mod = cp[:ref].constantize
+          val = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + id.to_s)[0].auto_comp_value(tipo)
+        #else
+        #  val =  cp[:ref].constantize.find(id.to_i).method('auto_comp_value').call(tipo)
+        #end
       else
         val = nil
       end
