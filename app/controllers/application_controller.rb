@@ -447,7 +447,8 @@ class ApplicationController < ActionController::Base
     ord = sortname + ' ' + params[:sord]
 =end
 
-    tot_records = clm.select(:id).ljoin(eager.map{|j| j.to_sym}).where(w).size
+    #tot_records = clm.select(:id).ljoin(eager.map{|j| j.to_sym}).where(w).size
+    tot_records =  clm.eager_load(eager).where(w).where(params[:wh]).count
     lim = params[:rows].to_i
     tot_pages = tot_records / lim
     tot_pages += 1 if tot_records % lim != 0
