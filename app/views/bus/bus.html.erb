@@ -1,4 +1,29 @@
-<div id="d-titulo">&nbsp;&nbsp;Búsqueda</div>
+<div id="d-titulo">
+  &nbsp;&nbsp;Búsqueda <%= @tabla %>
+  &nbsp;&nbsp;&nbsp;
+  <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 30px;width: 30px;min-width: 30px;" onclick="exportXLS()">
+    <i class="material-icons" style="font-size: 22px">archive</i>
+  </button>
+  <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 30px;width: 30px;min-width: 30px;" onclick="exportPDF()">
+    <i class="material-icons" style="font-size: 22px">picture_as_pdf</i>
+  </button>
+
+  &nbsp;&nbsp;
+  <select id="bus-sel" onchange="busSel()">
+    <% @sel.each {|k, v| %>
+      <optgroup label="<%= k %>">
+        <% v.each {|f| %>
+          <option value="<%= f %>"><%= f.split('/')[-1][0..-5] %></option>
+        <% } %>
+      </optgroup>
+    <% } %>
+  </select>
+
+  &nbsp;&nbsp;&nbsp;
+  <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 30px;width: 30px;min-width: 30px;" onclick="busSave()">
+    <i class="material-icons" style="font-size: 22px">save</i>
+  </button>
+</div>
 <div id="tree-campos"> </div>
 <div id="d-grid"> </div>
 
@@ -45,6 +70,20 @@
     dataUrl: '/gi/campos?node=<%= @mod %>'
   });
 
+  function gridCols() {
+    var gcols = [];
+    if (typeof(grid) != "undefined") {
+      gcols = grid.jqGrid('getGridParam', 'colModel');
+    }
+
+    var cols = {};
+    for (var i in gcols) {
+      cols[gcols[i].name] = {label: gcols[i].label, w: gcols[i].width, type: gcols[i].type};
+    }
+
+    return cols;
+  }
+
   function selCampo(event, modo) {
     if (event.node.load_on_demand != undefined) return;
     z=event.node;
@@ -66,20 +105,17 @@
 
 
     // Construir el vector de columnas
-    var gcols;
     if (typeof(grid) == "undefined") {
-      lastScroll = 0;
-      gcols = [];
+      lastScrollH = 0;
+      lastScrollV = 0;
+      lastPage = 1;
     } else {
-      lastScroll = $("#d-grid .ui-jqgrid-bdiv").scrollTop();
-      gcols = grid.jqGrid('getGridParam', 'colModel');
-    }
-    var cols = [];
-    for (i in gcols) {
-      cols.push({col: gcols[i].label, w: gcols[i].width, type: gcols[i].type});
+      lastScrollH = $("#d-grid .ui-jqgrid-bdiv").scrollLeft();
+      lastScrollV = $("#d-grid .ui-jqgrid-bdiv").scrollTop();
+      lastPage = grid.jqGrid('getGridParam', 'page');
     }
 
-    callFonServer("nueva_col", {dat: JSON.stringify({col: name, modo: modo, type: event.node.type, dec: dec, cols: cols})});
+    callFonServer("nueva_col", {dat: JSON.stringify({col: name, modo: modo, type: event.node.type, dec: dec, cols: gridCols()})});
   }
 
   $('#tree-campos')
@@ -88,7 +124,7 @@
     .bind('tree.open', gridLeft)
     .bind('tree.close', gridLeft);
 
-  function generaGrid(colMod, sortname, sortorder, postdata, keepScroll) {
+  function generaGrid(colMod, sortname, sortorder, postdata, onload, keepScrollH, keepScrollV) {
     $('#d-grid').html('');
     $("#d-grid").append("<table id='grid'></table>");
     grid = $("#grid");
@@ -99,6 +135,7 @@
       sortname: sortname,
       sortorder: sortorder,
       postData: postdata,
+      page: (keepScrollV ? lastPage : 1),
       url: '/bus/list?vista=' + _vista,
       datatype: "json",
       mtype: 'POST',
@@ -119,11 +156,12 @@
       shrinkToFit: false,
       multiSort: true,
       loadComplete: function() {
-        $("#d-grid .ui-jqgrid-bdiv").scrollLeft(10000).scrollTop(keepScroll ? lastScroll : 0);
+        $("#d-grid .ui-jqgrid-bdiv").scrollLeft(keepScrollH ? lastScrollH : 90000).scrollTop(keepScrollV ? lastScrollV : 0);
+        eval(onload);
       }
     });
 
-    grid.jqGrid('gridResize', {handles: "s,e", minHeight: 80});
+    //grid.jqGrid('gridResize', {handles: "s,e", minHeight: 80});
     grid.jqGrid('bindKeys');
     grid.jqGrid('filterToolbar', {stringResult: true, searchOperators: true});
     //vgrid[0].toggleToolbar();
@@ -165,7 +203,30 @@
     gridDim();
   }
 
+  function exportXLS() {
+
+  }
+
+  function exportPDF() {
+
+  }
+
+  function busSave() {
+    var fic = prompt('Nombre del archivo: ');
+    if (fic) callFonServer("bus_save", {fic: fic, dat: JSON.stringify({cols: gridCols()})});
+  }
+
+  function busSel() {
+    callFonServer("bus_sel", {fic: $("#bus-sel").val()});
+  }
+
   $(window).resize(redimWindow);
 
   redimWindow();
+</script>
+
+<script>
+  $(window).load(function() {
+    <%= @ajax.html_safe %>
+  });
 </script>
