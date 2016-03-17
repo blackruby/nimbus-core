@@ -141,8 +141,19 @@ class ApplicationController < ActionController::Base
     @ajax << "window.open('#{url}', '_blank');"
   end
 
+  # Actualiza el contenido del grid
   def grid_reload
     @ajax << 'parentGridReload();'
+  end
+
+  # Muestra el grid
+  def grid_show
+    @ajax << 'parentGridShow();'
+  end
+
+  # Oculta el grid
+  def grid_hide
+    @ajax << 'parentGridHide();'
   end
 
   # Funciones para el manejo del histórico de un modelo

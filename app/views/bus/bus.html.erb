@@ -223,6 +223,10 @@
   $(window).resize(redimWindow);
 
   redimWindow();
+
+  $(window).unload(function() {
+    callFonServer("bus_bye", {});
+  });
 </script>
 
 <script>

@@ -435,6 +435,14 @@ function parentGridReload() {
   if (parent != self && $.isFunction(parent.grid_reload)) parent.grid_reload();
 }
 
+function parentGridHide() {
+  if (parent != self && $.isFunction(parent.gridHide)) parent.gridHide();
+}
+
+function parentGridShow() {
+  if (parent != self && $.isFunction(parent.gridShow)) parent.gridShow();
+}
+
 function mant_borrar() {
   $("#dialog-borrar").dialog("open");
 }

@@ -283,4 +283,8 @@ class BusController < ApplicationController
 
     genera_grid_from_file(params[:fic], $h[vid])
   end
+
+  def bus_bye
+    puts '****************** BYE *************************'
+  end
 end

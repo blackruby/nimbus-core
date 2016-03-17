@@ -270,6 +270,13 @@
     redimWindow();
   }
 
+  function gridHide() {
+    if (displayGrid) gridCollapse();
+  }
+  function gridShow() {
+    if (!displayGrid) gridCollapse();
+  }
+
   // Activar menú derecho si existe
   <% if @view[:menu_r].size > 0 %>
     $("#menu-r").css("display", "block");
