@@ -67,10 +67,17 @@ def sql_exe(cad)
   ActiveRecord::Base.connection.execute(cad)
 end
 
-# Método para generar left joins. Recibe como argumentos el modelo y un número variable (o un array) de campos de la forma [tabla[.tabla[...]]] (ej.: cliente.pais)
-# cada tabla intermedia puede ir seguida de un valor para el alias entre paréntesis. ej.: cliente(cli).pais(p)
-# Si no especifican alias se usarán unos automáticos de la forma 'ta', 'tb', 'tc'...
-# devuelve un hash con dos claves: ':cad' que es una cadena ya construida con los joins y ':tab' que es otro hash cuyas claves son las tablas usadas en el join y sus valores los alias utilizados
+# Método para generar left joins. Recibe como argumentos el modelo
+# y un número variable (o un array) de campos de la forma
+# [tabla[.tabla[...]]] (ej.: cliente.pais)
+# cada tabla intermedia puede ir seguida de un valor para el alias
+# entre paréntesis. ej.: cliente(cli).pais(p)
+# Si no especifican alias se usarán unos automáticos de la forma
+# 'ta', 'tb', 'tc'... (saltándose 'to' por ser una palabra reservada de postgreSQL)
+# devuelve un hash con dos claves:
+# ':cad' que es una cadena ya construida con los joins y
+# ':tab' que es otro hash cuyas claves son las tablas usadas en el
+# join y los valores de los alias utilizados
 
 def ljoin_parse(modelo, *columns)
   cad_join = ''
@@ -95,7 +102,15 @@ def ljoin_parse(modelo, *columns)
         next
       end
 
-      ali = ali_auto.next!.dup unless ip
+      unless ip
+        # Para saltarse el alias 'to' que no vale por ser una palabra reservada de postgreSQL
+        if ali_auto == 'tn'
+          ali_auto = 'tp'
+          ali = 'tp'
+        else
+          ali = ali_auto.next!.dup
+        end
+      end
 
       cad_join << ' LEFT JOIN ' + mod.table_name + ' ' + ali + ' ON ' + ali + '.id=' + ali_ant + '.' + tab + '_id'
 
@@ -177,7 +192,7 @@ class ActiveRecord::Base
   # Cada uno de ellos representa un campo con su 'ruta' completa. ej.: cliente.producto.sector.codigo
   # Se genererán los joins precisos para hacer la consulta. Se pueden dar alias específicos a cada tabla intermedia
   # entre paréntesis (sólo válido en la primera aparición de la tabla).
-  # Si no hay alias se utilizarán 'ta', 'tb', 'tc', etc. para las sucesivas tablas.
+  # Si no hay alias se utilizarán 'ta', 'tb', 'tc', etc. para las sucesivas tablas (saltándose 'to' por ser una palabra reservada de postgreSQL).
   # También se puede dar un alias para el campo dejando un espacio en blanco y especificando el alias.
   # Si no se especifica una alias para el campo, se proporcionará uno automático sólo en el caso de que el campo
   # no sea de la tabla principal, y estará formado por el alias de la tabla correspondiente más un '_' y el propio campo.
