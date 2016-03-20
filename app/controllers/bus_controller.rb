@@ -255,7 +255,8 @@ class BusController < ApplicationController
     vid = params[:vista].to_i
     return '' unless vid
 
-    val =  $h[vid][:mod].find(params[:id].to_i).auto_comp_value(:form)
+    mod =  $h[vid][:mod]
+    val =  mod.mselect(mod.auto_comp_mselect).where("#{mod.table_name}.id = #{params[:id]}")[0].auto_comp_value(:form)
     @ajax << "_autoCompField.val('#{val}');"
     @ajax << 'window.close();'
   end
