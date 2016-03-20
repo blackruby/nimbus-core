@@ -116,6 +116,9 @@ class BusController < ApplicationController
     }
     ord = ord[0..-2] + ' ' + params[:sord] if ord != ''
 
+    dat[:cad_where] = w
+    dat[:cad_order] = ord
+
     tot_records = clm.select(:id).joins(dat[:cad_join]).where(w).size
     lim = params[:rows].to_i
     tot_pages = tot_records / lim
@@ -284,7 +287,38 @@ class BusController < ApplicationController
     genera_grid_from_file(params[:fic], $h[vid])
   end
 
+  def bus_send
+    vid = params[:vista].to_i
+    return unless vid
+
+    dat = $h[vid]
+
+    send_data File.read("/tmp/nim#{vid}.#{dat[:file_type]}"), filename: "#{dat[:mod].table_name}.#{dat[:file_type]}"
+    FileUtils.rm "/tmp/nim#{vid}.xlsx", force: true
+    FileUtils.rm "/tmp/nim#{vid}.pdf", force: true if dat[:file_type] == 'pdf'
+  end
+
+  def bus_export
+    vid = params[:vista].to_i
+    return unless vid
+
+    dat = $h[vid]
+    cols = dat[:cols]
+
+    xls = Axlsx::Package.new
+    wb = xls.workbook
+    sh = wb.add_worksheet(:name => "Hoja 1")
+
+    dat[:mod].select(dat[:cad_sel]).joins(dat[:cad_join]).where(dat[:cad_where]).order(dat[:cad_order]).each {|s|
+      sh.add_row(cols.map {|k, v| s[v[:alias]]})
+    }
+
+    xls.serialize("/tmp/nim#{vid}.xlsx")
+    `libreoffice --headless --convert-to pdf --outdir /tmp /tmp/nim#{vid}.xlsx` if params[:tipo] == 'pdf'
+    dat[:file_type] = params[:tipo]
+    @ajax << "window.location.href='/bus/send?vista=#{vid}';"
+  end
+
   def bus_bye
-    puts '****************** BYE *************************'
   end
 end

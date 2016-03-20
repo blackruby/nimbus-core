@@ -1,10 +1,10 @@
 <div id="d-titulo">
   &nbsp;&nbsp;Búsqueda <%= @tabla %>
   &nbsp;&nbsp;&nbsp;
-  <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 30px;width: 30px;min-width: 30px;" onclick="exportXLS()">
+  <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 30px;width: 30px;min-width: 30px;" onclick="gridExport('xlsx')">
     <i class="material-icons" style="font-size: 22px">archive</i>
   </button>
-  <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 30px;width: 30px;min-width: 30px;" onclick="exportPDF()">
+  <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 30px;width: 30px;min-width: 30px;" onclick="gridExport('pdf')">
     <i class="material-icons" style="font-size: 22px">picture_as_pdf</i>
   </button>
 
@@ -173,6 +173,15 @@
 
     //$("#grid").jqGrid('setGridParam', {url: '/bus/list?vista=' + _vista, datatype: 'json', mtype: 'POST', postData: {filters: '{"groupOp":"AND","rules":[{"field":"anunciantes.codigo","op":"cn","data":"000"}]}'}})
     //grid.trigger('reloadGrid')
+
+    /**
+    $(".ui-search-input").on("change", "input", function(e) {
+      var gsi = $(this);
+      z = $(this);
+      console.log('Cambio');
+      //setTimeout(function(){gsi.val('')}, 100);
+    });
+     **/
   }
 
   function gridSelect() {
@@ -203,12 +212,8 @@
     gridDim();
   }
 
-  function exportXLS() {
-
-  }
-
-  function exportPDF() {
-
+  function gridExport(tipo) {
+    callFonServer("bus_export", {tipo: tipo});
   }
 
   function busSave() {
@@ -226,6 +231,11 @@
 
   $(window).unload(function() {
     callFonServer("bus_bye", {});
+  });
+
+  $("body").on("click", ".clearsearchclass", function(e) {
+    var gsi = $(this).parent().prev().find('input');
+    setTimeout(function(){gsi.val('')}, 100);
   });
 </script>
 

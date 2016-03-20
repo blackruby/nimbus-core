@@ -33,6 +33,7 @@ Rails.application.routes.draw do
   post 'noticias' => 'application#noticias'
 
   get 'bus' => 'bus#bus'
+  get 'bus/send' => 'bus#bus_send'
   post 'bus/list' => 'bus#list'
   post 'bus/fon_server' => 'bus#fon_server'
 end
