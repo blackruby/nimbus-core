@@ -1,5 +1,6 @@
 <div id="d-titulo">
   &nbsp;&nbsp;Búsqueda <%= @tabla %>
+  <!--
   &nbsp;&nbsp;&nbsp;
   <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 30px;width: 30px;min-width: 30px;" onclick="gridExport('xlsx')">
     <i class="material-icons" style="font-size: 22px">archive</i>
@@ -7,8 +8,9 @@
   <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 30px;width: 30px;min-width: 30px;" onclick="gridExport('pdf')">
     <i class="material-icons" style="font-size: 22px">picture_as_pdf</i>
   </button>
+  -->
 
-  &nbsp;&nbsp;
+  &nbsp;
   <select id="bus-sel" onchange="busSel()">
     <% @sel.each {|k, v| %>
       <optgroup label="<%= k %>">
@@ -19,13 +21,46 @@
     <% } %>
   </select>
 
+  <!--
   &nbsp;&nbsp;&nbsp;
   <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 30px;width: 30px;min-width: 30px;" onclick="busSave()">
     <i class="material-icons" style="font-size: 22px">save</i>
   </button>
+  -->
+
+  <button id="bus-menu" class="mdl-button mdl-js-button mdl-button-icon" style="margin-bottom: 10px;height: 30px;width: 30px;min-width: 30px;">
+    <i class="material-icons" style="color: #ffffff; font-size: 22px">more_vert</i>
+  </button>
+  <ul class="mdl-menu mdl-js-menu" for="bus-menu">
+    <li class="mdl-menu__item" onclick="busNew()">Nueva</li>
+    <li class="mdl-menu__item" onclick="busSave()">Guardar</li>
+    <li class="mdl-menu__item" onclick="busPref()">Predeterminar</li>
+    <li class="mdl-menu__item" onclick="busDel()">Eliminar</li>
+    <li class="mdl-menu__item" onclick="gridExport('xlsx')">Excel</li>
+    <li class="mdl-menu__item" onclick="gridExport('pdf')">PDF</li>
+  </ul>
 </div>
 <div id="tree-campos"> </div>
 <div id="d-grid"> </div>
+
+<div id="dialog-save" style="display: none">
+  <label>Nombre del archivo:</label>
+  <input id="inp-save"/>
+</div>
+
+<div id="dialog-del" style="display: none">
+  <label>¿Desea eliminar la búsqueda actual?</label>
+</div>
+
+<div id="dialog-pref" style="display: none">
+  <label>
+    Ha elegido usar esta búsqueda como predeterminada.<br>
+    Se usará la versión actualmente grabada,<br>
+    si hay cambios sin grabar no se tendrán en cuenta.<br>
+    <br>
+    ¿Desea continuar?
+  </label>
+</div>
 
 <style>
   #d-titulo {
@@ -64,6 +99,81 @@
 
 <script>
   var _controlador = 'bus';
+
+  $("#dialog-save").dialog({
+    title: "Guardar búsqueda",
+    autoOpen: false,
+    resizable: false,
+    modal: true,
+    width: "auto",
+    buttons: {
+      "Aceptar": function() {
+        $(this).dialog("close");
+        var fi = $("#inp-save").val();
+        if (fi == "") return;
+
+        callFonServer("bus_save", {fic: fi, dat: JSON.stringify({cols: gridCols()})});
+
+        var fic = ficPrefijo + fi + '.yml';
+        var nuevo = true;
+        $("#bus-sel option").each(function() {
+          if ($(this).val() == fic) {
+            $(this).attr("selected", true);
+            nuevo = false;
+            return false;
+          }
+        });
+
+        if (nuevo) {
+          var usugr = $("#bus-sel optgroup").first();
+          if (usugr.attr("label") != usuCod) {
+            $("#bus-sel").prepend("<optgroup label=" + usuCod + "></optgroup>");
+            usugr = $("#bus-sel optgroup").first();
+          }
+          usugr.append("<option value=" + fic + " selected>" + fi + "</option>");
+        }
+      },
+      "Cancelar": function() {
+        $(this).dialog("close");
+      }
+    }
+  });
+
+  $("#dialog-del").dialog({
+    title: "Eliminar",
+    autoOpen: false,
+    resizable: false,
+    modal: true,
+    width: "auto",
+    buttons: {
+      "No": function() {
+        $(this).dialog("close");
+      },
+      "Si": function() {
+        $(this).dialog("close");
+        callFonServer("bus_del", {fic: $("#bus-sel").val()});
+        $("#bus-sel option:selected").remove();
+        busNew();
+      }
+    }
+  });
+
+  $("#dialog-pref").dialog({
+    title: "Predeterminar",
+    autoOpen: false,
+    resizable: false,
+    modal: true,
+    width: "auto",
+    buttons: {
+      "No": function() {
+        $(this).dialog("close");
+      },
+      "Si": function() {
+        $(this).dialog("close");
+        callFonServer("bus_pref", {fic: $("#bus-sel").val()});
+      }
+    }
+  });
 
   $("#tree-campos").tree({
     selectable: false,
@@ -216,13 +326,36 @@
     callFonServer("bus_export", {tipo: tipo});
   }
 
+  function busNew() {
+    $("#bus-sel").prop("selectedIndex", -1);
+    generaGrid([],'','',{},'',false,false);
+  }
+
   function busSave() {
-    var fic = prompt('Nombre del archivo: ');
-    if (fic) callFonServer("bus_save", {fic: fic, dat: JSON.stringify({cols: gridCols()})});
+    ficheros = [];
+    $("#bus-sel optgroup[label=" + usuCod + "] option").each(function() {ficheros.push($(this).text())});
+    var fs = $("#bus-sel option:selected");
+    var fn = (fs.length > 0 && fs.val().slice(0, 13)) == "bus/usuarios/" ? fs.text() : "";
+    $("#inp-save").val(fn);
+    $("#dialog-save").dialog("open");
+  }
+
+  function busDel() {
+    var fic = $("#bus-sel").val();
+    if (fic && fic.slice(0, 13) == "bus/usuarios/") {
+      $("#dialog-del").dialog("open");
+    }
   }
 
   function busSel() {
     callFonServer("bus_sel", {fic: $("#bus-sel").val()});
+  }
+
+  function busPref() {
+    var fic = $("#bus-sel").val();
+    if (fic && fic != "") {
+      $("#dialog-pref").dialog("open");
+    }
   }
 
   $(window).resize(redimWindow);
@@ -237,10 +370,25 @@
     var gsi = $(this).parent().prev().find('input');
     setTimeout(function(){gsi.val('')}, 100);
   });
+
+  $("#inp-save").on("input", function() {
+    var c;
+    var v = $(this).val();
+    var cur = $(this).caret().begin;
+
+    var vb = "";
+    for (var i = 0; c = v[i]; i++) if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == '-') vb += c; else cur--;
+
+    $(this).css("color", $.inArray(vb, ficheros) >= 0 ? "red" : "black");
+    $(this).val(vb);
+    $(this).caret(cur);
+  });
 </script>
 
 <script>
   $(window).load(function() {
     <%= @ajax.html_safe %>
+    usuCod = "<%= @usu.codigo %>";
+    ficPrefijo = "bus/usuarios/" + usuCod + "/<%= @mod %>/";
   });
 </script>

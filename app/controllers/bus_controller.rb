@@ -8,13 +8,15 @@ class BusController < ApplicationController
       return
     end
 
+    ctr = params[:ctr] || '_'
+
     @vid = Vista.create.id
 
     ej = get_empeje
 
     @tabla = nt @mod.constantize.table_name
 
-    $h[@vid] = {mod: @mod.constantize, cols: {}, last_col: 'c00', types:{}, order: '', filters: {rules: []}, eid: ej[0], jid: ej[1]}
+    $h[@vid] = {mod: @mod.constantize, ctr: ctr, cols: {}, last_col: 'c00', types:{}, order: '', filters: {rules: []}, eid: ej[0], jid: ej[1]}
 
     # Construcción de de la lista de ficheros de búsqueda
     @sel = {}
@@ -36,8 +38,17 @@ class BusController < ApplicationController
       }
     }
 
+    pref = "bus/usuarios/#{@usu.codigo}/#{@mod}/_preferencias"
+    if File.exists?(pref)
+      fic_pref = YAML.load(File.read(pref))[ctr]
+      fic_pref = nil unless fic_pref and File.exists?(fic_pref)
+    end
+
+    fic_pref ||= params[:pref]
+    fic_pref ||= @sel.first[1][0] unless @sel.empty?
+
     #genera_grid_from_file(@sel.first[1][0], $h[@vid]) unless @sel.empty?
-    @ajax = @sel.empty? ? '' : "callFonServer('bus_sel', {fic: '#{@sel.first[1][0]}'});"
+    @ajax = fic_pref ? "callFonServer('bus_sel', {fic: '#{fic_pref}'}); $('#bus-sel').val('#{fic_pref}')" : ''
   end
 
   def list
@@ -289,8 +300,11 @@ class BusController < ApplicationController
   end
 
   def bus_send
-    vid = params[:vista].to_i
-    return unless vid
+    vid = flash[:vista]
+    unless vid
+      render file: '/public/401.html', status: 401, layout: false
+      return
+    end
 
     dat = $h[vid]
 
@@ -317,7 +331,31 @@ class BusController < ApplicationController
     xls.serialize("/tmp/nim#{vid}.xlsx")
     `libreoffice --headless --convert-to pdf --outdir /tmp /tmp/nim#{vid}.xlsx` if params[:tipo] == 'pdf'
     dat[:file_type] = params[:tipo]
-    @ajax << "window.location.href='/bus/send?vista=#{vid}';"
+    @ajax << "window.location.href='/bus/send';"
+    flash[:vista] = vid
+  end
+
+  def bus_pref
+    vid = params[:vista].to_i
+    return unless vid
+
+    dat = $h[vid]
+
+    path = "bus/usuarios/#{@usu.codigo}/#{dat[:mod]}"
+    pref = path + '/_preferencias'
+    if File.exists?(pref)
+      hpref = YAML.load(File.read(pref))
+      hpref[dat[:ctr]] = params[:fic]
+    else
+      hpref = {dat[:ctr] => params[:fic]}
+      FileUtils.mkdir_p(path)
+    end
+
+    File.write(pref, hpref.to_yaml)
+  end
+
+  def bus_del
+    FileUtils.rm params[:fic], force: true
   end
 
   def bus_bye
