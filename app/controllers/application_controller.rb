@@ -531,13 +531,14 @@ class ApplicationController < ActionController::Base
 
     if params[:vista]
       v = Vista.new
-      v.id = params[:vista]
+      v.id = params[:vista].to_i
     else
       v = Vista.create
       $h[v.id] = {}
     end
 
-    @fact = $h[v.id][:fact] = clm.new
+    @dat = $h[v.id]
+    @fact = @dat[:fact] = clm.new
     @fact.user_id = session[:uid]
     @fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord
 
@@ -547,8 +548,8 @@ class ApplicationController < ActionController::Base
 
     eid, jid = get_empeje
 
-    $h[v.id][:eid] = eid
-    $h[v.id][:jid] = jid
+    @dat[:eid] = eid
+    @dat[:jid] = jid
 
     if params[:mod]
       # Si es un mant hijo, inicializar el id del padre
@@ -656,15 +657,16 @@ class ApplicationController < ActionController::Base
 
     if params[:vista]
       v = Vista.new
-      v.id = params[:vista]
+      v.id = params[:vista].to_i
     else
       v = Vista.create
       $h[v.id] = {}
     end
 
     @vid = v.id
-    $h[v.id][:fact] = @fact
-    $h[v.id][:head] = params[:head] if params[:head]
+    @dat = $h[v.id]
+    @dat[:fact] = @fact
+    @dat[:head] = params[:head] if params[:head]
 
     @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
 
@@ -673,26 +675,26 @@ class ApplicationController < ActionController::Base
     if clm.mant?
       if @fact.id != 0
         if @fact.respond_to?('empresa')
-          $h[v.id][:eid] = @fact.empresa.id
+          @dat[:eid] = @fact.empresa.id
         elsif clm.superclass.to_s == 'Empresa'
-          $h[v.id][:eid] = @fact.id
+          @dat[:eid] = @fact.id
         end
 
         if @fact.respond_to?('ejercicio')
-          $h[v.id][:jid] = @fact.ejercicio.id
+          @dat[:jid] = @fact.ejercicio.id
         elsif clm.superclass.to_s == 'Empresa'
-          $h[v.id][:jid] = @fact.id
+          @dat[:jid] = @fact.id
         end
 
         sincro_hijos(v.id)
 
-        set_empeje($h[v.id][:eid], $h[v.id][:jid])
+        set_empeje(@dat[:eid], @dat[:jid])
 
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: true, borrar: true});'
       else
-        $h[v.id][:eid] = params[:eid]
-        $h[v.id][:jid] = params[:jid]
+        @dat[:eid] = params[:eid]
+        @dat[:jid] = params[:jid]
 
         @e = Empresa.find_by id: params[:eid]
         @j = Ejercicio.find_by id: params[:jid]
@@ -703,13 +705,13 @@ class ApplicationController < ActionController::Base
     else
       eid, jid = get_empeje
 
-      $h[v.id][:eid] = eid
-      $h[v.id][:jid] = jid
+      @dat[:eid] = eid
+      @dat[:jid] = jid
 
       set_empeje(eid, jid)
     end
 
-    @ajax += 'var eid="' + $h[v.id][:eid].to_s + '",jid="' + $h[v.id][:jid].to_s + '";'
+    @ajax += 'var eid="' + @dat[:eid].to_s + '",jid="' + @dat[:jid].to_s + '";'
 
     before_envia_ficha if self.respond_to?('before_envia_ficha')
     envia_ficha
@@ -1007,7 +1009,8 @@ class ApplicationController < ActionController::Base
   def validar
     clm = class_mant
 
-    @fact = $h[params[:vista].to_i][:fact]
+    @dat = $h[params[:vista].to_i]
+    @fact = @dat[:fact]
     fact_clone
 
     campo = params[:campo]
@@ -1041,7 +1044,8 @@ class ApplicationController < ActionController::Base
   def fon_server
     @ajax = ''
     if params[:vista]
-      @fact = $h[params[:vista].to_i][:fact]
+      @dat = $h[params[:vista].to_i]
+      @fact = @dat[:fact]
       fact_clone if @fact
     end
     method(params[:fon]).call if self.respond_to?(params[:fon])
@@ -1069,9 +1073,8 @@ class ApplicationController < ActionController::Base
   end
 
   def borrar
-    clm = class_mant
-    vid = params[:vista].to_i
-    @fact = $h[vid][:fact]
+    @dat = $h[params[:vista].to_i]
+    @fact = @dat[:fact]
     @fact.destroy
     render js: ''
   end
@@ -1081,7 +1084,8 @@ class ApplicationController < ActionController::Base
   def grabar
     clm = class_mant
     vid = params[:vista].to_i
-    @fact = $h[vid][:fact]
+    @dat = $h[vid]
+    @fact = @dat[:fact]
     fact_clone
     err = ''
     @ajax = ''
