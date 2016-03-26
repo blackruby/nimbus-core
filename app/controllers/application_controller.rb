@@ -1160,6 +1160,20 @@ class ApplicationController < ActionController::Base
     render :js => @ajax
   end
 
+  def bus_call()
+    @dat = $h[params[:vista].to_i]
+    @fact = @dat[:fact]
+    cmp = @fact.campos[params[:id].to_sym]
+
+    flash[:mod] = cmp[:ref].to_s
+    flash[:ctr] = params[:controller]
+    flash[:eid] = @dat[:eid]
+    flash[:jid] = @dat[:jid]
+    flash[:pref] = cmp[:bus] if cmp[:bus]
+
+    @ajax << 'var w = window.open("/bus", "_blank", "width=700, height=500"); w._autoCompField = bus_input_selected;'
+  end
+
   def eval_cad(cad)
     cad.is_a?(String) ? eval('%~' + cad.gsub('~', '\~') + '~') : cad
   end

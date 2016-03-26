@@ -335,14 +335,14 @@
     ficheros = [];
     $("#bus-sel optgroup[label=" + usuCod + "] option").each(function() {ficheros.push($(this).text())});
     var fs = $("#bus-sel option:selected");
-    var fn = (fs.length > 0 && fs.val().slice(0, 13)) == "bus/usuarios/" ? fs.text() : "";
+    var fn = (fs.length > 0 && fs.val().slice(0, 14)) == "bus/_usuarios/" ? fs.text() : "";
     $("#inp-save").val(fn);
     $("#dialog-save").dialog("open");
   }
 
   function busDel() {
     var fic = $("#bus-sel").val();
-    if (fic && fic.slice(0, 13) == "bus/usuarios/") {
+    if (fic && fic.slice(0, 14) == "bus/_usuarios/") {
       $("#dialog-del").dialog("open");
     }
   }
@@ -389,6 +389,6 @@
   $(window).load(function() {
     <%= @ajax.html_safe %>
     usuCod = "<%= @usu.codigo %>";
-    ficPrefijo = "bus/usuarios/" + usuCod + "/<%= @mod %>/";
+    ficPrefijo = "bus/_usuarios/" + usuCod + "/<%= @mod %>/";
   });
 </script>

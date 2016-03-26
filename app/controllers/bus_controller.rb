@@ -1,50 +1,133 @@
+# Ventana de búsqueda
+#
+# Funcionalidades:
+#
+# Click izquierdo en un campo lo añade al grid.
+#
+# Click derecho lo elimina (el que esté en última posición).
+#
+# Se puede multiordenar. Haciendo click en la cabecera de una columna
+# se añade a la ordenación en orden ascendente, un segundo click en
+# orden descendente y un tercero la quita de la ordenación.
+# Hay que tener en cuenta que la ordenación de campos es de
+# izquierda a derecha. Es decir el campo que esté más a la izquierda
+# tiene más peso. Las columnas se pueden reordenar (arrastrando desde
+# la cabecera) y así conseguir la ordenación deseada.
+# Las columnas también se pueden redimensionar.
+#
+# Opciones del menú:
+#
+# Nueva: Vacía el grid para empezar una nueva selección.
+#
+# Guardar: Saca un diálogo en el que se nos pide el nombre de un fichero.
+#   Si la búsqueda procede de un archivo del usuario se nos propondrá
+#   el mismo nombre. Si cambiamos de nombre y éste ya existe se pondrá
+#   en rojo para indicar el hecho (así no hay que sacar un diálogo
+#   adicional indicando que ya existe). Los ficheros de búsqueda de
+#   usuario se guardan en formato yaml (extensión .yml) y se sitúan en:
+#   bus/_usuarios/<usuario>/Modelo/
+#
+# Predeterminar: Selecciona la búsqueda actual como predeterminada.
+#   Si no hay búsqueda predeterminada por el usuario, la búsqueda
+#   que se mostrará al abrir la ventana se elegirá con el siguiente
+#   criterio:
+#     .- clave ':bus' en el campo id del controlador, por ejemplo en el
+#     controlador de clientes, en el campo agente_id podríamos poner:
+#     agente_id: {tab: 'facturacion', gcols: 4, bus: 'path_a_mi_archivo'}
+#
+#     .- Fichero de búsqueda con el mismo nombre del modelo en la carpeta
+#     'bus' de la aplicación (ej.: bus/Agente/Agente.yml)
+#
+#     .- Fichero de búsqueda con el mismo nombre del modelo en la carpeta
+#     'bus' de algún módulo (ej.: modulos/venta/bus/Agente/Agente.yml)
+#
+#     .- El primer fichero que se encuentre en el orden:
+#       bus/_usuarios/<usuario>/Modelo/*.yml
+#       bus/Modelo/*.yml
+#       modulos/*/bus/Modelo/*.yml
+#
+#   Las predeterminaciones (preferencias) se almacenarán en el fichero
+#   bus/_usuarios/<usuario>/Modelo/_preferencias
+#   y su estructura es:
+#     controladorxx1: path_al_fichero_de_búsqueda
+#     controladorxx2: path_al_fichero_de_búsqueda
+#     ....
+#   Así se puede tener una búsqueda predeterminada diferente para
+#   cada controlador.
+#
+# Eliminar: Borra la búsqueda seleccionada.
+#
+# Excel: Exporta el contenido del grid a Excel.
+#
+# PDF: Genera un archivo PDF con el contenido del grid.
+#
+#
+# La ventana de búsqueda se llama automáticamente desde el menú contextual
+# de los campos 'id' pero también se podría llamar autónomamente con la url:
+# /bus?mod=Modelo (p.ej.: /bus?mod=Cliente)
+# Así se podría usar para poner un acceso directo en el menú a una ventana
+# de búsqueda, o incluso añadirla al panel de control. En estos casos
+# como no hay controlador subyacente se usará internamente el nombre de
+# controlador '_'. Si en una ventana de éstas eligiéramos una búsqueda
+# como predeterminada, en el fichero de preferencias figuraría como:
+# _: path_al_fichero_de_búsqueda
+
+
 class BusController < ApplicationController
   def bus
     @titulo = nt('bus')
 
-    @mod = params[:mod]
+    @mod = flash[:mod] || params[:mod]
     if @mod.nil?
       render nothing: true
       return
     end
 
-    ctr = params[:ctr] || '_'
+    ctr = flash[:ctr] || params[:ctr] || '_'
 
     @vid = Vista.create.id
 
-    ej = get_empeje
+    ej = (flash[:eid] or flash[:jid]) ? [flash[:eid].to_s, flash[:jid].to_s] : get_empeje
 
     @tabla = nt @mod.constantize.table_name
 
     $h[@vid] = {mod: @mod.constantize, ctr: ctr, cols: {}, last_col: 'c00', types:{}, order: '', filters: {rules: []}, eid: ej[0], jid: ej[1]}
 
+    # Calcular fichero de preferencias
+    fic_pref = nil
+    pref = "bus/_usuarios/#{@usu.codigo}/#{@mod}/_preferencias"
+    if File.exists?(pref)
+      fic_pref = YAML.load(File.read(pref))[ctr]
+      fic_pref = nil unless File.exists?(fic_pref.to_s)
+    end
+
+    unless fic_pref
+      fic_pref = flash[:pref] || params[:pref]
+      fic_pref = nil unless File.exists?(fic_pref.to_s)
+    end
+
     # Construcción de de la lista de ficheros de búsqueda
     @sel = {}
 
     k = @usu.codigo
-    Dir.glob("bus/usuarios/#{k}/#{@mod}/*.yml").each_with_index {|f, i|
+    Dir.glob("bus/_usuarios/#{k}/#{@mod}/*.yml").each_with_index {|f, i|
       i == 0 ? @sel[k] = [f] : @sel[k] << f
     }
 
     k = Rails.app_class.to_s.split(':')[0]
     Dir.glob("bus/#{@mod}/*.yml").each_with_index {|f, i|
       i == 0 ? @sel[k] = [f] : @sel[k] << f
+      fic_pref ||= f if f[f.rindex('/')+1..-5] == @mod
     }
 
     Dir.glob("modulos/*/bus/#{@mod}").each {|m|
       k = m.split('/')[1]
       Dir.glob(m + '/*.yml').each_with_index {|f, i|
         i == 0 ? @sel[k] = [f] : @sel[k] << f
+        fic_pref ||= f if f[f.rindex('/')+1..-5] == @mod
       }
     }
 
-    pref = "bus/usuarios/#{@usu.codigo}/#{@mod}/_preferencias"
-    if File.exists?(pref)
-      fic_pref = YAML.load(File.read(pref))[ctr]
-      fic_pref = nil unless fic_pref and File.exists?(fic_pref)
-    end
-
-    fic_pref ||= params[:pref]
     fic_pref ||= @sel.first[1][0] unless @sel.empty?
 
     #genera_grid_from_file(@sel.first[1][0], $h[@vid]) unless @sel.empty?
@@ -281,7 +364,7 @@ class BusController < ApplicationController
     arg = eval(params[:dat])
 
     h = {cols: arg[:cols], filters: dat[:filters], order: dat[:order]}
-    path = "bus/usuarios/#{@usu.codigo}/#{dat[:mod]}"
+    path = "bus/_usuarios/#{@usu.codigo}/#{dat[:mod]}"
     FileUtils.mkdir_p(path)
     File.write("#{path}/#{params[:fic]}.yml", h.to_yaml)
   end
@@ -341,7 +424,7 @@ class BusController < ApplicationController
 
     dat = $h[vid]
 
-    path = "bus/usuarios/#{@usu.codigo}/#{dat[:mod]}"
+    path = "bus/_usuarios/#{@usu.codigo}/#{dat[:mod]}"
     pref = path + '/_preferencias'
     if File.exists?(pref)
       hpref = YAML.load(File.read(pref))

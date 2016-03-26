@@ -653,9 +653,13 @@ if (self != top)
 */
 
 function autoCompBuscar() {
+  bus_input_selected = $("#_auto_comp_button_").parent().find("input");
+  callFonServer("bus_call", {id: bus_input_selected.attr("id")});
+  /*
   var inp = $("#_auto_comp_button_").parent().find("input");
   var w = window.open('/bus?mod=' + inp.attr("modelo") + '&eid=' + eid + '&jid=' + jid, "_blank", "width=700, height=500");
   w._autoCompField = inp
+  */
 }
 
 function autoCompIrAFicha() {
