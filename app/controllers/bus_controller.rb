@@ -405,11 +405,16 @@ class BusController < ApplicationController
 
     xls = Axlsx::Package.new
     wb = xls.workbook
-    sh = wb.add_worksheet(:name => "Hoja 1")
+    sh = wb.add_worksheet(:name => "Hoja1")
+
+    sh.add_row(cols.map {|k, v| v[:label]})
 
     dat[:mod].select(dat[:cad_sel]).joins(dat[:cad_join]).where(dat[:cad_where]).order(dat[:cad_order]).each {|s|
-      sh.add_row(cols.map {|k, v| s[v[:alias]]})
+      sh.add_row(cols.map {|k, v| (v[:type] == 'string' ? ' ' : '' ) + s[v[:alias]]})
     }
+
+    # Fijar la fila de cabecera para repetir en cada página
+    wb.add_defined_name("Hoja1!$1:$1", :local_sheet_id => sh.index, :name => '_xlnm.Print_Titles')
 
     xls.serialize("/tmp/nim#{vid}.xlsx")
     `libreoffice --headless --convert-to pdf --outdir /tmp /tmp/nim#{vid}.xlsx` if params[:tipo] == 'pdf'
