@@ -410,7 +410,7 @@ class BusController < ApplicationController
     sh.add_row(cols.map {|k, v| v[:label]})
 
     dat[:mod].select(dat[:cad_sel]).joins(dat[:cad_join]).where(dat[:cad_where]).order(dat[:cad_order]).each {|s|
-      sh.add_row(cols.map {|k, v| (v[:type] == 'string' ? ' ' : '' ) + s[v[:alias]]})
+      sh.add_row(cols.map {|k, v| v[:type] == 'string' ? ' ' + s[v[:alias]] : s[v[:alias]]})
     }
 
     # Fijar la fila de cabecera para repetir en cada página

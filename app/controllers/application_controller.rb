@@ -1129,6 +1129,7 @@ class ApplicationController < ActionController::Base
         begin
           @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
         rescue Exception => e
+          puts e
           @ajax = ''
           sincro_ficha :ajax => true
           mensaje 'Grabación cancelada. Ya existe la clave'
