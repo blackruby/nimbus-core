@@ -84,8 +84,11 @@ class ApplicationController < ActionController::Base
     @ajax << '.dialog("option", "title", "' + h[:tit] + '")'
     @ajax << '.dialog("option", "buttons", {'
     h[:bot].each {|b|
-      @ajax << '"' + nt(b[:label]) + '": function(){callFonServer("' + b[:accion] + '");'
-      @ajax << '$("#dialog-nim-alert").dialog("close");' if h[:close]
+      b[:close] = h[:close] if b[:close].nil?
+      @ajax << '"' + nt(b[:label]) + '": function(){'
+      @ajax << 'ponBusy();' if b[:busy]
+      @ajax << 'callFonServer("' + b[:accion] + '", {}, quitaBusy);'
+      @ajax << '$("#dialog-nim-alert").dialog("close");' if b[:close]
       @ajax << '},'
     }
     @ajax << '})'
@@ -154,6 +157,11 @@ class ApplicationController < ActionController::Base
   # Oculta el grid
   def grid_hide
     @ajax << 'parentGridHide();'
+  end
+
+  # Métodos para activar/desactivar el icono de 'busy'
+  def en_progreso(tipo = true)
+    @ajax << '$(".mdl-spinner").' + (tipo ? 'addClass' : 'removeClass') + '("is-active");'
   end
 
   # Funciones para el manejo del histórico de un modelo
