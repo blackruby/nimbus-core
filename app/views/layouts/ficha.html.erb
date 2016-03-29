@@ -89,8 +89,6 @@
 
 <%= yield :body %>
 
-<div class="mdl-spinner mdl-js-spinner" style="z-index:2000; position: absolute; left: 50%; top: 50%;"></div>
-
 <% @dialogos.each {|d| %>
   <div id="<%= d[:id] %>" style="display: none">
     <%= gen_form({dlg: d[:id]}) %>
@@ -168,14 +166,6 @@
 
   <%= gen_js %>
   <%= @ajax.html_safe %>
-
-  function ponBusy() {
-    $(".mdl-spinner").addClass("is-active");
-  }
-
-  function quitaBusy() {
-    $(".mdl-spinner").removeClass("is-active");
-  }
 
   function abreDialogo(d) {
     $("#" + d).dialog("open");

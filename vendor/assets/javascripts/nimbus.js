@@ -679,6 +679,17 @@ function autoCompNuevaFicha() {
   window.open('/' +  $("#_auto_comp_button_").parent().find("input").attr("controller") + '/new', '_blank', '');
 }
 
+function ponBusy() {
+  $("body").append('<div class="mdl-spinner mdl-js-spinner is-active" style="z-index:2000; position: absolute; left: 50%; top: 50%;"></div>');
+  componentHandler.upgradeDom();
+  //$(".mdl-spinner").addClass("is-active");
+}
+
+function quitaBusy() {
+  //$(".mdl-spinner").removeClass("is-active");
+  $(".mdl-spinner").remove();
+}
+
 $(window).load(function() {
   $("body").on("focus", ".nim-input", function (e) {
     $("#_auto_comp_button_").remove();
