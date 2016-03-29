@@ -159,11 +159,6 @@ class ApplicationController < ActionController::Base
     @ajax << 'parentGridHide();'
   end
 
-  # Métodos para activar/desactivar el icono de 'busy'
-  def en_progreso(tipo = true)
-    @ajax << '$(".mdl-spinner").' + (tipo ? 'addClass' : 'removeClass') + '("is-active");'
-  end
-
   # Funciones para el manejo del histórico de un modelo
   def histo
     begin
