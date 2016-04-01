@@ -637,7 +637,7 @@ function mask(h) {
 
 // Elegido un carácter UTF8 para formatear el aspecto de los booleanos (checks) en el grid
 function format_check(v){
-  return v == 'true' ? '\u2714' : '';
+  return v == 'true' || v == true ? '\u2714' : '';
 }
 
 function unformat_check(v){
@@ -688,6 +688,53 @@ function ponBusy() {
 function quitaBusy() {
   //$(".mdl-spinner").removeClass("is-active");
   $(".mdl-spinner").remove();
+}
+
+function _addDataGridLocal(jcmp, data) {
+  var cols = jcmp.jqGrid('getGridParam', 'colModel');
+  var ms = jcmp.jqGrid('getGridParam', 'multiselect');
+
+  var h = {}, i, j, c, d;
+  for(i = 0; d = data[i]; i++) {
+    if (ms)
+      for(j = 1; c = cols[j]; j++) h[c.name] = d[j];
+    else
+      for(j = 0; c = cols[j]; j++) h[c.name] = d[j+1];
+
+    jcmp.jqGrid('addRowData', d[0], h);
+  }
+}
+
+function addDataGridLocal(cmp, data) {
+  _addDataGridLocal($("#g_" + cmp) , data);
+}
+
+function delDataGridLocal(cmp, id) {
+  $("#g_" + cmp).jqGrid('delRowData', id);
+}
+
+function creaGridLocal(opts, data) {
+  var cmp = opts.cmp;
+  var ele = $("#" + cmp);
+  var grid = opts.grid;
+  if (grid == undefined) grid = {};
+  ele.html("").append('<table id="g_' + cmp + '"></table>');
+  var g = $("#g_" + cmp);
+  g.jqGrid($.extend({
+    datatype: "local",
+    colModel: opts.cols,
+    gridview: true,
+    height: 150,
+    ignoreCase: true,
+    //multiselect: true,
+    //caption: "Manipulating Array Data",
+    deselectAfterSort: false,
+    onSelectRow: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: r, sel: s, multi: grid.multiselect})}
+  }, grid));
+
+  if (opts.search) g.jqGrid('filterToolbar',{searchOperators : true});
+
+  _addDataGridLocal(g, data);
 }
 
 $(window).load(function() {

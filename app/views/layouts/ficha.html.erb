@@ -151,7 +151,7 @@
       modal: true,
       title: "<%= d[:titulo] %>",
       buttons: {
-        <% d[:botones].each {|b| %>
+        <% d[:botones].to_a.each {|b| %>
           "<%= b[:label] %>": function () {
             <% if b[:busy] %>
               ponBusy();

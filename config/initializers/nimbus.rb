@@ -541,6 +541,8 @@ module MantMod
             v[:grid][:edittype] ||= 'textarea'
             v[:grid][:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
           end
+        when :div
+          v[:nil] = true
       end
 
       v[:decim] ||= 0
@@ -579,6 +581,9 @@ module MantMod
           when :time
             ini = 'Time.now'
             conv = '.to_time'
+          when :div
+            ini = 'nil'
+            conv = ''
           else
             ini = "''"
             conv = '.to_s'

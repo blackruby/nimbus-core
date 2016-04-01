@@ -863,6 +863,8 @@ class ApplicationController < ActionController::Base
     when :boolean
       val = false unless val
       @ajax << '$("#' + cmp_s + '").prop("checked",' + val.to_s + ');'
+    when :div
+      ;
     else
       @ajax << '$("#' + cmp_s + '").val(' + forma_campo(:form, @fact, cmp_s, val).to_json + ')'
       @ajax << '.attr("dbid",' + val.to_s + ')' if cmp_s.ends_with?('_id') and val
@@ -1006,6 +1008,137 @@ class ApplicationController < ActionController::Base
       render text: ''
     else
       render text: err
+    end
+  end
+
+  # Método para crear un grid dinámicamente
+  #
+  # opts es un hash con las siguientes claves:
+  #
+  # cmp: es un campo X definido con {type: :div}
+  #
+  # search: (true/false) indica si aparece o no la barra de búsqueda
+  #         en el grid. Por defecto vale false.
+  #
+  # cols: Es un array de hashes conteniendo información de cada columna.
+  #       Las posibles claves del hash de cada columna son:
+  #       name: el nombre y título de la columna.
+  #       type: el tipo (:boolean, :string, :integer, :decimal, :date, :time)
+  #            Si no se especifica se asume string.
+  #       dec: Sólo para el type :decimal indica el número de decimales.
+  #            Por defecto 2.
+  #       align: Posibles valores: 'left', 'center', 'right'
+  #              Por defecto se adapta al 'type' por lo que no sería necesario
+  #              darle valor, salvo que queramos un comportamiento especial.
+  #       width: Anchura de la columna. Por defecto 150.
+  #
+  #       Cualquier clave admitida por jqGrid en colModel
+  #       ver: http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options
+  #
+  # grid: Es un hash con opciones específicas para el grid. Admite todas las
+  #       referidas en: http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options
+  #       Las más interesantes serían:
+  #       caption: Es una string con un título para el grid. Añade una barra
+  #                de título con dicha string y un botón para colapsar el grid.
+  #       height: Indica la altura del grid. Por defecto 150.
+  #       hidegrid: (true/false) Establece si aparece o no el botón de colapsar
+  #                 Sólo válido si hay caption.
+  #       multiselect: (true/false) Permite seleccionar múltiples filas.
+  #                    En este caso se añade al grid una primera columna con
+  #                    checks para indicar la selección. Por defecto false.
+  #       multiSort: (true/false) Permite ordenar por varias columnas.
+  #       shrinkToFit: (true/false) Si se pone a true se ajustarán las anchuras
+  #                    de las columnas para caber en la anchura del grid. Por
+  #                    defecto false.
+  #
+  # data: Es un array de arrays con los datos (puede ser un array simple si sólo
+  #       hay una fila de datos). Cada array contendrá n+1 elementos, donde n es
+  #       número de columnas que se han definido en 'cols'. El elemento adicional,
+  #       que tiene que ser el primero del array, contendrá el id de la fila.
+  #       Este id es el que se devolverá al campo X en caso de que la fila sea
+  #       seleccionada.
+  #
+  # El método, además de crear el grid, sicroniza la seleción de fila (o filas si
+  # está a true la opción multiselect) con el servidor. En el campo X asociado
+  # tendremos siempre disponible el id de la fila seleccionada (o un array de ids
+  # si hay multiselección). Para acceder lo haremos con @fact.cmp (donde cmp es el
+  # campo X referido).
+
+  def crea_grid(opts)
+    return if opts[:cmp].nil?
+
+    @fact.method(opts[:cmp].to_s + '=').call(nil)
+
+    opts[:cols].each {|c|
+      c[:searchoptions] ||= {}
+      ty = (c[:type] || :string).to_sym
+      case c[:type]
+        when :boolean
+          c[:align] = 'center'
+          c[:formatter] = '~format_check~'
+          c[:searchoptions][:sopt] = ['eq']
+        when :integer
+          c[:sorttype] = 'int'
+          c[:formatter] = 'integer'
+          c[:align] ||= 'right'
+          c[:searchoptions][:sopt] = ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
+        when :decimal
+          c[:sorttype] = 'float'
+          c[:formatter] = 'number'
+          c[:formatoptions] = {decimalPlaces: c[:dec] || 2}
+          c[:searchoptions][:sopt] = ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
+          c[:align] ||= 'right'
+        when :date
+          c[:sorttype] = 'date'
+          c[:formatter] = 'date'
+          c[:searchoptions][:sopt] = ['eq','ne','lt','le','gt','ge','nu','nn']
+        else
+          c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
+      end
+    }
+    data = opts[:data]
+    if data
+      data = [data] unless data[0].class == Array
+      opts.delete(:data)
+    end
+    @ajax << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data.to_json});"
+  end
+
+  # Método para añadir filas a un grid existente
+  #
+  # cmp: Es el campo X sobre el que está creado el grid
+  #
+  # data: Es un array de arrays con los datos (puede ser un array simple si sólo
+  #       hay una fila de datos). Cada array contendrá n+1 elementos, donde n es
+  #       número de columnas que se han definido en 'cols'. El elemento adicional,
+  #       que tiene que ser el primero del array, contendrá el id de la fila.
+  #       Este id es el que se devolverá al campo X en caso de que la fila sea
+  #       seleccionada.
+
+  def add_data_grid(cmp, data)
+    data = [data] unless data[0].class == Array
+    @ajax << "addDataGridLocal('#{cmp}', #{data.to_json});"
+  end
+
+  def del_data_grid(cmp, id)
+    @ajax << "delDataGridLocal('#{cmp}', #{id});"
+  end
+
+  def grid_local_select
+    @dat = $h[params[:vista].to_i]
+    @fact = @dat[:fact]
+    campo = params[:cmp]
+    row = params[:row].to_i
+    if params[:multi]
+      sel = (params[:sel] == 'true')
+      v = @fact.method(campo).call
+      if v
+        sel ? v << row : v.delete_at(v.index(row))
+      else
+        @fact.method(campo + '=').call([row]) if sel
+      end
+    else
+      @fact.method(campo + '=').call(row)
     end
   end
 
@@ -1276,6 +1409,8 @@ class ApplicationController < ActionController::Base
         sal << '</ul>'
 =end
         sal << '</div>'
+      elsif v[:type] == :div
+        sal << "<div id='#{cs}' style='overflow: auto'></div>"
       else
         sal << '<div class="nim-group">'
         #sal << '<input id="' + cs + '" size=' + size + ' required onchange="validar($(this))"'

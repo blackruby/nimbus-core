@@ -323,7 +323,8 @@
   }
 
   function gridExport(tipo) {
-    callFonServer("bus_export", {tipo: tipo});
+    ponBusy();
+    callFonServer("bus_export", {tipo: tipo}, quitaBusy);
   }
 
   function busNew() {
