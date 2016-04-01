@@ -1128,14 +1128,20 @@ class ApplicationController < ActionController::Base
     @dat = $h[params[:vista].to_i]
     @fact = @dat[:fact]
     campo = params[:cmp]
-    row = params[:row].to_i
     if params[:multi]
-      sel = (params[:sel] == 'true')
-      v = @fact.method(campo).call
-      if v
-        sel ? v << row : v.delete_at(v.index(row))
+      if params[:row] == ''
+        @fact.method(campo + '=').call(nil)
+      elsif params[:row].is_a? Array
+        @fact.method(campo + '=').call(params[:row].map{|c| c.to_i})
       else
-        @fact.method(campo + '=').call([row]) if sel
+        row = params[:row].to_i
+        sel = (params[:sel] == 'true')
+        v = @fact.method(campo).call
+        if v
+          sel ? v << row : v.delete_at(v.index(row))
+        else
+          @fact.method(campo + '=').call([row]) if sel
+        end
       end
     else
       @fact.method(campo + '=').call(row)

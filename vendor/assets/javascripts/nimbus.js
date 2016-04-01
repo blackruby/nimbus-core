@@ -729,7 +729,8 @@ function creaGridLocal(opts, data) {
     //multiselect: true,
     //caption: "Manipulating Array Data",
     deselectAfterSort: false,
-    onSelectRow: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: r, sel: s, multi: grid.multiselect})}
+    onSelectRow: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: r, sel: s, multi: grid.multiselect})},
+    onSelectAll: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: (s ? r : null), sel: s, multi: grid.multiselect})},
   }, grid));
 
   if (opts.search) g.jqGrid('filterToolbar',{searchOperators : true});
