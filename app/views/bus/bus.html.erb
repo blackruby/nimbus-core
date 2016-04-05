@@ -85,10 +85,6 @@
     position: absolute;
     top: 40px;
   }
-
-  .ui-menu-item {
-    height: 30px;
-  }
 </style>
 
 <script>
@@ -295,8 +291,12 @@
      **/
   }
 
-  function gridSelect() {
-    id = grid.jqGrid("getGridParam","selrow");
+  function gridSelect(id) {
+    if (id)
+      grid.jqGrid('setSelection', id)
+    else
+      id = grid.jqGrid('getGridParam', 'selrow');
+
     if (id != null) {
       _autoCompField.attr("dbid", id);
       callFonServer("bus_value", {id: id});
