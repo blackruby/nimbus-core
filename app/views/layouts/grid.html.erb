@@ -143,20 +143,19 @@
 	toolgrid = '#grid_toppager';
 
 	var vgrid = grid.jqGrid({
-    colModel: <%= raw @view[:col_model] %>,
     //caption: '',
+    colModel: <%= raw @view[:col_model] %>,
+    datatype: "json",
+    mtype: 'POST',
     sortname: '<%= @view[:grid][:sortname] %>',
     sortorder: '<%= @view[:grid][:sortorder] %>',
     url:'<%= @view[:url_list].html_safe %>',
     cellurl:'<%= @view[:url_cell].html_safe %>',
     beforeProcessing: jqg_before_processing,
     beforeEditCell: jqg_before_edit_cell,
-    beforeEditCell: jqg_before_edit_cell,
     beforeSubmitCell: jqg_before_submit_cell,
     afterSubmitCell: jqg_after_submit_cell,
     afterSaveCell: jqg_after_save_cell,
-    datatype: "json",
-    mtype: 'POST',
     <% if @view[:grid][:wh] %>
       postData: {wh: <%= raw @view[:grid][:wh].to_json %>},
     <% end %>
@@ -182,7 +181,7 @@
 		multiSort: <%= @view[:grid][:multiSort] %>,
 		//multiselect: true,
 		//rownumbers: true,
-		scroll: <%= @view[:grid][:scroll] %>,
+    scroll: <%= @view[:grid][:scroll] %>,
 	});
 
 	grid.jqGrid('gridResize', {handles: "s", minHeight: 80});
@@ -206,8 +205,12 @@
 
   function searchBar() {vgrid[0].toggleToolbar();}
 
-  function editInForm() {
-    id = grid.jqGrid('getGridParam','selrow');
+  function editInForm(id) {
+    if (id)
+      grid.jqGrid('setSelection', id)
+    else
+      id = grid.jqGrid('getGridParam', 'selrow');
+
     if (id != null) {
       $("#ficha").attr('src', '<%= @view[:url_base] %>' + id + '/edit' + '<%= @view[:arg_edit] %>');
     } else

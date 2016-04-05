@@ -807,8 +807,11 @@ class ApplicationController < ActionController::Base
   end
 
   def fact_clone
-    @fant = @fact.respond_to?(:id) ? {id: @fact.id} : {}
-    @fact.campos.each {|c, v| @fant[c] = @fact.method(c).call}
+    #@fant = @fact.respond_to?(:id) ? {id: @fact.id} : {}
+    #@fact.campos.each {|c, v| @fant[c] = @fact.method(c).call}
+    fant = @fact.respond_to?(:id) ? {id: @fact.id} : {}
+    @fact.campos.each {|c, v| fant[c] = @fact.method(c).call}
+    @fant = fant.deep_dup
   end
 
   def forma_campo(tipo, ficha, cmp, val={})
@@ -1074,24 +1077,25 @@ class ApplicationController < ActionController::Base
       ty = (c[:type] || :string).to_sym
       case c[:type]
         when :boolean
-          c[:align] = 'center'
-          c[:formatter] = '~format_check~'
-          c[:searchoptions][:sopt] = ['eq']
+          c[:align] ||= 'center'
+          #c[:formatter] ||= '~format_check~'
+          c[:formatter] ||= 'checkbox'
+          c[:searchoptions][:sopt] ||= ['eq']
         when :integer
-          c[:sorttype] = 'int'
-          c[:formatter] = 'integer'
+          c[:sorttype] ||= 'int'
+          c[:formatter] ||= 'integer'
           c[:align] ||= 'right'
-          c[:searchoptions][:sopt] = ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
+          c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
         when :decimal
-          c[:sorttype] = 'float'
-          c[:formatter] = 'number'
-          c[:formatoptions] = {decimalPlaces: c[:dec] || 2}
-          c[:searchoptions][:sopt] = ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
+          c[:sorttype] ||= 'float'
+          c[:formatter] ||= 'number'
+          c[:formatoptions] ||= {decimalPlaces: c[:dec] || 2}
+          c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
           c[:align] ||= 'right'
         when :date
-          c[:sorttype] = 'date'
-          c[:formatter] = 'date'
-          c[:searchoptions][:sopt] = ['eq','ne','lt','le','gt','ge','nu','nn']
+          c[:sorttype] ||= 'date'
+          c[:formatter] ||= 'date'
+          c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
         else
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
       end
@@ -1125,8 +1129,8 @@ class ApplicationController < ActionController::Base
   end
 
   def grid_local_select
-    @dat = $h[params[:vista].to_i]
-    @fact = @dat[:fact]
+    #@dat = $h[params[:vista].to_i]
+    #@fact = @dat[:fact]
     campo = params[:cmp]
     if params[:multi]
       if params[:row] == ''
@@ -1144,7 +1148,7 @@ class ApplicationController < ActionController::Base
         end
       end
     else
-      @fact.method(campo + '=').call(row)
+      @fact.method(campo + '=').call(params[:row].to_i)
     end
   end
 

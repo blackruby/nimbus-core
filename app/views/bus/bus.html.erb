@@ -86,11 +86,9 @@
     top: 40px;
   }
 
-  /*
   .ui-menu-item {
-    height: 40px;
+    height: 30px;
   }
-  */
 </style>
 
 <script>
@@ -234,7 +232,7 @@
     .bind('tree.open', gridLeft)
     .bind('tree.close', gridLeft);
 
-  function generaGrid(colMod, sortname, sortorder, postdata, onload, keepScrollH, keepScrollV) {
+  function generaGrid(colMod, sortname, sortorder, postdata, keepScrollH, keepScrollV) {
     $('#d-grid').html('');
     $("#d-grid").append("<table id='grid'></table>");
     grid = $("#grid");
@@ -250,6 +248,7 @@
       datatype: "json",
       mtype: 'POST',
       rowNum: 100,
+      search: !$.isEmptyObject(postdata), // Para indicar que hay búsqueda activa o no
 
       gridview: true,
 
@@ -267,7 +266,9 @@
       multiSort: true,
       loadComplete: function() {
         $("#d-grid .ui-jqgrid-bdiv").scrollLeft(keepScrollH ? lastScrollH : 90000).scrollTop(keepScrollV ? lastScrollV : 0);
-        eval(onload);
+        //eval(onload);
+        //setTimeout(function(){console.log('ya', onload);grid.jqGrid('setGridParam', {loadComplete: null});eval(onload);},100);
+        //onload = ""
       }
     });
 
@@ -276,7 +277,7 @@
     grid.jqGrid('filterToolbar', {stringResult: true, searchOperators: true});
     //vgrid[0].toggleToolbar();
 
-    $(".ui-pg-input").height(14); // Para que salga de la altura correcta el input del número de página del grid
+    //$(".ui-pg-input").height(14); // Para que salga de la altura correcta el input del número de página del grid
 
     gridLeft();
     gridDim();
@@ -329,7 +330,7 @@
 
   function busNew() {
     $("#bus-sel").prop("selectedIndex", -1);
-    generaGrid([],'','',{},'',false,false);
+    generaGrid([],'','',{},false,false);
   }
 
   function busSave() {
@@ -367,10 +368,12 @@
     callFonServer("bus_bye", {});
   });
 
+  /*
   $("body").on("click", ".clearsearchclass", function(e) {
     var gsi = $(this).parent().prev().find('input');
     setTimeout(function(){gsi.val('')}, 100);
   });
+  */
 
   $("#inp-save").on("input", function() {
     var c;

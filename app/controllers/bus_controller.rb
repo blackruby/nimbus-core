@@ -265,21 +265,25 @@ class BusController < ApplicationController
     }
 
     # Construir filters
-    on_load = ''
-    dat[:filters][:rules].each {|r|
-      col_mod.each {|c|
-        if c[:name] == r[:field] and c[:flag]
-          c[:flag] = false
-          on_load << "$('#gs_#{r[:field]}').val(#{r[:data].to_json});"
-          i = c[:searchoptions][:sopt].index(r[:op])
-          if i > 0
-            c[:searchoptions][:sopt].delete_at(i)
-            c[:searchoptions][:sopt].unshift(r[:op])
+
+    if dat[:filters][:rules].empty?
+      postdata = {}
+    else
+      dat[:filters][:rules].each {|r|
+        col_mod.each {|c|
+          if c[:name] == r[:field] and c[:flag]
+            c[:flag] = false
+            i = c[:searchoptions][:sopt].index(r[:op])
+            if i > 0
+              c[:searchoptions][:sopt].delete_at(i)
+              c[:searchoptions][:sopt].unshift(r[:op])
+            end
           end
-        end
+        }
       }
-    }
-    postdata = {filters: dat[:filters].to_json}
+
+      postdata = {filters: dat[:filters].to_json}
+    end
 
     lb = dat[:order].rindex(' ')
     if lb
@@ -290,7 +294,7 @@ class BusController < ApplicationController
       sortorder = ''
     end
 
-    @ajax << "generaGrid(#{col_mod.to_json.gsub('"~', '').gsub('~"', '')}, '#{sortname}', '#{sortorder}', #{postdata.to_json}, #{on_load.to_json}, #{kh}, #{kv});"
+    @ajax << "generaGrid(#{col_mod.to_json.gsub('"~', '').gsub('~"', '')}, '#{sortname}', '#{sortorder}', #{postdata.to_json}, #{kh}, #{kv});"
   end
 
   def nueva_col

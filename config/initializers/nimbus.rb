@@ -470,8 +470,9 @@ module MantMod
           if hay_grid
             v[:grid][:edittype] ||= 'checkbox'
             v[:grid][:align] ||= 'center'
-            v[:grid][:formatter] ||= '~format_check~'
-            v[:grid][:unformat] ||= '~unformat_check~'
+            #v[:grid][:formatter] ||= '~format_check~'
+            #v[:grid][:unformat] ||= '~unformat_check~'
+            v[:grid][:formatter] ||= 'checkbox'
             v[:grid][:editoptions][:value] ||= 'true:false'
             v[:grid][:searchoptions][:sopt] ||= ['eq']
           end
@@ -498,6 +499,7 @@ module MantMod
             if campo.ends_with?('_id')
               v[:grid][:editoptions][:dataInit] ||= "~function(e){auto_comp_grid(e,'" + v[:ref] + "');}~"
             elsif v[:sel]
+              v[:grid][:formatter] ||= 'select'
               v[:grid][:edittype] ||= 'select'
               v[:grid][:editoptions][:value] ||= v[:sel]
               v[:grid][:align] ||= 'center'
