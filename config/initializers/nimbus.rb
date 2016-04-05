@@ -521,7 +521,7 @@ module MantMod
           if hay_grid
             v[:grid][:align] ||= 'right'
             v[:grid][:editoptions][:dataInit] ||= '~function(e){numero(e,' + v[:manti].to_s + ',' + v[:decim].to_s + ',' + v[:signo].to_s + ')}~'
-            v[:grid][:searchoptions][:dataInit] ||= '~function(e){numero(e,' + v[:manti].to_s + ',' + v[:decim].to_s + ',' + v[:signo].to_s + ')}~'
+            #v[:grid][:searchoptions][:dataInit] ||= '~function(e){numero(e,' + v[:manti].to_s + ',' + v[:decim].to_s + ',' + v[:signo].to_s + ')}~'
             v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
             #v[:grid][:formatter] ||= 'number'
             #v[:grid][:formatoptions][:decimalPlaces] ||= v[:decim]
@@ -533,7 +533,7 @@ module MantMod
             v[:grid][:align] ||= 'center'
             #v[:grid][:formatter] ||= 'date'
             v[:grid][:editoptions][:dataInit] ||= '~function(e){date_pick(e,' + v[:date_opts].to_json + ')}~'
-            v[:grid][:searchoptions][:dataInit] ||= '~function(e){date_pick(e,' + v[:date_opts].to_json + ')}~'
+            #v[:grid][:searchoptions][:dataInit] ||= '~function(e){date_pick(e,' + v[:date_opts].to_json + ')}~'
             v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
           end
         when :text
