@@ -19,9 +19,10 @@ namespace :nimbus do
         else
           @wh << ' and ' unless @wh.empty?
           @wh << "#{tab}.#{k}="
-          @wh << "CAST(" if mod.columns_hash[k].type == :integer
+          @wh << "CAST(" if mod.columns_hash[k].type == :integer || mod.columns_hash[k].type == :decimal
           @wh << "split_part(#{@col},'~',#{@nk})"
           @wh << " AS INTEGER)" if mod.columns_hash[k].type == :integer
+          @wh << " AS NUMERIC)" if mod.columns_hash[k].type == :decimal
           @nk += 1
         end
       }
