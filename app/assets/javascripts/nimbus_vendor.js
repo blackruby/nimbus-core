@@ -1,8 +1,8 @@
 //= require ui/jquery-ui
 //= require ui/jquery.ui.datepicker-es
 //= require jquery.maskedinput
-//= require jqGrid/grid.locale-es
-//= require jqGrid/jquery.jqGrid.min
+//= require jqGrid/jquery.jqgrid.min
+//= require jqGrid/grid.locale-es.min
 // require highcharts/highcharts
 //= require highcharts/highstock
 //= require highcharts/highcharts-3d

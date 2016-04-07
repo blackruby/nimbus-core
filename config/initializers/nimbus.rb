@@ -67,10 +67,17 @@ def sql_exe(cad)
   ActiveRecord::Base.connection.execute(cad)
 end
 
-# Método para generar left joins. Recibe como argumentos el modelo y un número variable (o un array) de campos de la forma [tabla[.tabla[...]]] (ej.: cliente.pais)
-# cada tabla intermedia puede ir seguida de un valor para el alias entre paréntesis. ej.: cliente(cli).pais(p)
-# Si no especifican alias se usarán unos automáticos de la forma 'ta', 'tb', 'tc'...
-# devuelve un hash con dos claves: ':cad' que es una cadena ya construida con los joins y ':tab' que es otro hash cuyas claves son las tablas usadas en el join y sus valores los alias utilizados
+# Método para generar left joins. Recibe como argumentos el modelo
+# y un número variable (o un array) de campos de la forma
+# [tabla[.tabla[...]]] (ej.: cliente.pais)
+# cada tabla intermedia puede ir seguida de un valor para el alias
+# entre paréntesis. ej.: cliente(cli).pais(p)
+# Si no especifican alias se usarán unos automáticos de la forma
+# 'ta', 'tb', 'tc'... (saltándose 'to' por ser una palabra reservada de postgreSQL)
+# devuelve un hash con dos claves:
+# ':cad' que es una cadena ya construida con los joins y
+# ':tab' que es otro hash cuyas claves son las tablas usadas en el
+# join y los valores de los alias utilizados
 
 def ljoin_parse(modelo, *columns)
   cad_join = ''
@@ -95,7 +102,15 @@ def ljoin_parse(modelo, *columns)
         next
       end
 
-      ali = ali_auto.next!.dup unless ip
+      unless ip
+        # Para saltarse el alias 'to' que no vale por ser una palabra reservada de postgreSQL
+        if ali_auto == 'tn'
+          ali_auto = 'tp'
+          ali = 'tp'
+        else
+          ali = ali_auto.next!.dup
+        end
+      end
 
       cad_join << ' LEFT JOIN ' + mod.table_name + ' ' + ali + ' ON ' + ali + '.id=' + ali_ant + '.' + tab + '_id'
 
@@ -177,7 +192,7 @@ class ActiveRecord::Base
   # Cada uno de ellos representa un campo con su 'ruta' completa. ej.: cliente.producto.sector.codigo
   # Se genererán los joins precisos para hacer la consulta. Se pueden dar alias específicos a cada tabla intermedia
   # entre paréntesis (sólo válido en la primera aparición de la tabla).
-  # Si no hay alias se utilizarán 'ta', 'tb', 'tc', etc. para las sucesivas tablas.
+  # Si no hay alias se utilizarán 'ta', 'tb', 'tc', etc. para las sucesivas tablas (saltándose 'to' por ser una palabra reservada de postgreSQL).
   # También se puede dar un alias para el campo dejando un espacio en blanco y especificando el alias.
   # Si no se especifica una alias para el campo, se proporcionará uno automático sólo en el caso de que el campo
   # no sea de la tabla principal, y estará formado por el alias de la tabla correspondiente más un '_' y el propio campo.
@@ -455,8 +470,9 @@ module MantMod
           if hay_grid
             v[:grid][:edittype] ||= 'checkbox'
             v[:grid][:align] ||= 'center'
-            v[:grid][:formatter] ||= '~format_check~'
-            v[:grid][:unformat] ||= '~unformat_check~'
+            #v[:grid][:formatter] ||= '~format_check~'
+            #v[:grid][:unformat] ||= '~unformat_check~'
+            v[:grid][:formatter] ||= 'checkbox'
             v[:grid][:editoptions][:value] ||= 'true:false'
             v[:grid][:searchoptions][:sopt] ||= ['eq']
           end
@@ -483,6 +499,7 @@ module MantMod
             if campo.ends_with?('_id')
               v[:grid][:editoptions][:dataInit] ||= "~function(e){auto_comp_grid(e,'" + v[:ref] + "');}~"
             elsif v[:sel]
+              v[:grid][:formatter] ||= 'select'
               v[:grid][:edittype] ||= 'select'
               v[:grid][:editoptions][:value] ||= v[:sel]
               v[:grid][:align] ||= 'center'
@@ -504,7 +521,7 @@ module MantMod
           if hay_grid
             v[:grid][:align] ||= 'right'
             v[:grid][:editoptions][:dataInit] ||= '~function(e){numero(e,' + v[:manti].to_s + ',' + v[:decim].to_s + ',' + v[:signo].to_s + ')}~'
-            v[:grid][:searchoptions][:dataInit] ||= '~function(e){numero(e,' + v[:manti].to_s + ',' + v[:decim].to_s + ',' + v[:signo].to_s + ')}~'
+            #v[:grid][:searchoptions][:dataInit] ||= '~function(e){numero(e,' + v[:manti].to_s + ',' + v[:decim].to_s + ',' + v[:signo].to_s + ')}~'
             v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
             #v[:grid][:formatter] ||= 'number'
             #v[:grid][:formatoptions][:decimalPlaces] ||= v[:decim]
@@ -516,7 +533,7 @@ module MantMod
             v[:grid][:align] ||= 'center'
             #v[:grid][:formatter] ||= 'date'
             v[:grid][:editoptions][:dataInit] ||= '~function(e){date_pick(e,' + v[:date_opts].to_json + ')}~'
-            v[:grid][:searchoptions][:dataInit] ||= '~function(e){date_pick(e,' + v[:date_opts].to_json + ')}~'
+            #v[:grid][:searchoptions][:dataInit] ||= '~function(e){date_pick(e,' + v[:date_opts].to_json + ')}~'
             v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
           end
         when :text
@@ -526,6 +543,8 @@ module MantMod
             v[:grid][:edittype] ||= 'textarea'
             v[:grid][:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
           end
+        when :div
+          v[:nil] = true
       end
 
       v[:decim] ||= 0
@@ -564,6 +583,9 @@ module MantMod
           when :time
             ini = 'Time.now'
             conv = '.to_time'
+          when :div
+            ini = 'nil'
+            conv = ''
           else
             ini = "''"
             conv = '.to_s'

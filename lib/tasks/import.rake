@@ -17,7 +17,7 @@ namespace :nimbus do
           @upd << " LEFT OUTER JOIN #{tabk} #{@alias} ON #{tab}.#{k} = #{@alias}.id"
           pk_a(modk, @alias.dup, deep + 1)
         else
-          @wh << ' and ' unless @wh.empty?
+          @wh << ' AND ' unless @wh.empty?
           @wh << "#{tab}.#{k}="
           @wh << "CAST(" if mod.columns_hash[k].type == :integer || mod.columns_hash[k].type == :decimal
           @wh << "split_part(#{@col},'~',#{@nk})"
@@ -69,26 +69,26 @@ namespace :nimbus do
 
         puts mod.to_s
 
-        ActiveRecord::Base.connection.execute("truncate #{his ? tab + ',h_' + tab : tab} restart identity") unless add
+        ActiveRecord::Base.connection.execute("TRUNCATE #{his ? tab + ',h_' + tab : tab} RESTART IDENTITY") unless add
 
         add_cols = ''
         d_c = ''
         cols = []
         cmps.each {|c|
           unless cmps_o.include?(c)
-            add_cols << "add column #{c} character varying,"
-            d_c << "drop column #{c},"
+            add_cols << "ADD COLUMN #{c} CHARACTER VARYING,"
+            d_c << "DROP COLUMN #{c},"
             cols << c if cmps_o.include?(c + '_id')
           end
         }
 
         if add_cols != ''
           tab_update[mod] = cols unless cols.empty?
-          drop_cols << "alter table #{tab} #{d_c.chop};"
-          ActiveRecord::Base.connection.execute("alter table #{tab} " + add_cols.chop)
+          drop_cols << "ALTER TABLE #{tab} #{d_c.chop};"
+          ActiveRecord::Base.connection.execute("ALTER TABLE #{tab} " + add_cols.chop)
         end
 
-        ActiveRecord::Base.connection.execute("copy #{tab} (#{head}) from '#{fic}' csv header")
+        ActiveRecord::Base.connection.execute("COPY #{tab} (#{head}) FROM '#{fic}' CSV HEADER")
       }
 
       puts
@@ -116,7 +116,7 @@ namespace :nimbus do
             @alias = 'a'
             pk_a(mod_col, 'a', 1)
             if @deep <= vuelta
-              upd_glob << "#{col}_id=(select a.id from #{tab_col} a #{@upd} where #{@wh}),"
+              upd_glob << "#{col}_id=COALESCE(#{col}_id,(SELECT a.id FROM #{tab_col} a #{@upd} WHERE #{@wh})),"
               list_cmps << col
               true  # Para borrar la columna (en el delete_if)
             else
@@ -127,7 +127,7 @@ namespace :nimbus do
           if upd_glob != ''
             puts mod.to_s + ' (' + list_cmps.join(',') + ')'
 
-            ActiveRecord::Base.connection.execute("update #{tab} set #{upd_glob.chop}")
+            ActiveRecord::Base.connection.execute("UPDATE #{tab} SET #{upd_glob.chop}")
           end
 
           otra_vuelta = true unless cols.empty?

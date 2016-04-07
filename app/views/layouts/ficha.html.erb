@@ -151,8 +151,14 @@
       modal: true,
       title: "<%= d[:titulo] %>",
       buttons: {
-        <% d[:botones].each {|b| %>
-          "<%= b[:label] %>": function () {callFonServer("<%= b[:accion] %>");<%= (b[:close].nil? or b[:close]) ? '$( this ).dialog("close");'.html_safe : '' %>},
+        <% d[:botones].to_a.each {|b| %>
+          "<%= b[:label] %>": function () {
+            <% if b[:busy] %>
+              ponBusy();
+            <% end %>
+            callFonServer("<%= b[:accion] %>", {}, quitaBusy);
+            <%= (b[:close].nil? or b[:close]) ? '$(this).dialog("close");'.html_safe : '' %>
+          },
         <% } %>
       }
     });
@@ -207,6 +213,7 @@
     redimWindow();
     $("input,select,textarea").filter(":enabled").first().focus();
     //componentHandler.upgradeDom();
+    parent.redimWindow();
   });
 
   var _activeTab;

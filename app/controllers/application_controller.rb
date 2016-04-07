@@ -84,8 +84,11 @@ class ApplicationController < ActionController::Base
     @ajax << '.dialog("option", "title", "' + h[:tit] + '")'
     @ajax << '.dialog("option", "buttons", {'
     h[:bot].each {|b|
-      @ajax << '"' + nt(b[:label]) + '": function(){callFonServer("' + b[:accion] + '");'
-      @ajax << '$("#dialog-nim-alert").dialog("close");' if h[:close]
+      b[:close] = h[:close] if b[:close].nil?
+      @ajax << '"' + nt(b[:label]) + '": function(){'
+      @ajax << 'ponBusy();' if b[:busy]
+      @ajax << 'callFonServer("' + b[:accion] + '", {}, quitaBusy);'
+      @ajax << '$("#dialog-nim-alert").dialog("close");' if b[:close]
       @ajax << '},'
     }
     @ajax << '})'
@@ -141,8 +144,19 @@ class ApplicationController < ActionController::Base
     @ajax << "window.open('#{url}', '_blank');"
   end
 
+  # Actualiza el contenido del grid
   def grid_reload
     @ajax << 'parentGridReload();'
+  end
+
+  # Muestra el grid
+  def grid_show
+    @ajax << 'parentGridShow();'
+  end
+
+  # Oculta el grid
+  def grid_hide
+    @ajax << 'parentGridHide();'
   end
 
   # Funciones para el manejo del histórico de un modelo
@@ -447,7 +461,8 @@ class ApplicationController < ActionController::Base
     ord = sortname + ' ' + params[:sord]
 =end
 
-    tot_records = clm.select(:id).ljoin(eager.map{|j| j.to_sym}).where(w).size
+    #tot_records = clm.select(:id).ljoin(eager.map{|j| j.to_sym}).where(w).size
+    tot_records =  clm.eager_load(eager).where(w).where(params[:wh]).count
     lim = params[:rows].to_i
     tot_pages = tot_records / lim
     tot_pages += 1 if tot_records % lim != 0
@@ -519,13 +534,14 @@ class ApplicationController < ActionController::Base
 
     if params[:vista]
       v = Vista.new
-      v.id = params[:vista]
+      v.id = params[:vista].to_i
     else
       v = Vista.create
       $h[v.id] = {}
     end
 
-    @fact = $h[v.id][:fact] = clm.new
+    @dat = $h[v.id]
+    @fact = @dat[:fact] = clm.new
     @fact.user_id = session[:uid]
     @fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord
 
@@ -535,8 +551,8 @@ class ApplicationController < ActionController::Base
 
     eid, jid = get_empeje
 
-    $h[v.id][:eid] = eid
-    $h[v.id][:jid] = jid
+    @dat[:eid] = eid
+    @dat[:jid] = jid
 
     if params[:mod]
       # Si es un mant hijo, inicializar el id del padre
@@ -644,15 +660,16 @@ class ApplicationController < ActionController::Base
 
     if params[:vista]
       v = Vista.new
-      v.id = params[:vista]
+      v.id = params[:vista].to_i
     else
       v = Vista.create
       $h[v.id] = {}
     end
 
     @vid = v.id
-    $h[v.id][:fact] = @fact
-    $h[v.id][:head] = params[:head] if params[:head]
+    @dat = $h[v.id]
+    @dat[:fact] = @fact
+    @dat[:head] = params[:head] if params[:head]
 
     @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
 
@@ -661,27 +678,26 @@ class ApplicationController < ActionController::Base
     if clm.mant?
       if @fact.id != 0
         if @fact.respond_to?('empresa')
-          $h[v.id][:eid] = @fact.empresa.id
+          @dat[:eid] = @fact.empresa.id
         elsif clm.superclass.to_s == 'Empresa'
-          $h[v.id][:eid] = @fact.id
+          @dat[:eid] = @fact.id
         end
 
         if @fact.respond_to?('ejercicio')
-          $h[v.id][:jid] = @fact.ejercicio.id
+          @dat[:jid] = @fact.ejercicio.id
         elsif clm.superclass.to_s == 'Empresa'
-          $h[v.id][:jid] = @fact.id
+          @dat[:jid] = @fact.id
         end
 
         sincro_hijos(v.id)
-        @ajax += 'var eid="' + $h[v.id][:eid].to_s + '",jid="' + $h[v.id][:jid].to_s + '";'
 
-        set_empeje($h[v.id][:eid], $h[v.id][:jid])
+        set_empeje(@dat[:eid], @dat[:jid])
 
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: true, borrar: true});'
       else
-        $h[v.id][:eid] = params[:eid]
-        $h[v.id][:jid] = params[:jid]
+        @dat[:eid] = params[:eid]
+        @dat[:jid] = params[:jid]
 
         @e = Empresa.find_by id: params[:eid]
         @j = Ejercicio.find_by id: params[:jid]
@@ -689,7 +705,16 @@ class ApplicationController < ActionController::Base
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: false, borrar: false});'
       end
+    else
+      eid, jid = get_empeje
+
+      @dat[:eid] = eid
+      @dat[:jid] = jid
+
+      set_empeje(eid, jid)
     end
+
+    @ajax += 'var eid="' + @dat[:eid].to_s + '",jid="' + @dat[:jid].to_s + '";'
 
     before_envia_ficha if self.respond_to?('before_envia_ficha')
     envia_ficha
@@ -782,8 +807,11 @@ class ApplicationController < ActionController::Base
   end
 
   def fact_clone
-    @fant = @fact.respond_to?(:id) ? {id: @fact.id} : {}
-    @fact.campos.each {|c, v| @fant[c] = @fact.method(c).call}
+    #@fant = @fact.respond_to?(:id) ? {id: @fact.id} : {}
+    #@fact.campos.each {|c, v| @fant[c] = @fact.method(c).call}
+    fant = @fact.respond_to?(:id) ? {id: @fact.id} : {}
+    @fact.campos.each {|c, v| fant[c] = @fact.method(c).call}
+    @fant = fant.deep_dup
   end
 
   def forma_campo(tipo, ficha, cmp, val={})
@@ -791,12 +819,14 @@ class ApplicationController < ActionController::Base
     if cmp.ends_with?('_id')
       id = ficha.method(cmp).call
       if id and id != 0 and id != ''
-        if class_modelo.attribute_names.include?(cmp)
-          val = {}
-          cmpr = cmp[0..-4] + ".auto_comp_value(:#{tipo})"
-        else
-          val =  cp[:ref].constantize.find(id.to_i).method('auto_comp_value').call(tipo)
-        end
+        #if class_modelo.attribute_names.include?(cmp)
+          #val = {}
+          #cmpr = cmp[0..-4] + ".auto_comp_value(:#{tipo})"
+          mod = cp[:ref].constantize
+          val = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + id.to_s)[0].auto_comp_value(tipo)
+        #else
+        #  val =  cp[:ref].constantize.find(id.to_i).method('auto_comp_value').call(tipo)
+        #end
       else
         val = nil
       end
@@ -836,6 +866,8 @@ class ApplicationController < ActionController::Base
     when :boolean
       val = false unless val
       @ajax << '$("#' + cmp_s + '").prop("checked",' + val.to_s + ');'
+    when :div
+      ;
     else
       @ajax << '$("#' + cmp_s + '").val(' + forma_campo(:form, @fact, cmp_s, val).to_json + ')'
       @ajax << '.attr("dbid",' + val.to_s + ')' if cmp_s.ends_with?('_id') and val
@@ -982,10 +1014,149 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # Método para crear un grid dinámicamente
+  #
+  # opts es un hash con las siguientes claves:
+  #
+  # cmp: es un campo X definido con {type: :div}
+  #
+  # search: (true/false) indica si aparece o no la barra de búsqueda
+  #         en el grid. Por defecto vale false.
+  #
+  # cols: Es un array de hashes conteniendo información de cada columna.
+  #       Las posibles claves del hash de cada columna son:
+  #       name: el nombre y título de la columna.
+  #       type: el tipo (:boolean, :string, :integer, :decimal, :date, :time)
+  #            Si no se especifica se asume string.
+  #       dec: Sólo para el type :decimal indica el número de decimales.
+  #            Por defecto 2.
+  #       align: Posibles valores: 'left', 'center', 'right'
+  #              Por defecto se adapta al 'type' por lo que no sería necesario
+  #              darle valor, salvo que queramos un comportamiento especial.
+  #       width: Anchura de la columna. Por defecto 150.
+  #
+  #       Cualquier clave admitida por jqGrid en colModel
+  #       ver: http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options
+  #
+  # grid: Es un hash con opciones específicas para el grid. Admite todas las
+  #       referidas en: http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options
+  #       Las más interesantes serían:
+  #       caption: Es una string con un título para el grid. Añade una barra
+  #                de título con dicha string y un botón para colapsar el grid.
+  #       height: Indica la altura del grid. Por defecto 150.
+  #       hidegrid: (true/false) Establece si aparece o no el botón de colapsar
+  #                 Sólo válido si hay caption.
+  #       multiselect: (true/false) Permite seleccionar múltiples filas.
+  #                    En este caso se añade al grid una primera columna con
+  #                    checks para indicar la selección. Por defecto false.
+  #       multiSort: (true/false) Permite ordenar por varias columnas.
+  #       shrinkToFit: (true/false) Si se pone a true se ajustarán las anchuras
+  #                    de las columnas para caber en la anchura del grid. Por
+  #                    defecto false.
+  #
+  # data: Es un array de arrays con los datos (puede ser un array simple si sólo
+  #       hay una fila de datos). Cada array contendrá n+1 elementos, donde n es
+  #       número de columnas que se han definido en 'cols'. El elemento adicional,
+  #       que tiene que ser el primero del array, contendrá el id de la fila.
+  #       Este id es el que se devolverá al campo X en caso de que la fila sea
+  #       seleccionada.
+  #
+  # El método, además de crear el grid, sicroniza la seleción de fila (o filas si
+  # está a true la opción multiselect) con el servidor. En el campo X asociado
+  # tendremos siempre disponible el id de la fila seleccionada (o un array de ids
+  # si hay multiselección). Para acceder lo haremos con @fact.cmp (donde cmp es el
+  # campo X referido).
+
+  def crea_grid(opts)
+    return if opts[:cmp].nil?
+
+    @fact.method(opts[:cmp].to_s + '=').call(nil)
+
+    opts[:cols].each {|c|
+      c[:searchoptions] ||= {}
+      ty = (c[:type] || :string).to_sym
+      case c[:type]
+        when :boolean
+          c[:align] ||= 'center'
+          #c[:formatter] ||= '~format_check~'
+          c[:formatter] ||= 'checkbox'
+          c[:searchoptions][:sopt] ||= ['eq']
+        when :integer
+          c[:sorttype] ||= 'int'
+          c[:formatter] ||= 'integer'
+          c[:align] ||= 'right'
+          c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
+        when :decimal
+          c[:sorttype] ||= 'float'
+          c[:formatter] ||= 'number'
+          c[:formatoptions] ||= {decimalPlaces: c[:dec] || 2}
+          c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
+          c[:align] ||= 'right'
+        when :date
+          c[:sorttype] ||= 'date'
+          c[:formatter] ||= 'date'
+          c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
+        else
+          c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
+      end
+    }
+    data = opts[:data]
+    if data
+      data = [data] unless data[0].class == Array
+      opts.delete(:data)
+    end
+    @ajax << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data.to_json});"
+  end
+
+  # Método para añadir filas a un grid existente
+  #
+  # cmp: Es el campo X sobre el que está creado el grid
+  #
+  # data: Es un array de arrays con los datos (puede ser un array simple si sólo
+  #       hay una fila de datos). Cada array contendrá n+1 elementos, donde n es
+  #       número de columnas que se han definido en 'cols'. El elemento adicional,
+  #       que tiene que ser el primero del array, contendrá el id de la fila.
+  #       Este id es el que se devolverá al campo X en caso de que la fila sea
+  #       seleccionada.
+
+  def add_data_grid(cmp, data)
+    data = [data] unless data[0].class == Array
+    @ajax << "addDataGridLocal('#{cmp}', #{data.to_json});"
+  end
+
+  def del_data_grid(cmp, id)
+    @ajax << "delDataGridLocal('#{cmp}', #{id});"
+  end
+
+  def grid_local_select
+    #@dat = $h[params[:vista].to_i]
+    #@fact = @dat[:fact]
+    campo = params[:cmp]
+    if params[:multi]
+      if params[:row] == ''
+        @fact.method(campo + '=').call(nil)
+      elsif params[:row].is_a? Array
+        @fact.method(campo + '=').call(params[:row].map{|c| c.to_i})
+      else
+        row = params[:row].to_i
+        sel = (params[:sel] == 'true')
+        v = @fact.method(campo).call
+        if v
+          sel ? v << row : v.delete_at(v.index(row))
+        else
+          @fact.method(campo + '=').call([row]) if sel
+        end
+      end
+    else
+      @fact.method(campo + '=').call(params[:row].to_i)
+    end
+  end
+
   def validar
     clm = class_mant
 
-    @fact = $h[params[:vista].to_i][:fact]
+    @dat = $h[params[:vista].to_i]
+    @fact = @dat[:fact]
     fact_clone
 
     campo = params[:campo]
@@ -1019,7 +1190,8 @@ class ApplicationController < ActionController::Base
   def fon_server
     @ajax = ''
     if params[:vista]
-      @fact = $h[params[:vista].to_i][:fact]
+      @dat = $h[params[:vista].to_i]
+      @fact = @dat[:fact]
       fact_clone if @fact
     end
     method(params[:fon]).call if self.respond_to?(params[:fon])
@@ -1047,9 +1219,8 @@ class ApplicationController < ActionController::Base
   end
 
   def borrar
-    clm = class_mant
-    vid = params[:vista].to_i
-    @fact = $h[vid][:fact]
+    @dat = $h[params[:vista].to_i]
+    @fact = @dat[:fact]
     @fact.destroy
     render js: ''
   end
@@ -1059,7 +1230,8 @@ class ApplicationController < ActionController::Base
   def grabar
     clm = class_mant
     vid = params[:vista].to_i
-    @fact = $h[vid][:fact]
+    @dat = $h[vid]
+    @fact = @dat[:fact]
     fact_clone
     err = ''
     @ajax = ''
@@ -1082,6 +1254,11 @@ class ApplicationController < ActionController::Base
     }
 
     if err == ''
+      err = vali_save if self.respond_to?('vali_save')
+      err ||= ''
+    end
+
+    if err == ''
       before_save if self.respond_to?('before_save')
       if clm.view?
         clmod = class_modelo
@@ -1098,6 +1275,7 @@ class ApplicationController < ActionController::Base
         begin
           @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
         rescue Exception => e
+          puts e
           @ajax = ''
           sincro_ficha :ajax => true
           mensaje 'Grabación cancelada. Ya existe la clave'
@@ -1119,7 +1297,7 @@ class ApplicationController < ActionController::Base
 
       @ajax << 'hayCambios=false;'
     else
-      @ajax << '$("#' + last_c + '").focus();'
+      @ajax << '$("#' + last_c + '").focus();' if last_c
       #@ajax << 'alert(' + err.to_json + ');'
       mensaje tit: 'Errores en el registro', msg: err
     end
@@ -1127,6 +1305,20 @@ class ApplicationController < ActionController::Base
     sincro_ficha :ajax => true
 
     render :js => @ajax
+  end
+
+  def bus_call()
+    @dat = $h[params[:vista].to_i]
+    @fact = @dat[:fact]
+    cmp = @fact.campos[params[:id].to_sym]
+
+    flash[:mod] = cmp[:ref].to_s
+    flash[:ctr] = params[:controller]
+    flash[:eid] = @dat[:eid]
+    flash[:jid] = @dat[:jid]
+    flash[:pref] = cmp[:bus] if cmp[:bus]
+
+    @ajax << 'var w = window.open("/bus", "_blank", "width=700, height=500"); w._autoCompField = bus_input_selected;'
   end
 
   def eval_cad(cad)
@@ -1227,6 +1419,8 @@ class ApplicationController < ActionController::Base
         sal << '</ul>'
 =end
         sal << '</div>'
+      elsif v[:type] == :div
+        sal << "<div id='#{cs}' style='overflow: auto'></div>"
       else
         sal << '<div class="nim-group">'
         #sal << '<input id="' + cs + '" size=' + size + ' required onchange="validar($(this))"'

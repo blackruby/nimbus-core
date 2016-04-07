@@ -435,6 +435,14 @@ function parentGridReload() {
   if (parent != self && $.isFunction(parent.grid_reload)) parent.grid_reload();
 }
 
+function parentGridHide() {
+  if (parent != self && $.isFunction(parent.gridHide)) parent.gridHide();
+}
+
+function parentGridShow() {
+  if (parent != self && $.isFunction(parent.gridShow)) parent.gridShow();
+}
+
 function mant_borrar() {
   $("#dialog-borrar").dialog("open");
 }
@@ -629,7 +637,7 @@ function mask(h) {
 
 // Elegido un carácter UTF8 para formatear el aspecto de los booleanos (checks) en el grid
 function format_check(v){
-  return v == 'true' ? '\u2714' : '';
+  return v == 'true' || v == true ? '\u2714' : '';
 }
 
 function unformat_check(v){
@@ -645,9 +653,13 @@ if (self != top)
 */
 
 function autoCompBuscar() {
+  bus_input_selected = $("#_auto_comp_button_").parent().find("input");
+  callFonServer("bus_call", {id: bus_input_selected.attr("id")});
+  /*
   var inp = $("#_auto_comp_button_").parent().find("input");
   var w = window.open('/bus?mod=' + inp.attr("modelo") + '&eid=' + eid + '&jid=' + jid, "_blank", "width=700, height=500");
   w._autoCompField = inp
+  */
 }
 
 function autoCompIrAFicha() {
@@ -665,6 +677,64 @@ function autoCompIrAFicha() {
 
 function autoCompNuevaFicha() {
   window.open('/' +  $("#_auto_comp_button_").parent().find("input").attr("controller") + '/new', '_blank', '');
+}
+
+function ponBusy() {
+  $("body").append('<div class="mdl-spinner mdl-js-spinner is-active" style="z-index:2000; position: absolute; left: 50%; top: 50%;"></div>');
+  componentHandler.upgradeDom();
+  //$(".mdl-spinner").addClass("is-active");
+}
+
+function quitaBusy() {
+  //$(".mdl-spinner").removeClass("is-active");
+  $(".mdl-spinner").remove();
+}
+
+function _addDataGridLocal(jcmp, data) {
+  var cols = jcmp.jqGrid('getGridParam', 'colModel');
+  var ms = jcmp.jqGrid('getGridParam', 'multiselect');
+
+  var h = {}, i, j, c, d;
+  for(i = 0; d = data[i]; i++) {
+    if (ms)
+      for(j = 1; c = cols[j]; j++) h[c.name] = d[j];
+    else
+      for(j = 0; c = cols[j]; j++) h[c.name] = d[j+1];
+
+    jcmp.jqGrid('addRowData', d[0], h);
+  }
+}
+
+function addDataGridLocal(cmp, data) {
+  _addDataGridLocal($("#g_" + cmp) , data);
+}
+
+function delDataGridLocal(cmp, id) {
+  $("#g_" + cmp).jqGrid('delRowData', id);
+}
+
+function creaGridLocal(opts, data) {
+  var cmp = opts.cmp;
+  var ele = $("#" + cmp);
+  var grid = opts.grid;
+  if (grid == undefined) grid = {};
+  ele.html("").append('<table id="g_' + cmp + '"></table>');
+  var g = $("#g_" + cmp);
+  g.jqGrid($.extend({
+    datatype: "local",
+    colModel: opts.cols,
+    gridview: true,
+    height: 150,
+    ignoreCase: true,
+    altRows: true,
+    deselectAfterSort: false,
+    onSelectRow: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: r, sel: s, multi: grid.multiselect})},
+    onSelectAll: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: (s ? r : null), sel: s, multi: grid.multiselect})},
+  }, grid));
+
+  if (opts.search) g.jqGrid('filterToolbar',{searchOperators : true});
+
+  _addDataGridLocal(g, data);
 }
 
 $(window).load(function() {
