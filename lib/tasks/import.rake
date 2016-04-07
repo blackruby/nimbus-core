@@ -19,10 +19,11 @@ namespace :nimbus do
         else
           @wh << ' AND ' unless @wh.empty?
           @wh << "#{tab}.#{k}="
-          @wh << "CAST(" if mod.columns_hash[k].type == :integer || mod.columns_hash[k].type == :decimal
+          @wh << "CAST(" if mod.columns_hash[k].type == :integer || mod.columns_hash[k].type == :decimal || mod.columns_hash[k].type == :time
           @wh << "split_part(#{@col},'~',#{@nk})"
           @wh << " AS INTEGER)" if mod.columns_hash[k].type == :integer
           @wh << " AS NUMERIC)" if mod.columns_hash[k].type == :decimal
+          @wh << " AS TIME)" if mod.columns_hash[k].type == :time
           @nk += 1
         end
       }
@@ -78,15 +79,18 @@ namespace :nimbus do
           unless cmps_o.include?(c)
             add_cols << "ADD COLUMN #{c} CHARACTER VARYING,"
             d_c << "DROP COLUMN #{c},"
-            cols << c if cmps_o.include?(c + '_id')
+          end
+          if cmps_o.include?(c + '_id')
+            mod_col = mod.reflect_on_association(c.to_sym).options[:class_name].constantize
+            cols << c unless mod_col.pk.empty?
           end
         }
 
         if add_cols != ''
-          tab_update[mod] = cols unless cols.empty?
           drop_cols << "ALTER TABLE #{tab} #{d_c.chop};"
           ActiveRecord::Base.connection.execute("ALTER TABLE #{tab} " + add_cols.chop)
         end
+        tab_update[mod] = cols unless cols.empty?
 
         ActiveRecord::Base.connection.execute("COPY #{tab} (#{head}) FROM '#{fic}' CSV HEADER")
       }
