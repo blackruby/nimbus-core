@@ -83,15 +83,21 @@ class BusController < ApplicationController
       return
     end
 
-    ctr = flash[:ctr] || params[:ctr] || '_'
+    clm = @mod.constantize
+    tabla = clm.table_name
+    @tabla = nt tabla
 
-    @vid = Vista.create.id
+    ctr = flash[:ctr] || params[:ctr] || '_'
 
     ej = (flash[:eid] or flash[:jid]) ? [flash[:eid].to_s, flash[:jid].to_s] : get_empeje
 
-    @tabla = nt @mod.constantize.table_name
+    w = flash[:wh] || ''
 
-    $h[@vid] = {mod: @mod.constantize, ctr: ctr, cols: {}, last_col: 'c00', types:{}, order: '', filters: {rules: []}, eid: ej[0], jid: ej[1]}
+    add_where(w, tabla + '.empresa_id=' + ej[0]) if clm.column_names.include?('empresa_id')
+    add_where(w, tabla + '.ejercicio_id=' + ej[1]) if clm.column_names.include?('ejercicio_id')
+
+    @v = Vista.new
+    @v.data = {mod: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, order: '', wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1]}
 
     # Calcular fichero de preferencias
     fic_pref = nil
@@ -130,42 +136,40 @@ class BusController < ApplicationController
 
     fic_pref ||= @sel.first[1][0] unless @sel.empty?
 
-    #genera_grid_from_file(@sel.first[1][0], $h[@vid]) unless @sel.empty?
-    @ajax = fic_pref ? "callFonServer('bus_sel', {fic: '#{fic_pref}'}); $('#bus-sel').val('#{fic_pref}')" : ''
+    @v.save
+
+    @ajax = "_vista=#{@v.id};"
+    @ajax << (params[:ctr] ? "_controlador_edit='#{params[:ctr]}';" : "_controlador_edit='#{clm.table_name}';")
+    #genera_grid_from_file(@sel.first[1][0]) unless @sel.empty?
+    @ajax << (fic_pref ? "callFonServer('bus_sel', {fic: '#{fic_pref}'}); $('#bus-sel').val('#{fic_pref}')" : '')
   end
 
   def list
-    # Si la petición no es Ajax... ¡Puerta! (Por razones de seguridad)
-    unless request.xhr?
+    unless @v
       render nothing: true
       return
     end
 
-    vid = params[:vista].to_i
-    unless vid
-      render nothing: true
-      return
-    end
-
-    dat = $h[vid]
-    cols = dat[:cols]
+    cols = @dat[:cols]
 
     if :cols.empty?
       render nothing: true
       return
     end
 
-    clm = dat[:mod]
+    clm = @dat[:mod]
     tabla = clm.table_name
 
-    w = ''
+    #w = ''
 
-    add_where(w, tabla + '.empresa_id=' + dat[:eid]) if clm.column_names.include?('empresa_id')
-    add_where(w, tabla + '.ejercicio_id=' + dat[:jid]) if clm.column_names.include?('ejercicio_id')
+    #add_where(w, tabla + '.empresa_id=' + dat[:eid]) if clm.column_names.include?('empresa_id')
+    #add_where(w, tabla + '.ejercicio_id=' + dat[:jid]) if clm.column_names.include?('ejercicio_id')
+
+    w = @dat[:wh].dup
 
     if params[:filters]
-      dat[:filters] = eval(params[:filters])
-      dat[:filters][:rules].each {|f|
+      @dat[:filters] = eval(params[:filters])
+      @dat[:filters][:rules].each {|f|
         #[:eq,:ne,:lt,:le,:gt,:ge,:bw,:bn,:in,:ni,:ew,:en,:cn,:nc,:nu,:nn]
         op = f[:op].to_sym
         cmp = cols[f[:field].to_sym]
@@ -195,12 +199,12 @@ class BusController < ApplicationController
         end
       }
     else
-      dat[:filters] = {rules: []}
+      @dat[:filters] = {rules: []}
     end
 
     # Formar la cadena de ordenación
     #
-    dat[:order] = params[:sidx].empty? ? '' : params[:sidx] + params[:sord]
+    @dat[:order] = params[:sidx].empty? ? '' : params[:sidx] + params[:sord]
     ord = ''
     sort_elem = params[:sidx].split(',')  #Partimos por ',' así tenemos un vector de campos por los que ordenar
     sort_elem.each{|c|
@@ -210,10 +214,10 @@ class BusController < ApplicationController
     }
     ord = ord[0..-2] + ' ' + params[:sord] if ord != ''
 
-    dat[:cad_where] = w
-    dat[:cad_order] = ord
+    @dat[:cad_where] = w
+    @dat[:cad_order] = ord
 
-    tot_records = clm.select(:id).joins(dat[:cad_join]).where(w).size
+    tot_records = clm.select(:id).joins(@dat[:cad_join]).where(w).size
     lim = params[:rows].to_i
     tot_pages = tot_records / lim
     tot_pages += 1 if tot_records % lim != 0
@@ -221,7 +225,7 @@ class BusController < ApplicationController
     page = tot_pages if page > tot_pages
     page = 1 if page <=0
 
-    sql = clm.select(tabla + '.id,' + dat[:cad_sel]).joins(dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
+    sql = clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
 
     res = {page: page, total: tot_pages, records: tot_records, rows: []}
     sql.each {|s|
@@ -236,14 +240,16 @@ class BusController < ApplicationController
       res[:rows] << h
     }
     render :json => res
+
+    @v.save
   end
 
-  def genera_grid(dat, kh, kv)
-    mp = mselect_parse(dat[:mod], dat[:cols].map{|k, v| v[:label]})
-    dat[:cad_sel] = mp[:cad_sel]
-    dat[:cad_join] = mp[:cad_join]
+  def genera_grid(kh, kv)
+    mp = mselect_parse(@dat[:mod], @dat[:cols].map{|k, v| v[:label]})
+    @dat[:cad_sel] = mp[:cad_sel]
+    @dat[:cad_join] = mp[:cad_join]
 
-    col_mod = dat[:cols].map {|k, c|
+    col_mod = @dat[:cols].map {|k, c|
       c[:cmp_db] = mp[:alias_cmp][c[:label]][:cmp_db]
       c[:alias] = mp[:alias_cmp][c[:label]][:alias]
       h = {name: k.to_s, label: c[:label], type: c[:type], width: c[:w], searchoptions: {}, flag: true}
@@ -266,10 +272,10 @@ class BusController < ApplicationController
 
     # Construir filters
 
-    if dat[:filters][:rules].empty?
+    if @dat[:filters][:rules].empty?
       postdata = {}
     else
-      dat[:filters][:rules].each {|r|
+      @dat[:filters][:rules].each {|r|
         col_mod.each {|c|
           if c[:name] == r[:field] and c[:flag]
             c[:flag] = false
@@ -282,13 +288,13 @@ class BusController < ApplicationController
         }
       }
 
-      postdata = {filters: dat[:filters].to_json}
+      postdata = {filters: @dat[:filters].to_json}
     end
 
-    lb = dat[:order].rindex(' ')
+    lb = @dat[:order].rindex(' ')
     if lb
-      sortname = dat[:order][0..lb]
-      sortorder = dat[:order][lb+1..-1]
+      sortname = @dat[:order][0..lb]
+      sortorder = @dat[:order][lb+1..-1]
     else
       sortname = ''
       sortorder = ''
@@ -298,33 +304,34 @@ class BusController < ApplicationController
   end
 
   def nueva_col
-    vid = params[:vista].to_i
-    return unless vid
+    #vid = params[:vista].to_i
+    #return unless vid
+    return unless @v
 
-    dat = $h[vid]
+    #dat = $h[vid]
     arg = eval(params[:dat])
     col = arg[:col]
 
-    dat[:cols] = arg[:cols]
+    @dat[:cols] = arg[:cols]
 
-    rul = dat[:filters][:rules]
+    rul = @dat[:filters][:rules]
 
     keep_scroll_v = true
 
     if arg[:modo] == 'del'
       name_col = nil
-      dat[:cols].reverse_each {|k, v|
+      @dat[:cols].reverse_each {|k, v|
         if v[:label] == col
           name_col = k
           break
         end
       }
 
-      dat[:cols].delete(name_col)
+      @dat[:cols].delete(name_col)
       name_col = name_col.to_s
 
       # Eliminar la columna col de la cadena de order
-      vo = dat[:order].split(', ')
+      vo = @dat[:order].split(', ')
       (vo.size - 1).downto(0).each {|i|
         if vo[i].starts_with?(name_col + ' ')
           vo.delete_at(i)
@@ -332,7 +339,7 @@ class BusController < ApplicationController
           break
         end
       }
-      dat[:order] = vo.join(', ') unless keep_scroll_v
+      @dat[:order] = vo.join(', ') unless keep_scroll_v
 
       # Eliminar la columna col del hash de filter si está incluida
       (rul.size - 1).downto(0).each {|i|
@@ -343,57 +350,53 @@ class BusController < ApplicationController
         end
       }
     else
-      dat[:cols][dat[:last_col].next!.to_sym] =  {label: col, w: 150, type: arg[:type]}
+      @dat[:cols][@dat[:last_col].next!.to_sym] =  {label: col, w: 150, type: arg[:type]}
     end
 
-    genera_grid(dat, arg[:modo] == 'del', keep_scroll_v)
+    genera_grid(arg[:modo] == 'del', keep_scroll_v)
   end
 
   def bus_value
-    vid = params[:vista].to_i
-    return '' unless vid
+    return '' unless @v
 
-    mod =  $h[vid][:mod]
+    mod =  @dat[:mod]
     val =  mod.mselect(mod.auto_comp_mselect).where("#{mod.table_name}.id = #{params[:id]}")[0].auto_comp_value(:form)
     @ajax << "_autoCompField.val('#{val}');"
     @ajax << 'window.close();'
   end
 
   def bus_save
-    vid = params[:vista].to_i
-    return unless vid
-
-    dat = $h[vid]
+    return unless @v
 
     arg = eval(params[:dat])
 
-    h = {cols: arg[:cols], filters: dat[:filters], order: dat[:order]}
-    path = "bus/_usuarios/#{@usu.codigo}/#{dat[:mod]}"
+    h = {cols: arg[:cols], filters: @dat[:filters], order: @dat[:order]}
+    path = "bus/_usuarios/#{@usu.codigo}/#{@dat[:mod]}"
     FileUtils.mkdir_p(path)
     File.write("#{path}/#{params[:fic]}.yml", h.to_yaml)
   end
 
-  def genera_grid_from_file(fic, dat)
-    dat.merge! YAML.load(File.read(fic))
-    genera_grid(dat, false, false)
-    dat[:last_col] = dat[:cols].map{|k, v| k}.max.to_s
+  def genera_grid_from_file(fic)
+    @dat.merge! YAML.load(File.read(fic))
+    genera_grid(false, false)
+    @dat[:last_col] = @dat[:cols].map{|k, v| k}.max.to_s
   end
 
   def bus_sel
-    vid = params[:vista].to_i
-    return unless vid
+    return unless @v
 
-    genera_grid_from_file(params[:fic], $h[vid])
+    genera_grid_from_file(params[:fic])
   end
 
   def bus_send
     vid = flash[:vista]
-    unless vid
+    @v = Vista.find_by id: flash[:vista]
+    if @v
+      dat = @v.data
+    else
       render file: '/public/401.html', status: 401, layout: false
       return
     end
-
-    dat = $h[vid]
 
     send_data File.read("/tmp/nim#{vid}.#{dat[:file_type]}"), filename: "#{dat[:mod].table_name}.#{dat[:file_type]}"
     FileUtils.rm "/tmp/nim#{vid}.xlsx", force: true
@@ -401,11 +404,9 @@ class BusController < ApplicationController
   end
 
   def bus_export
-    vid = params[:vista].to_i
-    return unless vid
+    return unless @v
 
-    dat = $h[vid]
-    cols = dat[:cols]
+    cols = @dat[:cols]
 
     xls = Axlsx::Package.new
     wb = xls.workbook
@@ -413,33 +414,30 @@ class BusController < ApplicationController
 
     sh.add_row(cols.map {|k, v| v[:label]})
 
-    dat[:mod].select(dat[:cad_sel]).joins(dat[:cad_join]).where(dat[:cad_where]).order(dat[:cad_order]).each {|s|
+    @dat[:mod].select(@dat[:cad_sel]).joins(@dat[:cad_join]).where(@dat[:cad_where]).order(@dat[:cad_order]).each {|s|
       sh.add_row(cols.map {|k, v| v[:type] == 'string' ? ' ' + s[v[:alias]].to_s : s[v[:alias]]})
     }
 
     # Fijar la fila de cabecera para repetir en cada página
     wb.add_defined_name("Hoja1!$1:$1", :local_sheet_id => sh.index, :name => '_xlnm.Print_Titles')
 
-    xls.serialize("/tmp/nim#{vid}.xlsx")
-    `libreoffice --headless --convert-to pdf --outdir /tmp /tmp/nim#{vid}.xlsx` if params[:tipo] == 'pdf'
-    dat[:file_type] = params[:tipo]
+    xls.serialize("/tmp/nim#{@v.id}.xlsx")
+    `libreoffice --headless --convert-to pdf --outdir /tmp /tmp/nim#{@v.id}.xlsx` if params[:tipo] == 'pdf'
+    @dat[:file_type] = params[:tipo]
     @ajax << "window.location.href='/bus/send';"
-    flash[:vista] = vid
+    flash[:vista] = @v.id
   end
 
   def bus_pref
-    vid = params[:vista].to_i
-    return unless vid
+    return unless @v
 
-    dat = $h[vid]
-
-    path = "bus/_usuarios/#{@usu.codigo}/#{dat[:mod]}"
+    path = "bus/_usuarios/#{@usu.codigo}/#{@dat[:mod]}"
     pref = path + '/_preferencias'
     if File.exists?(pref)
       hpref = YAML.load(File.read(pref))
-      hpref[dat[:ctr]] = params[:fic]
+      hpref[@dat[:ctr]] = params[:fic]
     else
-      hpref = {dat[:ctr] => params[:fic]}
+      hpref = {@dat[:ctr] => params[:fic]}
       FileUtils.mkdir_p(path)
     end
 
@@ -447,9 +445,7 @@ class BusController < ApplicationController
   end
 
   def bus_del
-    FileUtils.rm params[:fic], force: true
-  end
-
-  def bus_bye
+    f = params[:fic]
+    FileUtils.rm(f, {force: true}) if f.starts_with?("bus/_usuarios/#{@usu.codigo}/")
   end
 end

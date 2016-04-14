@@ -43,6 +43,10 @@ class WelcomeController < ApplicationController
   end
 
   def menu
+    @v = Vista.new
+    @v.data = {auto_comp: {ej: "empresa_id=#{@usu.empresa_def_id}"}}
+    @v.save
+
     @menu = ''
     hmenu = YAML.load(File.read('modulos/nimbus-core/menu.yml'))
     Dir.glob('modulos/*/menu.yml').each {|m|
@@ -53,5 +57,15 @@ class WelcomeController < ApplicationController
     gen_menu(hmenu)
 
     @panel = @usu.pref['panel']
+  end
+
+  def ejercicio_en_menu
+    if Ejercicio.where('empresa_id = ?', params[:eid]).count == 0
+      @ajax << '$("#d-ejercicio").css("visibility", "hidden")'
+    else
+      @ajax << '$("#d-ejercicio").css("visibility", "visible");$("#ejercicio").focus();'
+    end
+
+    @dat[:auto_comp][:ej] = "empresa_id=#{params[:eid]}"
   end
 end

@@ -1,19 +1,25 @@
-# Variable global para activar/desactivar mensajes de debug
-
-$nim_debug = false
-
 # Poner i18n por defecto
 
 I18n.config.enforce_available_locales = false
 I18n.default_locale = :es
 
-# Formato SQL para el schema
 
+# Nombre de la cookie de sesión (sobreescribe el de config/initializers/session_store.rb)
+Rails.application.config.session_store :cookie_store, key: '_' + Rails.app_class.to_s.split(':')[0].downcase + '_session'
+# Formato SQL para el schema
 Rails.application.config.active_record.schema_format = :sql
 
 # Nuevo formato de fecha
 
 Date::DATE_FORMATS[:sp] = '%d-%m-%Y'
+
+module Nimbus
+  # Variable global para activar/desactivar mensajes de debug
+  Debug = false
+
+  # Nombre de la cookie de empresa/ejercicio
+  CookieEmEj = ('_' + Rails.app_class.to_s.split(':')[0].downcase + '_emej').to_sym
+end
 
 #Cambiar inflections por defecto a español
 
@@ -54,7 +60,7 @@ def nt(tex, h={})
       end
     end
 
-    return(($nim_debug ? '#' : '') + tex.humanize) if r.start_with?('translation missing')
+    return((Nimbus::Debug ? '#' : '') + tex.humanize) if r.start_with?('translation missing')
     r[0] == '#' ? r[1..-1] : r
   rescue
     return '####'
@@ -341,7 +347,9 @@ module MantMod
 
       @dialogos.each {|d|
         if d[:menu]
-          @menu_r << {label: d[:menu], accion: d[:id], tipo: 'dlg'}
+          h = {label: d[:menu], accion: d[:id], tipo: 'dlg'}
+          h[:id] = d[:menu_id] if d[:menu_id]
+          @menu_r << h
         end
       }
 
@@ -593,11 +601,6 @@ module MantMod
         ini = 'nil' if v[:nil]
 
 =begin
-        p = eval("Proc.new {def #{campo}=(v);@#{campo}=(v.nil? ? #{ini} : v#{conv});end}")
-        self.class_eval(&p)
-        p = eval("Proc.new {def #{campo};@#{campo};end}")
-        self.class_eval(&p)
-=end
         met = "def #{campo}=(v);@#{campo}=(v.nil? ? #{ini} : v#{conv});end;def #{campo};@#{campo};end"
         context ? context.instance_eval(met) : self.class_eval(met)
 
@@ -605,6 +608,7 @@ module MantMod
           met = "def #{campo[0..-4]};#{v[:ref]}.find_by(id: self.#{campo});end"
           context ? context.instance_eval(met) : self.class_eval(met)
         end
+=end
       end
     end
 
@@ -663,6 +667,7 @@ module MantMod
 
   ### Métodos de instancia
 
+=begin
   def val_campo(c, v)
     c = c.to_s
     unless v[:nil] or c.ends_with?('_id')
@@ -683,18 +688,58 @@ module MantMod
       eval("self.#{c}=#{ini} if self.#{c}.nil?")
     end
   end
+=end
 
   def _ini_campos_ctrl
     @campos = self.class.campos.deep_dup
 
     # Inicialización de los campos X a valores razonables cuando no pueden ser nil
-    @campos.each {|c, v| val_campo(c, v) if v[:X]}
+    #@campos.each {|c, v| val_campo(c, v) if v[:X]}
+
+    ini_campos_ctrl if self.respond_to?(:ini_campos_ctrl)
+  end
+
+  def method_missing(m, *args, &block)
+    ms = m.to_s
+    v = @campos[m]
+    return v[:value] if v
+    if ms.ends_with?('=')
+      v = @campos[ms[0..-2].to_sym]
+      if v
+        v[:value] = args[0]
+        return
+      end
+    else
+      v = @campos[(ms + '_id').to_sym]
+      return v[:ref].constantize.find_by(id: v[:value]) if v
+    end
+    super(m, args, block)
+  end
+
+  def [](cmp)
+    return self.method(cmp).call if self.respond_to?(cmp)
+    v = @campos[cmp.to_sym]
+    return v[:value] if v
+    v = @campos[(cmp.to_s + '_id').to_sym]
+    return v[:ref].constantize.find_by(id: v[:value]) if v
+    raise ArgumentError, "No existe el campo '#{cmp}'"
+  end
+
+  def []=(cmp, val)
+    cmp = cmp.to_sym
+    cmpi  = cmp.to_s + '='
+    if self.respond_to?(cmpi)
+      self.method(cmpi).call(val)
+    else
+      v = @campos[cmp]
+      v ? v[:value] = val : raise(ArgumentError, "No existe el campo '#{cmp}'")
+    end
   end
 
   def add_campo(c, v)
     @campos[c.to_sym] = v
     self.class.ini_campo(c, v, self)
-    val_campo(c, v)
+    #val_campo(c, v)
   end
 
   def campos

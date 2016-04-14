@@ -15,18 +15,17 @@ class UsuariosMod < Usuario
     scroll: true,
   }
 
-  after_initialize :ini_campos_ctrl
   before_save :graba_pref
 
   def ini_campos_ctrl
-    self.class.campos.each {|c, v|
-      self.method("#{c}=").call(self.pref[c]) if v[:pref]
+    self.campos.each {|c, v|
+      self[c] = self.pref[c] if v[:pref]
     }
   end
 
   def graba_pref
-    self.class.campos.each {|c, v|
-      self.pref[c] = self.method(c).call if v[:pref]
+    self.campos.each {|c, v|
+      self.pref[c] = self[c] if v[:pref]
     }
   end
 end

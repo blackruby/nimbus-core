@@ -56,8 +56,8 @@
         <li class="cl-borrar nim-phone mdl-menu__item" disabled onclick="liFon(this, mantBorrarGrid)"> <i class="material-icons">delete</i> Eliminar </li>
         <% if @view[:menu_r].size > 0 %>
           <hr class="nim-phone">
-          <%  @view[:menu_r].each {|m| %>
-            <li class="mdl-menu__item" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>')"> <%= m[:label] %> </li>
+          <%  @view[:menu_r].each_with_index {|m, i| %>
+            <li id="<%= m[:id] ? m[:id] : '_mr_'+i.to_s %>" class="mdl-menu__item" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>')"> <%= m[:label] %> </li>
           <% } %>
         <% end %>
       </ul>
@@ -101,6 +101,7 @@
 </main>
 
 <%= yield %>
+
 </div>
 
 <style>
@@ -143,7 +144,6 @@
 	toolgrid = '#grid_toppager';
 
 	var vgrid = grid.jqGrid({
-    //caption: '',
     colModel: <%= raw @view[:col_model] %>,
     datatype: "json",
     mtype: 'POST',
@@ -156,32 +156,25 @@
     beforeSubmitCell: jqg_before_submit_cell,
     afterSubmitCell: jqg_after_submit_cell,
     afterSaveCell: jqg_after_save_cell,
-    <% if @view[:grid][:wh] %>
-      postData: {wh: <%= raw @view[:grid][:wh].to_json %>},
-    <% end %>
 
 		height: <%= @view[:grid][:height] %>,
     height_def: <%= @view[:grid][:height] %>,
-    //width: 500,
-    //autowidth: true,
 		rowNum: <%= @view[:grid][:rowNum] %>,
 
 		cellEdit: <%= @view[:grid][:cellEdit] %>,
-		gridview: true,	// Acelera la velocidad de renderizado. Poner a false con trees y subgrids
+		gridview: true,
 
     toppager: <%= !@view[:grid][:scroll] %>,
 		rowList:[10,20,30,50,100,500,1000],
-		altRows: true,	// filas tipo cebra
-		sortable: true,	// Si las columnas se pueden reordenar (cambiar de sitio)
-		viewrecords: true,	// Muestra información del total de registros en la toolbar
+		altRows: true,
+		sortable: true,
+		viewrecords: true,
 
 		ondblClickRow: editInForm,
 
     shrinkToFit: <%= @view[:grid][:shrinkToFit] %>,
 		multiSort: <%= @view[:grid][:multiSort] %>,
-		//multiselect: true,
-		//rownumbers: true,
-    scroll: <%= @view[:grid][:scroll] %>,
+    scroll: <%= @view[:grid][:scroll] %>
 	});
 
 	grid.jqGrid('gridResize', {handles: "s", minHeight: 80});
@@ -194,6 +187,8 @@
 	grid.jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Formulario", buttonicon :'ui-icon-carat-2-n-s', onClickButton: editInForm});
 	grid.jqGrid('navButtonAdd', toolgrid, {caption:"",title:"Nueva Alta", buttonicon :'ui-icon-plus', onClickButton: newFicha});
 	*/
+
+  <%= @ajax.html_safe %>
 
   function editInLine() {
     id = grid.jqGrid('getGridParam','selrow');
@@ -331,6 +326,11 @@
     $("#_pk-input").css('display', 'block').val('').focus();
   }
 
+  $("#_pk-label").contextmenu(function(e) {
+    e.preventDefault();
+    callFonServer("bus_call_pk");
+  });
+
   function pkBlur() {
     $("#_pk-input").css('display', 'none');
     $(".grid-title").css('display', 'block');
@@ -338,8 +338,8 @@
     $(".mdl-navigation").css('display', 'flex');
   }
 
-  $("#_pk-input" ).blur(pkBlur).autocomplete({
-    source: "/application/auto?mod=<%= @view[:model] + @view[:arg_auto] %>",
+  $("#_pk-input").blur(pkBlur).autocomplete({
+    source: "/application/auto?mod=<%= (@view[:model] + @view[:arg_auto]).html_safe %>",
     minLength: 1,
     autoFocus: true,
     select: function(e, ui){
@@ -364,6 +364,22 @@
 </script>
 
 <%= yield :after %>
+
+<div id="dialog-nim-alert" style="display: none"></div>
+
+<script>
+  $("#dialog-nim-alert").dialog({
+    autoOpen: false,
+    resizable: false,
+    modal: true,
+    width: "auto",
+    buttons: {
+      "Aceptar": function() {
+        $(this).dialog("close");
+      }
+    }
+  });
+</script>
 
 </body>
 </html>

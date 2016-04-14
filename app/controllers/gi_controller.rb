@@ -141,7 +141,7 @@ class GiController < ApplicationController
   end
 
   def ini_campos
-    @fact.formato = :pdf
+    @fact.formato = 'pdf'
     @fact.form_file = params[:file]
 
     form = GI.formato_read(params[:file])
@@ -159,11 +159,13 @@ class GiController < ApplicationController
   end
 
   def abrir
-    @fact = $h[params[:vista].to_i][:fact]
+    #@fact = $h[params[:vista].to_i][:fact]
+    @fact = @dat[:fact]
 
     lim = {}
     @fact.campos.each {|c, v|
-      lim[c] = @fact.method(c).call
+      #lim[c] = @fact.method(c).call
+      lim[c] = @fact[c]
     }
 
     lim[:eid], lim[:jid] = get_empeje
@@ -180,6 +182,8 @@ class GiController < ApplicationController
         send_file '/tmp/z.xls'
       when 'xlsx'
         send_file '/tmp/z.xlsx'
+      else
+        render nothing: true
     end
   end
 end

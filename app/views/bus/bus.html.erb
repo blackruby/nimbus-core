@@ -88,10 +88,6 @@
 </style>
 
 <script>
-  var _vista = <%= @vid %>;
-</script>
-
-<script>
   var _controlador = 'bus';
 
   $("#dialog-save").dialog({
@@ -297,12 +293,26 @@
     else
       id = grid.jqGrid('getGridParam', 'selrow');
 
-    if (id != null) {
-      _autoCompField.attr("dbid", id);
-      callFonServer("bus_value", {id: id});
-      window.opener.send_validar(_autoCompField, id)
-    } else
+    if (!id) {
       alert("Seleccione un registro");
+      return;
+    }
+
+    if (typeof(_autoCompField) == "undefined") _autoCompField = 'auto';
+
+    switch (_autoCompField) {
+      case 'mant':
+        window.opener.editInForm(id);
+        window.close();
+        break;
+      case 'auto':
+        window.open("/" + _controlador_edit + "/" + id + "/edit");
+        break;
+      default:
+        _autoCompField.attr("dbid", id);
+        callFonServer("bus_value", {id: id});
+        window.opener.send_validar(_autoCompField, id);
+    }
   }
 
   function gridLeft() {
@@ -363,10 +373,6 @@
   $(window).resize(redimWindow);
 
   redimWindow();
-
-  $(window).unload(function() {
-    callFonServer("bus_bye", {});
-  });
 
   /*
   $("body").on("click", ".clearsearchclass", function(e) {

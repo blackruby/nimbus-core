@@ -22,8 +22,6 @@ class EmpresasMod < Empresa
 
   @hijos = [{url: 'ejercicios', tab: 'post'}]
 
-  #after_initialize :ini_campos_ctrl
-
   #def ini_campos_ctrl
   #end
 end
@@ -33,6 +31,7 @@ class EmpresasMod < Empresa
 end
 
 class EmpresasController < ApplicationController
+=begin
   def ejercicio_en_menu
     if Ejercicio.where('empresa_id = ?', params[:eid]).count == 0
       @ajax << '$("#d-ejercicio").css("visibility", "hidden")'
@@ -40,4 +39,5 @@ class EmpresasController < ApplicationController
       @ajax << '$("#d-ejercicio").css("visibility", "visible");$("#ejercicio").focus();'
     end
   end
+=end
 end

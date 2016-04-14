@@ -11,8 +11,6 @@ class DivisasMod < Divisa
 
   #@hijos = []
 
-  #after_initialize :ini_campos_ctrl
-
   #def ini_campos_ctrl
   #end
 end

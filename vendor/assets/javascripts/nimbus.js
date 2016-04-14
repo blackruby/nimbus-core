@@ -346,12 +346,12 @@ $.fn.focusNextInputField = function() {
 
 // Función para invocar a una función del servidor (tipo proc_FonC)
 function callFonServer(fon_s, data, fon_ret) {
-    $.ajax({
-        url: '/' + _controlador + '/fon_server',
-        type: "POST",
-        data: $.extend(true, {vista: _vista, fon: fon_s}, data),
-        success: fon_ret
-    })
+  $.ajax({
+      url: '/' + _controlador + '/fon_server',
+      type: "POST",
+      data: $.extend(true, {vista: _vista, fon: fon_s}, data),
+      success: fon_ret
+  })
 }
 
 function send_validar(c, v) {
@@ -494,6 +494,8 @@ function statusBotones(b) {
 // Función para traducir textos en javascript
 function js_t(label) {
   switch (label) {
+    case "no_vista":
+      return("Esta página ya no es válida.\n\nVuelva a recargarla.");
     case "no_session":
       return("La sesión ha expirado.\n\nSi quiere seguir usando esta pantalla\ninicie sesión en otra ventana o pestaña y regrese.");
     case "no_emp":
@@ -506,7 +508,8 @@ function js_t(label) {
 }
 
 function auto_comp_error(e, ui) {
-  if (typeof(ui.content) != "undefined" && ui.content[0] != undefined && ui.content[0].error == 1) alert(js_t("no_session"));
+  //if (typeof(ui.content) != "undefined" && ui.content[0] != undefined && ui.content[0].error == 1) alert(js_t("no_session"));
+  if (typeof(ui.content) != "undefined" && ui.content[0] != undefined && ui.content[0].error != undefined) alert(js_t(ui.content[0].error));
 }
 
 function auto_comp(e, s, modelo, cntr) {
@@ -523,6 +526,7 @@ function auto_comp(e, s, modelo, cntr) {
   $(e).keydown(function(e) {bus(e);});
 }
 
+/*
 function set_auto_comp_filter(cmp, wh) {
   var s = cmp.autocomplete('option', 'source');
   var wi = s.indexOf('&wh=');
@@ -531,6 +535,7 @@ function set_auto_comp_filter(cmp, wh) {
   else
     cmp.autocomplete('option', 'source', s.slice(0, wi+4) + wh);
 }
+*/
 
 function date_pick(e, opt) {
   //$(e).datepicker($.extend(true, {onClose: function(){$(this).focus();}}, opt));
@@ -753,5 +758,16 @@ $(window).load(function() {
       '</ul>'
     );
     componentHandler.upgradeDom();
+  });
+
+  $(window).unload(function() {
+    if (typeof(_vista) == "undefined") return;
+
+    $.ajax({
+      url: '/application/destroy_vista',
+      type: "POST",
+      async: false,
+      data: {vista: _vista}
+    });
   });
 });

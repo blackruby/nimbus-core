@@ -29,10 +29,6 @@ body {
   #background-color: #F9FFF9;
 }
 
-.nim-autocomp-button {
- /* visibility: hidden;*/
-}
-
 .negrita {
   color: blue;
 }
@@ -98,15 +94,6 @@ body {
   transition:0.2s ease all;
   -moz-transition:0.2s ease all;
   -webkit-transition:0.2s ease all;
-}
-
-.nim-autocomp-button:focus {
-  visibility: visible;
-  color: red;
-}
-
-.nim-group:focus ~ .nim-autocomp-button {
-  visibility: visible;
 }
 
 .nim-input:focus ~ .nim-label, .nim-input:valid ~ .nim-label, .nim-select:focus ~ .nim-label, .nim-select:valid ~ .nim-label {

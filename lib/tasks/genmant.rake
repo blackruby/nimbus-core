@@ -221,7 +221,7 @@ namespace :nimbus do
         end
         modelo.puts
         modelo.puts('  after_save :control_histo') if prop[:histo]
-        modelo.puts('  #after_initialize :ini_campos')
+        #modelo.puts('  #after_initialize :ini_campos')
         modelo.puts
         modelo.puts('  #def ini_campos')
         modelo.puts('  #end')

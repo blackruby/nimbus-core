@@ -8,6 +8,7 @@ class ApplicationController < ActionController::Base
   include ActionView::Helpers::NumberHelper
 
   before_action :ini_controller
+  skip_before_action :ini_controller, only: [:destroy_vista]
 
   def sesion_invalida
     @usu = Usuario.find_by id: session[:uid]
@@ -24,15 +25,16 @@ class ApplicationController < ActionController::Base
         when 'noticias'
           render js: 'session_out();'
         when 'auto'
-          render json: [{error: 1}]
+          #render json: [{error: 1}]
+          render json: [{error: 'no_session'}]
         when 'list'
           render json: {error: 'no_session'}
         when 'validar'
-          @fact = $h[params[:vista].to_i][:fact]
-          c = params[:campo]
-          v = @fact.method(c).call
+          #@fact = $h[params[:vista].to_i][:fact]
+          #c = params[:campo]
+          #v = @fact.method(c).call
           @ajax =  'alert(js_t("no_session"));'
-          envia_campo(c, v)
+          #envia_campo(c, v)
           render js: @ajax
         else
           render js: 'alert(js_t("no_session"))'
@@ -44,6 +46,22 @@ class ApplicationController < ActionController::Base
 
     session[:fem] = Time.now unless params[:action] == 'noticias'    #Actualizar fecha de último uso
     I18n.locale = session[:locale]
+
+    if params[:vista]
+      @v = Vista.find_by id: params[:vista].to_i
+      if @v
+        @dat = @v.data
+      else
+        case params[:action]
+          when 'auto'
+            render json: [{error: 'no_vista'}]
+          when 'list'
+            render json: {error: 'no_vista'}
+          else
+            render js: 'alert(js_t("no_vista"))'
+        end
+      end
+    end
   end
 
 =begin
@@ -56,7 +74,7 @@ class ApplicationController < ActionController::Base
   end
 =end
 
-  $h = {}
+  #$h = {}
 
   # Clase del modelo ampliado para este mantenimiento (con campos X etc.)
   def class_mant
@@ -96,7 +114,8 @@ class ApplicationController < ActionController::Base
   end
 
   def enable(c)
-    if class_mant.campos[c.to_sym][:type] == :date
+    #if class_mant.campos[c.to_sym][:type] == :date
+    if @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
       @ajax << '$("#' + c.to_s + '").datepicker("enable");'
     else
       @ajax << '$("#' + c.to_s + '").attr("disabled", false);'
@@ -104,11 +123,20 @@ class ApplicationController < ActionController::Base
   end
 
   def disable(c)
-    if class_mant.campos[c.to_sym][:type] == :date
+    #if class_mant.campos[c.to_sym][:type] == :date
+    if @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
       @ajax << '$("#' + c.to_s + '").datepicker("disable");'
     else
       @ajax << '$("#' + c.to_s + '").attr("disabled", true);'
     end
+  end
+
+  def enable_menu(m)
+    @ajax << "if (parent != self) $('##{m}', parent.document).attr('disabled', false);"
+  end
+
+  def disable_menu(m)
+    @ajax << "if (parent != self) $('##{m}', parent.document).attr('disabled', true);"
   end
 
   # Métodos para hacer visibles/invisibles campos. El argumento collapse a true hará
@@ -215,22 +243,23 @@ class ApplicationController < ActionController::Base
     render :json => res
   end
 
-  def sincro_hijos(vid)
+  def sincro_hijos
     class_mant.hijos.each_with_index {|h, i|
       @ajax << '$(function(){$("#hijo_' + i.to_s + '").attr("src", "/' + h[:url]
       @ajax << '?mod=' + class_modelo.to_s
       @ajax << '&id=' + @fact.id.to_s
-      @ajax << '&padre=' + vid.to_s
+      @ajax << '&padre=' + @v.id.to_s
       #@ajax << '&eid=' + params[:eid] if params[:eid]
       #@ajax << '&jid=' + params[:jid] if params[:jid]
-      @ajax << '&eid=' + $h[vid][:eid].to_s if $h[vid][:eid]
-      @ajax << '&jid=' + $h[vid][:jid].to_s if $h[vid][:jid]
+      @ajax << '&eid=' + @dat[:eid].to_s if @dat[:eid]
+      @ajax << '&jid=' + @dat[:jid].to_s if @dat[:jid]
       @ajax << '");});'
     }
   end
 
   def get_empeje
-    emej = cookies[:emej].split(':')
+    #emej = cookies[:emej].split(':')
+    emej = cookies[Nimbus::CookieEmEj].split(':')
     eid = params[:eid]
     eid ||= (emej[0] == 'null' ? nil : emej[0])
     jid = params[:jid]
@@ -242,6 +271,8 @@ class ApplicationController < ActionController::Base
   # Método llamado cuando en la url solo se especifica el nombre de la tabla
   # En general la idea es que la vista asociada sea un grid
   def index
+    @ajax = ''
+
     self.respond_to?('before_index') ? r = before_index : r = true
     unless r
       render file: '/public/401.html', status: 401, layout: false
@@ -249,9 +280,11 @@ class ApplicationController < ActionController::Base
     end
 
     clm = class_mant
+    mod_tab = clm.table_name
 
     eid, jid = get_empeje
 
+=begin
     unless params[:mod]
       if clm.column_names.include?('empresa_id') and eid.nil?
         render file: '/public/no_emp.html', layout: false
@@ -261,6 +294,31 @@ class ApplicationController < ActionController::Base
         return
       end
     end
+=end
+
+    w = ''
+    if params[:mod]
+      add_where(w, mod_tab + '.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
+    else
+      if clm.column_names.include?('empresa_id')
+        if eid
+          #add_where(w, mod_tab + '.empresa_id=' + params[:eid])
+          add_where(w, "#{mod_tab}.empresa_id=#{eid}")
+        else
+          render file: '/public/no_emp.html', layout: false
+          return
+        end
+      end
+      if clm.column_names.include?('ejercicio_id')
+        if jid
+          #add_where(w, mod_tab + '.ejercicio_id=' + params[:jid])
+          add_where(w, "#{mod_tab}.ejercicio_id=#{jid}")
+        else
+          render file: '/public/no_eje.html', layout: false
+          return
+        end
+      end
+    end
 
     if self.respond_to?(:grid_conf)
       grid = clm.grid.deep_dup
@@ -268,6 +326,18 @@ class ApplicationController < ActionController::Base
     else
       grid = clm.grid
     end
+
+    add_where(w, grid[:wh]) if grid[:wh]
+
+    @v = Vista.new
+    @v.data = {}
+    @dat = @v.data
+    @dat[:eid] = eid
+    @dat[:jid] = jid
+    @dat[:auto_comp] = {_pk_input: w} unless w.empty?
+    @v.save
+    @ajax << 'var _vista=' + @v.id.to_s + ';var _controlador="' + params['controller'] + '";'
+
     @view = {grid: grid}
     @view[:eid] = eid
     @view[:jid] = jid
@@ -300,10 +370,11 @@ class ApplicationController < ActionController::Base
       @titulo << '/' + j.codigo if clm.column_names.include?('ejercicio_id')
     end
 
-    @view[:arg_auto] = params[:mod] ? '&wh=' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id] : arg_ej
+    #@view[:arg_auto] = params[:mod] ? '&wh=' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id] : arg_ej
+    @view[:arg_auto] = @v ? "&vista=#{@v.id}&cmp=_pk_input" : arg_ej
     @titulo << ' ' + clm.titulo
 
-    @view[:url_list] << arg_list_new + arg_ej
+    @view[:url_list] << arg_list_new + arg_ej + (@v ? "&vista=#{@v.id}" : '')
     @view[:url_new] << arg_list_new + arg_ej
     @view[:arg_edit] << arg_ej
 
@@ -356,10 +427,10 @@ class ApplicationController < ActionController::Base
     end
 
     clm = class_mant
-    mod_tab = clm.table_name
+    #mod_tab = clm.table_name
 
-    # El 'to_i.to_s' es para evitar SQL injection
-    w = ''
+    w = (@dat and @dat[:auto_comp] and @dat[:auto_comp][:_pk_input]) ? @dat[:auto_comp][:_pk_input] : ''
+=begin
     if params[:mod]
       add_where(w, mod_tab + '.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
     else
@@ -380,6 +451,7 @@ class ApplicationController < ActionController::Base
         end
       end
     end
+=end
 
     if params[:filters]
       fil = eval(params[:filters])
@@ -461,8 +533,8 @@ class ApplicationController < ActionController::Base
     ord = sortname + ' ' + params[:sord]
 =end
 
-    #tot_records = clm.select(:id).ljoin(eager.map{|j| j.to_sym}).where(w).size
-    tot_records =  clm.eager_load(eager).where(w).where(params[:wh]).count
+    #tot_records =  clm.eager_load(eager).where(w).where(params[:wh]).count
+    tot_records =  clm.eager_load(eager).where(w).count
     lim = params[:rows].to_i
     tot_pages = tot_records / lim
     tot_pages += 1 if tot_records % lim != 0
@@ -470,7 +542,8 @@ class ApplicationController < ActionController::Base
     page = tot_pages if page > tot_pages
     page = 1 if page <=0
 
-    sql = clm.eager_load(eager).where(w).where(params[:wh]).order(ord).offset((page-1)*lim).limit(lim)
+    #sql = clm.eager_load(eager).where(w).where(params[:wh]).order(ord).offset((page-1)*lim).limit(lim)
+    sql = clm.eager_load(eager).where(w).order(ord).offset((page-1)*lim).limit(lim)
 
     res = {page: page, total: tot_pages, records: tot_records, rows: []}
     sql.each {|s|
@@ -524,6 +597,8 @@ class ApplicationController < ActionController::Base
   end
 
   def new
+    @ajax = ''
+
     self.respond_to?('before_new') ? r = before_new : r = true
     unless r
       render file: '/public/401.html', status: 401, layout: false
@@ -532,6 +607,7 @@ class ApplicationController < ActionController::Base
 
     clm = class_mant
 
+=begin
     if params[:vista]
       v = Vista.new
       v.id = params[:vista].to_i
@@ -539,13 +615,17 @@ class ApplicationController < ActionController::Base
       v = Vista.create
       $h[v.id] = {}
     end
-
-    @dat = $h[v.id]
-    @fact = @dat[:fact] = clm.new
+=end
+    @v = Vista.new
+    @v.data = {}
+    @dat = @v.data
+    @dat[:fact] = clm.new
+    @fact = @dat[:fact]
     @fact.user_id = session[:uid]
-    @fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord
+    #@fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord ???
 
-    @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
+    #@fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
+    @fact.parent = Vista.find(params[:padre].to_i).data[:fact] if params[:padre]
 
     var_for_views(clm)
 
@@ -577,12 +657,15 @@ class ApplicationController < ActionController::Base
 
     set_empeje(eid, jid)
 
-    @ajax = 'var _vista=' + v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
     #Activar botones necesarios (Grabar/Borrar)
     @ajax << 'statusBotones({grabar: true, borrar: false});'
 
     before_envia_ficha if self.respond_to?('before_envia_ficha')
     envia_ficha
+
+    @v.save
+
+    @ajax << 'var _vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
 
     pag_render('ficha')
   end
@@ -606,16 +689,17 @@ class ApplicationController < ActionController::Base
     dif = ''
     clmh.column_names.each {|c|
       next unless @fact.respond_to?(c)
-      v = fh.method(c).call
-      @fact.method(c + '=').call(v)
-      #dif << '$("#' + c + '").css("background-color", "Bisque");' if ( v != fo.method(c).call)
-      dif << '$("#' + c + '").addClass("nim-campo-cambiado");' if ( v != fo.method(c).call)
+      #v = fh.method(c).call
+      #@fact.method(c + '=').call(v)
+      v = fh[c]
+      @fact[c] = v
+      dif << '$("#' + c + '").addClass("nim-campo-cambiado");' if (v != fo[c])
     }
 
     set_empeje
 
     var_for_views(clm)
-    
+
     @ajax = ''
     envia_ficha
     @ajax << '$(":input").attr("disabled", true);'
@@ -645,6 +729,8 @@ class ApplicationController < ActionController::Base
       end
     end
 
+    @ajax = ''
+
     ((!clm.mant? or @fact.id != 0) and self.respond_to?('before_edit')) ? r = before_edit : r = nil
     if r
       render file: r, status: 401, layout: false
@@ -658,6 +744,7 @@ class ApplicationController < ActionController::Base
     var_for_views(clm)
     ini_campos if self.respond_to?('ini_campos')
 
+=begin
     if params[:vista]
       v = Vista.new
       v.id = params[:vista].to_i
@@ -665,15 +752,15 @@ class ApplicationController < ActionController::Base
       v = Vista.create
       $h[v.id] = {}
     end
-
-    @vid = v.id
-    @dat = $h[v.id]
+=end
+    @v = Vista.new
+    @v.data = {}
+    @dat = @v.data
     @dat[:fact] = @fact
     @dat[:head] = params[:head] if params[:head]
 
-    @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
-
-    @ajax = 'var _vista=' + v.id.to_s + ';var _controlador="' + params['controller'] + '";'
+    #@fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
+    @fact.parent = Vista.find(params[:padre].to_i).data[:fact] if params[:padre]
 
     if clm.mant?
       if @fact.id != 0
@@ -689,18 +776,19 @@ class ApplicationController < ActionController::Base
           @dat[:jid] = @fact.id
         end
 
-        sincro_hijos(v.id)
-
-        set_empeje(@dat[:eid], @dat[:jid])
+        #set_empeje(@dat[:eid], @dat[:jid])
+        set_empeje
 
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: true, borrar: true});'
       else
+=begin
         @dat[:eid] = params[:eid]
         @dat[:jid] = params[:jid]
 
         @e = Empresa.find_by id: params[:eid]
         @j = Ejercicio.find_by id: params[:jid]
+=end
 
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: false, borrar: false});'
@@ -714,10 +802,17 @@ class ApplicationController < ActionController::Base
       set_empeje(eid, jid)
     end
 
-    @ajax += 'var eid="' + @dat[:eid].to_s + '",jid="' + @dat[:jid].to_s + '";'
+    @ajax << 'var eid="' + @dat[:eid].to_s + '",jid="' + @dat[:jid].to_s + '";'
 
     before_envia_ficha if self.respond_to?('before_envia_ficha')
-    envia_ficha
+
+    unless clm.mant? and @fact.id == 0
+      @v.save
+
+      envia_ficha
+      sincro_hijos if clm.mant?
+      @ajax << 'var _vista=' + @v.id.to_s + ';var _controlador="' + params['controller'] + '";'
+    end
 
     #pag_render('ficha') if clm.mant?
     clm.mant? ? pag_render('ficha') : pag_render('proc')
@@ -725,10 +820,12 @@ class ApplicationController < ActionController::Base
 
   def set_auto_comp_filter(cmp, wh)
     if wh.is_a? Symbol  # En este caso wh es otro campo de @fact
-      v = @fact.method(wh).call
+      #v = @fact.method(wh).call
+      v = @fact[wh]
       wh = wh.to_s + ' = \'' + (v ? v.to_s : '0') + '\''
     end
-    @ajax << 'set_auto_comp_filter($("#' + cmp.to_s + '"),"' + wh + '");'
+    #@ajax << 'set_auto_comp_filter($("#' + cmp.to_s + '"),"' + wh + '");'
+    @dat[:auto_comp] ? @dat[:auto_comp][cmp.to_sym] = wh : @dat[:auto_comp] = {cmp.to_sym => wh}
   end
 
   def auto
@@ -744,6 +841,13 @@ class ApplicationController < ActionController::Base
     end
 
     mod = params[:mod].constantize
+
+    if @dat
+      ac = @dat[:auto_comp]
+      whv = ac ? ac[params[:cmp].to_sym] : nil
+    else
+      whv = nil
+    end
 
     if params[:type]
       type = params[:type].to_sym
@@ -799,7 +903,8 @@ class ApplicationController < ActionController::Base
     wh << ' AND ' + mod.table_name + '.' + 'empresa_id=' + params[:eid] if mod.column_names.include?('empresa_id') and params[:eid]
     wh << ' AND ' + mod.table_name + '.' + 'ejercicio_id=' + params[:jid] if mod.column_names.include?('ejercicio_id') and params[:jid]
 
-    mod.mselect(mod.auto_comp_mselect).where(params[:wh]).where(wh).order(data[:orden]).limit(15).each {|r|
+    #mod.mselect(mod.auto_comp_mselect).where(params[:wh]).where(wh).where(whv).order(data[:orden]).limit(15).each {|r|
+    mod.mselect(mod.auto_comp_mselect).where(wh).where(whv).order(data[:orden]).limit(15).each {|r|
       res << {value: r.auto_comp_value(type), id: r[:id], label: r.auto_comp_label(type)}
     }
 
@@ -810,20 +915,23 @@ class ApplicationController < ActionController::Base
     #@fant = @fact.respond_to?(:id) ? {id: @fact.id} : {}
     #@fact.campos.each {|c, v| @fant[c] = @fact.method(c).call}
     fant = @fact.respond_to?(:id) ? {id: @fact.id} : {}
-    @fact.campos.each {|c, v| fant[c] = @fact.method(c).call}
+    #@fact.campos.each {|c, v| fant[c] = @fact.method(c).call}
+    @fact.campos.each {|c, v| fant[c] = @fact[c]}
     @fant = fant.deep_dup
   end
 
   def forma_campo(tipo, ficha, cmp, val={})
     cp = ficha.respond_to?('campos') ? ficha.campos[cmp.to_sym] : class_mant.campos[cmp.to_sym]
     if cmp.ends_with?('_id')
-      id = ficha.method(cmp).call
+      #id = ficha.method(cmp).call
+      id = ficha[cmp]
       if id and id != 0 and id != ''
         #if class_modelo.attribute_names.include?(cmp)
           #val = {}
           #cmpr = cmp[0..-4] + ".auto_comp_value(:#{tipo})"
           mod = cp[:ref].constantize
-          val = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + id.to_s)[0].auto_comp_value(tipo)
+          val = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + id.to_s)[0]
+          val = val ? val.auto_comp_value(tipo) : nil
         #else
         #  val =  cp[:ref].constantize.find(id.to_i).method('auto_comp_value').call(tipo)
         #end
@@ -876,6 +984,12 @@ class ApplicationController < ActionController::Base
   end
 
   def call_on(c)
+    cs = c.to_sym
+    v = @fact.campos[cs]
+    if self.respond_to?(v[:on].to_s)
+      method(v[:on]).arity == 0 ? method(v[:on]).call() : method(v[:on]).call(cs)
+    end
+
     fun = 'on_' << c
     if self.respond_to?(fun)
       method(fun).call
@@ -894,7 +1008,8 @@ class ApplicationController < ActionController::Base
           next
         end
 
-        v = @fact.method(cs).call
+        #v = @fact.method(cs).call
+        v = @fact[cs]
         va = @fant[cs]
         if v != va
           vc << [cs, v]
@@ -917,7 +1032,8 @@ class ApplicationController < ActionController::Base
 
   def envia_ficha
     @fact.campos.each {|c, v|
-      envia_campo(c, @fact.method(c.to_s).call) if v[:form]
+      #envia_campo(c, @fact.method(c.to_s).call) if v[:form]
+      envia_campo(c, @fact[c]) if v[:form]
     }
   end
 
@@ -986,10 +1102,12 @@ class ApplicationController < ActionController::Base
       return
     end
 
-    @fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
+    #@fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
+    @fact.parent = Vista.find(params[:padre].to_i).data[:fact] if params[:padre]
     fact_clone
 
-    @fact.method(campo + '=').call(params[:sel] ? params[:sel] : raw_val(campo, valor))
+    #@fact.method(campo + '=').call(params[:sel] ? params[:sel] : raw_val(campo, valor))
+    @fact[campo] = params[:sel] ? params[:sel] : raw_val(campo, valor)
 
     err = valida_campo(campo, :all)
 
@@ -1070,7 +1188,8 @@ class ApplicationController < ActionController::Base
   def crea_grid(opts)
     return if opts[:cmp].nil?
 
-    @fact.method(opts[:cmp].to_s + '=').call(nil)
+    #@fact.method(opts[:cmp].to_s + '=').call(nil)
+    @fact[opts[:cmp]] = nil
 
     opts[:cols].each {|c|
       c[:searchoptions] ||= {}
@@ -1134,35 +1253,41 @@ class ApplicationController < ActionController::Base
     campo = params[:cmp]
     if params[:multi]
       if params[:row] == ''
-        @fact.method(campo + '=').call(nil)
+        #@fact.method(campo + '=').call(nil)
+        @fact[campo] = nil
       elsif params[:row].is_a? Array
-        @fact.method(campo + '=').call(params[:row].map{|c| c.to_i})
+        #@fact.method(campo + '=').call(params[:row].map{|c| c.to_i})
+        @fact[campo] = params[:row].map{|c| c.to_i}
       else
         row = params[:row].to_i
         sel = (params[:sel] == 'true')
-        v = @fact.method(campo).call
+        #v = @fact.method(campo).call
+        v = @fact[campo]
         if v
           sel ? v << row : v.delete_at(v.index(row))
         else
-          @fact.method(campo + '=').call([row]) if sel
+          #@fact.method(campo + '=').call([row]) if sel
+          @fact[campo] = [row] if sel
         end
       end
     else
-      @fact.method(campo + '=').call(params[:row].to_i)
+      #@fact.method(campo + '=').call(params[:row].to_i)
+      @fact[campo] = params[:row].to_i
     end
   end
 
   def validar
     clm = class_mant
 
-    @dat = $h[params[:vista].to_i]
+    #@dat = $h[params[:vista].to_i]
     @fact = @dat[:fact]
     fact_clone
 
     campo = params[:campo]
     valor = params[:valor]
 
-    @fact.method(campo + '=').call(raw_val(campo, valor))
+    #@fact.method(campo + '=').call(raw_val(campo, valor))
+    @fact[campo] = raw_val(campo, valor)
 
     ## Validación
 
@@ -1184,13 +1309,15 @@ class ApplicationController < ActionController::Base
     @ajax << 'hayCambios=' + @fact.changed?.to_s + ';' if clm.mant?
 
     render :js => @ajax
+
+    @v.save
   end
 
   #Función para ser llamada desde el botón aceptar de los 'procs'
   def fon_server
     @ajax = ''
     if params[:vista]
-      @dat = $h[params[:vista].to_i]
+      #@dat = $h[params[:vista].to_i]
       @fact = @dat[:fact]
       fact_clone if @fact
     end
@@ -1206,31 +1333,23 @@ class ApplicationController < ActionController::Base
     rescue
     end
 =end
-  end
-
-  #### CANCELAR
-
-  def cancelar
-=begin
-    envia_ficha
-    render :js => @ajax
-=end
-    render js: ''
+    @v.save if @v
   end
 
   def borrar
-    @dat = $h[params[:vista].to_i]
+    #@dat = $h[params[:vista].to_i]
     @fact = @dat[:fact]
     @fact.destroy
     render js: ''
+    @v.save
   end
 
   #### GRABAR
 
   def grabar
     clm = class_mant
-    vid = params[:vista].to_i
-    @dat = $h[vid]
+    #vid = params[:vista].to_i
+    #@dat = $h[vid]
     @fact = @dat[:fact]
     fact_clone
     err = ''
@@ -1240,7 +1359,8 @@ class ApplicationController < ActionController::Base
       c = cs.to_s
 
       if v[:req]
-        valor = @fact.method(c).call
+        #valor = @fact.method(c).call
+        valor = @fact[c]
         (valor.nil? or ([:string, :text].include?(v[:type]) and not c.ends_with?('_id') and valor.strip == '')) ? e = "Campo #{c} requerido" : e = nil
       else
         e = valida_campo(c, :duro)
@@ -1268,7 +1388,8 @@ class ApplicationController < ActionController::Base
           f = clmod.new
         end
         clmod.column_names.each {|c|
-          f.method(c+'=').call(@fact.method(c).call)
+          #f.method(c+'=').call(@fact.method(c).call)
+          f[c] = @fact[c]
         }
         f.save
       else
@@ -1280,13 +1401,14 @@ class ApplicationController < ActionController::Base
           sincro_ficha :ajax => true
           mensaje 'Grabación cancelada. Ya existe la clave'
           render :js => @ajax
+          @v.save
           return
         end
       end
       after_save if self.respond_to?('after_save')
 
       if clm.mant?
-        sincro_hijos(vid) if @fant[:id].nil?
+        sincro_hijos if @fant[:id].nil?
 
         #Refrescar el grid si procede
         grid_reload
@@ -1300,6 +1422,8 @@ class ApplicationController < ActionController::Base
       @ajax << '$("#' + last_c + '").focus();' if last_c
       #@ajax << 'alert(' + err.to_json + ');'
       mensaje tit: 'Errores en el registro', msg: err
+
+      @v.save
     end
 
     sincro_ficha :ajax => true
@@ -1307,18 +1431,36 @@ class ApplicationController < ActionController::Base
     render :js => @ajax
   end
 
-  def bus_call()
-    @dat = $h[params[:vista].to_i]
-    @fact = @dat[:fact]
-    cmp = @fact.campos[params[:id].to_sym]
+  # Método para destruir una vista cuando se abandona la página
 
-    flash[:mod] = cmp[:ref].to_s
+  def destroy_vista
+    sql_exe("DELETE FROM vistas where id = #{params[:vista]}")
+    render nothing: true
+  end
+
+  def bus_call
+    @fact = @dat[:fact]
+    cmp = params[:id].to_sym
+    v = @fact.campos[cmp]
+
+    flash[:mod] = v[:ref].to_s
     flash[:ctr] = params[:controller]
     flash[:eid] = @dat[:eid]
     flash[:jid] = @dat[:jid]
-    flash[:pref] = cmp[:bus] if cmp[:bus]
+    flash[:wh] = @dat[:auto_comp][cmp] if @dat[:auto_comp] and @dat[:auto_comp][cmp]
+    flash[:pref] = v[:bus] if v[:bus]
 
     @ajax << 'var w = window.open("/bus", "_blank", "width=700, height=500"); w._autoCompField = bus_input_selected;'
+  end
+
+  def bus_call_pk
+    flash[:mod] = class_modelo.to_s
+    flash[:ctr] = params[:controller]
+    flash[:eid] = @dat[:eid]
+    flash[:jid] = @dat[:jid]
+    flash[:wh] = @dat[:auto_comp][:_pk_input] if @dat[:auto_comp] and @dat[:auto_comp][:_pk_input]
+
+    @ajax << 'var w = window.open("/bus", "_blank", "width=700, height=500"); w._autoCompField = "mant";'
   end
 
   def eval_cad(cad)
@@ -1472,6 +1614,8 @@ class ApplicationController < ActionController::Base
         sal << 'auto_comp("#' + cs + '","/application/auto?mod=' + v[:ref]
         sal << '&eid=' + @e.id.to_s if @e
         sal << '&jid=' + @j.id.to_s if @j
+        sal << '&vista=' + @v.id.to_s
+        sal << '&cmp=' + cs
         sal << '","' + v[:ref]
         sal << '","' + v[:ref].constantize.table_name + '");'
       elsif mask

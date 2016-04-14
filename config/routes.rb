@@ -3,7 +3,7 @@ Rails.application.routes.draw do
     get c => "#{c}#index"
     get "#{c}/new" => "#{c}#new"
     get "#{c}/:id/edit" => "#{c}#edit"
-    ['validar', 'validar_cell', 'list', 'grabar', 'borrar', 'cancelar', 'fon_server'].each {|m|
+    ['validar', 'validar_cell', 'list', 'grabar', 'borrar', 'fon_server'].each {|m|
       post "#{c}/#{m}" => "#{c}##{m}"
     }
   }
@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   post 'histo_list' => 'application#histo_list'
 
   post 'login' => 'welcome#login'
+  post 'welcome/fon_server' => 'welcome#fon_server'
   get 'logout' => 'welcome#logout'
   get 'menu' => 'welcome#menu'
 
@@ -28,6 +29,7 @@ Rails.application.routes.draw do
   post 'gi/fon_server' => 'gi#fon_server'
 
   get 'application/auto' => 'application#auto'
+  post 'application/destroy_vista' => 'application#destroy_vista'
 
   post 'pref_user' => 'usuarios#pref_user'
   post 'noticias' => 'application#noticias'

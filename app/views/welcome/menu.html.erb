@@ -413,7 +413,8 @@
   }
 
   function set_cookie_emej() {
-    document.cookie = "emej=" + empresa_id + ":" + ejercicio_id;
+    //document.cookie = "emej=" + empresa_id + ":" + ejercicio_id;
+    document.cookie = "<%= Nimbus::CookieEmEj %>=" + empresa_id + ":" + ejercicio_id + ";path=/";
   }
 
   $("#empresa" ).blur(function() {
@@ -424,6 +425,9 @@
     $(this).val(ejercicio_nom);
   });
 
+  _vista = <%= @v.id %>;
+  _controlador = 'welcome';
+
   $("#empresa").autocomplete({
     source: '/application/auto?type=grid&mod=Empresa',
     minLength: 1,
@@ -433,14 +437,19 @@
 
       ejercicio_id = null;
       ejercicio_nom = "";
-      $("#ejercicio").val('').autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
+      //$("#ejercicio").val('').autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
+      $("#ejercicio").val('');
 
       // Consultar si tiene ejercicios la empresa para habilitar el campo ejercicio (lo hace la función del servidor en su respuesta)
+      /*
       $.ajax({
-        url: '/empresas/fon_server',
+        //url: '/empresas/fon_server',
+        url: '/welcome/fon_server',
         type: "POST",
-        data: {fon: 'ejercicio_en_menu', eid: empresa_id},
-      })
+        data: {fon: 'ejercicio_en_menu', eid: empresa_id}
+      });
+      */
+      callFonServer('ejercicio_en_menu', {eid: empresa_id});
 
       graba_emej();
       set_cookie_emej();
@@ -449,7 +458,8 @@
   });
 
   $("#ejercicio").autocomplete({
-    source: '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=null',
+    //source: '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=null',
+    source: '/application/auto?type=grid&mod=Ejercicio&vista=' + _vista + '&cmp=ej',
     minLength: 1,
     select: function(e, ui){
       ejercicio_id = ui.item.id;
@@ -484,7 +494,7 @@
   $("#empresa").val(empresa_nom);
   ejercicio_nom = "<%= @usu.ejercicio_def_id ? @usu.ejercicio_def.auto_comp_value(:grid) : '' %>";
   $("#ejercicio").val(ejercicio_nom);
-  $("#ejercicio").autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
+  //$("#ejercicio").autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
 
   <% if Ejercicio.where('empresa_id = ?', @usu.empresa_def_id).count > 0 %>
     $("#d-ejercicio").css("visibility", "visible");

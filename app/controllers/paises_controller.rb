@@ -13,19 +13,20 @@ class PaisesMod < Pais
     campo_2: {dlg: 'dos', gcols: 12},
     campo_3: {dlg: 'dos', gcols: 12},
     campo_4: {dlg: 'dos', gcols: 12},
-    campo_5: {dlg: 'dos', gcols: 12},
-    campo_6: {dlg: 'dos', gcols: 12},
+    campo_5: {dlg: 'dos', gcols: 12, on: :habilita_menu},
+    campo_6: {dlg: 'dos', gcols: 12, on: :habilita_menu},
     mig2: {dlg: 'dos', type: :div, gcols: 12},
   }
 
   @grid = {
     height: 250,
     scroll: true,
+    wh: "nombre like 'B%'"
   }
 
   @dialogos = [
     {id: 'uno', titulo: 'Diálogo uno', botones: [{label: 'Hecho', accion: 'fin_diag_1', close: false}]},
-    {id: 'dos', titulo: 'Diálogo dos', menu: 'Diálogo 2'},
+    {id: 'dos', titulo: 'Diálogo dos', menu: 'Diálogo 2', menu_id: 'mr_d2'},
   ]
 
   @menu_l = [
@@ -34,12 +35,10 @@ class PaisesMod < Pais
 
   @menu_r = [
     {label: 'Opción 1', accion: 'mi_funcion'},
-    {label: 'Diálogo 1', accion: 'diag_1'},
+    {label: 'Diálogo 1', accion: 'diag_1', id: 'mr_1'},
   ]
 
   #@hijos = []
-
-  #after_initialize :ini_campos_ctrl
 
   #def ini_campos_ctrl
   #end
@@ -61,6 +60,8 @@ class PaisesController < ApplicationController
     q = Pais.where('nombre like ?', "#{pl}%")
 
     crea_grid cmp: :pxa, cols: cols, grid: {caption: "Países que empiezan por #{pl}"}, data: q.map{|p| [p.id, p.codigo, p.nombre]}
+
+    @fact.add_campo :cmpx, tab: 'post', gcols: 12
   end
 
   # Métodos asociados a dialogo 1
@@ -115,6 +116,14 @@ class PaisesController < ApplicationController
     #mensaje tit: 'Hola', msg: 'Un texto cualquiera', bot: [{label: 'Ok', accion: 'mi_funcion'}]
     @fact.campo_4 = 'HOLA'
     foco('campo_6')
+  end
+
+  def on_campo_4
+    disable_menu(:mr_1)
+  end
+
+  def habilita_menu
+    enable_menu(:mr_1)
   end
 
   # Otros Métodos
