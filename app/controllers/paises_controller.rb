@@ -122,7 +122,8 @@ class PaisesController < ApplicationController
     disable_menu(:mr_1)
   end
 
-  def habilita_menu
+  def habilita_menu(cmp)
+    # cmp es el nombre del campo que ha disparado este método
     enable_menu(:mr_1)
   end
 
