@@ -575,6 +575,7 @@ module MantMod
       if cm.nil? and !v[:calculado]
         v[:X] = true
 
+=begin
         case v[:type]
           when :boolean
             ini = 'false'
@@ -600,7 +601,6 @@ module MantMod
         end
         ini = 'nil' if v[:nil]
 
-=begin
         met = "def #{campo}=(v);@#{campo}=(v.nil? ? #{ini} : v#{conv});end;def #{campo};@#{campo};end"
         context ? context.instance_eval(met) : self.class_eval(met)
 
@@ -699,6 +699,23 @@ module MantMod
     ini_campos_ctrl if self.respond_to?(:ini_campos_ctrl)
   end
 
+  def val_cast_campo(val, ty, ni)
+    return nil if val.nil? and ni
+
+    case ty
+      when :integer
+        return val.to_i
+      when :decimal
+        return val.to_d
+      when :date
+        return val.to_date
+      when :time
+        return val.to_time
+      else
+        return val
+    end
+  end
+
   def method_missing(m, *args, &block)
     ms = m.to_s
     v = @campos[m]
@@ -706,7 +723,7 @@ module MantMod
     if ms.ends_with?('=')
       v = @campos[ms[0..-2].to_sym]
       if v
-        v[:value] = args[0]
+        v[:value] = val_cast_campo(args[0], v[:type], v[:nil])
         return
       end
     else
@@ -732,7 +749,7 @@ module MantMod
       self.method(cmpi).call(val)
     else
       v = @campos[cmp]
-      v ? v[:value] = val : raise(ArgumentError, "No existe el campo '#{cmp}'")
+      v ? v[:value] = val_cast_campo(val, v[:type], v[:nil]) : raise(ArgumentError, "No existe el campo '#{cmp}'")
     end
   end
 
