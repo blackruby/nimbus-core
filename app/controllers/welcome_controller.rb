@@ -36,6 +36,8 @@ class WelcomeController < ApplicationController
         @menu << "<li><span>#{nt(k)}</span><ul>"
         gen_menu(v)
         @menu << '</ul></li>'
+      elsif k.starts_with? 'tag_'
+        @menu << v
       else
         @menu << "<li class=menu-ref><a href=#{v}>#{nt(k)}</a></li>"
       end
