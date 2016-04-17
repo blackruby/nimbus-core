@@ -616,7 +616,7 @@ class ApplicationController < ActionController::Base
       $h[v.id] = {}
     end
 =end
-    @v = Vista.new
+    @v = Vista.create
     @v.data = {}
     @dat = @v.data
     @dat[:fact] = clm.new
@@ -657,6 +657,8 @@ class ApplicationController < ActionController::Base
 
     set_empeje(eid, jid)
 
+    @ajax << 'var _vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
+
     #Activar botones necesarios (Grabar/Borrar)
     @ajax << 'statusBotones({grabar: true, borrar: false});'
 
@@ -664,8 +666,6 @@ class ApplicationController < ActionController::Base
     envia_ficha
 
     @v.save
-
-    @ajax << 'var _vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
 
     pag_render('ficha')
   end
@@ -727,6 +727,8 @@ class ApplicationController < ActionController::Base
         end
         @fact.user_id = session[:uid]
       end
+    else
+      @fact = clm.new
     end
 
     @ajax = ''
@@ -735,10 +737,6 @@ class ApplicationController < ActionController::Base
     if r
       render file: r, status: 401, layout: false
       return
-    end
-
-    if not clm.mant?
-      @fact = clm.new
     end
 
     var_for_views(clm)
@@ -754,6 +752,7 @@ class ApplicationController < ActionController::Base
     end
 =end
     @v = Vista.new
+    @v.save if @fact.id != 0
     @v.data = {}
     @dat = @v.data
     @dat[:fact] = @fact
@@ -781,6 +780,7 @@ class ApplicationController < ActionController::Base
 
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: true, borrar: true});'
+        @ajax << 'var _vista=' + @v.id.to_s + ';var _controlador="' + params['controller'] + '";'
       else
 =begin
         @dat[:eid] = params[:eid]
@@ -807,14 +807,12 @@ class ApplicationController < ActionController::Base
     before_envia_ficha if self.respond_to?('before_envia_ficha')
 
     unless clm.mant? and @fact.id == 0
-      @v.save
-
       envia_ficha
       sincro_hijos if clm.mant?
-      @ajax << 'var _vista=' + @v.id.to_s + ';var _controlador="' + params['controller'] + '";'
+
+      @v.save
     end
 
-    #pag_render('ficha') if clm.mant?
     clm.mant? ? pag_render('ficha') : pag_render('proc')
   end
 
@@ -896,7 +894,7 @@ class ApplicationController < ActionController::Base
         wh << 'UNACCENT(LOWER(' + c + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
       end
 =end
-      wh << 'UNACCENT(LOWER(' + c + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
+      wh << 'UNACCENT(LOWER(' + c.to_s + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
     }
 
     wh = wh[0..-5] + ')'
@@ -1400,8 +1398,8 @@ class ApplicationController < ActionController::Base
           @ajax = ''
           sincro_ficha :ajax => true
           mensaje 'Grabación cancelada. Ya existe la clave'
-          render :js => @ajax
           @v.save
+          render :js => @ajax
           return
         end
       end
@@ -1422,11 +1420,11 @@ class ApplicationController < ActionController::Base
       @ajax << '$("#' + last_c + '").focus();' if last_c
       #@ajax << 'alert(' + err.to_json + ');'
       mensaje tit: 'Errores en el registro', msg: err
-
-      @v.save
     end
 
     sincro_ficha :ajax => true
+
+    @v.save
 
     render :js => @ajax
   end
