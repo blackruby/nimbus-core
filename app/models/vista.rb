@@ -1,9 +1,12 @@
 class Vista < ActiveRecord::Base
-  before_save :marshal
+  around_save :marshal
   after_initialize :unmarshal
 
   def marshal
-    self.data = Marshal.dump(self.data)
+    data = self.data
+    self.data = Marshal.dump(data)
+    yield
+    self.data = data
   end
 
   def unmarshal

@@ -1429,6 +1429,16 @@ class ApplicationController < ActionController::Base
     render :js => @ajax
   end
 
+  # Método para hacer una grabación de @fact manual y con las acciones oportunas
+  def grabar_manual
+    id = @fact.id
+    @fact.save
+    sincro_hijos unless id
+    grid_reload
+    @ajax << 'statusBotones({borrar: true});'
+    @ajax << 'hayCambios=false;'
+  end
+
   # Método para destruir una vista cuando se abandona la página
 
   def destroy_vista
