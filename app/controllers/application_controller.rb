@@ -780,7 +780,6 @@ class ApplicationController < ActionController::Base
 
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: true, borrar: true});'
-        @ajax << 'var _vista=' + @v.id.to_s + ';var _controlador="' + params['controller'] + '";'
       else
 =begin
         @dat[:eid] = params[:eid]
@@ -803,6 +802,9 @@ class ApplicationController < ActionController::Base
     end
 
     @ajax << 'var eid="' + @dat[:eid].to_s + '",jid="' + @dat[:jid].to_s + '";'
+    unless clm.mant? and @fact.id == 0
+      @ajax << 'var _vista=' + @v.id.to_s + ';var _controlador="' + params['controller'] + '";'
+    end
 
     before_envia_ficha if self.respond_to?('before_envia_ficha')
 
