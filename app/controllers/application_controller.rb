@@ -752,7 +752,7 @@ class ApplicationController < ActionController::Base
     end
 =end
     @v = Vista.new
-    @v.save if @fact.id != 0
+    @v.save unless clm.mant? and @fact.id == 0
     @v.data = {}
     @dat = @v.data
     @dat[:fact] = @fact
