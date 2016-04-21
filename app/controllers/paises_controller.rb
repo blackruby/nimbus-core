@@ -21,7 +21,7 @@ class PaisesMod < Pais
   @grid = {
     height: 250,
     scroll: true,
-    wh: "nombre like 'B%'"
+    #wh: "nombre like 'B%'"
   }
 
   @dialogos = [
@@ -54,14 +54,14 @@ class PaisesController < ApplicationController
 
     cols = [
       {name: 'código', width: 70},
-      {name: 'nombre'},
+      {name: 'nombre', editable: true},
     ]
     pl = @fact.nombre[0];
     q = Pais.where('nombre like ?', "#{pl}%")
 
-    crea_grid cmp: :pxa, cols: cols, grid: {caption: "Países que empiezan por #{pl}"}, data: q.map{|p| [p.id, p.codigo, p.nombre]}
+    crea_grid cmp: :pxa, modo: :ed, cols: cols, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre]}
 
-    @fact.add_campo :cmpx, tab: 'post', gcols: 12
+    @fact.add_campo :cmpx, tab: 'post', gcols: 12, type: :decimal
   end
 
   # Métodos asociados a dialogo 1
@@ -86,12 +86,12 @@ class PaisesController < ApplicationController
 
   def on_campo_1
     cols = [
-      {name: 'código', width: 70},
-      {name: 'nombre'},
-      {name: 'fecha', type: :date, width: 100},
-      {name: 'entero', type: :integer},
-      {name: 'decimal', type: :decimal, dec: 3},
-      {name: 'bool', type: :boolean, width: 50}
+      {name: 'código', width: 70, editable: true},
+      {name: 'nombre', editable: true},
+      {name: 'fecha', type: :date, width: 100, editable: true},
+      {name: 'entero', type: :integer, editable: true},
+      {name: 'decimal', type: :decimal, dec: 3, editable: true},
+      {name: 'bool', type: :boolean, width: 50, editable: true}
     ]
 
     data = [

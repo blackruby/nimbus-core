@@ -513,17 +513,27 @@ function auto_comp_error(e, ui) {
 }
 
 function auto_comp(e, s, modelo, cntr) {
-  $(e).autocomplete({
+  var el = $(e);
+  var dlg = el.attr('dialogo');
+  if (dlg) dlg = $('#' + dlg);
+
+  el.autocomplete({
     source: s,
     minLength: 1,
     autoFocus: true,
+    zIndex: 1500,
     change: function(e, ui){vali_auto_comp(ui, $(this));},
-    response: function(e, ui){auto_comp_error(e, ui);}
+    response: function(e, ui){auto_comp_error(e, ui);},
+    open: function () {
+      if (dlg) el.autocomplete('widget').zIndex(dlg.zIndex()+1);
+    }
   });
 
-  $(e).attr('modelo', modelo).attr('controller', cntr).addClass('auto_comp');
+  el.attr('modelo', modelo).attr('controller', cntr).addClass('auto_comp');
 
-  $(e).keydown(function(e) {bus(e);});
+  if (dlg) el.autocomplete('widget').insertAfter(dlg.parent());
+
+  el.keydown(function(e) {bus(e);});
 }
 
 /*
@@ -718,24 +728,43 @@ function delDataGridLocal(cmp, id) {
   $("#g_" + cmp).jqGrid('delRowData', id);
 }
 
-function creaGridLocal(opts, data) {
+function creaGridLocal(opts, data, modo) {
   var cmp = opts.cmp;
-  var ele = $("#" + cmp);
+  $("#" + cmp).html("").append('<table id="g_' + cmp + '"></table>');
+  var g = $("#g_" + cmp);
+
   var grid = opts.grid;
   if (grid == undefined) grid = {};
-  ele.html("").append('<table id="g_' + cmp + '"></table>');
-  var g = $("#g_" + cmp);
-  g.jqGrid($.extend({
+
+  var grid_a;
+  switch(modo) {
+    case 'ed':
+      grid_a = {
+        cellEdit: true,
+        cellurl: '/paises/fon_server?fon=validar_local_cell&vista=' + _vista + '&cmp=' + cmp,
+        afterSaveCell: function(){
+          g.jqGrid('setCell', _grid_ajax_data[0], _grid_ajax_data[1], _grid_ajax_data[2]);
+        }
+      };
+      break;
+    default :
+      grid_a = {
+        deselectAfterSort: false,
+        onSelectRow: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: r, sel: s, multi: grid.multiselect})},
+        onSelectAll: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: (s ? r : null), sel: s, multi: grid.multiselect})}
+      };
+  }
+
+  g.jqGrid($.extend(true, {
     datatype: "local",
     colModel: opts.cols,
     gridview: true,
     height: 150,
     ignoreCase: true,
-    altRows: true,
-    deselectAfterSort: false,
-    onSelectRow: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: r, sel: s, multi: grid.multiselect})},
-    onSelectAll: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: (s ? r : null), sel: s, multi: grid.multiselect})},
-  }, grid));
+    altRows: true
+  }, grid_a, grid));
+
+  g.jqGrid('bindKeys');
 
   if (opts.search) g.jqGrid('filterToolbar',{searchOperators : true});
 
@@ -751,7 +780,7 @@ $(window).load(function() {
       '<button id="_auto_comp_button_" class="mdl-button mdl-js-button mdl-button--icon" style="position: absolute;top: -4px;right: -4px" tabindex=-1>'+
       '<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
       '</button>' +
-      '<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="_auto_comp_button_" style="z-index: 5000">'+
+      '<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="_auto_comp_button_" style="z-index: 10000">'+
       '<li class="mdl-menu__item" onclick="autoCompBuscar()">Buscar</li>'+
       '<li class="mdl-menu__item" onClick="autoCompIrAFicha()">Ir a</li>'+
       '<li class="mdl-menu__item" onClick="autoCompNuevaFicha()">Nueva alta</li>'+

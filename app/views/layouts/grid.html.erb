@@ -202,7 +202,7 @@
 
   function editInForm(id) {
     if (id)
-      grid.jqGrid('setSelection', id)
+      grid.jqGrid('setSelection', id);
     else
       id = grid.jqGrid('getGridParam', 'selrow');
 
@@ -345,7 +345,7 @@
     select: function(e, ui){
       $("#ficha").attr('src', '<%= @view[:url_base] %>' + ui.item.id + '/edit' + '<%= @view[:arg_edit] %>');
       pkBlur();
-    },
+    }
     //change: function(e, ui){vali_auto_comp(ui, $(this));},
     //response: function(e, ui){auto_comp_error(e, ui);}
   });

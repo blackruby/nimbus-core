@@ -139,6 +139,14 @@ class ApplicationController < ActionController::Base
     @ajax << "if (parent != self) $('##{m}', parent.document).attr('disabled', true);"
   end
 
+  def enable_tab(t)
+    @ajax << "$('#h_#{t}').attr('href', '#t_#{t}').css('cursor', 'pointer');"
+  end
+
+  def disable_tab(t)
+    @ajax << "$('#h_#{t}').attr('href', '#').css('cursor', 'not-allowed');"
+  end
+
   # Métodos para hacer visibles/invisibles campos. El argumento collapse a true hará
   # que desaparezca el elemento y su hueco, acomodándose el resto de elementos al
   # nuevo layout. Por el contrario si vale false el elemento desaparece
@@ -1085,6 +1093,10 @@ class ApplicationController < ActionController::Base
     (tipo == :duro and t1 == :blando and t2 == :blando) ? nil : err
   end
 
+  def validar_local_cell
+    #@ajax << "_grid_ajax_data=#{[params[:id], 'nombre', 'Atrás'].to_json}"
+  end
+
   def validar_cell
     clm = class_mant
     campo = ''
@@ -1179,17 +1191,16 @@ class ApplicationController < ActionController::Base
   #       Este id es el que se devolverá al campo X en caso de que la fila sea
   #       seleccionada.
   #
-  # El método, además de crear el grid, sicroniza la seleción de fila (o filas si
+  # El método, además de crear el grid, sincroniza la seleción de fila (o filas si
   # está a true la opción multiselect) con el servidor. En el campo X asociado
   # tendremos siempre disponible el id de la fila seleccionada (o un array de ids
   # si hay multiselección). Para acceder lo haremos con @fact.cmp (donde cmp es el
   # campo X referido).
 
   def crea_grid(opts)
-    return if opts[:cmp].nil?
+    return unless opts[:cmp]
 
-    #@fact.method(opts[:cmp].to_s + '=').call(nil)
-    @fact[opts[:cmp]] = nil
+    modo = opts[:modo] ? opts[:modo].to_sym : :sel
 
     opts[:cols].each {|c|
       c[:searchoptions] ||= {}
@@ -1219,12 +1230,24 @@ class ApplicationController < ActionController::Base
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
       end
     }
+
     data = opts[:data]
     if data
       data = [data] unless data[0].class == Array
       opts.delete(:data)
     end
-    @ajax << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data.to_json});"
+
+    @ajax << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data.to_json}, '#{modo}');"
+
+    case modo
+      when :ed
+        @fact[opts[:cmp]] = HashForGrids.new
+        c = @fact[opts[:cmp]]
+        c[:cols] = opts[:cols]
+        c[:data] = data
+      else
+        @fact[opts[:cmp]] = nil
+    end
   end
 
   # Método para añadir filas a un grid existente
@@ -1315,13 +1338,15 @@ class ApplicationController < ActionController::Base
 
   #Función para ser llamada desde el botón aceptar de los 'procs'
   def fon_server
+    return unless self.respond_to?(params[:fon])
+
     @ajax = ''
     if params[:vista]
       #@dat = $h[params[:vista].to_i]
       @fact = @dat[:fact]
       fact_clone if @fact
     end
-    method(params[:fon]).call if self.respond_to?(params[:fon])
+    method(params[:fon]).call
     sincro_ficha :ajax => true if @fact
     begin
       render js: @ajax
@@ -1558,8 +1583,10 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
       elsif cs.ends_with?('_id')
         sal << '<div class="nim-group">'
-        #sal << '<input id="' + cs + '" size=' + v[:size].to_s + ' required ' + plus + '/>'
-        sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em" ' + plus + '/>'
+        #sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em" ' + plus + '/>'
+        sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em" '
+        sal << 'dialogo="' + h[:dlg] + '" ' if h[:dlg]
+        sal << plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
 =begin
         sal << '<button id="_acb_' + cs + '" class="nim-autocomp-button mdl-button mdl-js-button mdl-button--icon" style="position: absolute;top: -8px; right: 0">'

@@ -43,7 +43,7 @@
     <% if @tabs.size > 0 %>
       <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
         <% @tabs.each_with_index {|t, i| %>
-          <a href="#t_<%= t %>" class="mdl-layout__tab <%= i==0 ? 'is-active' : '' %>" onclick="tabClick($('#t_<%= t %>'))"> <%= nt(t) %> </a>
+          <a id="h_<%= t %>" href="#t_<%= t %>" class="mdl-layout__tab <%= i==0 ? 'is-active' : '' %>" onclick="tabClick($('#t_<%= t %>'))"> <%= nt(t) %> </a>
         <% } %>
       </div>
     <% end %>
@@ -147,7 +147,8 @@
     $("#<%= d[:id] %>" ).dialog({
       autoOpen: false,
       resizable: false,
-      width: '100%',
+      width: "<%= d[:width] ? d[:width] : '100%' %>",
+      height: "<%= d[:height] ? d[:height] : 'auto' %>",
       modal: true,
       title: "<%= d[:titulo] %>",
       buttons: {

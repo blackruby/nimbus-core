@@ -263,7 +263,7 @@ class ActiveRecord::Base
           modh = ('H' + mod.to_s).constantize
           tabh_name = modh.table_name
           campos << 'idid' << 'created_by_id' << 'created_at'
-          valores << 'id' << self.user_id << "'#{Time.now.to_json[1..-2]}'"
+          valores << 'id' << self.user_id.to_i << "'#{Time.now.to_json[1..-2]}'"
           sql_exe("INSERT INTO #{tabh_name} (#{campos.join(',')}) SELECT #{valores.join(',')} FROM #{tab_name} WHERE id IN (#{reg.map{|r| r['id']}.join(',')})")
         rescue NameError
           # No existe histórico y por lo tanto no hacer nada
@@ -321,6 +321,35 @@ class ActiveRecord::Base
   end
 end
 =end
+
+class HashForGrids < Hash
+  def data(id=nil, col=nil, val='~nil~')
+    return self[:data] unless id
+
+    pos = nil
+    if col
+      col = col.to_s
+      self[:cols].each_with_index {|c, i|
+        if c[:name] == col
+          pos = i + 1
+          break
+        end
+      }
+    end
+
+    self[:data].each {|row|
+      if id == row[0]
+        if pos
+          val == '~nil~' ? row[pos] : row[pos] = val
+          return row[pos]
+        else
+          return row
+        end
+      end
+    }
+    nil
+  end
+end
 
 # Módulo MantMod para extender las clases de los controladores
 #
