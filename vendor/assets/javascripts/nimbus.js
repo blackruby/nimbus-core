@@ -563,6 +563,18 @@ function numero(elem, manti, decim, signo) {
   $(elem).entryn(manti, decim, signo);
 }
 
+function unformatNumero(num) {
+  return num.replace(/\./g, '').replace(/,/, '.');
+}
+
+function sortNumero(a, b, d) {
+  var a = unformatNumero(a)*d;
+  var b = unformatNumero(b)*d;
+  if (a > b) return 1;
+  if (a < b) return -1;
+  return 0;
+}
+
 // Funciones para el tratamiento de los auto_comp en el grid
 //
 // para controlar el id del elemento seleccionado y enviarlo
@@ -705,6 +717,17 @@ function quitaBusy() {
   $(".mdl-spinner").remove();
 }
 
+function creaMdlButton(id, siz, mb, fsiz, icon) {
+  return(
+    '<button id="' + id + '" ' +
+    'class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" ' +
+    'style="margin-bottom: ' + mb + 'px;height: ' + siz + 'px;width: ' + siz + 'px;min-width: ' + siz + 'px;" ' +
+    '>' +
+    '<i class="material-icons" style="font-size: ' + fsiz + 'px">' + icon + '</i>' +
+    '</button>'
+  )
+}
+
 function _addDataGridLocal(jcmp, data) {
   var cols = jcmp.jqGrid('getGridParam', 'colModel');
   var ms = jcmp.jqGrid('getGridParam', 'multiselect');
@@ -741,11 +764,15 @@ function creaGridLocal(opts, data, modo) {
     case 'ed':
       grid_a = {
         cellEdit: true,
-        cellurl: '/paises/fon_server?fon=validar_local_cell&vista=' + _vista + '&cmp=' + cmp,
-        afterSaveCell: function(){
-          g.jqGrid('setCell', _grid_ajax_data[0], _grid_ajax_data[1], _grid_ajax_data[2]);
-        }
+        //toppager: true,
+        afterSaveCell: function(row, col, val){
+          callFonServer("validar_local_cell", {cmp: cmp, row: row, col: col, val: val});
+        },
+        onSelectCell: function(r, c, v, ir, ic){console.log('Sel ', r, c, v, ir, ic)},
+        beforeEditCell: function(r, c, v, ir, ic){console.log('Ed. ', r, c, v, ir, ic)}
       };
+      var caption = grid.caption;
+      if (caption) delete grid.caption; else caption = '';
       break;
     default :
       grid_a = {
@@ -764,11 +791,46 @@ function creaGridLocal(opts, data, modo) {
     altRows: true
   }, grid_a, grid));
 
-  g.jqGrid('bindKeys');
+  switch(modo) {
+    case 'ed':
+      g.jqGrid('bindKeys');
+      //g.jqGrid('navGrid', '#g_' + cmp + '_toppager', {edit: false, add: false, del: false}, {}, {}, {}, {multipleSearch: true, multipleGroup: true, showQuery: true});
+      //g.jqGrid('navButtonAdd', '#g_' + cmp + '_toppager', {caption:"",title:"Barra de búsqueda", buttonicon :'ui-icon-pin-s', onClickButton:function(){vgrid[0].toggleToolbar()}});
+      $('#gbox_g_' + cmp).prepend(
+        '<div class="nim-titulo">' + caption +
+        '&nbsp;&nbsp;&nbsp;&nbsp;' +
+        creaMdlButton('b_ib_' + cmp, 30, 2, 22, 'vertical_align_bottom') +
+        '&nbsp;&nbsp;' +
+        creaMdlButton('b_it_' + cmp, 30, 2, 22, 'vertical_align_top') +
+        '&nbsp;&nbsp;' +
+        creaMdlButton('b_d_' + cmp, 30, 2, 22, 'delete') +
+        '</div>'
+      );
+      $("#b_it_" + cmp).click(function() {
+        var r = g.jqGrid('getGridParam', 'selrow');
+        if (r) {
+          g.jqGrid('addRowData', 1000, [{}], 'before', r);
+        }
+      });
+      $("#b_ib_" + cmp).click(function() {
+        var r = g.jqGrid('getGridParam', 'selrow');
+        if (r) {
+          g.jqGrid('addRowData', 1000, [{}], 'after', r);
+        }
+      });
+      $("#b_d_" + cmp).click(function() {
+        var r = g.jqGrid('getGridParam', 'selrow');
+        if (r) {
+          g.jqGrid('delRowData', r);
+        }
+      });
+      break;
+  }
 
   if (opts.search) g.jqGrid('filterToolbar',{searchOperators : true});
 
   _addDataGridLocal(g, data);
+  g.setGridWidth(g.width());
 }
 
 $(window).load(function() {

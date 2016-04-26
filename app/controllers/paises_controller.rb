@@ -4,7 +4,7 @@ class PaisesMod < Pais
     nombre: {tab: 'pre', gcols: 4, grid:{}},
     tipo: {tab: 'pre', gcols: 2, grid:{}},
     codigo_cr: {tab: 'pre', gcols: 2, grid:{}},
-    pxa: {tab: 'post', type: :div, gcols: 12},
+    pxa: {tab: 'post', type: :div, gcols: 6},
 
     campo_x: {dlg: 'uno', gcols: 6},
     mig1: {dlg: 'uno', type: :div, gcols: 6},
@@ -53,15 +53,21 @@ class PaisesController < ApplicationController
     return if @fact.id.to_i == 0
 
     cols = [
-      {name: 'código', width: 70},
+      {name: 'codigo', label: 'Código', editable: true, width: 70},
       {name: 'nombre', editable: true},
+      {name: 'nombre2', editable: true},
+      {name: 'double', type: :decimal, editable: true},
     ]
-    pl = @fact.nombre[0];
+    pl = @fact.nombre[0]
     q = Pais.where('nombre like ?', "#{pl}%")
 
-    crea_grid cmp: :pxa, modo: :ed, cols: cols, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre]}
+    crea_grid cmp: :pxa, modo: :ed, cols: cols, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, p.nombre[-4..-1], 0]}
 
     @fact.add_campo :cmpx, tab: 'post', gcols: 12, type: :decimal
+  end
+
+  def on_cmpx
+    mensaje @fact.pxa.data(11, 'nombre')
   end
 
   # Métodos asociados a dialogo 1

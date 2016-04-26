@@ -325,6 +325,7 @@ end
 class HashForGrids < Hash
   def data(id=nil, col=nil, val='~nil~')
     return self[:data] unless id
+    id = id.to_s
 
     pos = nil
     if col
@@ -338,7 +339,7 @@ class HashForGrids < Hash
     end
 
     self[:data].each {|row|
-      if id == row[0]
+      if id == row[0].to_s
         if pos
           val == '~nil~' ? row[pos] : row[pos] = val
           return row[pos]

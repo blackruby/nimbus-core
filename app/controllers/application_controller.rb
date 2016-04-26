@@ -1094,7 +1094,8 @@ class ApplicationController < ActionController::Base
   end
 
   def validar_local_cell
-    #@ajax << "_grid_ajax_data=#{[params[:id], 'nombre', 'Atrás'].to_json}"
+    @fact[params[:cmp]].data(params[:row], params[:col], params[:val])
+    #@ajax << "$('#g_#{params[:cmp]}').jqGrid('setCell', '#{params[:row]}', '#{params[:col]}', 'Atrás');"
   end
 
   def validar_cell
@@ -1204,6 +1205,7 @@ class ApplicationController < ActionController::Base
 
     opts[:cols].each {|c|
       c[:searchoptions] ||= {}
+      c[:editoptions] ||= {}
       ty = (c[:type] || :string).to_sym
       case c[:type]
         when :boolean
@@ -1217,10 +1219,12 @@ class ApplicationController < ActionController::Base
           c[:align] ||= 'right'
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
         when :decimal
-          c[:sorttype] ||= 'float'
-          c[:formatter] ||= 'number'
-          c[:formatoptions] ||= {decimalPlaces: c[:dec] || 2}
+          #c[:sorttype] ||= 'float'
+          #c[:formatter] ||= 'number'
+          #c[:formatoptions] ||= {decimalPlaces: c[:dec] || 2}
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
+          c[:editoptions][:dataInit] ||= '~function(e){numero(e,9,2,true)}~'
+          c[:sortfunc] ||= '~sortNumero~'
           c[:align] ||= 'right'
         when :date
           c[:sorttype] ||= 'date'
@@ -1342,7 +1346,6 @@ class ApplicationController < ActionController::Base
 
     @ajax = ''
     if params[:vista]
-      #@dat = $h[params[:vista].to_i]
       @fact = @dat[:fact]
       fact_clone if @fact
     end
