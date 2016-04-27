@@ -1230,6 +1230,8 @@ class ApplicationController < ActionController::Base
           c[:sorttype] ||= 'date'
           c[:formatter] ||= 'date'
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
+        when :references
+          c[:editoptions] = {dataInit: '~myelem~'}
         else
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
       end
@@ -1374,7 +1376,7 @@ class ApplicationController < ActionController::Base
 
   #### GRABAR
 
-  def grabar
+  def grabar(ajx=true)
     clm = class_mant
     #vid = params[:vista].to_i
     #@dat = $h[vid]
@@ -1429,7 +1431,7 @@ class ApplicationController < ActionController::Base
           sincro_ficha :ajax => true
           mensaje 'Grabación cancelada. Ya existe la clave'
           @v.save
-          render :js => @ajax
+          render :js => @ajax if ajx
           return
         end
       end
@@ -1456,7 +1458,7 @@ class ApplicationController < ActionController::Base
 
     @v.save
 
-    render :js => @ajax
+    render :js => @ajax if ajx
   end
 
   # Método para hacer una grabación de @fact manual y con las acciones oportunas
