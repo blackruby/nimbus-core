@@ -1201,14 +1201,59 @@ class ApplicationController < ActionController::Base
   #
   # cmp: es un campo X definido con {type: :div}
   #
+  # modo: (:ed / :sel) indica si el grid es editable o para selección
+  #       Por defecto :sel
+  #
+  #       En el modo edición se pueden definir métodos vali y on para cada
+  #       columna. La nomenclatura será vali_campox_columna o on_campox_columna
+  #       Ambos métodos recibirán como argumentos el id de la fila y el valor
+  #       de la celda correspondiente.
+  #
+  # sel: (:row / :cel / nil) Sólo válido en modo edición (:ed). Indica si
+  #      el servidor es notificado cuando se selecciona una fila nueva o una
+  #      celda. Se llamará al método sel_campox que recibirá como argumentos
+  #      el id de la fila y el nombre de la columna. Por defecto vale nil
+  #
+  # del: (true / false) Sólo válido en modo edición (:ed). Indica si
+  #      se permiten borrar filas. En caso afirmativo antes del borrado se
+  #      llamará al método vali_borra_campox que recibirá como argumento el
+  #      id de la fila a borrar y retornará una cadena con un error si no se
+  #      permite el borrado o nil si se permite. Por defecto vale true
+  #
+  # ins: (:pos / :end / nil) Sólo válido en modo edición (:ed). Indica si
+  #      se permite la inserción de nuevas filas. El valor :pos indica que
+  #      la inserción puede ser posicional (entre dos filas), en este caso no
+  #      se permitirá la ordenación por columnas. El valor :end indica que
+  #      la inserción sólo se permite al final. Por defecto vale :end.
+  #      Cuando se solicite la inserción de una nueva fila se llamará al método
+  #      new_campox y recibirá como argumento la posición física donde se
+  #      va a insertar la fila. Como valor de retorno debe devolver un array
+  #      con los valores de la fila a insertar.
+  #
   # search: (true/false) indica si aparece o no la barra de búsqueda
   #         en el grid. Por defecto vale false.
   #
   # cols: Es un array de hashes conteniendo información de cada columna.
   #       Las posibles claves del hash de cada columna son:
-  #       name: el nombre y título de la columna.
+  #       name: el nombre de la columna. Si una columna es de tipo id
+  #             haciendo referencia a otra tabla, su nombre debe acabar por '_id'
+  #             y especificar el nombre del modelo con la clave :ref
+  #             Si no se especifica :ref se asumirá el nombre de la columna
+  #             sin el id. Si se quieren poner filtros a este tipo de campos
+  #             se usará el mismo método que para campos normales (set_auto_comp_filter)
+  #             con la salvedad de que como nombre de campo le pasaremos:
+  #             campox_id_columna (siendo id el 'id' de la fila y 'columna' el
+  #             nombre de la columna). Por ejemplo en una fila con id=123 y con una
+  #             columna llamada pais_id (haciendo referencia a la tabla de países)
+  #             usaríamos set_auto_comp_filter('campox_123_pais_id', 'el_filtro_que_sea')
+  #       ref:  Explicada en el apartado anterior. (Sólo válida para campos _id)
+  #       label: el título de la columna. Si no existe se usará 'name'
   #       type: el tipo (:boolean, :string, :integer, :decimal, :date, :time)
-  #            Si no se especifica se asume string.
+  #             Si no se especifica se asume string. Los campos de tipo _id no
+  #             necesitan tipo explícito (no hace falta usar esta clave)
+  #       manti: Sólo para tipos numéricos, indica la mantisa (defecto 7)
+  #       signo: Sólo para tipos numéricos, indica si se admiten negativos
+  #              Por defecto vale false
   #       dec: Sólo para el type :decimal indica el número de decimales.
   #            Por defecto 2.
   #       align: Posibles valores: 'left', 'center', 'right'
@@ -1242,11 +1287,29 @@ class ApplicationController < ActionController::Base
   #       Este id es el que se devolverá al campo X en caso de que la fila sea
   #       seleccionada.
   #
+  # En el caso de que el modo sea :sel (selección sin edición)
   # El método, además de crear el grid, sincroniza la seleción de fila (o filas si
   # está a true la opción multiselect) con el servidor. En el campo X asociado
   # tendremos siempre disponible el id de la fila seleccionada (o un array de ids
   # si hay multiselección). Para acceder lo haremos con @fact.cmp (donde cmp es el
   # campo X referido).
+  #
+  # En el caso de que el modo sea :ed (edición) La sincronización con el servidor
+  # se realiza reflejando en tiempo real el estado de cada celda. Para acceder a
+  # los datos usaremos @fact.data(id, col) donde 'id' es el id de la fila y 'col'
+  # el nombre de la columna. Para dar valor valor a una celda usaremos
+  # @fact.data(id, col, val) igual que antes más 'val' que es el valor que queremos
+  # asignar.
+  # Para insertar una nueva fila por código, o bien lo hacemos con el valor de retorno
+  # del método new_campox o, si queremos insertar filas en otros métodos tendremos
+  # que usar el método grid_add_row(cmp, pos, data) donde cmp es el campox, pos es la
+  # posición donde queremos insertar la fila (-1 para insertar por el final) y 'data'
+  # un array con los valores de fila a insertar.
+  # Igualmente, para borrar una fila por código se puede usar el método grid_del_row(id)
+  # donde 'id' es el id de la fila a borrar. Esto sería para borrar filas 'a traición',
+  # las filas que borra el usuario y que se nos notifican en vali_borra_campox se borran
+  # solas (sin necesidad de usar este método) en el caso de que vali_borra_campox
+  # devuelva nil.
 
   def crea_grid(opts)
     cmp = opts[:cmp]
