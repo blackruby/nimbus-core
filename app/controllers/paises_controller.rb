@@ -4,7 +4,8 @@ class PaisesMod < Pais
     nombre: {tab: 'pre', gcols: 4, grid:{}},
     tipo: {tab: 'pre', gcols: 2, grid:{}},
     codigo_cr: {tab: 'pre', gcols: 2, grid:{}},
-    pxa: {tab: 'post', type: :div, gcols: 6},
+    pxa: {tab: 'post', type: :div, gcols: 12},
+    pxb: {tab: 'post', type: :div, gcols: 12},
 
     campo_x: {dlg: 'uno', gcols: 6},
     mig1: {dlg: 'uno', type: :div, gcols: 6},
@@ -53,21 +54,44 @@ class PaisesController < ApplicationController
     return if @fact.id.to_i == 0
 
     cols = [
-      {name: 'codigo', label: 'Código', editable: true, width: 70},
-      {name: 'nombre', editable: true},
-      {name: 'nombre2', editable: true},
-      {name: 'double', type: :decimal, editable: true},
+      {name: 'codigo', label: 'Código', editable: false, width: 40},
+      {name: 'nombre'},
+      {name: 'pais_id', label: nt('pais')},
+      {name: 'nombre2', width: 50},
+      {name: 'double', type: :decimal, decim: 3, width: 60},
+      {name: 'bool', type: :boolean, width: 30},
+      {name: 'fecha', type: :date, width: 80},
     ]
     pl = @fact.nombre[0]
     q = Pais.where('nombre like ?', "#{pl}%")
 
-    crea_grid cmp: :pxa, modo: :ed, cols: cols, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, p.nombre[-4..-1], 0]}
+    crea_grid cmp: :pxa, modo: :ed, cols: cols, ins: :end, sel: :cel, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, 3, p.nombre[-4..-1], 12345.67, true, Date.today]}
+    crea_grid cmp: :pxb, modo: :ed, cols: cols, ins: :pos, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, nil, p.nombre[-4..-1], 0, false, Date.today]}
+
+    set_auto_comp_filter('pxa_11_pais_id', "nombre like 'B%'")
 
     @fact.add_campo :cmpx, tab: 'post', gcols: 12, type: :decimal
   end
 
+  def new_pxa(pos)
+    [500, '001', 'Santuro']
+  end
+  def vali_borra_pxa(id)
+    return 'Argentina no' if id.to_i == 11
+  end
+
+  def vali_pxa_nombre(id, val)
+    return nil
+  end
+  def on_pxa_nombre(id, val)
+    @fact.pxa.data(id, :nombre2, val[-4..-1])
+  end
+  def vali_pxa_nombre2(id, val)
+    return "#{val}: Nombre muy largo" if val.size > 5
+  end
+
   def on_cmpx
-    mensaje @fact.pxa.data(11, 'nombre')
+    mensaje @fact.pxa[:data].inspect
   end
 
   # Métodos asociados a dialogo 1

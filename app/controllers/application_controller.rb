@@ -558,7 +558,8 @@ class ApplicationController < ActionController::Base
       h = {:id => s.id, :cell => []}
       clm.columnas.each {|c|
         begin
-          h[:cell] << forma_campo(:grid, s, c).to_s
+          #h[:cell] << forma_campo(:grid, s, c).to_s
+          h[:cell] << forma_campo(:grid, s, c, s[c]).to_s
         rescue
           h[:cell] << ''
         end
@@ -928,35 +929,29 @@ class ApplicationController < ActionController::Base
     @fant = fant.deep_dup
   end
 
-  def forma_campo(tipo, ficha, cmp, val={})
-    cp = ficha.respond_to?('campos') ? ficha.campos[cmp.to_sym] : class_mant.campos[cmp.to_sym]
+  def _forma_campo(tipo, cp, cmp, val)
     if cmp.ends_with?('_id')
-      #id = ficha.method(cmp).call
-      id = ficha[cmp]
-      if id and id != 0 and id != ''
-        #if class_modelo.attribute_names.include?(cmp)
-          #val = {}
-          #cmpr = cmp[0..-4] + ".auto_comp_value(:#{tipo})"
-          mod = cp[:ref].constantize
-          val = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + id.to_s)[0]
-          val = val ? val.auto_comp_value(tipo) : nil
-        #else
-        #  val =  cp[:ref].constantize.find(id.to_i).method('auto_comp_value').call(tipo)
-        #end
+      #id = ficha[cmp]
+      if val and val != 0 and val != ''
+        mod = cp[:ref].constantize
+        ret = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + val.to_s)[0]
+        ret = ret ? ret.auto_comp_value(tipo) : nil
       else
-        val = nil
+        ret = ''
       end
-    else
-      cmpr = cmp
+      return ret
     end
 
+=begin
     if val == {}
       begin
-        val = eval('ficha.' + cmpr)
+        #val = eval('ficha.' + cmp)
+        val = ficha[cmp]
       rescue
         val = nil
       end
     end
+=end
 
     if val.nil?
       return ''
@@ -972,6 +967,11 @@ class ApplicationController < ActionController::Base
         return val
       end
     end
+  end
+
+  def forma_campo(tipo, ficha, cmp, val)
+    cp = ficha.respond_to?('campos') ? ficha.campos[cmp.to_sym] : class_mant.campos[cmp.to_sym]
+    _forma_campo(tipo, cp, cmp, val)
   end
 
   def envia_campo(cmp, val)
@@ -999,9 +999,7 @@ class ApplicationController < ActionController::Base
     end
 
     fun = 'on_' << c
-    if self.respond_to?(fun)
-      method(fun).call
-    end
+    method(fun).call if self.respond_to?(fun)
   end
 
   def sincro_ficha(h={})
@@ -1016,26 +1014,50 @@ class ApplicationController < ActionController::Base
           next
         end
 
-        #v = @fact.method(cs).call
         v = @fact[cs]
         va = @fant[cs]
         if v != va
           vc << [cs, v]
           vcg << cs
 
-          if h[:ajax] and c != h[:exclude] and ch[:form]
-            envia_campo(c, v)
-          end
+          if v.is_a? HashForGrids
+            sincro_grid(cs, v, va)
+          else
+            if h[:ajax] and c != h[:exclude] and ch[:form]
+              envia_campo(c, v)
+            end
 
-          call_on(c)
+            call_on(c)
+          end
         end
       }
       vc.each {|cv|
-        #c = cv[0] + '='
-        #@fant.method(c).call(cv[1]) if @fant.respond_to?(c)
         @fant[cv[0]] = cv[1]
       }
     end
+  end
+
+  def sincro_grid(cmp, v, va)
+    celdas = []
+    cambios = true
+    while cambios
+      cambios = false
+      v[:data].each_with_index {|r, i|
+        v[:cols].each_with_index {|c, j|
+          name = c[:name]
+          next if celdas.index{|z| z[0] == r[0] and z[1] == name}
+          val = r[j+1]
+          if val != va[:data][i][j+1]
+            cambios = true
+            celdas << [r[0], name, val]
+            fun = "on_#{cmp}_#{name}"
+            method(fun).call(r[0], val) if self.respond_to?(fun)
+            va[:data][i][j+1] = val
+          end
+        }
+      }
+    end
+    @ajax << "setDataGridLocal('#{cmp}',#{celdas.to_json});" unless celdas.empty?
   end
 
   def envia_ficha
@@ -1094,8 +1116,36 @@ class ApplicationController < ActionController::Base
   end
 
   def validar_local_cell
-    @fact[params[:cmp]].data(params[:row], params[:col], params[:val])
-    #@ajax << "$('#g_#{params[:cmp]}').jqGrid('setCell', '#{params[:row]}', '#{params[:col]}', 'Atrás');"
+    cmp = params[:cmp].to_sym
+    row = params[:row]
+    col = params[:col]
+    val = params[:val]
+    case @fact[cmp].col(col)[:type]
+      when :references
+        val = val.to_i
+      when :integer
+        val = val.gsub('.', '').gsub(',', '.').to_i
+      when :decimal
+        val = val.gsub('.', '').gsub(',', '.').to_d
+      when :date
+        val = val.to_date
+      when :time
+        val = val.to_time
+      when :boolean
+        val = (val == 'true')
+    end
+    @fact[cmp].data(row, col, val)
+    @fant[cmp].data(row, col, val)
+
+    fun = "vali_#{cmp}_#{col}"
+
+    err, t1 = procesa_vali(method(fun).call(row, val)) if self.respond_to?(fun)
+    mensaje(err) if err
+
+    fun = "on_#{cmp}_#{col}"
+    method(fun).call(row, val) if self.respond_to?(fun)
+
+    @ajax << 'hayCambios=true;'
   end
 
   def validar_cell
@@ -1199,60 +1249,79 @@ class ApplicationController < ActionController::Base
   # campo X referido).
 
   def crea_grid(opts)
-    return unless opts[:cmp]
+    cmp = opts[:cmp]
+    return unless cmp
 
     modo = opts[:modo] ? opts[:modo].to_sym : :sel
+    opts[:ins] ||= :end
+    opts[:del] = true if opts[:del].nil?
 
     opts[:cols].each {|c|
+      if c[:name].to_s.ends_with?('_id')
+        c[:type] = :references
+        c[:ref] ||= c[:name][0..-4].capitalize
+      end
       c[:searchoptions] ||= {}
       c[:editoptions] ||= {}
-      ty = (c[:type] || :string).to_sym
+      c[:editable] = true if c[:editable].nil?
+      c[:sortable] = false if opts[:ins] == :pos
+      c[:type] ||= :string
+      c[:type] = c[:type].to_sym
       case c[:type]
         when :boolean
           c[:align] ||= 'center'
-          #c[:formatter] ||= '~format_check~'
-          c[:formatter] ||= 'checkbox'
+          #c[:formatter] ||= 'checkbox'
+          c[:formatter] ||= '~format_check~'
+          c[:unformat] ||= '~unformat_check~'
+          c[:editoptions][:value] ||= 'true:false'
+          c[:edittype] ||= 'checkbox'
           c[:searchoptions][:sopt] ||= ['eq']
-        when :integer
-          c[:sorttype] ||= 'int'
-          c[:formatter] ||= 'integer'
-          c[:align] ||= 'right'
+        when :integer, :decimal
+          c[:manti] ||= 7
+          c[:decim] ||= (c[:type] == :integer ? 0 : 2)
+          c[:signo] = false if c[:signo].nil?
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
-        when :decimal
-          #c[:sorttype] ||= 'float'
-          #c[:formatter] ||= 'number'
-          #c[:formatoptions] ||= {decimalPlaces: c[:dec] || 2}
-          c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
-          c[:editoptions][:dataInit] ||= '~function(e){numero(e,9,2,true)}~'
+          c[:editoptions][:dataInit] ||= "~function(e){numero(e,#{c[:manti]},#{c[:decim]},true)}~"
           c[:sortfunc] ||= '~sortNumero~'
           c[:align] ||= 'right'
         when :date
-          c[:sorttype] ||= 'date'
-          c[:formatter] ||= 'date'
+          #c[:sorttype] ||= 'date'
+          #c[:formatter] ||= 'date'
+          c[:editoptions][:dataInit] ||= '~function(e){date_pick(e)}~'
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
+          c[:sortfunc] ||= '~sortDate~'
         when :references
-          c[:editoptions] = {dataInit: '~myelem~'}
+          c[:editoptions] = {dataInit:  "~function(e){autoCompGridLocal(e,'#{c[:ref]}','#{c[:ref].constantize.table_name}','#{cmp}','#{c[:name]}');}~"}
+          c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
         else
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
       end
     }
 
     data = opts[:data]
+    data_grid = []
     if data
       data = [data] unless data[0].class == Array
       opts.delete(:data)
+      data.each {|r|
+        h = {id: r[0]}
+        opts[:cols].each_with_index {|c, i| h[c[:name]] = _forma_campo(:form, c, c[:name], r[i+1])}
+        data_grid << h
+      }
     end
 
-    @ajax << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data.to_json}, '#{modo}');"
+    @ajax << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data_grid.to_json}, '#{modo}');"
 
     case modo
       when :ed
-        @fact[opts[:cmp]] = HashForGrids.new
-        c = @fact[opts[:cmp]]
+        @fact[cmp] = HashForGrids.new
+        c = @fact[cmp]
         c[:cols] = opts[:cols]
         c[:data] = data
+        c[:borrados] = []
+        c[:editados] = []
       else
-        @fact[opts[:cmp]] = nil
+        @fact[cmp] = nil
     end
   end
 
@@ -1274,6 +1343,63 @@ class ApplicationController < ActionController::Base
 
   def del_data_grid(cmp, id)
     @ajax << "delDataGridLocal('#{cmp}', #{id});"
+  end
+
+  def grid_add_row(cmp, pos, data)
+    cmp = cmp.to_sym
+    h = {}
+    @fact[cmp][:cols].each_with_index {|c, i| h[c[:name]] = _forma_campo(:form, c, c[:name], data[i + 1])}
+    @ajax << "$('#g_#{cmp}').jqGrid('addRowData','#{data[0]}',#{h.to_json}"
+    @ajax << ",'before',#{@fact[cmp][:data][pos][0]}" if pos >= 0
+    @ajax << ");"
+
+    @ajax << "$('##{cmp} .ui-jqgrid-bdiv').scrollTop(1000000);" if pos == -1
+
+    @fact[cmp][:data].insert(pos, data)
+    @fant[cmp][:data].insert(pos, data)
+  end
+
+  def grid_local_ins
+    cmp = params[:cmp].to_sym
+    pos = params[:pos].to_i
+
+    fun = "new_#{cmp}"
+    if self.respond_to?(fun)
+      data = self.method(fun).call(pos)
+      return if data.nil? or data.empty?
+    else
+      data = [@fact[cmp].max_id.next]
+    end
+
+    grid_add_row(cmp, pos, data)
+  end
+
+  def grid_del_row(cmp, row)
+    cmp = cmp.to_sym
+    @ajax << "$('#g_#{cmp}').jqGrid('delRowData','#{row}');"
+
+    @fact[cmp].del_row(row)
+    @fant[cmp].del_row(row)
+  end
+
+  def grid_local_ed_select
+    fun = "sel_#{params[:cmp]}"
+    self.method(fun).call(params[:row], params[:col]) if self.respond_to?(fun)
+  end
+
+  def grid_local_del
+    cmp = params[:cmp].to_sym
+    row = params[:row]
+
+    fun = "vali_borra_#{cmp}"
+    if self.respond_to?(fun)
+      res = self.method(fun).call(row)
+      if res
+        mensaje res
+        return
+      end
+    end
+    grid_del_row(params[:cmp], row = params[:row])
   end
 
   def grid_local_select
@@ -1344,7 +1470,10 @@ class ApplicationController < ActionController::Base
 
   #Función para ser llamada desde el botón aceptar de los 'procs'
   def fon_server
-    return unless self.respond_to?(params[:fon])
+    unless self.respond_to?(params[:fon])
+      render nothing: true
+      return
+    end
 
     @ajax = ''
     if params[:vista]
@@ -1392,6 +1521,18 @@ class ApplicationController < ActionController::Base
         #valor = @fact.method(c).call
         valor = @fact[c]
         (valor.nil? or ([:string, :text].include?(v[:type]) and not c.ends_with?('_id') and valor.strip == '')) ? e = "Campo #{c} requerido" : e = nil
+      elsif v[:type] == :div
+        e = nil
+        valor = @fact[c]
+        if valor.is_a? HashForGrids
+          valor[:data].each {|r|
+            valor[:cols].each_with_index {|col, i|
+              fun = "vali_#{c}_#{col[:name]}"
+              er, t = procesa_vali(method(fun).call(r[0], r[i+1])) if self.respond_to?(fun)
+              err << '<br>' + er if t == :duro
+            }
+          }
+        end
       else
         e = valida_campo(c, :duro)
       end
@@ -1480,11 +1621,17 @@ class ApplicationController < ActionController::Base
 
   def bus_call
     @fact = @dat[:fact]
+
     cmp = params[:id].to_sym
-    v = @fact.campos[cmp]
+    if params[:cmp] # Casos de campos (columnas) de grids editables
+      v = @fact[params[:cmp]].col(params[:col])
+    else  # Casos de campos normales de mantenimientos
+      v = @fact.campos[cmp]
+    end
 
     flash[:mod] = v[:ref].to_s
     flash[:ctr] = params[:controller]
+    flash[:ctr] += "_#{params[:col]}" if params[:col]
     flash[:eid] = @dat[:eid]
     flash[:jid] = @dat[:jid]
     flash[:wh] = @dat[:auto_comp][cmp] if @dat[:auto_comp] and @dat[:auto_comp][cmp]

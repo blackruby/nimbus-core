@@ -548,15 +548,23 @@ function set_auto_comp_filter(cmp, wh) {
 */
 
 function date_pick(e, opt) {
-  //$(e).datepicker($.extend(true, {onClose: function(){$(this).focus();}}, opt));
+  if (opt == undefined)
+    $(e).datepicker({onClose: function(){$(this).focus();}});
+  else
     $(e).datepicker($.extend(true, {onClose: function(){$(this).focusNextInputField();}}, opt));
 }
 
-/**
-function date_pick_b(e) {
-  $(e).datepicker({showOn: "button", onClose: function(){$(this).focusNextInputField();}});
+function dateToNumber(d) {
+  return parseInt(d.slice(6) + d.slice(3,5) + d.slice(0,2));
 }
- **/
+
+function sortDate(a, b, d) {
+  var a = dateToNumber(a)*d;
+  var b = dateToNumber(b)*d;
+  if (a > b) return 1;
+  if (a < b) return -1;
+  return 0;
+}
 
 function numero(elem, manti, decim, signo) {
   $(elem).addClass('numero');
@@ -681,7 +689,13 @@ if (self != top)
 
 function autoCompBuscar() {
   bus_input_selected = $("#_auto_comp_button_").parent().find("input");
-  callFonServer("bus_call", {id: bus_input_selected.attr("id")});
+  var cmp = bus_input_selected.attr('cmp');
+  if (cmp) {
+    var rowid = $("#g_" + cmp).jqGrid('getGridParam', 'selrow');
+    var col = bus_input_selected.attr("col");
+    callFonServer("bus_call", {cmp: cmp, col: col, id: cmp + '_' + rowid + '_' + col});
+  } else
+    callFonServer("bus_call", {id: bus_input_selected.attr("id")});
   /*
   var inp = $("#_auto_comp_button_").parent().find("input");
   var w = window.open('/bus?mod=' + inp.attr("modelo") + '&eid=' + eid + '&jid=' + jid, "_blank", "width=700, height=500");
@@ -751,6 +765,12 @@ function delDataGridLocal(cmp, id) {
   $("#g_" + cmp).jqGrid('delRowData', id);
 }
 
+function setDataGridLocal(cmp, data) {
+  var g = $("#g_" + cmp);
+  for (var i = 0; c=data[i]; i++)
+    g.jqGrid("setCell", c[0], c[1], c[2]);
+}
+
 function creaGridLocal(opts, data, modo) {
   var cmp = opts.cmp;
   $("#" + cmp).html("").append('<table id="g_' + cmp + '"></table>');
@@ -764,12 +784,29 @@ function creaGridLocal(opts, data, modo) {
     case 'ed':
       grid_a = {
         cellEdit: true,
-        //toppager: true,
-        afterSaveCell: function(row, col, val){
+        afterSaveCell: function(row, col, val) {
+          if (col.match('_id$')) {
+            if (g.attr("last_autocomp_id") == "") {
+              g.jqGrid("setCell", row, col, "", "", "", true);
+            }
+            val = g.attr("last_autocomp_id");
+          }
           callFonServer("validar_local_cell", {cmp: cmp, row: row, col: col, val: val});
         },
-        onSelectCell: function(r, c, v, ir, ic){console.log('Sel ', r, c, v, ir, ic)},
-        beforeEditCell: function(r, c, v, ir, ic){console.log('Ed. ', r, c, v, ir, ic)}
+        onSelectCell: function(r, c, v, ir, ic){
+          if (opts.sel && (opts.sel == 'row' && g.attr("last_selected_row") != r || opts.sel == 'cel'))
+            callFonServer("grid_local_ed_select", {cmp: cmp, row: r, col: c});
+
+          g.attr("last_selected_row", r);
+        },
+        beforeEditCell: function(r, c, v, ir, ic){
+          g.attr("last_autocomp_id", "");
+
+          if (opts.sel && (opts.sel == 'row' && g.attr("last_selected_row") != r || opts.sel == 'cel'))
+            callFonServer("grid_local_ed_select", {cmp: cmp, row: r, col: c});
+
+          g.attr("last_selected_row", r);
+        }
       };
       var caption = grid.caption;
       if (caption) delete grid.caption; else caption = '';
@@ -785,6 +822,7 @@ function creaGridLocal(opts, data, modo) {
   g.jqGrid($.extend(true, {
     datatype: "local",
     colModel: opts.cols,
+    data: data,
     gridview: true,
     height: 150,
     ignoreCase: true,
@@ -794,60 +832,109 @@ function creaGridLocal(opts, data, modo) {
   switch(modo) {
     case 'ed':
       g.jqGrid('bindKeys');
-      //g.jqGrid('navGrid', '#g_' + cmp + '_toppager', {edit: false, add: false, del: false}, {}, {}, {}, {multipleSearch: true, multipleGroup: true, showQuery: true});
-      //g.jqGrid('navButtonAdd', '#g_' + cmp + '_toppager', {caption:"",title:"Barra de búsqueda", buttonicon :'ui-icon-pin-s', onClickButton:function(){vgrid[0].toggleToolbar()}});
-      $('#gbox_g_' + cmp).prepend(
-        '<div class="nim-titulo">' + caption +
-        '&nbsp;&nbsp;&nbsp;&nbsp;' +
-        creaMdlButton('b_ib_' + cmp, 30, 2, 22, 'vertical_align_bottom') +
-        '&nbsp;&nbsp;' +
-        creaMdlButton('b_it_' + cmp, 30, 2, 22, 'vertical_align_top') +
-        '&nbsp;&nbsp;' +
-        creaMdlButton('b_d_' + cmp, 30, 2, 22, 'delete') +
-        '</div>'
-      );
+      ht = '<div class="nim-titulo">' + caption + '&nbsp;&nbsp;&nbsp;&nbsp;';
+      if (opts.ins) {
+        ht += creaMdlButton('b_ib_' + cmp, 30, 2, 22, 'vertical_align_bottom');
+        if (opts.ins == 'pos') {
+          ht += '&nbsp;&nbsp;';
+          ht += creaMdlButton('b_it_' + cmp, 30, 2, 22, 'vertical_align_center');
+        }
+      }
+      if (opts.del) {
+        ht += '&nbsp;&nbsp;';
+        ht += creaMdlButton('b_d_' + cmp, 30, 2, 22, 'delete');
+      }
+      ht +=  '</div>';
+      $('#gbox_g_' + cmp).prepend(ht);
+
       $("#b_it_" + cmp).click(function() {
+        if (g.find('input').length > 0) return;
         var r = g.jqGrid('getGridParam', 'selrow');
         if (r) {
-          g.jqGrid('addRowData', 1000, [{}], 'before', r);
+          var iRow = g.find('#' + r)[0].rowIndex - 1;
+          callFonServer("grid_local_ins", {cmp: cmp, pos: iRow});
         }
       });
       $("#b_ib_" + cmp).click(function() {
-        var r = g.jqGrid('getGridParam', 'selrow');
-        if (r) {
-          g.jqGrid('addRowData', 1000, [{}], 'after', r);
-        }
+        if (g.find('input').length > 0) return;
+        callFonServer("grid_local_ins", {cmp: cmp, pos: -1});
       });
       $("#b_d_" + cmp).click(function() {
+        if (g.find('input').length > 0) return;
         var r = g.jqGrid('getGridParam', 'selrow');
-        if (r) {
-          g.jqGrid('delRowData', r);
-        }
+        if (r) callFonServer("grid_local_del", {cmp: cmp, row: r});
       });
       break;
   }
 
   if (opts.search) g.jqGrid('filterToolbar',{searchOperators : true});
 
-  _addDataGridLocal(g, data);
+  //_addDataGridLocal(g, data);
   g.setGridWidth(g.width());
 }
 
+function autoCompGridLocal(el, modelo, ctrl, cmp, col) {
+  $(el).parent().css('position', 'relative');
+  var g = $("#g_" + cmp);
+  var rowid = g.jqGrid('getGridParam', 'selrow');
+  $(el).autocomplete({
+    source: '/application/auto?type=form&mod=' + modelo + '&vista=' + _vista + '&cmp=' + cmp + '_' + rowid + '_' + col + '&eid=' + eid + '&jid=' + jid,
+    minLength: 1,
+    autoFocus: true,
+    //select: function(e, ui) {$(this).attr('dbid', ui.item.id); $(this).parents('table').attr('last_autocomp_id', ui.item.id)},
+    select: function(e, ui) {$(this).attr('dbid', ui.item.id); g.attr('last_autocomp_id', ui.item.id)},
+    response: function(e, ui) {auto_comp_error(e, ui);}
+  }).addClass("auto_comp").attr('controller', ctrl).attr('cmp', cmp).attr('col',  col);
+}
+
 $(window).load(function() {
-  $("body").on("focus", ".nim-input", function (e) {
+  var _auto_comp_menu_;
+
+  //$("body").on("focus", ".nim-input", function (e) {
+  $("body").on("focus", "input", function (e) {
     $("#_auto_comp_button_").remove();
+  }).on("click", function() {
+    if (_auto_comp_menu_)
+      _auto_comp_menu_ = false;
+    else
+      $(".nim-context-menu").css("display", "none");
   });
   $("body").on("focus", ".auto_comp", function (e) {
+    /*
     $(this).parent().append(
       '<button id="_auto_comp_button_" class="mdl-button mdl-js-button mdl-button--icon" style="position: absolute;top: -4px;right: -4px" tabindex=-1>'+
       '<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
       '</button>' +
-      '<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="_auto_comp_button_" style="z-index: 10000">'+
+      '<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect ui-front" for="_auto_comp_button_" style="z-index: 10000">'+
       '<li class="mdl-menu__item" onclick="autoCompBuscar()">Buscar</li>'+
       '<li class="mdl-menu__item" onClick="autoCompIrAFicha()">Ir a</li>'+
       '<li class="mdl-menu__item" onClick="autoCompNuevaFicha()">Nueva alta</li>'+
       '</ul>'
     );
+    */
+    $(this).parent().append(
+      '<button id="_auto_comp_button_" class="mdl-button mdl-js-button mdl-button--icon" style="position: absolute;top: -4px;right: -4px" tabindex=-1>'+
+      '<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
+      '</button>'
+    );
+    $('body').append(
+      '<div class="nim-context-menu">'+
+      '<ul class = "nim-context-menu-ul">'+
+      '<li class="nim-context-menu-li" onclick="autoCompBuscar()">Buscar</li>'+
+      '<li class="nim-context-menu-li" onClick="autoCompIrAFicha()">Ir a</li>'+
+      '<li class="nim-context-menu-li" onClick="autoCompNuevaFicha()">Nueva alta</li>'+
+      '</ul>'+
+      '</div>'
+    );
+    $('#_auto_comp_button_').on('click', function(){
+      var menu = $(".nim-context-menu");
+      if (menu.css("display") == 'none') {
+        menu.css("display", "block").position({my: "right top", at: "right bottom", of: '#_auto_comp_button_'});
+        _auto_comp_menu_ = true;
+      } else
+        menu.css("display", "none");
+    });
+
     componentHandler.upgradeDom();
   });
 

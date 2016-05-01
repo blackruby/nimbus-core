@@ -5,6 +5,7 @@ $color-1-d: #512DA8;
 $color-2: #FF4081;
 $color-2-2: #F8BBD0;
 $color-nim-label: #BEBEBE;
+$color-nim-context-menu-li: #EEEEEE;
 
 * {box-sizing:border-box;}
 
@@ -144,4 +145,30 @@ body {
 
 .edit-cell {
   background-color: $color-1-2;
+}
+
+.nim-context-menu {
+  position: absolute;
+  border: 1px solid #d3d3d3;
+  display: none;
+  background-color: #ffffff;
+  z-index: 200;
+}
+
+.nim-context-menu-ul {
+  list-style-type: none;
+  padding: 0px;
+  margin: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.nim-context-menu-li {
+  padding: 0px 16px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 48px;
+}
+.nim-context-menu-li:hover {
+  background-color: $color-nim-context-menu-li;
 }

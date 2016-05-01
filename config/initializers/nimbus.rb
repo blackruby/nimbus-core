@@ -350,6 +350,20 @@ class HashForGrids < Hash
     }
     nil
   end
+
+  def col(co)
+    self[:cols].each {|c| return c if c[:name] == co}
+    nil
+  end
+
+  def max_id
+    self[:data].map{|r| r[0]}.max
+  end
+
+  def del_row(id)
+    self[:data].delete_if {|r| r[0] == id}
+    self[:borrados] << id
+  end
 end
 
 # Módulo MantMod para extender las clases de los controladores
@@ -511,7 +525,8 @@ module MantMod
             #v[:grid][:formatter] ||= '~format_check~'
             #v[:grid][:unformat] ||= '~unformat_check~'
             v[:grid][:formatter] ||= 'checkbox'
-            v[:grid][:editoptions][:value] ||= 'true:false'
+            c[:edittype] ||= 'checkbox'
+            #v[:grid][:editoptions][:value] ||= 'true:false'
             v[:grid][:searchoptions][:sopt] ||= ['eq']
           end
         when :string

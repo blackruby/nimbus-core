@@ -309,9 +309,14 @@
         window.open("/" + _controlador_edit + "/" + id + "/edit");
         break;
       default:
-        _autoCompField.attr("dbid", id);
         callFonServer("bus_value", {id: id});
-        window.opener.send_validar(_autoCompField, id);
+
+        if (_autoCompField.attr("cmp")) // grids embebidos
+          _autoCompField.parents('table').attr('last_autocomp_id', id);
+        else {
+          _autoCompField.attr("dbid", id);
+          window.opener.send_validar(_autoCompField, id);
+        }
     }
   }
 
