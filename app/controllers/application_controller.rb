@@ -1296,9 +1296,9 @@ class ApplicationController < ActionController::Base
   #
   # En el caso de que el modo sea :ed (edición) La sincronización con el servidor
   # se realiza reflejando en tiempo real el estado de cada celda. Para acceder a
-  # los datos usaremos @fact.data(id, col) donde 'id' es el id de la fila y 'col'
-  # el nombre de la columna. Para dar valor valor a una celda usaremos
-  # @fact.data(id, col, val) igual que antes más 'val' que es el valor que queremos
+  # los datos usaremos @fact.campox.data(id, col) donde 'id' es el id de la fila y 'col'
+  # el nombre de la columna. Para dar valor a una celda usaremos
+  # @fact.campox.data(id, col, val) igual que antes más 'val' que es el valor que queremos
   # asignar.
   # Para insertar una nueva fila por código, o bien lo hacemos con el valor de retorno
   # del método new_campox o, si queremos insertar filas en otros métodos tendremos
