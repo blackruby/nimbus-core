@@ -357,7 +357,8 @@ class HashForGrids < Hash
   end
 
   def max_id
-    self[:data].map{|r| r[0]}.max
+    max = self[:data].map{|r| r[0]}.max
+    max ? max : 0
   end
 
   def del_row(id)

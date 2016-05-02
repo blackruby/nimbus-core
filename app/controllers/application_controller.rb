@@ -1363,7 +1363,7 @@ class ApplicationController < ActionController::Base
 
     data = opts[:data]
     data_grid = []
-    if data
+    if data and not data.empty?
       data = [data] unless data[0].class == Array
       opts.delete(:data)
       data.each {|r|
@@ -1383,10 +1383,10 @@ class ApplicationController < ActionController::Base
         c[:data] = data
         c[:borrados] = []
         c[:editados] = []
-        @fant[cmp] = nil
+        @fant[cmp] = nil if @fant
       else
         @fact[cmp] = nil
-        @fant[cmp] = nil
+        @fant[cmp] = nil if @fant
     end
   end
 
