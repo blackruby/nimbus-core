@@ -1383,8 +1383,10 @@ class ApplicationController < ActionController::Base
         c[:data] = data
         c[:borrados] = []
         c[:editados] = []
+        @fant[cmp] = nil
       else
         @fact[cmp] = nil
+        @fant[cmp] = nil
     end
   end
 
