@@ -520,13 +520,12 @@ module MantMod
         when :boolean
           v[:manti] ||= 6
           if hay_grid
-            v[:grid][:edittype] ||= 'checkbox'
             v[:grid][:align] ||= 'center'
-            #v[:grid][:formatter] ||= '~format_check~'
-            #v[:grid][:unformat] ||= '~unformat_check~'
-            v[:grid][:formatter] ||= 'checkbox'
-            c[:edittype] ||= 'checkbox'
-            #v[:grid][:editoptions][:value] ||= 'true:false'
+            #v[:grid][:formatter] ||= 'checkbox'
+            v[:grid][:formatter] ||= '~format_check~'
+            v[:grid][:unformat] ||= '~unformat_check~'
+            v[:grid][:edittype] ||= 'checkbox'
+            v[:grid][:editoptions][:value] ||= 'true:false'
             v[:grid][:searchoptions][:sopt] ||= ['eq']
           end
         when :string
