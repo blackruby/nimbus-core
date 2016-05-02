@@ -894,10 +894,7 @@ $(window).load(function() {
   $("body").on("focus", "input", function (e) {
     $("#_auto_comp_button_").remove();
   }).on("click", function() {
-    if (_auto_comp_menu_)
-      _auto_comp_menu_ = false;
-    else
-      $("#_auto_comp_menu_").css("display", "none");
+    $(".nim-context-menu").css("display", "none");
   });
   $("body").on("focus", ".auto_comp", function (e) {
     /*
@@ -927,13 +924,14 @@ $(window).load(function() {
         '</ul>'+
         '</div>'
       );
-    $('#_auto_comp_button_').on('click', function(){
+    $('#_auto_comp_button_').on('click', function(e){
+      e.stopPropagation();
       var menu = $("#_auto_comp_menu_");
       if (menu.css("display") == 'none') {
         menu.css("display", "block").position({my: "right top", at: "right bottom", of: '#_auto_comp_button_'});
-        _auto_comp_menu_ = true;
       } else
         menu.css("display", "none");
+
     });
 
     componentHandler.upgradeDom();
