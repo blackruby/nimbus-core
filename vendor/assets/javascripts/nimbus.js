@@ -897,7 +897,7 @@ $(window).load(function() {
     if (_auto_comp_menu_)
       _auto_comp_menu_ = false;
     else
-      $(".nim-context-menu").css("display", "none");
+      $("#_auto_comp_menu_").css("display", "none");
   });
   $("body").on("focus", ".auto_comp", function (e) {
     /*
@@ -917,17 +917,18 @@ $(window).load(function() {
       '<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
       '</button>'
     );
-    $('body').append(
-      '<div class="nim-context-menu">'+
-      '<ul class = "nim-context-menu-ul">'+
-      '<li class="nim-context-menu-li" onclick="autoCompBuscar()">Buscar</li>'+
-      '<li class="nim-context-menu-li" onClick="autoCompIrAFicha()">Ir a</li>'+
-      '<li class="nim-context-menu-li" onClick="autoCompNuevaFicha()">Nueva alta</li>'+
-      '</ul>'+
-      '</div>'
-    );
+    if ($("#_auto_comp_menu_").length == 0)
+      $('body').append(
+        '<div id="_auto_comp_menu_" class="nim-context-menu">'+
+        '<ul class="nim-context-menu-ul">'+
+        '<li class="nim-context-menu-li" onclick="autoCompBuscar()">Buscar</li>'+
+        '<li class="nim-context-menu-li" onClick="autoCompIrAFicha()">Ir a</li>'+
+        '<li class="nim-context-menu-li" onClick="autoCompNuevaFicha()">Nueva alta</li>'+
+        '</ul>'+
+        '</div>'
+      );
     $('#_auto_comp_button_').on('click', function(){
-      var menu = $(".nim-context-menu");
+      var menu = $("#_auto_comp_menu_");
       if (menu.css("display") == 'none') {
         menu.css("display", "block").position({my: "right top", at: "right bottom", of: '#_auto_comp_button_'});
         _auto_comp_menu_ = true;
