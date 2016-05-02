@@ -1021,7 +1021,7 @@ class ApplicationController < ActionController::Base
           vcg << cs
 
           if v.is_a? HashForGrids
-            sincro_grid(cs, v, va)
+            sincro_grid(cs, v, va) if va
           else
             if h[:ajax] and c != h[:exclude] and ch[:form]
               envia_campo(c, v)
