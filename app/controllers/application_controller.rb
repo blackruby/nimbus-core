@@ -631,6 +631,7 @@ class ApplicationController < ActionController::Base
     @dat[:fact] = clm.new
     @fact = @dat[:fact]
     @fact.user_id = session[:uid]
+    @dat[:head] = params[:head] if params[:head]
     #@fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord ???
 
     #@fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
@@ -1561,10 +1562,20 @@ class ApplicationController < ActionController::Base
   end
 
   def borrar
-    #@dat = $h[params[:vista].to_i]
+    @ajax = ''
+
     @fact = @dat[:fact]
-    @fact.destroy
-    render js: ''
+    err = vali_borra if self.respond_to?('vali_borra')
+    if err
+      mensaje err
+    else
+      @fact.destroy
+
+      grid_reload
+      @ajax << "window.location.replace('/' + _controlador + '/0/edit?head=#{@dat[:head]}');"
+    end
+
+    render js: @ajax
     @v.save
   end
 

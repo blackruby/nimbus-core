@@ -453,9 +453,11 @@ function mant_borrar_ok() {
     type: "POST",
     data: {vista: _vista}
   });
+  /*
   if (parent != self && $.isFunction(parent.grid_reload)) parent.grid_reload();
   head = $(".cl-borrar").length == 0 ? '0' : '1';
   window.location.replace('/' + _controlador + '/0/edit?head=' + head);
+  */
 }
 
 function mant_cancelar() {
