@@ -57,7 +57,12 @@
         <% if @view[:menu_r].size > 0 %>
           <hr class="nim-phone">
           <%  @view[:menu_r].each_with_index {|m, i| %>
-            <li id="<%= m[:id] ? m[:id] : '_mr_'+i.to_s %>" class="mdl-menu__item" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>')"> <%= m[:label] %> </li>
+            <% m[:id] ||= '_mr_'+i.to_s %>
+            <% if m[:id].starts_with?('tag_') %>
+              <%= m[:label].html_safe %>
+            <% else %>
+              <li id="<%= m[:id] %>" class="mdl-menu__item" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>')"> <%= m[:label] %> </li>
+            <% end %>
           <% } %>
         <% end %>
       </ul>

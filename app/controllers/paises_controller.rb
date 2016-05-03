@@ -36,6 +36,7 @@ class PaisesMod < Pais
 
   @menu_r = [
     {label: 'Opción 1', accion: 'mi_funcion'},
+    {id: 'tag_1', label: '<hr>'},
     {label: 'Diálogo 1', accion: 'diag_1', id: 'mr_1'},
   ]
 
@@ -58,7 +59,7 @@ class PaisesController < ApplicationController
       {name: 'nombre'},
       {name: 'pais_id', label: nt('pais')},
       {name: 'nombre2', width: 50},
-      {name: 'double', type: :decimal, decim: 3, width: 60},
+      {name: 'double', type: :decimal, decim: 3, width: 60, editable: '~vali_pxa~'},
       {name: 'bool', type: :boolean, width: 30},
       {name: 'fecha', type: :date, width: 80},
     ]

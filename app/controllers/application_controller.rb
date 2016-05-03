@@ -1317,7 +1317,7 @@ class ApplicationController < ActionController::Base
     return unless cmp
 
     modo = opts[:modo] ? opts[:modo].to_sym : :sel
-    opts[:ins] ||= :end
+    opts[:ins] = :end unless opts.key?(:ins)
     opts[:del] = true if opts[:del].nil?
 
     opts[:cols].each {|c|

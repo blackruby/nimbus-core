@@ -2,47 +2,12 @@
   <hr>
   <p>OTRA</p>
   <p>Y OTRA</p>
-
-<ul id="menu" class="ui-search-menu">
-  <li class="ui-state-disabled">Aberdeen</li>
-  <li>Ada</li>
-  <li>Adamsville</li>
-  <li>Addyston</li>
-  <li>Delphi
-    <ul>
-      <li class="ui-state-disabled">Ada</li>
-      <li>Saarland</li>
-      <li>Salzburg an der schönen Donau</li>
-    </ul>
-  </li>
-  <li>Saarland</li>
-  <li>Salzburg
-    <ul>
-      <li>Delphi
-        <ul>
-          <li>Ada</li>
-          <li>Saarland</li>
-          <li>Salzburg</li>
-        </ul>
-      </li>
-      <li>Delphi
-        <ul>
-          <li>Ada</li>
-          <li>Saarland</li>
-          <li>Salzburg</li>
-        </ul>
-      </li>
-      <li>Perch</li>
-    </ul>
-  </li>
-  <li class="ui-state-disabled">Amesville</li>
-</ul>
-
-
-<script>
-  $("#menu").menu();
-</script>
 <% end %>
 
-<style>
-</style>
+<script>
+  function vali_pxa(op) {
+    var item = $(this).jqGrid("getLocalRow", op.rowid);
+    return item.nombre2[0] != 't';
+  }
+</script>
+
