@@ -1345,7 +1345,7 @@ class ApplicationController < ActionController::Base
           c[:decim] ||= (c[:type] == :integer ? 0 : 2)
           c[:signo] = false if c[:signo].nil?
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
-          c[:editoptions][:dataInit] ||= "~function(e){numero(e,#{c[:manti]},#{c[:decim]},true)}~"
+          c[:editoptions][:dataInit] ||= "~function(e){numero(e,#{c[:manti]},#{c[:decim]},#{c[:signo]})}~"
           c[:sortfunc] ||= '~sortNumero~'
           c[:align] ||= 'right'
         when :date

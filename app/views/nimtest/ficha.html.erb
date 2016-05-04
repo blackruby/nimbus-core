@@ -16,12 +16,12 @@
 </style>
 
 <script>
-  function vali_edit_pxa(op) {
+  function vali_edit_pxa_double(op) {
     var item = $(this).jqGrid("getLocalRow", op.rowid);
     return item.nombre2[0] != 't';
   }
 
-  function style_cell_pxa(id, val, row) {
+  function style_cell_pxa_double(id, val, row) {
     // Función asociada a cellattr
     // id es el id de la fila a la que pertenece la celda procesada
     // val es el valor de la celda

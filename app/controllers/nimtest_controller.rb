@@ -61,7 +61,7 @@ class NimtestController < ApplicationController
       {name: 'nombre'},
       {name: 'pais_id', label: nt('pais')},
       {name: 'nombre2', width: 50},
-      {name: 'double', type: :decimal, decim: 3, width: 60, editable: '~vali_edit_pxa~', cellattr: '~style_cell_pxa~'},
+      {name: 'double', type: :decimal, decim: 3, signo: true, width: 65, editable: '~vali_edit_pxa_double~', cellattr: '~style_cell_pxa_double~'},
       {name: 'bool', type: :boolean, width: 30},
       {name: 'fecha', type: :date, width: 80},
     ]
