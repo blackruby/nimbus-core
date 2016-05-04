@@ -1,0 +1,38 @@
+<% content_for :otra do %>
+  <hr>
+  <p>OTRA</p>
+  <p>Y OTRA</p>
+<% end %>
+
+<style>
+  .negativo {
+    color: red;
+  }
+
+  .tenue {
+    background-color: #eeeeee;
+    background-image: none;
+  }
+</style>
+
+<script>
+  function vali_edit_pxa(op) {
+    var item = $(this).jqGrid("getLocalRow", op.rowid);
+    return item.nombre2[0] != 't';
+  }
+
+  function style_cell_pxa(id, val, row) {
+    // Función asociada a cellattr
+    // id es el id de la fila a la que pertenece la celda procesada
+    // val es el valor de la celda
+    // row es un objeto con todos los valores de la fila (row.columna para acceder a una celda de esa fila)
+    if (parseFloat(unformatNumero(val)) < 0)
+    return("class='negativo' style='background-color: yellow'");
+  }
+
+  function style_row_pxa(row) {
+    // Función asociada a rowattr
+    if (row.nombre2[0] == 'i') return {class: 'tenue', style: 'font-style: italic'};
+  }
+</script>
+
