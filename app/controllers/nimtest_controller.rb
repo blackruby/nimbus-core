@@ -4,6 +4,7 @@ class NimtestMod < Pais
     nombre: {tab: 'pre', gcols: 4, grid:{}},
     tipo: {tab: 'pre', gcols: 2, grid:{}},
     codigo_cr: {tab: 'pre', gcols: 2, grid:{}},
+    final: {tab: 'pre', gcols: 2},
     pxa: {tab: 'post', type: :div, gcols: 12},
     pxb: {tab: 'post', type: :div, gcols: 12},
 
@@ -46,6 +47,10 @@ class NimtestMod < Pais
 
   #def ini_campos_ctrl
   #end
+
+  def final
+    self.nombre[-4..-1]
+  end
 end
 
 class NimtestMod < Pais

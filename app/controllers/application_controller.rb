@@ -1222,9 +1222,11 @@ class ApplicationController < ActionController::Base
   #      se permiten borrar filas. En caso afirmativo antes del borrado se
   #      llamará al método vali_borra_campox que recibirá como argumento el
   #      id de la fila a borrar y retornará una cadena con un error si no se
-  #      permite el borrado o nil si se permite. Por defecto vale true
+  #      permite el borrado o nil si se permite. Si no existe el método se
+  #      entiende que se permite borrar cualquier fila sin condiciones.
+  #      Por defecto vale true.
   #
-  # ins: (:pos / :end / nil) Sólo válido en modo edición (:ed). Indica si
+  # ins: (:pos / :end / nil|false) Sólo válido en modo edición (:ed). Indica si
   #      se permite la inserción de nuevas filas. El valor :pos indica que
   #      la inserción puede ser posicional (entre dos filas), en este caso no
   #      se permitirá la ordenación por columnas. El valor :end indica que
@@ -1232,7 +1234,10 @@ class ApplicationController < ActionController::Base
   #      Cuando se solicite la inserción de una nueva fila se llamará al método
   #      new_campox y recibirá como argumento la posición física donde se
   #      va a insertar la fila. Como valor de retorno debe devolver un array
-  #      con los valores de la fila a insertar.
+  #      con los valores de la fila a insertar. Si no existe el método, la
+  #      fila se inertará con todas las celdas vacías y con id igual al
+  #      máximo de los existentes más uno (o el siguiente en orden alfabético
+  #      si los ids son cadenas).
   #
   # search: (true/false) indica si aparece o no la barra de búsqueda
   #         en el grid. Por defecto vale false.
