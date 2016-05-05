@@ -1050,7 +1050,8 @@ class ApplicationController < ActionController::Base
           val = r[j+1]
           if val != va[:data][i][j+1]
             cambios = true
-            celdas << [r[0], name, val]
+            #celdas << [r[0], name, val]
+            celdas << [r[0], name, _forma_campo(:form, c, c[:name], val)]
             fun = "on_#{cmp}_#{name}"
             method(fun).call(r[0], val) if self.respond_to?(fun)
             va[:data][i][j+1] = val
@@ -1121,19 +1122,21 @@ class ApplicationController < ActionController::Base
     row = params[:row]
     col = params[:col]
     val = params[:val]
-    case @fact[cmp].col(col)[:type]
-      when :references
-        val = val.to_i
-      when :integer
-        val = val.gsub('.', '').gsub(',', '.').to_i
-      when :decimal
-        val = val.gsub('.', '').gsub(',', '.').to_d
-      when :date
-        val = val.to_date
-      when :time
-        val = val.to_time
-      when :boolean
-        val = (val == 'true')
+    if val
+      case @fact[cmp].col(col)[:type]
+        when :references
+          val = val.to_i
+        when :integer
+          val = val.gsub('.', '').gsub(',', '.').to_i
+        when :decimal
+          val = val.gsub('.', '').gsub(',', '.').to_d
+        when :date
+          val = val.to_date
+        when :time
+          val = val.to_time
+        when :boolean
+          val = (val == 'true')
+      end
     end
     @fact[cmp].data(row, col, val)
     @fant[cmp].data(row, col, val)

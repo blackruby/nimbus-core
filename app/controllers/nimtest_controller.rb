@@ -78,7 +78,7 @@ class NimtestController < ApplicationController
   end
 
   def new_pxa(pos)
-    [500, '001', 'Santuro']
+    [500, '001', 'Santuro', nil, 'isla']
   end
   def vali_borra_pxa(id)
     return 'Argentina no' if id.to_i == 11
@@ -92,6 +92,9 @@ class NimtestController < ApplicationController
   end
   def vali_pxa_nombre2(id, val)
     return "#{val}: Nombre muy largo" if val.size > 5
+  end
+  def on_pxa_nombre2(id, val)
+    @fact.pxa.data(id, :double, 12.1)
   end
 
   def on_cmpx

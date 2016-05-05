@@ -345,12 +345,13 @@ $.fn.focusNextInputField = function() {
 // Funciones para el mant
 
 // Función para invocar a una función del servidor (tipo proc_FonC)
-function callFonServer(fon_s, data, fon_ret) {
+function callFonServer(fon_s, data, fon_ret, sync) {
   $.ajax({
-      url: '/' + _controlador + '/fon_server',
-      type: "POST",
-      data: $.extend(true, {vista: _vista, fon: fon_s}, data),
-      success: fon_ret
+    url: '/' + _controlador + '/fon_server',
+    type: "POST",
+    async: !sync,
+    data: $.extend(true, {vista: _vista, fon: fon_s}, data),
+    success: fon_ret
   })
 }
 
@@ -793,7 +794,7 @@ function creaGridLocal(opts, data, modo) {
             }
             val = g.attr("last_autocomp_id");
           }
-          callFonServer("validar_local_cell", {cmp: cmp, row: row, col: col, val: val});
+          callFonServer("validar_local_cell", {cmp: cmp, row: row, col: col, val: val}, null, true);
         },
         onSelectCell: function(r, c, v, ir, ic){
           if (opts.sel && (opts.sel == 'row' && g.attr("last_selected_row") != r || opts.sel == 'cel'))

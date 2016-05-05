@@ -140,8 +140,8 @@ class BusController < ApplicationController
 
     @ajax = "_vista=#{@v.id};"
     @ajax << (params[:ctr] ? "_controlador_edit='#{params[:ctr]}';" : "_controlador_edit='#{clm.table_name}';")
-    #genera_grid_from_file(@sel.first[1][0]) unless @sel.empty?
-    @ajax << (fic_pref ? "callFonServer('bus_sel', {fic: '#{fic_pref}'}); $('#bus-sel').val('#{fic_pref}')" : '')
+    #@ajax << (fic_pref ? "callFonServer('bus_sel', {fic: '#{fic_pref}'}); $('#bus-sel').val('#{fic_pref}')" : '')
+    @ajax << "fic_pref=#{fic_pref.to_json};"
   end
 
   def list

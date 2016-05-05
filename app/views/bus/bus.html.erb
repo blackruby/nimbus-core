@@ -165,11 +165,6 @@
     }
   });
 
-  $("#tree-campos").tree({
-    selectable: false,
-    dataUrl: '/gi/campos?node=<%= @mod %>'
-  });
-
   function gridCols() {
     var gcols = [];
     if (typeof(grid) != "undefined") {
@@ -217,12 +212,6 @@
 
     callFonServer("nueva_col", {dat: JSON.stringify({col: name, modo: modo, type: event.node.type, dec: dec, cols: gridCols()})});
   }
-
-  $('#tree-campos')
-    .bind('tree.click', function(event) {selCampo(event, 'add')})
-    .bind('tree.contextmenu', function(event) {selCampo(event, 'del')})
-    .bind('tree.open', gridLeft)
-    .bind('tree.close', gridLeft);
 
   function generaGrid(colMod, sortname, sortorder, postdata, keepScrollH, keepScrollV) {
     $('#d-grid').html('');
@@ -405,5 +394,22 @@
     <%= @ajax.html_safe %>
     usuCod = "<%= @usu.codigo %>";
     ficPrefijo = "bus/_usuarios/" + usuCod + "/<%= @mod %>/";
+
+    $("#tree-campos").tree({
+      selectable: false,
+      dataUrl: '/gi/campos?node=<%= @mod %>'
+    });
+
+    $('#tree-campos')
+      .bind('tree.click', function(event) {selCampo(event, 'add')})
+      .bind('tree.contextmenu', function(event) {selCampo(event, 'del')})
+      .bind('tree.open', gridLeft)
+      .bind('tree.close', gridLeft)
+      .bind('tree.init', function(event) {
+        if (fic_pref) {
+          callFonServer('bus_sel', {fic: fic_pref});
+          $('#bus-sel').val(fic_pref);
+        }
+      });
   });
 </script>
