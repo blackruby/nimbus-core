@@ -114,7 +114,6 @@ class ApplicationController < ActionController::Base
   end
 
   def enable(c)
-    #if class_mant.campos[c.to_sym][:type] == :date
     if @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
       @ajax << '$("#' + c.to_s + '").datepicker("enable");'
     else
@@ -123,7 +122,6 @@ class ApplicationController < ActionController::Base
   end
 
   def disable(c)
-    #if class_mant.campos[c.to_sym][:type] == :date
     if @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
       @ajax << '$("#' + c.to_s + '").datepicker("disable");'
     else
@@ -616,18 +614,11 @@ class ApplicationController < ActionController::Base
 
     clm = class_mant
 
-=begin
-    if params[:vista]
-      v = Vista.new
-      v.id = params[:vista].to_i
-    else
-      v = Vista.create
-      $h[v.id] = {}
-    end
-=end
     @v = Vista.create
     @v.data = {}
     @dat = @v.data
+    @dat[:persistencia] = {}
+    @g = @dat[:persistencia]
     @dat[:fact] = clm.new
     @fact = @dat[:fact]
     @fact.user_id = session[:uid]
@@ -752,19 +743,12 @@ class ApplicationController < ActionController::Base
     var_for_views(clm)
     ini_campos if self.respond_to?('ini_campos')
 
-=begin
-    if params[:vista]
-      v = Vista.new
-      v.id = params[:vista].to_i
-    else
-      v = Vista.create
-      $h[v.id] = {}
-    end
-=end
     @v = Vista.new
     @v.save unless clm.mant? and @fact.id == 0
     @v.data = {}
     @dat = @v.data
+    @dat[:persistencia] = {}
+    @g = @dat[:persistencia]
     @dat[:fact] = @fact
     @dat[:head] = params[:head] if params[:head]
 
@@ -1510,6 +1494,7 @@ class ApplicationController < ActionController::Base
 
     #@dat = $h[params[:vista].to_i]
     @fact = @dat[:fact]
+    @g = @dat[:persistencia]
     fact_clone
 
     campo = params[:campo]
@@ -1552,6 +1537,7 @@ class ApplicationController < ActionController::Base
     @ajax = ''
     if params[:vista]
       @fact = @dat[:fact]
+      @g = @dat[:persistencia]
       fact_clone if @fact
     end
     method(params[:fon]).call
@@ -1573,6 +1559,7 @@ class ApplicationController < ActionController::Base
     @ajax = ''
 
     @fact = @dat[:fact]
+    @g = @dat[:persistencia]
     err = vali_borra if self.respond_to?('vali_borra')
     if err
       mensaje err
@@ -1594,6 +1581,7 @@ class ApplicationController < ActionController::Base
     #vid = params[:vista].to_i
     #@dat = $h[vid]
     @fact = @dat[:fact]
+    @g = @dat[:persistencia]
     fact_clone
     err = ''
     @ajax = ''
