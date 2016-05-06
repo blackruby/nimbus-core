@@ -174,4 +174,18 @@ class NimtestController < ApplicationController
   def mi_funcion
     mensaje tit: 'Hola', msg: '<h1>HOLA</h1><hr><h3>Adios</h3>'
   end
+
+  def fun_mi_boton
+    txt = ''
+    @fact.pxa.each {|fila, ins, edit, i|
+      txt << format('fila: %3d  id: %4s  ins: %s  ed: %s', i, fila[0].to_s, ins.inspect, edit.inspect)
+      txt << '<br>'
+    }
+    txt << '<hr>IDs Borrados<br>'
+    @fact.pxa.borrados.each{|fila|
+      txt << fila[0].to_s + '<br>'
+    }
+
+    mensaje txt
+  end
 end

@@ -323,6 +323,14 @@ end
 =end
 
 class HashForGrids < Hash
+  def initialize(cols, data)
+    self[:cols] = cols
+    self[:data] = data
+    self[:borrados] = []
+    self[:editados] = []
+    self[:nuevos] = []
+  end
+
   def data(id=nil, col=nil, val='~nil~')
     return self[:data] unless id
     id = id.to_s
@@ -338,10 +346,13 @@ class HashForGrids < Hash
       }
     end
 
-    self[:data].each {|row|
+    self[:data].each_with_index {|row, i|
       if id == row[0].to_s
         if pos
-          val == '~nil~' ? row[pos] : row[pos] = val
+          if val != '~nil~'
+            row[pos] = val
+            self[:editados][i] = true
+          end
           return row[pos]
         else
           return row
@@ -361,9 +372,26 @@ class HashForGrids < Hash
     max ? max : 0
   end
 
+  def add_row(pos, data)
+    self[:data].insert(pos, data)
+    self[:nuevos].insert(pos, true)
+    self[:editados].insert(pos, nil)
+  end
+
   def del_row(id)
-    self[:data].delete_if {|r| r[0] == id}
-    self[:borrados] << id
+    self[:data].delete_if {|r|
+      self[:borrados] << r if r[0].to_s == id.to_s
+    }
+  end
+
+  def each
+    self[:data].each_with_index {|r, i|
+      yield(r, self[:nuevos][i], self[:editados][i], i)
+    }
+  end
+
+  def borrados
+    self[:borrados]
   end
 end
 

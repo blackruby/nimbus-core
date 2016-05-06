@@ -1370,12 +1370,7 @@ class ApplicationController < ActionController::Base
 
     case modo
       when :ed
-        @fact[cmp] = HashForGrids.new
-        c = @fact[cmp]
-        c[:cols] = opts[:cols]
-        c[:data] = data
-        c[:borrados] = []
-        c[:editados] = []
+        @fact[cmp] = HashForGrids.new(opts[:cols], data)
         @fant[cmp] = nil if @fant
       else
         @fact[cmp] = nil
@@ -1403,6 +1398,11 @@ class ApplicationController < ActionController::Base
     @ajax << "delDataGridLocal('#{cmp}', #{id});"
   end
 
+  def grid_local_ed_select
+    fun = "sel_#{params[:cmp]}"
+    self.method(fun).call(params[:row], params[:col]) if self.respond_to?(fun)
+  end
+
   def grid_add_row(cmp, pos, data)
     cmp = cmp.to_sym
     h = {}
@@ -1413,8 +1413,8 @@ class ApplicationController < ActionController::Base
 
     @ajax << "$('##{cmp} .ui-jqgrid-bdiv').scrollTop(1000000);" if pos == -1
 
-    @fact[cmp][:data].insert(pos, data)
-    @fant[cmp][:data].insert(pos, data)
+    @fact[cmp].add_row(pos, data)
+    @fant[cmp].add_row(pos, data)
   end
 
   def grid_local_ins
@@ -1438,11 +1438,6 @@ class ApplicationController < ActionController::Base
 
     @fact[cmp].del_row(row)
     @fant[cmp].del_row(row)
-  end
-
-  def grid_local_ed_select
-    fun = "sel_#{params[:cmp]}"
-    self.method(fun).call(params[:row], params[:col]) if self.respond_to?(fun)
   end
 
   def grid_local_del
