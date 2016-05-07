@@ -73,9 +73,11 @@ class NimtestController < ApplicationController
     pl = @fact.nombre[0]
     q = Pais.where('nombre like ?', "#{pl}%")
 
-    crea_grid cmp: :pxa, modo: :ed, cols: cols, ins: :end, sel: :cel, grid: {rowattr: '~style_row_pxa~', caption: "Países que empiezan por #{pl}", height: 300},
+    crea_grid cmp: :pxa, modo: :ed, cols: cols, ins: :pos, sel: :cel, grid: {rowattr: '~style_row_pxa~', caption: "Países que empiezan por #{pl}", height: 300},
               data: q.map{|p| [p.id, p.codigo, p.nombre, 3, p.nombre[-4..-1], (p.id.odd? ? 12345.67 : -9876.54), true, Date.today]}
     crea_grid cmp: :pxb, modo: :ed, cols: cols, ins: :pos, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, nil, p.nombre[-4..-1], 0, false, Date.today]}
+
+    @ajax << 'creaMiBoton_pxa();'
 
     set_auto_comp_filter('pxa_11_pais_id', "nombre like 'B%'")
 
@@ -83,7 +85,7 @@ class NimtestController < ApplicationController
   end
 
   def new_pxa(pos)
-    [500, '001', 'Santuro', nil, 'isla']
+    [@fact.pxa.max_id.next, '001', 'Santuro', nil, 'isla']
   end
   def vali_borra_pxa(id)
     return 'Argentina no' if id.to_i == 11
@@ -177,13 +179,13 @@ class NimtestController < ApplicationController
 
   def fun_mi_boton
     txt = ''
-    @fact.pxa.each {|fila, ins, edit, i|
-      txt << format('fila: %3d  id: %4s  ins: %s  ed: %s', i, fila[0].to_s, ins.inspect, edit.inspect)
+    @fact.pxa.each_row {|fila, ins, edit, i|
+      txt << format('fila: %d  id: %s  cod: %s  ins: %s  ed: %s', i, fila[0].to_s, fila[1], ins.inspect, edit.inspect)
       txt << '<br>'
     }
     txt << '<hr>IDs Borrados<br>'
     @fact.pxa.borrados.each{|fila|
-      txt << fila[0].to_s + '<br>'
+      txt << fila[0].to_s + ' ' + fila[1] + '<br>'
     }
 
     mensaje txt

@@ -35,7 +35,9 @@
     if (row.nombre2[0] == 'i') return {class: 'tenue', style: 'font-style: italic'};
   }
 
-  $("#pxa").parent().append("<br>" + creaMdlButton("mi_boton", 40, 0, 24, "comment"));
-  $("#mi_boton").click(function() {callFonServer("fun_mi_boton");});
+  function creaMiBoton_pxa() {
+    $("#pxa .nim-titulo").append("&nbsp;&nbsp;&nbsp;&nbsp;" + creaMdlButton("mi_boton", 30, 2, 22, "comment"));
+    $("#mi_boton").click(function () {callFonServer("fun_mi_boton");});
+  }
 </script>
 

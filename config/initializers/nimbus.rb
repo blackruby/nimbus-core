@@ -326,9 +326,10 @@ class HashForGrids < Hash
   def initialize(cols, data)
     self[:cols] = cols
     self[:data] = data
+    s = data.size
+    self[:editados] = [nil]*s
+    self[:nuevos] = [nil]*s
     self[:borrados] = []
-    self[:editados] = []
-    self[:nuevos] = []
   end
 
   def data(id=nil, col=nil, val='~nil~')
@@ -379,12 +380,16 @@ class HashForGrids < Hash
   end
 
   def del_row(id)
-    self[:data].delete_if {|r|
-      self[:borrados] << r if r[0].to_s == id.to_s
+    self[:data].delete_if.with_index {|r, i|
+      if r[0].to_s == id.to_s
+        self[:editados].delete_at(i)
+        self[:nuevos].delete_at(i)
+        self[:borrados] << r
+      end
     }
   end
 
-  def each
+  def each_row
     self[:data].each_with_index {|r, i|
       yield(r, self[:nuevos][i], self[:editados][i], i)
     }
