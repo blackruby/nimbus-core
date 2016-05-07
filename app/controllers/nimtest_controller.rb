@@ -179,8 +179,8 @@ class NimtestController < ApplicationController
 
   def fun_mi_boton
     txt = ''
-    @fact.pxa.each_row {|fila, ins, edit, i|
-      txt << format('fila: %d  id: %s  cod: %s  ins: %s  ed: %s', i, fila[0].to_s, fila[1], ins.inspect, edit.inspect)
+    @fact.pxa.each_row {|fila, new, edit, i|
+      txt << format('fila: %d  id: %s  cod: %s  new: %s  ed: %s', i, fila[0].to_s, fila[1], new.inspect, edit.inspect)
       txt << '<br>'
     }
     txt << '<hr>IDs Borrados<br>'
