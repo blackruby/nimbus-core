@@ -1303,6 +1303,21 @@ class ApplicationController < ActionController::Base
   # las filas que borra el usuario y que se nos notifican en vali_borra_campox se borran
   # solas (sin necesidad de usar este método) en el caso de que vali_borra_campox
   # devuelva nil.
+  # Para barrer los datos habría que hacer:
+  # @fact.campox.each_row {|fila, new, edit, i|
+      # 'fila' es un array con los datos de la fila que toque
+      # 'ins' es un booleano que indica si la fila es nueva (insertada)
+      # 'edit' es un booleano que indica si la fila ha sido editada (alguna de sus celdas)
+      # 'i' es el índice de la fila (0,1,2...)
+  # }
+  #
+  # Y para barrer los registros borrados:
+  # @fact.campox.each_del {|fila, new, edit, i|
+      # 'fila' es un array con los datos de la fila que toque
+      # 'ins' es un booleano que indica si la fila es nueva (insertada)
+      # 'edit' es un booleano que indica si la fila ha sido editada (alguna de sus celdas)
+      # 'i' es el índice de la fila (0,1,2...)
+  # }
 
   def crea_grid(opts)
     cmp = opts[:cmp]
