@@ -326,8 +326,7 @@ class HashForGrids < Hash
   def initialize(cols, data)
     self[:cols] = cols
     self[:data] = data
-    self[:new_edit] = []
-    (1..data.size).each {self[:new_edit] << [nil, nil]}
+    self[:new_edit] = Array.new(data.size) {[nil, nil]}
     self[:borrados] = []
     self[:bor_status] = []
   end
