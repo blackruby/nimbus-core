@@ -184,8 +184,9 @@ class NimtestController < ApplicationController
       txt << '<br>'
     }
     txt << '<hr>IDs Borrados<br>'
-    @fact.pxa.borrados.each{|fila|
-      txt << fila[0].to_s + ' ' + fila[1] + '<br>'
+    @fact.pxa.each_del {|fila, new, edit, i|
+      txt << format('id: %s  cod: %s  new: %s  ed: %s', fila[0].to_s, fila[1], new.inspect, edit.inspect)
+      txt << '<br>'
     }
 
     mensaje txt
