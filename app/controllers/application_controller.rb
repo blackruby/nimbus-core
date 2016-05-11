@@ -263,6 +263,11 @@ class ApplicationController < ActionController::Base
     }
   end
 
+  def sincro_parent
+    @dat[:vp].save
+    @ajax << 'parent.parent.callFonServer("envia_ficha");'
+  end
+
   def get_empeje
     #emej = cookies[:emej].split(':')
     emej = cookies[Nimbus::CookieEmEj].split(':')
@@ -603,6 +608,13 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def set_parent
+    if params[:padre]
+      @dat[:vp] = Vista.find(params[:padre].to_i)
+      @fact.parent = @dat[:vp].data[:fact]
+    end
+  end
+
   def new
     @ajax = ''
 
@@ -625,8 +637,7 @@ class ApplicationController < ActionController::Base
     @dat[:head] = params[:head] if params[:head]
     #@fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord ???
 
-    #@fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
-    @fact.parent = Vista.find(params[:padre].to_i).data[:fact] if params[:padre]
+    set_parent
 
     var_for_views(clm)
 
@@ -752,8 +763,7 @@ class ApplicationController < ActionController::Base
     @dat[:fact] = @fact
     @dat[:head] = params[:head] if params[:head]
 
-    #@fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
-    @fact.parent = Vista.find(params[:padre].to_i).data[:fact] if params[:padre]
+    set_parent
 
     if clm.mant?
       if @fact.id != 0
@@ -1153,8 +1163,7 @@ class ApplicationController < ActionController::Base
       return
     end
 
-    #@fact.parent = $h[params[:padre].to_i][:fact] unless params[:padre].nil?
-    @fact.parent = Vista.find(params[:padre].to_i).data[:fact] if params[:padre]
+    set_parent
     fact_clone
 
     #@fact.method(campo + '=').call(params[:sel] ? params[:sel] : raw_val(campo, valor))
