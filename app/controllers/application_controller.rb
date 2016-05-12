@@ -1574,6 +1574,14 @@ class ApplicationController < ActionController::Base
     @v.save if @v
   end
 
+  def pinta_exception(e)
+    puts '######## ERROR #############'
+    puts e.message
+    puts e.backtrace[0..10]
+    puts '############################'
+    mensaje 'Error interno'
+  end
+
   def borrar
     @ajax = ''
 
@@ -1597,93 +1605,101 @@ class ApplicationController < ActionController::Base
 
   def grabar(ajx=true)
     clm = class_mant
-    #vid = params[:vista].to_i
-    #@dat = $h[vid]
     @fact = @dat[:fact]
     @g = @dat[:persistencia]
     fact_clone
     err = ''
     @ajax = ''
     last_c = nil
-    @fact.campos.each {|cs, v|
-      c = cs.to_s
+    begin
+      @fact.campos.each {|cs, v|
+        c = cs.to_s
 
-      if v[:req]
-        #valor = @fact.method(c).call
-        valor = @fact[c]
-        (valor.nil? or ([:string, :text].include?(v[:type]) and not c.ends_with?('_id') and valor.strip == '')) ? e = "Campo #{c} requerido" : e = nil
-      elsif v[:type] == :div
-        e = nil
-        valor = @fact[c]
-        if valor.is_a? HashForGrids
-          valor[:data].each {|r|
-            valor[:cols].each_with_index {|col, i|
-              fun = "vali_#{c}_#{col[:name]}"
-              er, t = procesa_vali(method(fun).call(r[0], r[i+1])) if self.respond_to?(fun)
-              err << '<br>' + er if t == :duro
+        if v[:req]
+          valor = @fact[c]
+          (valor.nil? or ([:string, :text].include?(v[:type]) and not c.ends_with?('_id') and valor.strip == '')) ? e = "Campo #{c} requerido" : e = nil
+        elsif v[:type] == :div
+          e = nil
+          valor = @fact[c]
+          if valor.is_a? HashForGrids
+            valor[:data].each {|r|
+              valor[:cols].each_with_index {|col, i|
+                fun = "vali_#{c}_#{col[:name]}"
+                er, t = procesa_vali(method(fun).call(r[0], r[i+1])) if self.respond_to?(fun)
+                err << '<br>' + er if t == :duro
+              }
             }
-          }
-        end
-      else
-        e = valida_campo(c, :duro)
-      end
-
-      if e != nil
-        err << '<br>' + e
-        @ajax << '$("#' + c + '").addClass("ui-state-error");' if v[:form]
-        last_c = c
-      end
-    }
-
-    if err == ''
-      err = vali_save if self.respond_to?('vali_save')
-      err ||= ''
-    end
-
-    if err == ''
-      before_save if self.respond_to?('before_save')
-      if clm.view?
-        clmod = class_modelo
-        if (@fact.id)
-          f = clmod.find(@fact.id)
+          end
         else
-          f = clmod.new
+          e = valida_campo(c, :duro)
         end
-        clmod.column_names.each {|c|
-          #f.method(c+'=').call(@fact.method(c).call)
-          f[c] = @fact[c]
-        }
-        f.save
-      else
+
+        if e != nil
+          err << '<br>' + e
+          @ajax << '$("#' + c + '").addClass("ui-state-error");' if v[:form]
+          last_c = c
+        end
+      }
+
+      if err == ''
+        err = vali_save if self.respond_to?('vali_save')
+        err ||= ''
+      end
+
+      if err == ''
+        before_save if self.respond_to?('before_save')
+        if clm.view?
+          clmod = class_modelo
+          if (@fact.id)
+            f = clmod.find(@fact.id)
+          else
+            f = clmod.new
+          end
+          clmod.column_names.each {|c|
+            #f.method(c+'=').call(@fact.method(c).call)
+            f[c] = @fact[c]
+          }
+          f.save
+        else
+          #begin
+            @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
+=begin
+          rescue ActiveRecord::RecordNotUnique
+            @ajax = ''
+            sincro_ficha :ajax => true
+            mensaje 'Grabación cancelada. Ya existe la clave'
+            @v.save
+            render :js => @ajax if ajx
+            return
+          end
+=end
+        end
+
         begin
-          @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
+          after_save if self.respond_to?('after_save')
         rescue Exception => e
-          puts e
-          @ajax = ''
-          sincro_ficha :ajax => true
-          mensaje 'Grabación cancelada. Ya existe la clave'
-          @v.save
-          render :js => @ajax if ajx
-          return
+          pinta_exception(e)
         end
+
+        if clm.mant?
+          sincro_hijos if @fant[:id].nil?
+
+          #Refrescar el grid si procede
+          grid_reload
+
+          #Activar botones necesarios (Grabar/Borrar)
+          @ajax << 'statusBotones({borrar: true});'
+        end
+
+        @ajax << 'hayCambios=false;'
+      else
+        @ajax << '$("#' + last_c + '").focus();' if last_c
+        mensaje tit: 'Errores en el registro', msg: err
       end
-      after_save if self.respond_to?('after_save')
-
-      if clm.mant?
-        sincro_hijos if @fant[:id].nil?
-
-        #Refrescar el grid si procede
-        grid_reload
-
-        #Activar botones necesarios (Grabar/Borrar)
-        @ajax << 'statusBotones({borrar: true});'
-      end
-
-      @ajax << 'hayCambios=false;'
-    else
-      @ajax << '$("#' + last_c + '").focus();' if last_c
-      #@ajax << 'alert(' + err.to_json + ');'
-      mensaje tit: 'Errores en el registro', msg: err
+    rescue ActiveRecord::RecordNotUnique
+      mensaje 'Grabación cancelada. Ya existe la clave'
+    rescue Exception => e
+      pinta_exception(e)
     end
 
     sincro_ficha :ajax => true
