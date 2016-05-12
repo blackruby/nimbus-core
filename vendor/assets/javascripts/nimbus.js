@@ -88,6 +88,7 @@ jQuery.fn.entryn = function (manti, decim, signo) {
 
   $(this).on("focus", function(e) {
     old_value = $(this).val();
+    $(this).select();
   });
 
   $(this).on("blur", function(e) {
