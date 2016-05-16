@@ -783,6 +783,9 @@ function creaGridLocal(opts, data, modo) {
   var grid = opts.grid;
   if (grid == undefined) grid = {};
 
+  var caption = grid.caption;
+  if (caption) delete grid.caption; else caption = '';
+
   var grid_a;
   switch(modo) {
     case 'ed':
@@ -812,8 +815,6 @@ function creaGridLocal(opts, data, modo) {
           g.attr("last_selected_row", r);
         }
       };
-      var caption = grid.caption;
-      if (caption) delete grid.caption; else caption = '';
       break;
     default :
       grid_a = {
@@ -869,6 +870,8 @@ function creaGridLocal(opts, data, modo) {
         if (r) callFonServer("grid_local_del", {cmp: cmp, row: r});
       });
       break;
+    default :
+      if (caption != '') $('#gbox_g_' + cmp).prepend('<div class="nim-titulo">' + caption + '</div>');
   }
 
   if (opts.search) g.jqGrid('filterToolbar',{searchOperators : true});
