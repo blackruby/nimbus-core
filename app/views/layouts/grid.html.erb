@@ -26,11 +26,11 @@
         <i class="material-icons">visibility</i>
       </button>
       &nbsp; &nbsp;
-      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="editInForm()">
+      <button class="cl-editar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="editInForm()">
         <i class="material-icons">edit</i>
       </button>
       &nbsp; &nbsp;
-      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="newFicha()">
+      <button class="cl-crear nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="newFicha()">
         <i class="material-icons">add</i>
       </button>
       &nbsp; &nbsp;
@@ -50,8 +50,8 @@
       </button>
       <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="menu-r">
         <li class="nim-phone mdl-menu__item only-grid" onclick="liFon(this, searchBar)"> <i class="material-icons">visibility</i> Buscar </li>
-        <li class="nim-phone mdl-menu__item only-grid" onclick="liFon(this, editInForm)"> <i class="material-icons">edit</i> Editar </li>
-        <li class="nim-phone mdl-menu__item" onclick="newFicha()"> <i class="material-icons">add</i> Nueva </li>
+        <li class="cl-editar nim-phone mdl-menu__item only-grid" onclick="liFon(this, editInForm)"> <i class="material-icons">edit</i> Editar </li>
+        <li class="cl-crear nim-phone mdl-menu__item" onclick="newFicha()"> <i class="material-icons">add</i> Nueva </li>
         <li class="cl-grabar nim-phone mdl-menu__item" disabled onclick="liFon(this, mantGrabarGrid)"> <i class="material-icons">save</i> Grabar </li>
         <li class="cl-borrar nim-phone mdl-menu__item" disabled onclick="liFon(this, mantBorrarGrid)"> <i class="material-icons">delete</i> Eliminar </li>
         <% if @view[:menu_r].size > 0 %>

@@ -193,6 +193,11 @@ class ApplicationController < ActionController::Base
     @ajax << 'parentGridHide();'
   end
 
+  # Control del estado de los botones del mantenimiento
+  def status_botones(h={})
+    @ajax << "statusBotones(#{h.to_json});"
+  end
+
   # Funciones para el manejo del histórico de un modelo
   def histo
     begin
@@ -243,7 +248,7 @@ class ApplicationController < ActionController::Base
     sql.each {|s|
       h = {:id => s.id, :cell => []}
       h[:cell] <<  s.created_at.to_time.to_s[0..-7]
-      h[:cell] << s.created_by.codigo
+      h[:cell] << s.created_by.try(:codigo)
       res[:rows] << h
     }
     render :json => res
