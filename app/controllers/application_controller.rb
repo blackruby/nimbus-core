@@ -1080,11 +1080,11 @@ class ApplicationController < ActionController::Base
 
   def procesa_vali(err)
     if err.nil? or err == ''
-      return [nil, :blando]
+      @last_error = [nil, :blando]
     elsif err.is_a? String
-      return [err, :duro]
+      @last_error = [err, :duro]
     else  # Se supone que es un hash con dos claves: :msg (con el texto del error) y :tipo (:duro o :blando)
-      return [err[:msg], err[:tipo] || :blando]
+      @last_error = [err[:msg], err[:tipo] || :blando]
     end
   end
 
