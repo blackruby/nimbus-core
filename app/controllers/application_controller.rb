@@ -1882,6 +1882,8 @@ class ApplicationController < ActionController::Base
   end
 
   def gen_js
+    return unless @v  # Si no hay vista no generar nada (históricos)
+
     clm = class_mant
     sal = ''
 
