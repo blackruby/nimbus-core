@@ -82,4 +82,19 @@ class String
     end
   end
 
+  # Método para decidir si un número (n) está dentro de la cadena self (con la notación: a,b,c-d,e...)
+	def rango(n)
+		n = n.to_i
+		self.tr(' ', '').split(',').each {|r|
+			if r.include?('-')
+				rs = r.split('-')
+				d = rs[0].to_i
+				h = rs[1].to_i
+				return(true) if n >= d and (n <= h or h == 0)
+			else
+				return(true) if n == r.to_i
+			end
+		}
+		false
+	end
 end
