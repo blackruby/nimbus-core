@@ -749,34 +749,24 @@ module MantMod
 
   ### Métodos de instancia
 
-=begin
   def val_campo(c, v)
-    c = c.to_s
-    unless v[:nil] or c.ends_with?('_id')
+    if v[:X] and !c.to_s.ends_with?('_id') and !v[:nil]
       case v[:type]
-        when :boolean
-          ini = 'false'
         when :integer
-          ini = '0'
+          v[:value] = 0
         when :decimal
-          ini = '0.to_d'
-        when :date
-          ini = 'Date.today'
-        when :time
-          ini = 'Time.now'
-        else
-          ini = "''"
+          v[:value] = 0.0
+        when :string
+          v[:value] = ''
       end
-      eval("self.#{c}=#{ini} if self.#{c}.nil?")
     end
   end
-=end
 
   def _ini_campos_ctrl
     @campos = self.class.campos.deep_dup
 
     # Inicialización de los campos X a valores razonables cuando no pueden ser nil
-    #@campos.each {|c, v| val_campo(c, v) if v[:X]}
+    @campos.each {|c, v| val_campo(c, v)}
 
     ini_campos_ctrl if self.respond_to?(:ini_campos_ctrl)
   end
@@ -793,6 +783,8 @@ module MantMod
         return val.to_date
       when :time
         return val.to_time
+      when :string
+        return val.to_s
       else
         return val
     end
@@ -838,7 +830,7 @@ module MantMod
   def add_campo(c, v)
     @campos[c.to_sym] = v
     self.class.ini_campo(c, v, self)
-    #val_campo(c, v)
+    val_campo(c, v)
   end
 
   def campos
