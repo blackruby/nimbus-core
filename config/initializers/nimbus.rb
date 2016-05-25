@@ -830,7 +830,7 @@ module MantMod
   def add_campo(c, v)
     @campos[c.to_sym] = v
     self.class.ini_campo(c, v, self)
-    val_campo(c, v)
+    val_campo(c, v) unless v[:value]
   end
 
   def campos

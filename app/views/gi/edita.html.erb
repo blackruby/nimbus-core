@@ -2,11 +2,11 @@
   &nbsp;&nbsp;<%= @titulo.html_safe %>
   &nbsp;&nbsp;&nbsp;
 
-  <button title="Rupturas" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#rupturas').dialog('open')">
-    <i class="gi-img-button material-icons">storage</i>
-  </button>
   <button title="Configuración" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#config').dialog('open')">
     <i class="gi-img-button material-icons">settings</i>
+  </button>
+  <button title="Rupturas" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#rupturas').dialog('open')">
+    <i class="gi-img-button material-icons">storage</i>
   </button>
   <button title="Límites" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#lim').dialog('open')">
     <i class="gi-img-button material-icons">code</i>
@@ -15,7 +15,7 @@
     <i class="gi-img-button material-icons">color_lens</i>
   </button>
   <button title="Fórmulas" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#formulas').dialog('open')">
-    <i class="gi-img-button material-icons">note_add</i>
+    <i class="gi-img-button material-icons">functions</i>
   </button>
   &nbsp;&nbsp;&nbsp;
   <button title="Select" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#select').dialog('open')">
@@ -65,8 +65,7 @@
 
 <div id="rupturas" style="display: none; padding: 0; padding-right: 5px">
   <table id="t_rup" style="width: 100%">
-    <tr><td class="tit" colspan="2">Rupturas</td></tr>
-    <tr><td class="subtit">Campo</td> <td class="subtit">Salto</td></tr>
+    <tr><td class="subtit">Campo</td> <td class="subtit" style="text-align: center">Salto</td></tr>
   </table>
 </div>
 
@@ -558,6 +557,7 @@
           break;
       }
     } else {
+      prop += ", type: :" + node.type;
       switch(cond) {
         case 'eq':
           label = node.name;
@@ -963,12 +963,13 @@
   $("#bandas").on('click', 'td', function() {
     if (window.event.ctrlKey) {
       if (lastCmp.is("#campo")) {
-        ban_click = $(this).parentsUntil('div').last().attr('id');
-        ban_act = celda.parentsUntil('div').last().attr('id');
-        h_click = $(this).data('prop');
-        ali = h_click.alias;
-        v = $("#campo").val();
+        var ban_click = $(this).parentsUntil('div').last().attr('id');
+        var ban_act = celda.parentsUntil('div').last().attr('id');
+        var h_click = $(this).data('prop');
+        var ali = h_click.alias;
+        var v = $("#campo").val();
 
+        var ini;
         if (v == "") {
           ini = true;
           v = "'='+";
@@ -986,7 +987,7 @@
           ini = false;
 
         if (ini) {
-          h = celda.data('prop');
+          var h = celda.data('prop');
           if (ban_click != ban_act) {
             h.alias = ali;
             $("#alias").val(ali);
@@ -1049,13 +1050,13 @@
   }
 
   function swpCell(cd) {
-    prop = cd.attr('prop');
-    cd.attr('prop', celda.attr('prop'));
-    celda.attr('prop', prop);
-    ht = cd.html();
+    var prop = cd.data('prop');
+    cd.data('prop', celda.data('prop'));
+    celda.data('prop', prop);
+    var ht = cd.html();
     cd.html(celda.html());
     celda.html(ht);
-    ti = cd.attr('title');
+    var ti = cd.attr('title');
     cd.attr('title', celda.attr('title'));
     celda.attr('title', ti);
     setCell(cd);
@@ -1084,14 +1085,14 @@
     noCell();
   });
   $("#del_c").button({icons: {primary: "ui-icon-circle-arrow-n"}, text: false, disabled: true}).click(function(){
-    i = celda.index() + 1;
+    var i = celda.index() + 1;
     $(".t_banda td:nth-child(" + i + ")").remove();
     noCell();
     nCol -= 1;
   });
   $("#add_rup").button().click(function() {
     nRup += 1;
-    cl = 'rup_' + nRup;
+    var cl = 'rup_' + nRup;
     $("#tt_det").before(
       '<p class="' + cl + ' tit_band tit ui-widget-header ui-corner-all">Cabecera de Ruptura</p>' +
       '<table id="' + cl + '" class="' + cl + ' t_banda">' +
@@ -1108,7 +1109,7 @@
     $("#t_rup tr").last().after(
       '<tr class="' + cl +'">' +
         '<td><textarea rows="1" class="i_cmp admite_campo"></textarea></td>' +
-        '<td><input type="checkbox" class="i_cmp"></td>' +
+        '<td style="vertical-align: top"><input type="checkbox" class="i_cmp"></td>' +
       '</tr>'
     );
     iniPropCell();
@@ -1116,7 +1117,7 @@
     $("." + cl + " textarea").focus();
   });
   $("#del_rup").button().click(function(){
-    cl = celda.parentsUntil('div').last().attr('class').split(/\s+/);
+    var cl = celda.parentsUntil('div').last().attr('class').split(/\s+/);
     $.each(cl, function(i, c) {
       if (c.slice(0,4) == 'rup_') {
         $('.' + c).remove();
@@ -1130,8 +1131,10 @@
   noCell();
 
   $("#bandas").on('dblclick', 'p', function(e) {
-    if ($(this).next().children().children().length == 0)
+    if ($(this).next().children().children().length == 0) {
       $(this).next().children().html(genCadRow());
+      iniPropCell();
+    }
   });
 
   var lastCmp;
@@ -1140,9 +1143,9 @@
   });
 
   $("#prop-celdas .i_cmp").blur(function(e){
-    f = $(this);
-    v = f.val().trim();
-    p = f.attr('id');
+    var f = $(this);
+    var v = f.val().trim();
+    var p = f.attr('id');
     celda.data('prop')[p] = v;
     if (p == 'campo')
       celda.attr('title', v);
@@ -1169,18 +1172,18 @@
           lastCmp.val(v.slice(0, sel.begin) + '~' + fullCampo(event.node) + '~' + v.slice(sel.end));
 
         if (lastCmp.is("#prop-celdas textarea") && $("#alias").val() == "") {
-          a = (event.node.parent.name == undefined) ? a = "" : a = $(event.node.table.split('_')).get(-1) + '_';
-          name = a + event.node.name;
+          var a = (event.node.parent.name == undefined) ? "" : $(event.node.table.split('_')).get(-1) + '_';
+          var name = a + event.node.name;
           $("#alias").val(name);
           celda.html(name);
-          esti = event.node.estilo;
+          var esti = event.node.estilo;
           if (event.node.type == 'decimal') checkEstilo(esti);
           $("#estilo").val(esti);
-          prop = celda.data('prop');
+          var prop = celda.data('prop');
           prop.alias = name;
           prop.estilo = esti;
           if (celda.is("#t_det td")) {
-            cc = $("#t_cab tr").last().children().eq(celda.index());
+            var cc = $("#t_cab tr").last().children().eq(celda.index());
             prop = cc.data('prop');
             if (prop.alias == undefined || prop.alias == "") {
               prop.campo = "nt('" + event.node.name + "')";
@@ -1218,8 +1221,10 @@
     resizable: false,
     closeOnEscape: false
   });
+
   $("#rupturas").dialog({
     title: 'Rupturas',
+    width: 500,
     autoOpen: false,
     resizable: false
   });

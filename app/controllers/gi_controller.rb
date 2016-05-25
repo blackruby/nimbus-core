@@ -163,7 +163,13 @@ class GiController < ApplicationController
 
     form = GI.formato_read(params[:file])
 
-    form[:lim].each {|c, v| @fact.add_campo(c, eval('{' + v + '}'))}
+    form[:lim].each {|c, v|
+      @fact.add_campo(c, eval('{' + v + '}'))
+      #@fact[c] = v[:value] if v[:value]
+      puts c
+      puts v
+      puts @fact[c]
+    }
     if form[:tit_c]
       @titulo = form[:tit_c]
     elsif form[:modelo]
