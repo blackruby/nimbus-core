@@ -549,7 +549,7 @@ class GI
     @sh.page_setup.set(eval('{' + @form[:page_setup] + '}')) if @form[:page_setup]
     #@sh.header_footer.odd_header = '&L' + @form[:tit_i] + '&C' + @form[:tit_c] + ' &R&P de &N'
     @sh.header_footer.odd_header = '&L' + @form[:tit_i] + '&C' + @form[:tit_c] + '&R' + @form[:tit_d]
-#@sh.column_widths nil, 10, nil
+    @sh.column_widths(*(@form[:col_widths].split(',').map{|w| w.to_i})) if @form[:col_widths]
     xls.serialize(name)
     return name
   end

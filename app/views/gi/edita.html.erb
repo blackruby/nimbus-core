@@ -119,6 +119,7 @@
     <tr><td class="subtit"><label for="tit_c">Título centro:</label></td> <td><input id="tit_c" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="tit_d">Título derecha:</label></td> <td><input id="tit_d" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="page_setup">Config. Página:</label></td> <td><textarea id="page_setup" class="i_cmp"></textarea></td></tr>
+    <tr><td class="subtit"><label for="col_widths">Ancho columnas:</label></td> <td><input id="col_widths" class="i_cmp"/></td></tr>
   </table>
 </div>
 
@@ -469,9 +470,10 @@
   $("#config").dialog({
     autoOpen: false,
     width: 600,
-    resizable: false,
+    //resizable: false,
     show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300}
+    hide: {effect: "explode", duration: 300},
+    resizeStop: function() {$("#config").dialog('option', 'height', 'auto')}
   });
 
   // Diálogo de límites
