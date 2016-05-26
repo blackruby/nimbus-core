@@ -442,10 +442,11 @@ class GI
 
     xls = Axlsx::Package.new
     wb = xls.workbook
-    @sh = wb.add_worksheet(:name => "Prueba")
+    marg = eval('{' + @form[:page_margins] + '}') if @form[:page_margins]
+    @sh = wb.add_worksheet(:name => "Uno", page_margins: marg)
 
     # Fijar las filas de cabecera para repetir en cada página
-    wb.add_defined_name("Prueba!$1:$#{@form[:cab].size}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
+    wb.add_defined_name("Uno!$1:$#{@form[:cab].size}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
 
     # Añadir estilos
     if @form[:style]
