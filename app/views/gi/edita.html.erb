@@ -63,7 +63,7 @@
   </table>
 </div>
 
-<div id="rupturas" style="display: none; padding: 0; padding-right: 5px">
+<div id="rupturas" style="display: none; padding: 0">
   <table id="t_rup" style="width: 100%">
     <tr><td class="subtit">Campo</td> <td class="subtit" style="text-align: center">Salto</td></tr>
   </table>
@@ -109,17 +109,16 @@
 
 <div id="config" title="Configuración" style="padding: 0;display: none">
   <table id="t_config">
-    <col width="35%">
-    <col width="65%">
-    <tr><td class="subtit"><label for="filt_emp">Filtrar empresa:</label></td> <td><input type="checkbox" checked id="filt_emp" class="i_cmp"/></td></tr>
-    <tr><td class="subtit"><label for="filt_eje">Filtrar ejercicio:</label></td> <td><input type="checkbox" checked id="filt_eje" class="i_cmp"/></td></tr>
+    <col width="150px">
+    <tr><td class="subtit"><label for="filt_emej">Filtrar empresa:</label></td> <td><input type="checkbox" checked id="filt_emej" class="i_cmp" style="width: auto"/></td></tr>
     <tr><td class="tit" colspan="2">ASPECTO</td></tr>
     <tr><td class="subtit"><label for="npagw">Nº Páginas ancho:</label></td> <td><input type="number" id="npagw" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="npagh">Nº Páginas alto:</label></td> <td><input id="npagh" class="i_cmp"/></td></tr>
-    <tr><td class="subtit"><label for="pingrid">Pintar Rejilla:</label></td> <td><input type="checkbox" id="pingrid" class="i_cmp"/></td></tr>
+    <tr><td class="subtit"><label for="pingrid">Pintar Rejilla:</label></td> <td><input type="checkbox" id="pingrid" class="i_cmp" style="width: auto"/></td></tr>
     <tr><td class="subtit"><label for="tit_i">Título izquierda:</label></td> <td><input id="tit_i" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="tit_c">Título centro:</label></td> <td><input id="tit_c" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="tit_d">Título derecha:</label></td> <td><input id="tit_d" class="i_cmp"/></td></tr>
+    <tr><td class="subtit"><label for="page_setup">Config. Página:</label></td> <td><textarea id="page_setup" class="i_cmp"></textarea></td></tr>
   </table>
 </div>
 
@@ -469,6 +468,8 @@
 
   $("#config").dialog({
     autoOpen: false,
+    width: 600,
+    resizable: false,
     show: {effect: "blind", duration: 300},
     hide: {effect: "explode", duration: 300}
   });
@@ -1109,7 +1110,7 @@
     $("#t_rup tr").last().after(
       '<tr class="' + cl +'">' +
         '<td><textarea rows="1" class="i_cmp admite_campo"></textarea></td>' +
-        '<td style="vertical-align: top"><input type="checkbox" class="i_cmp"></td>' +
+        '<td style="vertical-align: top;text-align: center"><input type="checkbox" class="i_cmp" style="width: auto"/></td>' +
       '</tr>'
     );
     iniPropCell();

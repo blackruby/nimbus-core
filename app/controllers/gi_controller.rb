@@ -170,11 +170,8 @@ class GiController < ApplicationController
       puts v
       puts @fact[c]
     }
-    if form[:tit_c]
-      @titulo = form[:tit_c]
-    elsif form[:modelo]
-      @titulo = 'Listado de ' + nt(form[:modelo].table_name)
-    end
+
+    @titulo = form[:tit_c]
   end
 
   def after_save
@@ -297,8 +294,8 @@ class GI
     end
 
     @form[:tit_i] = (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') if @form[:tit_i].empty?
-    #@form[:titulo] ||= ('Listado de ' + (@form[:modelo] ? nt(@form[:modelo].table_name) : ''))
-    #@form[:select] = @form[:modelo].table_name + '.*' if @form[:select].empty?
+    @form[:tit_d] = '&P de &N' if @form[:tit_d].empty?
+    @form[:tit_c] = 'Listado de ' + nt(@form[:modelo].table_name) if @form[:tit_c].empty? and @form[:modelo]
 
     @vpluck = []
     @msel = []
@@ -548,9 +545,10 @@ class GI
     # Opciones varias
     #@sh.page_setup.fit_to :width => 1
     #@sh.page_setup.set orientation: :landscape, paper_width: "210mm", paper_height: "297mm"
-    #@sh.print_options.grid_lines = true
-    @sh.page_setup.set(@form[:page_setup]) if @form[:page_setup]
-    @sh.header_footer.odd_header = '&L' + @form[:tit_i] + '&C' + @form[:tit_c] + ' &R&P de &N'
+    @sh.print_options.grid_lines = true if @form[:pingrid]
+    @sh.page_setup.set(eval('{' + @form[:page_setup] + '}')) if @form[:page_setup]
+    #@sh.header_footer.odd_header = '&L' + @form[:tit_i] + '&C' + @form[:tit_c] + ' &R&P de &N'
+    @sh.header_footer.odd_header = '&L' + @form[:tit_i] + '&C' + @form[:tit_c] + '&R' + @form[:tit_d]
 #@sh.column_widths nil, 10, nil
     xls.serialize(name)
     return name
