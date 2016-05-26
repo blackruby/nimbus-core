@@ -470,10 +470,9 @@
   $("#config").dialog({
     autoOpen: false,
     width: 600,
-    //resizable: false,
     show: {effect: "blind", duration: 300},
     hide: {effect: "explode", duration: 300},
-    resizeStop: function() {$("#config").dialog('option', 'height', 'auto')}
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
 
   // Diálogo de límites
@@ -482,9 +481,9 @@
     autoOpen: false,
     width: 650,
     position: {my: "left top", at: "left+90 bottom+120", of: "#bandas"},
-    resizable: false,
     show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300}
+    hide: {effect: "explode", duration: 300},
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
   $("#t_lim tbody").sortable({items: "tr:not(.subtit)"});
   $("#b_add_lim").button({icons: {primary: "ui-icon-plus"}, text: false}).click(function(){addLim();});
@@ -662,10 +661,10 @@
   $("#formulas").dialog({
     autoOpen: false,
     width: 600,
-    resizable: false,
     position: {my: "left top", at: "left+100 bottom+150", of: "#bandas"},
     show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300}
+    hide: {effect: "explode", duration: 300},
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
   $("#b_add_formula").button({icons: {primary: "ui-icon-plus"}, text: false}).click(function(){addFormula();});
   $("#b_del_formula").button({icons: {primary: "ui-icon-minus"}, text: false}).click(function(){delFormula();});
@@ -704,10 +703,10 @@
   $("#select").dialog({
     autoOpen: false,
     width: 400,
-    resizable: false,
     position: {my: "left top", at: "left+10 bottom+10", of: "#bandas"},
     show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300}
+    hide: {effect: "explode", duration: 300},
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
   $("#b_add_select").button({icons: {primary: "ui-icon-plus"}, text: false}).click(function(){addSelect();});
   $("#b_del_select").button({icons: {primary: "ui-icon-minus"}, text: false}).click(function(){delSelect();});
@@ -745,10 +744,10 @@
   $("#where").dialog({
     autoOpen: false,
     width: 600,
-    resizable: false,
     position: {my: "left top", at: "left+30 bottom+40", of: "#bandas"},
     show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300}
+    hide: {effect: "explode", duration: 300},
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
   $("#b_add_where").button({icons: {primary: "ui-icon-plus"}, text: false}).click(function(){addWhere();});
   $("#b_del_where").button({icons: {primary: "ui-icon-minus"}, text: false}).click(function(){delWhere();});
@@ -777,10 +776,10 @@
   $("#order").dialog({
     autoOpen: false,
     width: 400,
-    resizable: false,
     position: {my: "left top", at: "left+50 bottom+70", of: "#bandas"},
     show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300}
+    hide: {effect: "explode", duration: 300},
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
 
   // Diálogo de group
@@ -788,10 +787,10 @@
   $("#group").dialog({
     autoOpen: false,
     width: 400,
-    resizable: false,
     position: {my: "left top", at: "left+70 bottom+100", of: "#bandas"},
     show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300}
+    hide: {effect: "explode", duration: 300},
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
 
   // Diálogo de having
@@ -799,10 +798,10 @@
   $("#having").dialog({
     autoOpen: false,
     width: 600,
-    resizable: false,
     position: {my: "left top", at: "left+30 bottom+70", of: "#bandas"},
     show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300}
+    hide: {effect: "explode", duration: 300},
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
   $("#b_add_having").button({icons: {primary: "ui-icon-plus"}, text: false}).click(function(){addHaving();});
   $("#b_del_having").button({icons: {primary: "ui-icon-minus"}, text: false}).click(function(){delHaving();});
@@ -832,7 +831,8 @@
     autoOpen: false,
     width: 650,
     show: {effect: "blind", duration: 500},
-    hide: {effect: "explode", duration: 500}
+    hide: {effect: "explode", duration: 500},
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
   $("#t_estilos tbody").sortable({items: "tr:not(.subtit)"});
   $("#b_add_estilo").button({icons: {primary: "ui-icon-plus"}, text: false}).click(function(){addEstilo();});
@@ -1229,7 +1229,7 @@
     title: 'Rupturas',
     width: 500,
     autoOpen: false,
-    resizable: false
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
 
 

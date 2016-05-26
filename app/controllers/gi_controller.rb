@@ -214,7 +214,7 @@ class GI
     if path.nil?
       Dir.glob('modulos/*/formatos').each {|mod|
         next if mod.ends_with?('/nimbus-core')
-        fi = mod + '/' + file
+        fi = mod + '/' + file + '.yml'
         if File.exists?(fi)
           path = fi
           break
@@ -222,7 +222,7 @@ class GI
       }
     end
     if path.nil?
-      fi = 'modulos/nimbus-core/formatos/' + file
+      fi = 'modulos/nimbus-core/formatos/' + file + '.yml'
       path = fi if File.exists?(fi)
     end
 
