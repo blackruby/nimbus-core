@@ -548,8 +548,8 @@ class GI
     #@sh.page_setup.set orientation: :landscape, paper_width: "210mm", paper_height: "297mm"
     @sh.print_options.grid_lines = true if @form[:pingrid]
     @sh.page_setup.set(eval('{' + @form[:page_setup] + '}')) if @form[:page_setup]
-    #@sh.header_footer.odd_header = '&L' + @form[:tit_i] + '&C' + @form[:tit_c] + ' &R&P de &N'
-    @sh.header_footer.odd_header = '&L' + @form[:tit_i] + '&C' + @form[:tit_c] + '&R' + @form[:tit_d]
+    @sh.header_footer.odd_header = "&L#{@form[:tit_i]}&C#{@form[:tit_c]}&R#{@form[:tit_d]}"
+    @sh.header_footer.odd_footer = "&L#{@form[:pie_i]}&C#{@form[:pie_c]}&R#{@form[:pie_d]}"
     @sh.column_widths(*(@form[:col_widths].split(',').map{|w| w.to_i})) if @form[:col_widths]
     xls.serialize(name)
     return name
