@@ -390,7 +390,7 @@ class BusController < ApplicationController
 
   def bus_send
     vid = flash[:vista]
-    @v = Vista.find_by id: flash[:vista]
+    @v = Vista.find_by id: vid
     if @v
       dat = @v.data
     else

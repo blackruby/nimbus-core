@@ -24,10 +24,10 @@
   <button title="Where" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#where').dialog('open')">
     <span style="font-size: 18px">W</span>
   </button>
-  <button title="Order" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#order').dialog('open')">
+  <button title="Order" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#dorder').dialog('open')">
     <span style="font-size: 18px">O</span>
   </button>
-  <button title="Group" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#group').dialog('open')">
+  <button title="Group" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#dgroup').dialog('open')">
     <span style="font-size: 18px">G</span>
   </button>
   <button title="Having" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#having').dialog('open')">
@@ -85,26 +85,11 @@
     <button id="del_rup" title="Borrar bandas de ruptura "class="b_banda">R-</button>
   </div>
   <p class="tit_band tit ui-widget-header ui-corner-all"> Cabecera </p>
-  <table id="t_cab" class="t_banda">
-    <tr>
-      <td class="cell-new">&nbsp;</td>
-      <td class="cell-new">&nbsp;</td>
-    </tr>
-  </table>
+  <table id="t_cab" class="t_banda"> <tbody></tbody> </table>
   <p id="tt_det" class="tit_band tit ui-widget-header ui-corner-all"> Detalle </p>
-  <table id="t_det" class="t_banda">
-    <tr>
-      <td class="cell-new">&nbsp;</td>
-      <td class="cell-new">&nbsp;</td>
-    </tr>
-  </table>
+  <table id="t_det" class="t_banda"> <tbody></tbody> </table>
   <p class="tit_band tit ui-widget-header ui-corner-all"> Pie </p>
-  <table id="t_pie" class="t_banda">
-    <tr>
-      <td class="cell-new">&nbsp;</td>
-      <td class="cell-new">&nbsp;</td>
-    </tr>
-  </table>
+  <table id="t_pie" class="t_banda"> <tbody></tbody> </table>
 </div>
 
 <div id="config" title="Configuración" style="padding: 0;display: none">
@@ -230,12 +215,12 @@
   </table>
 </div>
 
-<div id="order" title="Order" style="padding: 0; display: none">
-  <textarea rows="4" class="i_cmp admite_campo"></textarea>
+<div id="dorder" title="Order" style="padding: 0; display: none">
+  <textarea id="order" rows="4" class="i_cmp admite_campo"></textarea>
 </div>
 
-<div id="group" title="Group" style="padding: 0; display: none">
-  <textarea rows="4" class="i_cmp admite_campo"></textarea>
+<div id="dgroup" title="Group" style="padding: 0; display: none">
+  <textarea id="group" rows="4" class="i_cmp admite_campo"></textarea>
 </div>
 
 <div id="having" title="Having" style="padding: 0; display: none">
@@ -284,10 +269,7 @@
     overflow-y: auto;
     vertical-align: top;
     background-color: #d3d3d3;
-    padding-left: 3px;
-    padding-right: 5px;
-    padding-top: 3px;
-    padding-bottom: 10px;
+    padding: 3px 5px 10px 3px;
   }
   .centro {text-align: center;}
   .subtit {
@@ -345,7 +327,27 @@
 
 <script>
   var modelo = '<%= @modelo %>';
+  var formato = <%= @form.to_json.html_safe %>;
+
   var tabla, fileName, abrirInforme = false;
+  var celda, nRup = 0, nCol = 0, nCel = 0;
+
+  function nextItem(lista, pref, suf) {
+    var n = 0, ali, it, i, m;
+    $("#" + lista + " td:nth-child(1):not(.subtit)").each(function() {
+      it = $(this).text();
+      if (it[0] != pref) return;
+      if (suf) {
+        i = it.indexOf(suf);
+        if (i == -1) i = undefined;
+      } else
+        i = undefined;
+
+      m = it.slice(1, i);
+      if (isFinite(m)) n = Math.max(m, n);
+    });
+    return(pref + (n + 1));
+  }
 
   function giPrint() {
     abrirInforme = true;
@@ -356,7 +358,7 @@
   }
 
   function genArrayBan(rows) {
-    ar = [];
+    var ar = [], r;
     rows.each(function() {
       r = [];
       $(this).children().each(function() {
@@ -397,8 +399,8 @@
       data.where[el.parent().prev().text()] = el.val();
     });
 
-    data.order = $("#order textarea").val();
-    data.group = $("#group textarea").val();
+    data.order = $("#order").val();
+    data.group = $("#group").val();
 
     data.having = {};
     $("#t_having textarea").each(function() {
@@ -510,10 +512,11 @@
         }
         var rep = false;
         $(".alias_lim").each(function() {
-          if ($(this).text() == ali) {
+          var txt = $(this).text();
+          if (txt == ali || txt.indexOf(ali + '_') == 0) {
             alert('Alias repetido');
             rep = true;
-            return;
+            return false;
           }
         });
         if (rep) {
@@ -601,18 +604,10 @@
       if (node.manti && !node.pk) prop += ", manti: " + node.manti;
       if (node.decim) prop += ", decim: " + node.decim;
 
-      if (node.id) {
-
-      } else if (node.pk) {
-
-      } else {
-
-      }
-
       var cond = $("#asist_lim_cond").val();
       if (cond == 'dh') {
-        generaLim('d_' + ali, node, prop, 'ge');
-        generaLim('h_' + ali, node, prop, 'le');
+        generaLim(ali + '_d', node, prop, 'ge');
+        generaLim(ali + '_h', node, prop, 'le');
       } else
         generaLim(ali, node, prop, cond);
     } else {
@@ -620,7 +615,6 @@
     }
   }
 
-  var lastLim = 0;
   function addLim(name, val) {
     if (lastCmp && lastCmp.is("#lim :input"))
       lastSelectLim = lastCmp.parent().parent();
@@ -629,7 +623,7 @@
 
     if (name == undefined) {
       $("#asist_lim_ref").val('').data('cmp', null);
-      $("#asist_lim_alias").val('L' + ++lastLim);
+      $("#asist_lim_alias").val(nextItem('t_lim', 'L', '_'));
       $("#asist_lim_cond").val('eq');
       $("#asist_lim_wh").val('wh');
       $("#asist_lim").dialog('open');
@@ -670,12 +664,12 @@
     hide: {effect: "explode", duration: 300},
     resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
+  $("#t_formulas tbody").sortable({items: "tr:not(.subtit)"});
   $("#b_add_formula").button({icons: {primary: "ui-icon-plus"}, text: false}).click(function(){addFormula();});
   $("#b_del_formula").button({icons: {primary: "ui-icon-minus"}, text: false}).click(function(){delFormula();});
 
-  var lastFormula = 0;
   function addFormula(name, val) {
-    if (name == undefined) name = "F" + ++lastFormula;
+    if (name == undefined) name = nextItem("t_formulas", 'F');
     if (val == undefined) val = "";
 
     var elem;
@@ -715,9 +709,8 @@
   $("#b_add_select").button({icons: {primary: "ui-icon-plus"}, text: false}).click(function(){addSelect();});
   $("#b_del_select").button({icons: {primary: "ui-icon-minus"}, text: false}).click(function(){delSelect();});
 
-  var lastSelect = 0;
   function addSelect(name, val) {
-    if (name == undefined) name = "S" + ++lastSelect;
+    if (name == undefined) name = nextItem("t_select", 'S');
     if (val == undefined) val = "";
 
     var elem;
@@ -756,9 +749,8 @@
   $("#b_add_where").button({icons: {primary: "ui-icon-plus"}, text: false}).click(function(){addWhere();});
   $("#b_del_where").button({icons: {primary: "ui-icon-minus"}, text: false}).click(function(){delWhere();});
 
-  var lastWhere = 0;
   function addWhere(name, val) {
-    if (name == undefined) name = "W" + ++lastWhere;
+    if (name == undefined) name = nextItem("t_where", 'W');
     if (val == undefined) val = "";
 
     var elem;
@@ -777,7 +769,7 @@
 
   // Diálogo de order
 
-  $("#order").dialog({
+  $("#dorder").dialog({
     autoOpen: false,
     width: 400,
     position: {my: "left top", at: "left+50 bottom+70", of: "#bandas"},
@@ -788,7 +780,7 @@
 
   // Diálogo de group
 
-  $("#group").dialog({
+  $("#dgroup").dialog({
     autoOpen: false,
     width: 400,
     position: {my: "left top", at: "left+70 bottom+100", of: "#bandas"},
@@ -810,9 +802,8 @@
   $("#b_add_having").button({icons: {primary: "ui-icon-plus"}, text: false}).click(function(){addHaving();});
   $("#b_del_having").button({icons: {primary: "ui-icon-minus"}, text: false}).click(function(){delHaving();});
 
-  var lastHaving = 0;
   function addHaving(name, val) {
-    if (name == undefined) name = "W" + ++lastHaving;
+    if (name == undefined) name = nextItem("t_having", 'H');
     if (val == undefined) val = "";
 
     var elem;
@@ -895,24 +886,6 @@
   $("#b_del_estilo").button("disable");
    **/
 
-  // Añadir estilos por defecto
-  addEstilo("def", "{sz: 10}");
-  addEstilo("def_c", ":def, {alignment: {horizontal: :center}}");
-  addEstilo("def_d", ":def, {alignment: {horizontal: :right}}");
-  addEstilo("def_n", ":def, {b: true}");
-  addEstilo("def_nc", ":def_c, {b: true}");
-  addEstilo("def_nd", ":def_d, {b: true}");
-  addEstilo("int", ":def_d, {format_code: '#,##0'}");
-  addEstilo("int_n", ":def_nd, :int");
-  addEstilo("dec2", ":def_d, {format_code: '#,##0.00'}");
-  addEstilo("dec2_n", ":def_n, :dec2");
-  addEstilo("date", ":def_c, {format_code: 'dd-mm-yyyy'}");
-  addEstilo("tit", ":def, {bg_color: '303030'}");
-  addEstilo("tit_c", ":def_c, :tit");
-  addEstilo("tit_d", ":def_d, :tit");
-  addEstilo("borde", ":def, {border: {style: :thin, color: 'FF0000FF', edges: [:right]}}");
-  llenaEstilos();
-
   $( "#grabar" ).dialog({
     autoOpen: false,
     show: {effect: "blind", duration: 500},
@@ -940,8 +913,6 @@
     } else
       return('');
   }
-
-  var celda, nRup = 0, nCol = 2, nCel = 6;
 
   function bBandaStatus() {
     $(".b_banda").button("enable");
@@ -1078,6 +1049,28 @@
     $("#tree_campos").css("height", h);
   }
 
+  function addRup(htm, cmp, salto) {
+    if (cmp == undefined) cmp = '';
+    if (salto == undefined) salto = false;
+
+    var cl = 'rup_' + ++nRup;
+    $("#tt_det").before(
+      '<p class="' + cl + ' tit_band tit ui-widget-header ui-corner-all">Cabecera de Ruptura</p>' +
+      '<table id="' + cl + '_h" class="' + cl + ' t_banda"><tbody>' + htm + '</tbody></table>'
+    );
+    $("#t_det").after(
+      '<p class="' + cl + ' tit_band tit ui-widget-header ui-corner-all">Pie de Ruptura</p>' +
+      '<table id="' + cl + '_p" class="' + cl + ' t_banda"><tbody>' + htm + '</tbody></table>'
+    );
+
+    $("#t_rup tr").last().after(
+      '<tr class="' + cl +'">' +
+      '<td><textarea rows="1" class="i_cmp admite_campo">' + cmp +'</textarea></td>' +
+      '<td style="vertical-align: top;text-align: center"><input type="checkbox" class="i_cmp" style="width: auto"' + (salto ? ' checked' : '') + '/></td>' +
+      '</tr>'
+    );
+    return cl;
+  }
 
   $("#swp_w").button({icons: {primary: "ui-icon-arrowthick-1-w"}, text: false}).click(function(){swpCell(celda.prev());});
   $("#swp_e").button({icons: {primary: "ui-icon-arrowthick-1-e"}, text: false}).click(function(){swpCell(celda.next());});
@@ -1098,27 +1091,7 @@
     nCol -= 1;
   });
   $("#add_rup").button().click(function() {
-    nRup += 1;
-    var cl = 'rup_' + nRup;
-    $("#tt_det").before(
-      '<p class="' + cl + ' tit_band tit ui-widget-header ui-corner-all">Cabecera de Ruptura</p>' +
-      '<table id="' + cl + '" class="' + cl + ' t_banda">' +
-      genCadRow() +
-      '</table>'
-    );
-    $("#t_det").after(
-      '<p class="' + cl + ' tit_band tit ui-widget-header ui-corner-all">Pie de Ruptura</p>' +
-      '<table class="' + cl + ' t_banda">' +
-      genCadRow() +
-      '</table>'
-    );
-
-    $("#t_rup tr").last().after(
-      '<tr class="' + cl +'">' +
-        '<td><textarea rows="1" class="i_cmp admite_campo"></textarea></td>' +
-        '<td style="vertical-align: top;text-align: center"><input type="checkbox" class="i_cmp" style="width: auto"/></td>' +
-      '</tr>'
-    );
+    var cl = addRup(genCadRow());
     iniPropCell();
     $("#rupturas").dialog("open");
     $("." + cl + " textarea").focus();
@@ -1134,12 +1107,11 @@
     });
   });
 
-  // Deshabilitar todos los botones de las bandas (hasta que se seleccione una celda)
-  noCell();
-
   $("#bandas").on('dblclick', 'p', function(e) {
-    if ($(this).next().children().children().length == 0) {
-      $(this).next().children().html(genCadRow());
+    //if ($(this).next().children().children().length == 0) {
+    if ($(this).next().find("tr").length == 0) {
+      //$(this).next().children().html(genCadRow());
+      $(this).next().first().html(genCadRow());
       iniPropCell();
     }
   });
@@ -1236,8 +1208,92 @@
     resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
 
+  // A partir de aquí es ya inicialización (igual iría mejor en onload)
 
-  iniPropCell();
   $(window).resize(redimWindow);
   redimWindow();
+
+  // Inicializar componentes a partir del fichero de formato
+  function leeFormBanda(tabla, arr_ban) {
+    $.each(arr_ban, function(i, ban) {
+      $("#" + tabla + " tbody").append("<tr></tr>");
+      var el = $("#" + tabla + " tr").last();
+      $.each(ban, function(j, cel) {
+        el.append("<td>" + (cel.alias ? cel.alias : "&nbsp;") + "</td>");
+        el.find("td").last().data('prop', cel);
+        nCol = Math.max(nCol, j+1);
+      });
+    });
+  }
+
+  $.each(formato, function(k, v) {
+    switch (k) {
+      case 'style':
+        $.each(v, addEstilo);
+        break;
+      case 'formulas':
+        $.each(v, addFormula);
+        break;
+      case 'select':
+        $.each(v, addSelect);
+        break;
+      case 'where':
+        $.each(v, addWhere);
+        break;
+      case 'having':
+        $.each(v, addHaving);
+        break;
+      case 'cab':
+      case 'det':
+      case 'pie':
+        leeFormBanda('t_' + k, v);
+        break;
+      case 'rup': //[]
+        $.each(v, function(i, rup) {
+          var el = addRup('', rup.campo, rup.salto);
+          leeFormBanda(el + '_h', rup.cab);
+          leeFormBanda(el + '_p', rup.pie);
+        });
+        break;
+      case 'lim':
+        $.each(v, addLim);
+        break;
+      default:
+        var el = $("#" + k);
+        el.attr("type") == "checkbox" ? el.prop('checked', v) : el.val(v);
+    }
+  });
+
+   // Añadir estilos por defecto si no hay ninguno en el formato
+  if ($("#t_estilos tr").length == 1) {
+    addEstilo("def", "{sz: 10}");
+    addEstilo("def_c", ":def, {alignment: {horizontal: :center}}");
+    addEstilo("def_d", ":def, {alignment: {horizontal: :right}}");
+    addEstilo("def_n", ":def, {b: true}");
+    addEstilo("def_nc", ":def_c, {b: true}");
+    addEstilo("def_nd", ":def_d, {b: true}");
+    addEstilo("int", ":def_d, {format_code: '#,##0'}");
+    addEstilo("int_n", ":def_nd, :int");
+    addEstilo("dec2", ":def_d, {format_code: '#,##0.00'}");
+    addEstilo("dec2_n", ":def_n, :dec2");
+    addEstilo("date", ":def_c, {format_code: 'dd-mm-yyyy'}");
+    addEstilo("tit", ":def, {bg_color: '303030'}");
+    addEstilo("tit_c", ":def_c, :tit");
+    addEstilo("tit_d", ":def_d, :tit");
+    addEstilo("borde", ":def, {border: {style: :thin, color: 'FF0000FF', edges: [:right]}}");
+  }
+  llenaEstilos();
+
+  // Añadir columnas en cabecera y detalle si no hay columnas en el formato
+  if (nCol == 0) {
+    nCol = 2; // Por defecto añadir dos columnas vacías
+    $("#t_cab tbody").append(genCadRow());
+    $("#t_det tbody").append(genCadRow());
+    iniPropCell();
+  }
+
+  // Deshabilitar todos los botones de las bandas (hasta que se seleccione una celda)
+  noCell();
+
+
 </script>

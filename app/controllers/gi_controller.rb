@@ -23,11 +23,16 @@ class GiController < ApplicationController
   end
 
   def gi
-    if params[:mod]
+    if params[:form]
+      @form = GI.formato_read(params[:form])
+      @modelo = @form[:modelo]
+      @titulo = "#{nt('gi')}&nbsp;&nbsp;&nbsp;&nbsp; Formato: #{params[:form]}"
+      render 'edita'
+    elsif params[:mod]
+      @form = {}
       @modelo = params[:mod]
       @titulo = "#{nt('gi')}&nbsp;&nbsp;&nbsp;&nbsp; Modelo: #{@modelo}"
       render 'edita'
-
     else
       @titulo = nt('gi')
       @tablas = {}
@@ -165,21 +170,26 @@ class GiController < ApplicationController
 
     form[:lim].each {|c, v|
       @fact.add_campo(c, eval('{' + v + '}'))
-      #@fact[c] = v[:value] if v[:value]
-      puts c
-      puts v
-      puts @fact[c]
     }
 
-    @titulo = form[:tit_c]
+    @titulo = form[:tit_c] = 'Listado de ' + nt(form[:modelo].constantize.table_name) if form[:tit_c].empty? and form[:modelo]
   end
 
   def after_save
-    @ajax << 'window.open("/gi/abrir/' + @fact.form_file + '?vista=' + params[:vista] + '", "_blank", "location=no, menubar=no, status=no, toolbar=no ,height=800, width=1000 ,left=" + (window.screenX + 10) + ",top=" + (window.screenY + 10));'
+    #@ajax << 'window.open("/gi/abrir/' + @fact.form_file + '?vista=' + params[:vista] + '", "_blank", "location=no, menubar=no, status=no, toolbar=no ,height=800, width=1000 ,left=" + (window.screenX + 10) + ",top=" + (window.screenY + 10));'
+    @ajax << (@fact.formato == 'pdf' ? 'window.open("/gi/abrir");' : 'window.location.href="/gi/abrir";')
+    flash[:vista] = @v.id
   end
 
   def abrir
-    @fact = @dat[:fact]
+    vid = flash[:vista]
+    @v = Vista.find_by id: vid
+    if @v
+      @fact = @v.data[:fact]
+    else
+      render file: '/public/401.html', status: 401, layout: false
+      return
+    end
 
     lim = {}
     @fact.campos.each {|c, v|
@@ -188,21 +198,30 @@ class GiController < ApplicationController
 
     lim[:eid], lim[:jid] = get_empeje
 
-    g = GI.new(params[:file], nil, lim)
-    g.gen_xls('/tmp/z.xlsx')
+    g = GI.new(@fact.form_file, nil, lim)
+
+    fns = "/tmp/nim#{vid}" #file_name_server
+
+    g.gen_xls("#{fns}.xlsx")
+
+    fnc = (g.formato[:tit_c].empty? ? 'listado' : g.formato[:tit_c]) #file_name_client
 
     case @fact.formato
       when 'pdf'
-        `libreoffice --headless --convert-to pdf --outdir /tmp /tmp/z.xlsx`
-        send_file '/tmp/z.pdf', type: :pdf, disposition: 'inline'
+        `libreoffice --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
+        send_data File.read("#{fns}.pdf"), filename: "#{fnc}.pdf", type: :pdf, disposition: 'inline'
+        FileUtils.rm "#{fns}.pdf", force: true
       when 'xls'
-        `libreoffice --headless --convert-to xls --outdir /tmp /tmp/z.xlsx`
-        send_file '/tmp/z.xls'
+        `libreoffice --headless --convert-to xls --outdir /tmp #{fns}.xlsx`
+        send_data File.read("#{fns}.xls"), filename: "#{fnc}.xls"
+        FileUtils.rm "#{fns}.pdf", force: true
       when 'xlsx'
-        send_file '/tmp/z.xlsx'
+        send_data File.read("#{fns}.xlsx"), filename: "#{fnc}.xlsx"
       else
         render nothing: true
     end
+
+    FileUtils.rm "#{fns}.xlsx", force: true
   end
 end
 
@@ -231,8 +250,6 @@ class GI
     else
       #eval('{' + File.read(path) + '}')
       formato = YAML.load(File.read(path))
-      formato[:modelo] = formato[:modelo].constantize if formato[:modelo]
-      formato[:style].each {|k, v| formato[:style][k] = eval('[' + v + ']')}
       formato
     end
   end
@@ -293,9 +310,12 @@ class GI
       @form = form
     end
 
-    @form[:tit_i] = (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') if @form[:tit_i].empty?
+    @form[:modelo] = @form[:modelo].constantize if @form[:modelo]
+    @form[:style].each {|k, v| @form[:style][k] = eval('[' + v + ']')}
+
+    @form[:tit_i] = '&B' + (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') + '&B' if @form[:tit_i].empty?
     @form[:tit_d] = '&P de &N' if @form[:tit_d].empty?
-    @form[:tit_c] = 'Listado de ' + nt(@form[:modelo].table_name) if @form[:tit_c].empty? and @form[:modelo]
+    @form[:tit_c] = '&BListado de ' + nt(@form[:modelo].table_name) + '&B' if @form[:tit_c].empty? and @form[:modelo]
 
     @vpluck = []
     @msel = []
@@ -379,6 +399,10 @@ class GI
       # Obtener la query
       @data = @form[:modelo].joins(ms[:cad_join]).where(wh, lim).group(@form[:group]).having(ha, lim).order(@form[:order]).pluck(*@vpluck)
     end
+  end
+
+  def formato
+    @form
   end
 
   def cel(ali)

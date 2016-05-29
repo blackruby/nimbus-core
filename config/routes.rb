@@ -21,7 +21,8 @@ Rails.application.routes.draw do
 
   get 'gi' => 'gi#gi'
   get 'gi/campos' => 'gi#campos'
-  get 'gi/abrir/:file' => 'gi#abrir'
+  #get 'gi/abrir/:file' => 'gi#abrir'
+  get 'gi/abrir' => 'gi#abrir'
   get 'gi/edit/:file' => 'gi#edit'
   post 'gi/graba_fic' => 'gi#graba_fic'
   post 'gi/validar' => 'gi#validar'
