@@ -344,6 +344,19 @@ class GI
       gen_alias("rp#{i}", r[:pie]) if r[:pie]
     }
 
+    # Añadir where de empresa y ejercicio si procede
+    if @form[:filt_emej]
+      if @form[:modelo].respond_to?('ejercicio_path')
+        jp = @form[:modelo].ejercicio_path
+        jpi = jp + (jp.empty? ? '' : '.') + 'ejercicio_id'
+        @form[:where]['_weje'] = '~' + jpi + '~' + ' = :jid'
+      elsif @form[:modelo].respond_to?('empresa_path')
+        ep = @form[:modelo].empresa_path
+        epi = ep + (ep.empty? ? '' : '.') + 'empresa_id'
+        @form[:where]['_wemp'] = '~' + epi + '~' + ' = :eid'
+      end
+    end
+
     # procesar where (1ª vuelta)
     @form[:where].each {|_, v|
       procesa_macros(v, false)

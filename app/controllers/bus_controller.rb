@@ -95,7 +95,10 @@ class BusController < ApplicationController
 
     #add_where(w, tabla + '.empresa_id=' + ej[0]) if clm.column_names.include?('empresa_id')
     #add_where(w, tabla + '.ejercicio_id=' + ej[1]) if clm.column_names.include?('ejercicio_id')
-    if clm.respond_to?('empresa_path')
+    if clm.respond_to?('ejercicio_path')
+      join_emej = clm.ejercicio_path
+      add_where(w, "#{join_emej.empty? ? tabla : 't_emej'}.ejercicio_id=#{ej[1]}")
+    elsif clm.respond_to?('empresa_path')
       join_emej = clm.empresa_path
       add_where(w, "#{join_emej.empty? ? tabla : 't_emej'}.empresa_id=#{ej[0]}")
     end
