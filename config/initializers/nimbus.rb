@@ -900,7 +900,11 @@ module Modelo
       cl = self
       loop {
         if cl.column_names.include?('empresa_id')
-          cad_emp << 'empresa' unless cad_emp.empty?
+          if cad_emp.empty?
+            self.instance_eval("def empresa_path;'';end")
+          else
+            cad_emp << 'empresa'
+          end
           break
         elsif cl.pk[0] and cl.pk[0].ends_with?('_id')
           cad_emp << cl.pk[0][0..-4] + '.'
@@ -910,14 +914,21 @@ module Modelo
           break
         end
       }
-      self.class_eval("def empresa;#{cad_emp};end;def empresa_path;'#{cad_emp}';end") unless cad_emp.empty?
+      unless cad_emp.empty?
+        self.instance_eval("def empresa_path;'#{cad_emp[0..-9]}';end")
+        self.class_eval("def empresa;#{cad_emp};end")
+      end
 
       if (self.to_s != 'Ejercicio')
         cad_eje = ''
         cl = self
         loop {
           if cl.column_names.include?('ejercicio_id')
-            cad_eje << 'ejercicio' unless cad_eje.empty?
+            if cad_eje.empty?
+              self.instance_eval("def ejercicio_path;'';end")
+            else
+              cad_eje << 'ejercicio'
+            end
             break
           elsif cl.pk[0] and cl.pk[0].ends_with?('_id')
             cad_eje << cl.pk[0][0..-4] + '.'
@@ -927,7 +938,10 @@ module Modelo
             break
           end
         }
-        self.class_eval("def ejercicio;#{cad_eje};end;def ejercicio_path;'#{cad_eje}';end") unless cad_eje.empty?
+        unless cad_eje.empty?
+          self.instance_eval("def ejercicio_path;'#{cad_eje[0..-11]}';end")
+          self.class_eval("def ejercicio;#{cad_eje}';end")
+        end
       end
 
       after_initialize :_ini_campos

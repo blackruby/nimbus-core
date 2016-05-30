@@ -93,11 +93,15 @@ class BusController < ApplicationController
 
     w = flash[:wh] || ''
 
-    add_where(w, tabla + '.empresa_id=' + ej[0]) if clm.column_names.include?('empresa_id')
-    add_where(w, tabla + '.ejercicio_id=' + ej[1]) if clm.column_names.include?('ejercicio_id')
+    #add_where(w, tabla + '.empresa_id=' + ej[0]) if clm.column_names.include?('empresa_id')
+    #add_where(w, tabla + '.ejercicio_id=' + ej[1]) if clm.column_names.include?('ejercicio_id')
+    if clm.respond_to?('empresa_path')
+      join_emej = clm.empresa_path
+      add_where(w, "#{join_emej.empty? ? tabla : 't_emej'}.empresa_id=#{ej[0]}")
+    end
 
     @v = Vista.new
-    @v.data = {mod: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, order: '', wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1]}
+    @v.data = {mod: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, join_emej: join_emej, order: '', wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1]}
 
     # Calcular fichero de preferencias
     fic_pref = nil
@@ -217,7 +221,7 @@ class BusController < ApplicationController
     @dat[:cad_where] = w
     @dat[:cad_order] = ord
 
-    tot_records = clm.select(:id).joins(@dat[:cad_join]).where(w).size
+    tot_records = @dat[:cad_sel].empty? ? 0 : clm.select(:id).joins(@dat[:cad_join]).where(w).size
     lim = params[:rows].to_i
     tot_pages = tot_records / lim
     tot_pages += 1 if tot_records % lim != 0
@@ -225,7 +229,7 @@ class BusController < ApplicationController
     page = tot_pages if page > tot_pages
     page = 1 if page <=0
 
-    sql = clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
+    sql = @dat[:cad_sel].empty? ? [] : clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
 
     res = {page: page, total: tot_pages, records: tot_records, rows: []}
     sql.each {|s|
@@ -247,7 +251,8 @@ class BusController < ApplicationController
   def genera_grid(kh, kv)
     mp = mselect_parse(@dat[:mod], @dat[:cols].map{|k, v| v[:label]})
     @dat[:cad_sel] = mp[:cad_sel]
-    @dat[:cad_join] = mp[:cad_join]
+    jemej = @dat[:join_emej].empty? ? '' : ljoin_parse(@dat[:mod], @dat[:join_emej] + '(t_emej)')[:cad]
+    @dat[:cad_join] = mp[:cad_join] + ' ' + jemej
 
     col_mod = @dat[:cols].map {|k, c|
       c[:cmp_db] = mp[:alias_cmp][c[:label]][:cmp_db]

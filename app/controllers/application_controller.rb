@@ -313,9 +313,12 @@ class ApplicationController < ActionController::Base
 =end
 
     w = ''
+    wemej = ''
+    ljoin = ''
     if params[:mod]
       add_where(w, mod_tab + '.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
     else
+=begin
       if clm.column_names.include?('empresa_id')
         if eid
           #add_where(w, mod_tab + '.empresa_id=' + params[:eid])
@@ -331,6 +334,24 @@ class ApplicationController < ActionController::Base
           add_where(w, "#{mod_tab}.ejercicio_id=#{jid}")
         else
           render file: '/public/no_eje.html', layout: false
+          return
+        end
+      end
+=end
+      if clm.respond_to?('ejercicio_path')
+        if jid
+          ljoin = clm.ejercicio_path
+          wemej = "#{ljoin.empty? ? mod_tab : 't_emej'}.ejercicio_id=#{jid}"
+        else
+          render file: '/public/no_eje.html', layout: false
+          return
+        end
+      elsif clm.respond_to?('empresa_path')
+        if eid
+          ljoin = clm.empresa_path
+          wemej = "#{ljoin.empty? ? mod_tab : 't_emej'}.empresa_id=#{eid}"
+        else
+          render file: '/public/no_emp.html', layout: false
           return
         end
       end
@@ -351,6 +372,11 @@ class ApplicationController < ActionController::Base
     @dat[:eid] = eid
     @dat[:jid] = jid
     @dat[:auto_comp] = {_pk_input: w} unless w.empty?
+    @dat[:wgrid] = w.dup
+    add_where(@dat[:wgrid], wemej)
+    lj = [grid[:ljoin]]
+    lj << ljoin + '(t_emej)' unless ljoin.empty?
+    @dat[:cad_join] = ljoin_parse(clm, lj)[:cad]
     @v.save
     @ajax << 'var _vista=' + @v.id.to_s + ';var _controlador="' + params['controller'] + '";'
 
@@ -376,14 +402,19 @@ class ApplicationController < ActionController::Base
     arg_ej = ''
     if eid
       arg_ej << '&eid=' + eid
-      e = Empresa.find_by id: eid.to_i
-      @titulo << e.codigo if clm.column_names.include?('empresa_id')
+      #e = Empresa.find_by id: eid.to_i
+      #@titulo << e.codigo if clm.column_names.include?('empresa_id')
+      @titulo << Empresa.where('id=?', eid).pluck(:codigo)[0] if clm.respond_to?('empresa_path')
     end
 
     if jid
       arg_ej << '&jid=' + jid
-      j = Ejercicio.find_by id: jid.to_i
-      @titulo << '/' + j.codigo if clm.column_names.include?('ejercicio_id')
+      #j = Ejercicio.find_by id: jid.to_i
+      #@titulo << '/' + j.codigo if clm.column_names.include?('ejercicio_id')
+      if clm.respond_to?('ejercicio_path')
+        cj_ce = Ejercicio.where('ejercicios.id=?', jid).ljoin(:empresa).pluck('ta.codigo', 'ejercicios.codigo')
+        @titulo << cj_ce[0] + '/' + cj_ce[1]
+      end
     end
 
     #@view[:arg_auto] = params[:mod] ? '&wh=' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id] : arg_ej
@@ -430,8 +461,10 @@ class ApplicationController < ActionController::Base
 
   # Método para añadir a la cadena 's' el valor 'v' concatenado con 'AND'
   def add_where(s, v)
-    s << ' AND ' unless s == ''
-    s << v
+    if v and v.strip != ''
+      s << ' AND ' unless s == ''
+      s << v
+    end
   end
 
   # Método que provee de datos a las peticiones del grid
@@ -445,7 +478,8 @@ class ApplicationController < ActionController::Base
     clm = class_mant
     #mod_tab = clm.table_name
 
-    w = (@dat and @dat[:auto_comp] and @dat[:auto_comp][:_pk_input]) ? @dat[:auto_comp][:_pk_input] : ''
+    #w = (@dat and @dat[:auto_comp] and @dat[:auto_comp][:_pk_input]) ? @dat[:auto_comp][:_pk_input] : ''
+    w = @dat[:wgrid] ? @dat[:wgrid] : ''
 =begin
     if params[:mod]
       add_where(w, mod_tab + '.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
@@ -550,7 +584,7 @@ class ApplicationController < ActionController::Base
 =end
 
     #tot_records =  clm.eager_load(eager).where(w).where(params[:wh]).count
-    tot_records =  clm.eager_load(eager).where(w).count
+    tot_records =  clm.eager_load(eager).joins(@dat[:cad_join]).where(w).count
     lim = params[:rows].to_i
     tot_pages = tot_records / lim
     tot_pages += 1 if tot_records % lim != 0
@@ -559,7 +593,7 @@ class ApplicationController < ActionController::Base
     page = 1 if page <=0
 
     #sql = clm.eager_load(eager).where(w).where(params[:wh]).order(ord).offset((page-1)*lim).limit(lim)
-    sql = clm.eager_load(eager).where(w).order(ord).offset((page-1)*lim).limit(lim)
+    sql = clm.eager_load(eager).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
 
     res = {page: page, total: tot_pages, records: tot_records, rows: []}
     sql.each {|s|
@@ -655,19 +689,19 @@ class ApplicationController < ActionController::Base
       # Si es un mant hijo, inicializar el id del padre
       eval('@fact.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
     else
-      if clm.column_names.include?('empresa_id')
-        if eid.nil?
-          render file: '/public/no_emp', layout: false
-          return
-        else
-          @fact.empresa_id = eid.to_i
-        end
-      elsif clm.column_names.include?('ejercicio_id')
+      if clm.respond_to?('ejercicio_path')
         if jid.nil?
           render file: '/public/no_eje', layout: false
           return
         else
           @fact.ejercicio_id = jid.to_i
+        end
+      elsif clm.respond_to?('empresa_path')
+        if eid.nil?
+          render file: '/public/no_emp', layout: false
+          return
+        else
+          @fact.empresa_id = eid.to_i
         end
       end
     end
