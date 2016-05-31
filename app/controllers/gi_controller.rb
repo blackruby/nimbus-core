@@ -405,7 +405,7 @@ class GI
       # procesar having (2ª vuelta)
       ha = ''
       @form[:having].each {|_, v|
-        ha << ' AND ' unless wh.empty?
+        ha << ' AND ' unless ha.empty?
         ha << alias_cmp_db(v, ms[:alias_cmp])
       }
 
