@@ -694,14 +694,14 @@ class ApplicationController < ActionController::Base
           render file: '/public/no_eje', layout: false
           return
         else
-          @fact.ejercicio_id = jid.to_i
+          @fact.ejercicio_id = jid.to_i if clm.column_names.include?('ejercicio_id')
         end
       elsif clm.respond_to?('empresa_path')
         if eid.nil?
           render file: '/public/no_emp', layout: false
           return
         else
-          @fact.empresa_id = eid.to_i
+          @fact.empresa_id = eid.to_i if clm.column_names.include?('empresa_id')
         end
       end
     end
