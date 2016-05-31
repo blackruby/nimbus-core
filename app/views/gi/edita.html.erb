@@ -40,6 +40,10 @@
   <button title="Imprimir" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="giPrint()">
     <i class="gi-img-button material-icons">print</i>
   </button>
+  &nbsp;&nbsp;&nbsp;
+  <button title="Ayuda" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#help').dialog('open')">
+    <i class="gi-img-button material-icons">help</i>
+  </button>
 </div>
 
 <div id="tree_campos"> </div>
@@ -54,8 +58,11 @@
         <select id="tipo" class="i_cmp">
           <option value="">Auto</option>
           <option value="string">Cadena</option>
-          <option value="number">Número</option>
+          <option value="integer">Entero</option>
+          <option value="float">Decimal</option>
           <option value="date">Fecha</option>
+          <option value="time">Hora</option>
+          <option value="boolean">Booleano</option>
         </select>
       </td>
     </tr>
@@ -240,6 +247,56 @@
 
 <div id="grabar" title="Grabar" style="display: none">
   <label for="file_name">Archivo:</label><input id="filename" class="i_cmp"/>
+</div>
+
+<div id="help" title="Ayuda" style="display: none">
+  <pre>
+Config. Página (Hash. Valores separados por ',')
+---------------------------------------------------------------------------------------------
+orientation: :landscape, paper_width: "297mm", paper_height: "210mm"
+
+Ancho columnas
+---------------------------------------------------------------------------------------------
+Lista de valores separados por comas indicando la anchura en caracteres
+de cada columna. El valor 0 (cero) se usará para ancho automático
+
+Márgenes (Hash. Valores separados por ',')
+---------------------------------------------------------------------------------------------
+left: xx.xx, right: xx.xx, top: xx.xx, bottom: xx.xx, header: x.xx, footer: xx.xx
+Los números (xx.xx) son con decimales e indican pulgadas.
+
+Títulos y pies de página
+---------------------------------------------------------------------------------------------
+&E              Activa o desactiva la impresión en subrayado doble.
+&X              Activa o desactiva la impresión en superíndice.
+&Y              Activa o desactiva la impresión en subíndice.
+&B              Activa o desactiva la impresión en negrita.
+&I              Activa o desactiva la impresión en cursiva.
+&U              Activa o desactiva la impresión en subrayado.
+&S              Activa o desactiva la impresión en tachado.
+&"nombrefuente" Imprime los caracteres que siguen en la fuente especificada.
+                Asegúrese de incluir comillas dobles.
+&nn             Imprime los caracteres que siguen en el tamaño de fuente especificado.
+                Use un número de dos dígitos para especificar un tamaño en puntos.
+&color          Imprime los caracteres en el color especificado.
+                El usuario proporciona un valor de color hexadecimal.
+&Kxx.Syyy       Imprime los caracteres que siguen en el color especificado del tema actual.
+                xx es un número de dos dígitos del 1 al 12 que especifica el color del tema
+                que se va a usar. Snnn especifica la sombra (el tono) de ese color de tema.
+                Especifique S como + para producir una sombra más clara;
+                especifique S como - para producir una sombra más oscura.
+                nnn es un número entero de tres dígitos que especifica un porcentaje de 0 a 100.
+                Si los valores que especifican el color o la sombra del tema no están en los
+                límites descritos, Excel usará el valor válido más cercano.
+&D              Imprime la fecha actual.
+&T              Imprime la hora actual.
+&P              Imprime el número de página.
+&P+número       Imprime el número de página más el número especificado.
+&P-número       Imprime el número de página menos el número especificado.
+&&              Imprime una sola Y comercial.
+&N              Imprime el número total de páginas en el documento.
+
+  </pre>
 </div>
 
 <!--
@@ -892,6 +949,13 @@
     hide: {effect: "explode", duration: 500}
   });
 
+  $( "#help" ).dialog({
+    autoOpen: false,
+    width: 800,
+    show: {effect: "blind", duration: 500},
+    hide: {effect: "explode", duration: 500}
+  });
+
   /*
   $( "#abrir" ).dialog({
     autoOpen: false,
@@ -1151,16 +1215,22 @@
           lastCmp.val(v.slice(0, sel.begin) + '~' + fullCampo(event.node) + '~' + v.slice(sel.end));
 
         if (lastCmp.is("#prop-celdas textarea") && $("#alias").val() == "") {
+          var prop = celda.data('prop');
           var a = (event.node.parent.name == undefined) ? "" : $(event.node.table.split('_')).get(-1) + '_';
           var name = a + event.node.name;
           $("#alias").val(name);
           celda.html(name);
+          prop.alias = name;
+          // Estilo
           var esti = event.node.estilo;
           if (event.node.type == 'decimal') checkEstilo(esti);
           $("#estilo").val(esti);
-          var prop = celda.data('prop');
-          prop.alias = name;
           prop.estilo = esti;
+          // Tipo
+          prop.tipo = event.node.type;
+          if (prop.tipo == 'decimal') prop.tipo = 'float';
+          $("#tipo").val(prop.tipo);
+          // Celda de cabecera
           if (celda.is("#t_det td")) {
             var cc = $("#t_cab tr").last().children().eq(celda.index());
             prop = cc.data('prop');
@@ -1294,6 +1364,4 @@
 
   // Deshabilitar todos los botones de las bandas (hasta que se seleccione una celda)
   noCell();
-
-
 </script>
