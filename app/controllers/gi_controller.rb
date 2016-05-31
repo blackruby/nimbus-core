@@ -204,7 +204,7 @@ class GiController < ApplicationController
 
     g.gen_xls("#{fns}.xlsx")
 
-    fnc = (g.formato[:tit_c].empty? ? 'listado' : g.formato[:tit_c]) #file_name_client
+    fnc = g.formato[:modelo] ? g.formato[:modelo].table_name : 'listado' #file_name_client
 
     case @fact.formato
       when 'pdf'
@@ -310,10 +310,13 @@ class GI
       @form = form
     end
 
+    @e = Empresa.find_by(id: lim[:eid]) if lim[:eid]
+
     @form[:modelo] = @form[:modelo].constantize if @form[:modelo]
     @form[:style].each {|k, v| @form[:style][k] = eval('[' + v + ']')}
 
-    @form[:tit_i] = '&B' + (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') + '&B' if @form[:tit_i].empty?
+    #@form[:tit_i] = '&B' + (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') + '&B' if @form[:tit_i].empty?
+    @form[:tit_i] = '&B' + @e.try(:nombre) + '&B' if @form[:tit_i].empty?
     @form[:tit_d] = '&P de &N' if @form[:tit_d].empty?
     @form[:tit_c] = '&BListado de ' + nt(@form[:modelo].table_name) + '&B' if @form[:tit_c].empty? and @form[:modelo]
 
