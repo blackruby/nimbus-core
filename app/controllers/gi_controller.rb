@@ -11,7 +11,7 @@ end
 
 class GiController < ApplicationController
   def nuevo_mod(mod, path)
-    Dir.glob(path).each {|fic|
+    Dir.glob(path).sort.each {|fic|
       ficb = Pathname(fic).basename.to_s
 
       next if File.directory?(fic)
@@ -26,12 +26,14 @@ class GiController < ApplicationController
     if params[:form]
       @form = GI.formato_read(params[:form])
       @modelo = @form[:modelo]
-      @titulo = "#{nt('gi')}&nbsp;&nbsp;&nbsp;&nbsp; Formato: #{params[:form]}"
+      #@titulo = "#{nt('gi')}&nbsp;&nbsp;&nbsp;&nbsp; Formato: #{params[:form]}"
+      @titulo = "#{nt('gi')}. Formato: #{params[:form]}"
       render 'edita'
     elsif params[:mod]
       @form = {}
       @modelo = params[:mod]
-      @titulo = "#{nt('gi')}&nbsp;&nbsp;&nbsp;&nbsp; Modelo: #{@modelo}"
+      #@titulo = "#{nt('gi')}&nbsp;&nbsp;&nbsp;&nbsp; Modelo: #{@modelo}"
+      @titulo = "#{nt('gi')}. Modelo: #{@modelo}"
       render 'edita'
     else
       @titulo = nt('gi')
@@ -47,8 +49,8 @@ class GiController < ApplicationController
 
   def campos
     begin
-      cl = params[:node].constantize
-      clr = cl
+      clr = params[:node].constantize
+      clr.column_names.include?('idid') ? cl = params[:node][1..-1].constantize : cl = clr
     rescue
       # Se supone que sería un histórico y está sin cargar su clase
       cl = params[:node][1..-1].constantize
@@ -85,9 +87,12 @@ class GiController < ApplicationController
           when :date
             d[:ali] = 'c'
             d[:estilo] = 'date'
-          when :time, :datetime
+          when :time
             d[:ali] = 'c'
             d[:estilo] = 'time'
+          when :datetime
+            d[:ali] = 'c'
+            d[:estilo] = 'datetime'
           when :integer
             d[:ali] = 'd'
             d[:estilo] = 'int'
@@ -114,67 +119,7 @@ class GiController < ApplicationController
 
     #data = ActiveSupport::JSON.decode(params[:data])
     data = eval(params[:data])
-    #data[:style].each {|k, v| data[:style][k] = eval('[' + v + ']')}
     File.write(file, data.to_yaml)
-=begin
-    def graba_ban(f, v, nb=0)
-      f.puts '['
-      v.each {|r|
-        f.puts ' '*nb + '  ['
-        r.each {|c|
-          cad = '    {'
-          c.each {|k, v|
-            cad << k + ': %q(' + v + '), '
-          }
-          f.puts ' '*nb + cad[0..(cad[-1] == ' ' ? -3 : -1)] + '},'
-        }
-        f.print ' '*nb + '  ],'
-      }
-      f.puts
-      f.print ' '*nb + ']'
-    end
-
-    File.open(file, 'w') {|f|
-      data = ActiveSupport::JSON.decode(params[:data])
-      data.each {|k, v|
-        next if v == ''
-        f.print k + ': '
-        if k == 'cab' or k == 'det' or k == 'pie'
-          graba_ban(f, v)
-        elsif k == 'rup'
-          f.puts '['
-          v.each {|v|
-            f.puts '  {'
-            v.each {|k, v|
-              f.print '    ' + k + ': '
-              if v.is_a? Array then
-                graba_ban(f, v, 4)
-              elsif k == 'campo'
-                f.print '%q(' + v + ')'
-              else
-                f.print v
-              end
-              f.puts ','
-            }
-            f.print '  },'
-          }
-          f.puts
-          f.print ']'
-        elsif k == 'style' or k == 'lim'
-          f.puts '{'
-          opi = (k == 'style' ? '[' : '{')
-          opd = (k == 'style' ? ']' : '}')
-          v.each {|k, v|
-            f.puts '  ' + k + ': ' + opi + v + opd + ','
-          }
-          f.print '}'
-        else
-          f.print v
-        end
-        f.puts ','
-      }
-    }
-=end
     render text: 's'
   end
 
@@ -188,7 +133,15 @@ class GiController < ApplicationController
       @fact.add_campo(c, eval('{' + v + '}'))
     }
 
-    @titulo = form[:tit_c] = 'Listado de ' + nt(form[:modelo].constantize.table_name) if form[:tit_c].empty? and form[:modelo]
+    if form[:modelo]
+      begin
+        cl = form[:modelo].constantize
+      rescue
+        form[:modelo][1..-1].constantize
+        cl = form[:modelo].constantize
+      end
+      @titulo = 'Listado de ' + nt(cl.table_name)
+    end
   end
 
   def after_save

@@ -1227,8 +1227,8 @@ Títulos y pies de página
           $("#estilo").val(esti);
           prop.estilo = esti;
           // Tipo
-          prop.tipo = event.node.type;
-          if (prop.tipo == 'decimal') prop.tipo = 'float';
+          prop.tipo = event.node.type == 'string' ? 'string' : '';
+          //if (prop.tipo == 'decimal') prop.tipo = 'float';
           $("#tipo").val(prop.tipo);
           // Celda de cabecera
           if (celda.is("#t_det td")) {
@@ -1347,7 +1347,10 @@ Títulos y pies de página
     addEstilo("dec2", ":def_d, {format_code: '#,##0.00'}");
     addEstilo("dec2_n", ":def_n, :dec2");
     addEstilo("date", ":def_c, {format_code: 'dd-mm-yyyy'}");
-    addEstilo("tit", ":def, {bg_color: '303030', alignment: {vertical: :center}}");
+    addEstilo("time", ":def_c, {format_code: 'HH:MM:SS'}");
+    addEstilo("datetime", ":def_c, {format_code: 'dd-mm-yyyy HH:MM:SS'}");
+    //addEstilo("tit", ":def, {bg_color: '303030', alignment: {vertical: :center}}");
+    addEstilo("tit", ":def, {bg_color: 'AAAAAA', fg_color: 'FFFFFF', b: true, alignment: {vertical: :center}}");
     addEstilo("tit_c", ":def_c, :tit");
     addEstilo("tit_d", ":def_d, :tit");
     addEstilo("borde", ":def, {border: {style: :thin, color: 'FF0000FF', edges: [:right]}}");
