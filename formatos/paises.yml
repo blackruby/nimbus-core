@@ -1,0 +1,57 @@
+---
+:modelo: Pais
+:filt_emej: true
+:npagw: ''
+:npagh: ''
+:pingrid: false
+:tit_i: ''
+:tit_c: ''
+:tit_d: ''
+:pie_i: ''
+:pie_c: ''
+:pie_d: ''
+:page_setup: ''
+:col_widths: ''
+:page_margins: 'header: 0.35, top: 0.64, bottom: 0.3'
+:formulas: {}
+:select: {}
+:where: {}
+:order: ''
+:group: ''
+:having: {}
+:cab:
+- - :campo: nt('codigo')
+    :alias: codigo
+    :estilo: tit
+  - :campo: nt('nombre')
+    :alias: nombre
+    :estilo: tit
+:det:
+- - :campo: "~codigo~"
+    :alias: codigo
+    :tipo: string
+  - :campo: "~nombre~"
+    :alias: nombre
+    :tipo: string
+:pie: []
+:rup: []
+:lim: {}
+:style:
+  :def: "{sz: 10}"
+  :def_c: ":def, {alignment: {horizontal: :center}}"
+  :def_d: ":def, {alignment: {horizontal: :right}}"
+  :def_n: ":def, {b: true}"
+  :def_nc: ":def_c, {b: true}"
+  :def_nd: ":def_d, {b: true}"
+  :int: ":def_d, {format_code: '#,##0'}"
+  :int_n: ":def_nd, :int"
+  :dec2: ":def_d, {format_code: '#,##0.00'}"
+  :dec2_n: ":def_n, :dec2"
+  :date: ":def_c, {format_code: 'dd-mm-yyyy'}"
+  :time: ":def_c, {format_code: 'HH:MM:SS'}"
+  :datetime: ":def_c, {format_code: 'dd-mm-yyyy HH:MM:SS'}"
+  :tit: ":def, {bg_color: 'AAAAAA', fg_color: 'FFFFFF', b: true, alignment: {vertical:
+    :center}}"
+  :tit_c: ":def_c, :tit"
+  :tit_d: ":def_d, :tit"
+  :borde: ":def, {border: {style: :thin, color: 'FF0000FF', edges: [:right]}}"

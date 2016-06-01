@@ -22,6 +22,15 @@ class GiController < ApplicationController
     }
   end
 
+  def nuevo_form(mod, path)
+    Dir.glob(path).sort.each {|fic|
+      ficb = Pathname(fic).basename.to_s
+
+      @forms[mod] ||= []
+      @forms[mod] << ficb[0..-5]
+    }
+  end
+
   def gi
     if params[:form]
       @form = GI.formato_read(params[:form])
@@ -35,7 +44,7 @@ class GiController < ApplicationController
       #@titulo = "#{nt('gi')}&nbsp;&nbsp;&nbsp;&nbsp; Modelo: #{@modelo}"
       @titulo = "#{nt('gi')}. Modelo: #{@modelo}"
       render 'edita'
-    else
+    elsif params[:new]
       @titulo = nt('gi')
       @tablas = {}
 
@@ -43,6 +52,16 @@ class GiController < ApplicationController
 
       Dir.glob('modulos/*').each {|mod|
         nuevo_mod(mod.split('/')[1].capitalize, mod + '/app/models/*')
+      }
+      render 'new'
+    else
+      @titulo = nt('gi')
+      @forms = {}
+
+      nuevo_form(Rails.app_class.to_s.split(':')[0], 'formatos/*.yml')
+
+      Dir.glob('modulos/*').each {|mod|
+        nuevo_form(mod.split('/')[1].capitalize, mod + '/formatos/*.yml')
       }
     end
   end

@@ -12,7 +12,7 @@ class PaisesMod < Pais
   }
 
   @menu_l = [
-    {label: 'Listado de Países', url: '/gi/edit/pais'},
+    {label: 'Listado de Países', url: '/gi/edit/paises'},
   ]
 
   #@hijos = []

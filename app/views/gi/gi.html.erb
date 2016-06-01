@@ -1,19 +1,23 @@
-<div id="titulo" class="centro">
+<div id="titulo">
   <%= @titulo %>
+  &nbsp;&nbsp;&nbsp;
+  <button title="Nuevo formato" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="window.location.href='/gi?new=1'">
+    <i class="gi-img-button material-icons">add</i>
+  </button>
 </div>
 
 <div id="solapas">
   <ul>
-    <% @tablas.each_key do |mod| %>
+    <% @forms.each_key do |mod| %>
       <li><a href="#<%= mod %>"> <%= nt(mod) %> </a></li>
     <% end %>
   </ul>
 
-  <% @tablas.each do |mod, tab| %>
+  <% @forms.each do |mod, tab| %>
     <div id="<%= mod %>">
       <ul id="<%= mod %>_m">
         <% tab.each do |t| %>
-          <li id="<%= t %>"> <%= nt(t) %> </li>
+          <li id="<%= t %>"> <%= t %> </li>
         <% end %>
       </ul>
     </div>
@@ -21,18 +25,24 @@
 </div>
 
 <style>
-  .centro {text-align: center;}
+  #titulo {
+    text-align: center;
+    background-color: #673AB7;
+    color: #ffffff;
+    height: 40px;
+    line-height: 40px;
+    font-size: large;
+    margin-bottom: 1px;
+  }
 </style>
 
 <script>
-  var tabla, fileName, abrirInforme = false;
-
-  function selTabla(e, ui) {
-    window.open('/gi?mod=' + $(ui.item).attr('id'), '_self');
+  function selForm(e, ui) {
+    window.open('/gi?form=' + $(ui.item).attr('id'), '_self');
   }
 
   $("#solapas").tabs();
-  <% @tablas.each_key do |mod| %>
-    $("#<%= mod %>_m").menu({select: selTabla});
+  <% @forms.each_key do |mod| %>
+    $("#<%= mod %>_m").menu({select: selForm});
   <% end %>
 </script>
