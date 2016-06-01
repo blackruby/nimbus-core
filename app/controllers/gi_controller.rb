@@ -46,22 +46,38 @@ class GiController < ApplicationController
   end
 
   def campos
-    cl = params[:node].constantize
+    begin
+      cl = params[:node].constantize
+      clr = cl
+    rescue
+      # Se supone que sería un histórico y está sin cargar su clase
+      cl = params[:node][1..-1].constantize
+      clr = params[:node].constantize
+    end
+
     data = []
-    cl.column_names.each {|c|
+    clr.column_names.each {|c|
       d = {}
       if c.ends_with?('_id')
         d[:label] = c[0..-4]
         d[:load_on_demand] = true
-        d[:id] = cl.reflect_on_association(c[0..-4].to_sym).options[:class_name]
+        if cl != clr and c == 'created_by_id'
+          d[:id] = 'Usuario'
+        else
+          d[:id] = cl.reflect_on_association(c[0..-4].to_sym).options[:class_name]
+        end
       else
         cs = c.to_sym
         d[:label] = c
         d[:table] = cl.table_name
         d[:pk] = (c == cl.pk[-1])
-        d[:type] = cl.columns_hash[c] ? cl.columns_hash[c].type : cl.propiedades[cs][:type]
-        d[:manti] = cl.propiedades[cs][:manti] if cl.propiedades[cs] and cl.propiedades[cs][:manti]
-        decim = (cl.propiedades[cs] and cl.propiedades[cs][:decim]) ? cl.propiedades[cs][:decim] : 2
+        #d[:type] = cl.columns_hash[c] ? cl.columns_hash[c].type : cl.propiedades[cs][:type]
+        d[:type] = clr.columns_hash[c].type
+        if cl == clr
+          d[:manti] = cl.propiedades[cs][:manti] if cl.propiedades[cs] and cl.propiedades[cs][:manti]
+          decim = (cl.propiedades[cs] and cl.propiedades[cs][:decim]) ? cl.propiedades[cs][:decim] : 2
+        end
+
         case d[:type]
           when :boolean
             d[:ali] = 'c'
