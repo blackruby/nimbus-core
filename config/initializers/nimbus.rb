@@ -771,10 +771,18 @@ module MantMod
     ini_campos_ctrl if self.respond_to?(:ini_campos_ctrl)
   end
 
-  def val_cast_campo(val, ty, ni)
-    return nil if val.nil? and ni
+  def val_cast_campo(val, v)
+    return nil if val.nil? and v[:nil]
 
-    case ty
+    if v[:ref]
+      if val.is_a? String
+        return(nil) if val.strip.empty?
+        return val.to_i
+      end
+      return val
+    end
+
+    case v[:type]
       when :integer
         return val.to_i
       when :decimal
@@ -797,7 +805,7 @@ module MantMod
     if ms.ends_with?('=')
       v = @campos[ms[0..-2].to_sym]
       if v
-        v[:value] = val_cast_campo(args[0], v[:type], v[:nil])
+        v[:value] = val_cast_campo(args[0], v)
         return
       end
     else
@@ -823,7 +831,7 @@ module MantMod
       self.method(cmpi).call(val)
     else
       v = @campos[cmp]
-      v ? v[:value] = val_cast_campo(val, v[:type], v[:nil]) : raise(ArgumentError, "No existe el campo '#{cmp}'")
+      v ? v[:value] = val_cast_campo(val, v) : raise(ArgumentError, "No existe el campo '#{cmp}'")
     end
   end
 
