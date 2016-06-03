@@ -1,7 +1,7 @@
 <div id="titulo">
   <%= @titulo %>
   &nbsp;&nbsp;&nbsp;
-  <button title="Nuevo formato" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="window.location.href='/gi?new=1'">
+  <button title="Nuevo formato" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="window.location.href='/gi/new'">
     <i class="gi-img-button material-icons">add</i>
   </button>
 </div>
@@ -13,13 +13,24 @@
     <% end %>
   </ul>
 
-  <% @forms.each do |mod, tab| %>
+  <% @forms.each do |mod, forms| %>
     <div id="<%= mod %>">
-      <ul id="<%= mod %>_m">
-        <% tab.each do |t| %>
-          <li id="<%= t %>"> <%= t %> </li>
+      <table>
+        <thead>
+          <tr>
+            <td>Formato</td>
+            <td>Modelo</td>
+            <td>Descripción</td>
+          </tr>
+        </thead>
+        <% forms.each do |form| %>
+          <tr>
+            <td class="formato"><%= form[0] %></td>
+            <td><%= form[1] %></td>
+            <td><%= form[2] %></td>
+          </tr>
         <% end %>
-      </ul>
+      </table>
     </div>
   <% end %>
 </div>
@@ -34,15 +45,31 @@
     font-size: large;
     margin-bottom: 1px;
   }
+  table, td {
+    border: 1px solid #d3d3d3;
+    border-collapse: collapse;
+  }
+  thead td {
+    background-color: #673AB7;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  td {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  tr:hover {
+    background-color: #e3e3e3;
+  }
+  .formato {
+    cursor: pointer;
+  }
 </style>
 
 <script>
-  function selForm(e, ui) {
-    window.open('/gi?form=' + $(ui.item).attr('id'), '_self');
-  }
+  $(".formato").on("click", function() {
+    window.open('/gi/edit/' + $(this).parentsUntil('#solapas').last().attr('id') + '/' + $(this).text(), '_self');
+  });
 
   $("#solapas").tabs();
-  <% @forms.each_key do |mod| %>
-    $("#<%= mod %>_m").menu({select: selForm});
-  <% end %>
 </script>

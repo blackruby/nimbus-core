@@ -1,6 +1,7 @@
 class GiMod
   @campos = {
     formato: {sel: {pdf: 'pdf', xlsx: 'excel', xls: 'excel_old'}, tab: 'post', hr: true},
+    form_modulo: {},
     form_file: {},
   }
 end
@@ -22,47 +23,85 @@ class GiController < ApplicationController
     }
   end
 
-  def nuevo_form(mod, path)
-    Dir.glob(path).sort.each {|fic|
+  def nuevo_form(mod, path, ext=true)
+    @forms[mod] = [] unless ext
+    Dir.glob(path + '/*.yml').sort.each {|fic|
       ficb = Pathname(fic).basename.to_s
 
       @forms[mod] ||= []
-      @forms[mod] << ficb[0..-5]
+      if ext
+        modelo = desc = ''
+        open(fic, 'r').each_with_index {|l, i|
+          break if i > 3
+          #modelo = l[9..-1] if l.starts_with?(':modelo:')
+          #desc = l[14..-1] if l.starts_with?(':descripcion:')
+          modelo = YAML.load(l)[:modelo] if l.starts_with?(':modelo:')
+          desc = YAML.load(l)[:descripcion] if l.starts_with?(':descripcion:')
+        }
+        @forms[mod] << [ficb[0..-5], modelo, desc]
+      else
+        @forms[mod] << ficb[0..-5]
+      end
+    }
+  end
+
+  def all_files(ext)
+    @forms = {}
+
+    nuevo_form('privado', "formatos/_usuarios/#{@usu.codigo}", ext)
+    nuevo_form('publico', 'formatos/_publico', ext)
+    nuevo_form(Rails.app_class.to_s.split(':')[0].downcase, 'formatos', ext)
+
+    Dir.glob('modulos/*').sort.each {|mod|
+      nuevo_form(mod.split('/')[1], mod + '/formatos', ext) unless mod.ends_with?('/idiomas') or mod.ends_with?('/nimbus-core')
     }
   end
 
   def gi
-    if params[:form]
-      @form = GI.formato_read(params[:form])
-      @modelo = @form[:modelo]
-      #@titulo = "#{nt('gi')}&nbsp;&nbsp;&nbsp;&nbsp; Formato: #{params[:form]}"
-      @titulo = "#{nt('gi')}. Formato: #{params[:form]}"
-      render 'edita'
-    elsif params[:mod]
+    @titulo = nt('gi')
+    all_files(true)
+  end
+
+  def new
+    if params[:modelo]
+      @modelo = params[:modelo]
+      begin
+        @modelo.constantize # Solo para provocar una excepción si no existe el modelo
+      rescue
+        begin
+          @modelo[1..-1].constantize  # Por si es un histórico
+          @modelo.constantize # Solo para provocar una excepción si no existe el modelo
+        rescue
+          render file: '/public/404.html', status: 404, layout: false
+          return
+        end
+      end
+      @modulo = 'privado'
+      @formato = ''
       @form = {}
-      @modelo = params[:mod]
-      #@titulo = "#{nt('gi')}&nbsp;&nbsp;&nbsp;&nbsp; Modelo: #{@modelo}"
-      @titulo = "#{nt('gi')}. Modelo: #{@modelo}"
+      all_files(false)
       render 'edita'
-    elsif params[:new]
+    else
       @titulo = nt('gi')
       @tablas = {}
 
-      nuevo_mod(Rails.app_class.to_s.split(':')[0], 'app/models/*')
+      nuevo_mod(Rails.app_class.to_s.split(':')[0].downcase, 'app/models/*')
 
       Dir.glob('modulos/*').each {|mod|
         nuevo_mod(mod.split('/')[1].capitalize, mod + '/app/models/*')
       }
-      render 'new'
+    end
+  end
+
+  def edita
+    @modulo = params[:modulo]
+    @formato = params[:formato]
+    @form = GI.formato_read(@modulo, @formato, @usu.codigo)
+    if @form
+      @modelo = @form[:modelo]
+      all_files(false)
     else
-      @titulo = nt('gi')
-      @forms = {}
-
-      nuevo_form(Rails.app_class.to_s.split(':')[0], 'formatos/*.yml')
-
-      Dir.glob('modulos/*').each {|mod|
-        nuevo_form(mod.split('/')[1].capitalize, mod + '/formatos/*.yml')
-      }
+      render file: '/public/404.html', status: 404, layout: false
     end
   end
 
@@ -130,36 +169,74 @@ class GiController < ApplicationController
   end
 
   def graba_fic
+=begin
     file = 'formatos/' + params[:file] + '.yml'
     if params[:ow] == 'n' and File.exists?(file)
       render text: 'n'
       return
     end
 
-    #data = ActiveSupport::JSON.decode(params[:data])
     data = eval(params[:data])
     File.write(file, data.to_yaml)
     render text: 's'
+=end
+    begin
+      case params[:modulo]
+        when ''
+          render text: 'n'
+          return
+        when 'privado'
+          path = "formatos/_usuarios/#{@usu.codigo}/"
+        when 'publico'
+          path = "formatos/_publico/"
+        when Rails.app_class.to_s.split(':')[0].downcase
+          path = "formatos/"
+        else
+          path = "modulos/#{params[:modulo]}/formatos/"
+      end
+
+      FileUtils.mkdir_p(path)
+      File.write(path + params[:formato] + '.yml', eval(params[:data]).to_yaml)
+      render text: 's'
+    rescue Exception => e
+      logger.fatal '######## ERROR #############'
+      logger.fatal e.message
+      logger.fatal e.backtrace[0..10]
+      logger.fatal '############################'
+      render text: 'n'
+    end
+  end
+
+  def before_edit
+    @form = GI.formato_read(params[:modulo], params[:formato], @usu.codigo)
+    @form ? nil : {file: '/public/404.html', status: 404}
   end
 
   def ini_campos
     @fact.formato = 'pdf'
-    @fact.form_file = params[:file]
+    @fact.form_modulo = params[:modulo]
+    @fact.form_file = params[:formato]
 
-    form = GI.formato_read(params[:file])
-
-    form[:lim].each {|c, v|
+    @form[:lim].each {|c, v|
       @fact.add_campo(c, eval('{' + v + '}'))
     }
 
-    if form[:modelo]
+    if @form[:modelo]
       begin
-        cl = form[:modelo].constantize
+        cl = @form[:modelo].constantize
       rescue
-        form[:modelo][1..-1].constantize
-        cl = form[:modelo].constantize
+        @form[:modelo][1..-1].constantize
+        cl = @form[:modelo].constantize
       end
-      @titulo = 'Listado de ' + nt(cl.table_name)
+      tit = 'Listado de ' + nt(cl.table_name)
+    else
+      tit = 'Listado'
+    end
+
+    if @form[:descripcion]
+      @titulo = @form[:descripcion].strip.empty? ? tit : @form[:descripcion]
+    else
+      @titulo = tit
     end
   end
 
@@ -186,7 +263,9 @@ class GiController < ApplicationController
 
     lim[:eid], lim[:jid] = get_empeje
 
-    g = GI.new(@fact.form_file, nil, lim)
+    g = GI.new(@fact.form_modulo, @fact.form_file, @usu.codigo, lim)
+
+    @titulo = 'HOLA'
 
     fns = "/tmp/nim#{vid}" #file_name_server
 
@@ -214,7 +293,8 @@ class GiController < ApplicationController
 end
 
 class GI
-  def self.formato_read(file)
+  def self.formato_read(modulo, file, user)
+=begin
     path = nil
     fi = 'formatos/' + file + '.yml'
     path = fi if File.exists?(fi)
@@ -239,6 +319,23 @@ class GI
       #eval('{' + File.read(path) + '}')
       formato = YAML.load(File.read(path))
       formato
+    end
+=end
+    case modulo
+      when '', '_', Rails.app_class.to_s.split(':')[0].downcase
+        path = "formatos/#{file}"
+      when 'publico'
+        path = "formatos/_publico/#{file}"
+      when 'privado'
+        path = "formatos/_usuarios/#{user}/#{file}"
+      else
+        path = "modulos/#{modulo}/formatos/#{file}"
+    end
+
+    begin
+      YAML.load(File.read(path + '.yml'))
+    rescue
+      nil
     end
   end
 
@@ -291,9 +388,9 @@ class GI
     }
   end
 
-  def initialize(form, data=nil, lim={})
+  def initialize(modulo, form, user, lim={}, data=nil)
     if form.is_a? String
-      @form = self.class.formato_read(form)
+      @form = self.class.formato_read(modulo, form, user)
     else
       @form = form
     end

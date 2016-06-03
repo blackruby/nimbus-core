@@ -10,12 +10,21 @@
   </ul>
 
   <% @tablas.each do |mod, tab| %>
-    <div id="<%= mod %>">
-      <ul id="<%= mod %>_m">
+    <div id="<%= mod %>" style="overflow-y: auto">
+      <table>
+        <thead>
+        <tr>
+          <td>Modelo</td>
+          <td>Descripción</td>
+        </tr>
+        </thead>
         <% tab.each do |t| %>
-          <li id="<%= t %>"> <%= nt(t) %> </li>
+          <tr>
+            <td class="modelo"><%= t %></td>
+            <td><%= nt(t) %></td>
+          </tr>
         <% end %>
-      </ul>
+      </table>
     </div>
   <% end %>
 </div>
@@ -30,15 +39,31 @@
     font-size: large;
     margin-bottom: 1px;
   }
+  table, td {
+    border: 1px solid #d3d3d3;
+    border-collapse: collapse;
+  }
+  thead td {
+    background-color: #673AB7;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  td {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  tr:hover {
+    background-color: #e3e3e3;
+  }
+  .modelo {
+    cursor: pointer;
+  }
 </style>
 
 <script>
-  function selTabla(e, ui) {
-    window.open('/gi?mod=' + $(ui.item).attr('id'), '_self');
-  }
+  $(".modelo").on("click", function() {
+    window.open('/gi/new/' + $(this).text(), '_self');
+  });
 
   $("#solapas").tabs();
-  <% @tablas.each_key do |mod| %>
-    $("#<%= mod %>_m").menu({select: selTabla});
-  <% end %>
 </script>

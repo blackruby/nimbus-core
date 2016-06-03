@@ -1,7 +1,5 @@
-<div id="d-titulo">
-  &nbsp;&nbsp;<%= @titulo.html_safe %>
-  &nbsp;&nbsp;&nbsp;
-
+<div id="d-titulo" class="titulo" style="background-color: #512DA8"></div>
+<div class="titulo">
   <button title="Configuración" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#config').dialog('open')">
     <i class="gi-img-button material-icons">settings</i>
   </button>
@@ -34,7 +32,7 @@
     <span style="font-size: 18px">H</span>
   </button>
   &nbsp;&nbsp;&nbsp;
-  <button title="Grabar" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#grabar').dialog('open')">
+  <button title="Grabar" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="abrirInforme = false;$('#grabar').dialog('open')">
     <i class="gi-img-button material-icons">save</i>
   </button>
   <button title="Imprimir" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="giPrint()">
@@ -46,7 +44,7 @@
   </button>
 </div>
 
-<div id="tree_campos"> </div>
+<div id="tree_campos"></div>
 
 <div id="prop-celdas" style="display: none; padding: 0">
   <table style="width: 100%">
@@ -102,6 +100,7 @@
 <div id="config" title="Configuración" style="padding: 0;display: none">
   <table id="t_config">
     <col width="150px">
+    <tr><td class="subtit"><label for="descripcion">Descripción:</label></td> <td><input id="descripcion" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="filt_emej">Filtrar empresa:</label></td> <td><input type="checkbox" checked id="filt_emej" class="i_cmp" style="width: auto"/></td></tr>
     <tr><td class="tit" colspan="2">ASPECTO</td></tr>
     <tr><td class="subtit"><label for="npagw">Nº Páginas ancho:</label></td> <td><input type="number" id="npagw" class="i_cmp"/></td></tr>
@@ -245,8 +244,24 @@
   </table>
 </div>
 
-<div id="grabar" title="Grabar" style="display: none">
-  <label for="file_name">Archivo:</label><input id="filename" class="i_cmp"/>
+<div id="grabar" title="Grabar" style="padding: 0;display: none">
+  <table id="t_grabar">
+    <col width="70px">
+    <tr>
+      <td class="subtit"><label for="filename">Archivo:</label></td>
+      <td><input id="filename" class="i_cmp"/></td>
+    </tr>
+    <tr>
+      <td class="subtit"><label for="destino">Destino:</label></td>
+      <td>
+        <select id="destino" class="i_cmp">
+          <% @forms.each do |k, _| %>
+            <option value="<%= k %>"><%= nt(k) %></option>
+          <% end %>
+        </select>
+      </td>
+    </tr>
+  </table>
 </div>
 
 <div id="help" title="Ayuda" style="display: none">
@@ -307,13 +322,14 @@ Títulos y pies de página
 
 
 <style>
-  #d-titulo {
+  .titulo {
     background-color: #673AB7;
     color: #ffffff;
     height: 40px;
     line-height: 40px;
     font-size: large;
     margin-bottom: 1px;
+    text-align: center;
   }
 
   .gi-img-button {
@@ -344,7 +360,7 @@ Títulos y pies de página
     width: 500px;
   }
 
-  .t_banda, #t_estilos, #t_lim, #t_config, #t_formulas, #t_select, #t_where, #t_having, #t_asist_lim {
+  .t_banda, #t_estilos, #t_lim, #t_config, #t_formulas, #t_select, #t_where, #t_having, #t_asist_lim, #t_grabar {
     width: 100%;
     table-layout: fixed;
   }
@@ -377,17 +393,32 @@ Títulos y pies de página
     box-sizing: border-box;
   }
 
+  .file_exists {
+    color: red;
+    background-color: #D1C4E9;
+  }
+
   .no-close .ui-dialog-titlebar-close {
     display: none;
   }
 </style>
 
 <script>
-  var modelo = '<%= @modelo %>';
+  var modulo = '<%= @modulo %>';
+  var fileName = '<%= @formato %>';
   var formato = <%= @form.to_json.html_safe %>;
+  var modelo = '<%= @modelo %>';
+  var allFiles = <%= @forms.to_json.html_safe %>;
+  var titMain = "<%= nt('gi') %>"
 
-  var tabla, fileName, abrirInforme = false;
+  var lastWindowPrint;
+  var abrirInforme = false;
   var celda, nRup = 0, nCol = 0, nCel = 0;
+
+  function setTitulo() {
+    $("#d-titulo").html(titMain + '&nbsp;&nbsp;&nbsp;&nbsp; Modelo: ' + modelo + (fileName == '' ? '' : '&nbsp;&nbsp;&nbsp;&nbsp; Formato: ' + fileName));
+    document.title = titMain + ' Modelo: ' + modelo + (fileName == '' ? '' : ' Formato: ' + fileName);
+  }
 
   function nextItem(lista, pref, suf) {
     var n = 0, ali, it, i, m;
@@ -408,10 +439,10 @@ Títulos y pies de página
 
   function giPrint() {
     abrirInforme = true;
-    if (fileName == undefined)
+    if (fileName == "")
       $("#grabar").dialog("open");
     else
-      grabaFic(fileName);
+      grabaFic();
   }
 
   function genArrayBan(rows) {
@@ -427,9 +458,10 @@ Títulos y pies de página
     return(ar);
   }
 
-  function grabaFic(file) {
+  function grabaFic() {
     var data = {modelo: modelo};
     var th, cl, h, trup;
+
     $("#config :input").each(function() {
       th =$(this);
       if (th.attr("type") == "checkbox")
@@ -492,16 +524,12 @@ Títulos y pies de página
       data['style'][e.val()] = e.parent().next().children().val();
     });
 
+    /**
     var ow = (file == fileName) ? 's' : 'n';
     $.post('/gi/graba_fic', {file: file, ow: ow, data: JSON.stringify(data)}, function(d){
       if (d == 's') {
         if (abrirInforme) {
-          window.open('/gi/edit/' + file);
-          /*
-          $("#f_abrir").attr("src", '/gi/edit/' + file);
-          $("#abrir").dialog("open");
-          */
-          abrirInforme = false;
+          window.open('/gi/run/' + file);
         } else {
           fileName = file;
         }
@@ -514,18 +542,83 @@ Títulos y pies de página
         }
       }
     });
+    */
+    var fn = $("#filename").val();
+    var mod = $("#destino").val();
+
+    $.post('/gi/graba_fic', {modulo: mod, formato: fn, data: JSON.stringify(data)}, function(d) {
+      if (d == 's') {
+        fileName = fn;
+        modulo = mod;
+        setTitulo();
+        if (abrirInforme) {
+          if (lastWindowPrint != undefined) lastWindowPrint.close();
+          lastWindowPrint = window.open('/gi/run/' + mod + '/' + fn);
+        }
+      } else {
+        alert('Se ha producido un error en la grabación.');
+      }
+      $("#grabar").dialog("close");
+    });
   }
 
-  $("#filename").keypress(function (e) {
-    if (e.which == 13) {
-      file = $(this).val();
-      if (file.trim() == "") {
-        alert('Nombre de archivo no válido');
-        return;
-      }
+  function iniGrabar() {
+    $("#filename").val(fileName);
+    $("#destino").val(modulo);
+    $("#filename").removeClass('file_exists');
+    $("#b_grabar").button(fileName == '' ? "disable" : "enable");
+  }
 
-      grabaFic(file);
-    }
+  function checkFile(vb) {
+    var dest = $("#destino").val();
+    if ((vb != fileName || dest != modulo) &&  $.inArray(vb, allFiles[dest]) >= 0)
+      $("#filename").addClass('file_exists');
+    else
+      $("#filename").removeClass('file_exists');
+  }
+
+  // Diálogo de grabar
+
+  $( "#grabar" ).dialog({
+    autoOpen: false,
+    modal: true,
+    width: 400,
+    resizable: false,
+    show: {effect: "blind", duration: 500},
+    hide: {effect: "explode", duration: 500},
+    buttons: [{
+      id: 'b_grabar',
+      text: "Aceptar",
+      click: grabaFic
+    }],
+    close: iniGrabar
+  });
+
+  iniGrabar();
+
+  $("#filename").on("input", function() {
+    var c;
+    var v = $(this).val();
+    var cur = $(this).caret().begin;
+
+    var vb = "";
+    for (var i = 0; c = v[i]; i++) if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == '-') vb += c; else cur--;
+
+    checkFile(vb);
+
+    $(this).val(vb);
+    $(this).caret(cur);
+
+    $("#b_grabar").button(vb == '' ? "disable" : "enable")
+  });
+
+  $("#filename").keypress(function (e) {
+    if (e.which == 13) grabaFic();
+  });
+
+  $("#destino").on("change", function() {
+    checkFile($("#filename").val());
+    $("#filename").focus();
   });
 
   // Diálogo de configuración
@@ -943,12 +1036,6 @@ Títulos y pies de página
   $("#b_del_estilo").button("disable");
    **/
 
-  $( "#grabar" ).dialog({
-    autoOpen: false,
-    show: {effect: "blind", duration: 500},
-    hide: {effect: "explode", duration: 500}
-  });
-
   $( "#help" ).dialog({
     autoOpen: false,
     width: 800,
@@ -1109,7 +1196,7 @@ Títulos y pies de página
   }
 
   function redimWindow() {
-    var h = $(window).height() - $("#d-titulo").height();
+    var h = $(window).height() - $("#d-titulo").height() * 2 - 2;
     $("#tree_campos").css("height", h);
   }
 
@@ -1349,7 +1436,6 @@ Títulos y pies de página
     addEstilo("date", ":def_c, {format_code: 'dd-mm-yyyy'}");
     addEstilo("time", ":def_c, {format_code: 'HH:MM:SS'}");
     addEstilo("datetime", ":def_c, {format_code: 'dd-mm-yyyy HH:MM:SS'}");
-    //addEstilo("tit", ":def, {bg_color: '303030', alignment: {vertical: :center}}");
     addEstilo("tit", ":def, {bg_color: 'AAAAAA', fg_color: 'FFFFFF', b: true, alignment: {vertical: :center}}");
     addEstilo("tit_c", ":def_c, :tit");
     addEstilo("tit_d", ":def_d, :tit");
@@ -1367,4 +1453,7 @@ Títulos y pies de página
 
   // Deshabilitar todos los botones de las bandas (hasta que se seleccione una celda)
   noCell();
+
+  // Poner título
+  setTitulo();
 </script>

@@ -786,7 +786,11 @@ class ApplicationController < ActionController::Base
 
     ((!clm.mant? or @fact.id != 0) and self.respond_to?('before_edit')) ? r = before_edit : r = nil
     if r
-      render file: r, status: 401, layout: false
+      if r.is_a? Hash
+        render file: r[:file], status: r[:status], layout: false
+      else
+        render file: r, status: 401, layout: false
+      end
       return
     end
 
