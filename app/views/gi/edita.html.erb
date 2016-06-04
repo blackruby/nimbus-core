@@ -48,8 +48,12 @@
 
 <div id="prop-celdas" style="display: none; padding: 0">
   <table style="width: 100%">
+    <col width="80px">
     <tr><td class="subtit"><label for="campo">Campo:</label></td> <td><textarea rows="1" id="campo" class="i_cmp admite_campo"></textarea></td></tr>
+    <tr><td class="subtit"><label for="alias">Alias:</label></td> <td><input id="alias" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="estilo">Estilo:</label></td> <td><select id="estilo" class="i_cmp"></select></td></tr>
+    <tr><td class="subtit"><label for="colspan">Cols. extra:</label></td> <td><input id="colspan" class="i_cmp" type="number" min="0"/></td></tr>
+    <tr><td class="subtit"><label for="rowspan">Filas extra:</label></td> <td><input id="rowspan" class="i_cmp" type="number" min="0"/></td></tr>
     <tr>
       <td class="subtit"><label for="tipo">Tipo:</label></td>
       <td>
@@ -64,7 +68,6 @@
         </select>
       </td>
     </tr>
-    <tr><td class="subtit"><label for="alias">Alias:</label></td> <td><input id="alias" class="i_cmp"/></td></tr>
   </table>
 </div>
 
@@ -416,8 +419,8 @@ Títulos y pies de página
   var celda, nRup = 0, nCol = 0, nCel = 0;
 
   function setTitulo() {
-    $("#d-titulo").html(titMain + '&nbsp;&nbsp;&nbsp;&nbsp; Modelo: ' + modelo + (fileName == '' ? '' : '&nbsp;&nbsp;&nbsp;&nbsp; Formato: ' + fileName));
-    document.title = titMain + ' Modelo: ' + modelo + (fileName == '' ? '' : ' Formato: ' + fileName);
+    $("#d-titulo").html(titMain + '&nbsp;&nbsp;&nbsp;&nbsp; Modelo: ' + modelo + '&nbsp;&nbsp;&nbsp;&nbsp; Módulo: ' + modulo + (fileName == '' ? '' : '&nbsp;&nbsp;&nbsp;&nbsp; Formato: ' + fileName));
+    document.title = titMain + ' Modelo: ' + modelo + '&nbsp;&nbsp;&nbsp;&nbsp; Módulo: ' + modulo + (fileName == '' ? '' : ' Formato: ' + fileName);
   }
 
   function nextItem(lista, pref, suf) {
@@ -1079,12 +1082,17 @@ Títulos y pies de página
     $(".t_banda td").css("background-color", "#ffffff");
     celda.css("background-color", "#d3d3d3");
     bBandaStatus();
-    $("#prop-celdas .i_cmp").attr("disabled", false);
     var prop = celda.data('prop');
+    $("#prop-celdas .i_cmp").each(function() {
+      $(this).attr("disabled", false).val(prop[$(this).attr("id")]);
+    });
+    /*
+     $("#prop-celdas .i_cmp").attr("disabled", false);
     $("#campo").val(prop.campo);
     $("#estilo").val(prop.estilo);
     $("#tipo").val(prop.tipo);
     $("#alias").val(prop.alias);
+    */
 
     $("#campo").focus();
   }
@@ -1352,10 +1360,12 @@ Títulos y pies de página
 
   $("#prop-celdas").dialog({
     title: 'Propiedades',
+    width: 400,
     autoOpen: false,
     dialogClass: "no-close",
-    resizable: false,
-    closeOnEscape: false
+    resizable: true,
+    closeOnEscape: false,
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
   });
 
   $("#rupturas").dialog({

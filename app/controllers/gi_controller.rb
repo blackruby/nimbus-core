@@ -60,6 +60,14 @@ class GiController < ApplicationController
   def gi
     @titulo = nt('gi')
     all_files(true)
+    @modo = 'edit'
+  end
+
+  def giv
+    @titulo = nt('giv')
+    all_files(true)
+    @modo = 'run'
+    render 'gi'
   end
 
   def new
@@ -530,16 +538,21 @@ class GI
   def add_banda(ban)
     return unless ban
 
+    merg = []
     ban.each_with_index {|r, i|
       @bi = i
       res = []
-      r.each {|c|
+      r.each_with_index {|c, i|
         res << val_campo(c[:campo])
+        if c[:colspan].to_i > 0 or c[:rowspan].to_i > 0
+          merg << "#{('A'.ord + i).chr}#{@ri}:#{('A'.ord + i + c[:colspan].to_i).chr}#{@ri + c[:rowspan].to_i}"
+        end
       }
       #@sh.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : nil}, widths: [:ignore, 10, :ignore], height: 0
       @sh.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : @sty[:def]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}
       @ri += 1
     }
+    merg.each {|m| @sh.merge_cells(m)}
   end
 
   def new_style(s, st)

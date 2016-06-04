@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   get 'menu' => 'welcome#menu'
 
   get 'gi' => 'gi#gi'
+  get 'giv' => 'gi#giv'
   get 'gi/new' => 'gi#new'
   get 'gi/new/:modelo' => 'gi#new'
   get 'gi/edit/:modulo/:formato' => 'gi#edita'

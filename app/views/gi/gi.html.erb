@@ -1,9 +1,11 @@
 <div id="titulo">
   <%= @titulo %>
-  &nbsp;&nbsp;&nbsp;
-  <button title="Nuevo formato" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="window.location.href='/gi/new'">
-    <i class="gi-img-button material-icons">add</i>
-  </button>
+  <% if @modo == 'edit' %>
+    &nbsp;&nbsp;&nbsp;
+    <button title="Nuevo formato" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="window.location.href='/gi/new'">
+      <i class="gi-img-button material-icons">add</i>
+    </button>
+  <% end %>
 </div>
 
 <div id="solapas">
@@ -67,9 +69,6 @@
 </style>
 
 <script>
-  $(".formato").on("click", function() {
-    window.open('/gi/edit/' + $(this).parentsUntil('#solapas').last().attr('id') + '/' + $(this).text(), '_self');
-  });
-
+  $(".formato").on("click", function() {window.open('/gi/<%= @modo %>/' + $(this).parentsUntil('#solapas').last().attr('id') + '/' + $(this).text(), '_self');});
   $("#solapas").tabs();
 </script>
