@@ -37,6 +37,7 @@ class Contador < ActiveRecord::Base
     fc.lock! if fc.valor == 0 # Bloquear en el caso de que haya sido creada la ficha, ya que en ese caso no se aplica el lock anterior
 
     c = fc.valor + 1
+    cmp = cmp + '::integer'
     fc.valor = ActiveRecord::Base.connection.execute("(select #{c} co where not exists(select 1 from #{tab} where #{cmp}=#{c} #{filt})) union (select #{cmp}+1 co from #{tab} t1 where #{cmp}>=#{c} #{filt} and not exists(select 1 from #{tab} where #{cmp}=t1.#{cmp}+1 #{filt}) order by #{ord} limit 1)")[0]['co'].to_i
     fc.save
     return(fc.valor)
