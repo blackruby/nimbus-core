@@ -613,7 +613,7 @@ Títulos y pies de página
   });
 
   $("#filename").keypress(function (e) {
-    if (e.which == 13) grabaFic();
+    if (e.which == 13 && $(this).val() != '') grabaFic();
   });
 
   $("#destino").on("change", function() {
