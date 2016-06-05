@@ -947,11 +947,29 @@ class ApplicationController < ActionController::Base
     }
 
     wh = wh[0..-5] + ')'
-    wh << ' AND ' + mod.table_name + '.' + 'empresa_id=' + params[:eid] if mod.column_names.include?('empresa_id') and params[:eid]
-    wh << ' AND ' + mod.table_name + '.' + 'ejercicio_id=' + params[:jid] if mod.column_names.include?('ejercicio_id') and params[:jid]
 
-    #mod.mselect(mod.auto_comp_mselect).where(params[:wh]).where(wh).where(whv).order(data[:orden]).limit(15).each {|r|
-    mod.mselect(mod.auto_comp_mselect).where(wh).where(whv).order(data[:orden]).limit(15).each {|r|
+    #wh << ' AND ' + mod.table_name + '.' + 'empresa_id=' + params[:eid] if mod.column_names.include?('empresa_id') and params[:eid]
+    #wh << ' AND ' + mod.table_name + '.' + 'ejercicio_id=' + params[:jid] if mod.column_names.include?('ejercicio_id') and params[:jid]
+    if mod.respond_to?(:ejercicio_path)
+      ep = mod.ejercicio_path
+      ep = ep + '.' unless ep.empty?
+      ep = ep + 'ejercicio_id'
+      msel = mselect_parse(mod, mod.auto_comp_mselect, ep)
+      edb = msel[:alias_cmp][ep][:cmp_db]
+      wh << ' AND ' + edb + '=' + (params[:jid] || @dat[:jid])
+    elsif mod.respond_to?(:empresa_path)
+      ep = mod.empresa_path
+      ep = ep + '.' unless ep.empty?
+      ep = ep + 'empresa_id'
+      msel = mselect_parse(mod, mod.auto_comp_mselect, ep)
+      edb = msel[:alias_cmp][ep][:cmp_db]
+      wh << ' AND ' + edb + '=' + (params[:eid] || @dat[:eid])
+    else
+      msel = mselect_parse(mod, mod.auto_comp_mselect)
+    end
+
+    #mod.mselect(mod.auto_comp_mselect).where(wh).where(whv).order(data[:orden]).limit(15).each {|r|
+    mod.select(msel[:cad_sel]).joins(msel[:cad_join]).where(wh).where(whv).order(data[:orden]).limit(15).each {|r|
       res << {value: r.auto_comp_value(type), id: r[:id], label: r.auto_comp_label(type)}
     }
 

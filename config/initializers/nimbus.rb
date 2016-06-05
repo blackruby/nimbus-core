@@ -968,7 +968,7 @@ module Modelo
     end
 
     def auto_comp_mselect
-      @auto_comp_mselect ? @auto_comp_mselect : '*'
+      @auto_comp_mselect ? @auto_comp_mselect : ['*']
     end
 
     def hijo?
