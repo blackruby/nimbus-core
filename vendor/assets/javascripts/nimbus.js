@@ -390,22 +390,22 @@ function vali_check(c) {
 function calc_code(v, tam, pref, rell) {
   v = v.trim();
   if (v != '') {
-    s = v.split('.');
-    l = s.length;
+    var s = v.split('.');
+    var l = s.length;
     if (l > 2) {
       return('');
     } else {
       if (l == 1) {
-        //s0 = pref;
-        //s1 = v;
-        return(v);
+        var s0 = pref;
+        var s1 = v;
+        //return(v);
       } else {
-        s0 = s[0];
-        s1 = s[1];
+        var s0 = s[0];
+        var s1 = s[1];
       }
-      lr = s0.length + s1.length;
-      t = s0;
-      for (i = lr; i < tam; i++) t += rell;
+      var lr = s0.length + s1.length;
+      var t = s0;
+      for (var i = lr; i < tam; i++) t += rell;
       t += s1;
       return(t.substr(t.length - tam));
     }
@@ -414,6 +414,7 @@ function calc_code(v, tam, pref, rell) {
 }
 
 function vali_code(c, tam, pref, rell) {
+  console.log('AA', c, 'AA', c.val());
   c.val(calc_code(c.val(), tam, pref, rell));
   send_validar(c, c.val());
 }
