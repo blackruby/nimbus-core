@@ -689,6 +689,20 @@ class GI
     @sh.header_footer.odd_header = "&L#{@form[:tit_i]}&C#{@form[:tit_c]}&R#{@form[:tit_d]}"
     @sh.header_footer.odd_footer = "&L#{@form[:pie_i]}&C#{@form[:pie_c]}&R#{@form[:pie_d]}"
     @sh.column_widths(*(@form[:col_widths].split(',').map{|w| w.to_i})) if @form[:col_widths]
+
+=begin
+    @sh.add_chart(Axlsx::Pie3DChart, :start_at => "D1", :end_at => "J15") do |chart|
+      chart.add_series :data => @sh["B2:B6"], :labels => @sh["A2:A6"], :title => 'Hola', :colors => ["00FF00", "0000FF", "FF0000", "d3d3d3", "FF2015"]
+    end
+
+    @sh.add_chart(Axlsx::LineChart, title: 'MI CARTA', :start_at => "D1", :end_at => "M20") do |chart|
+      chart.add_series :data => @sh["B2:B6"], :title => @sh["A1"], :color => "00FF00"
+      chart.add_series :data => @sh["C2:C6"], :title => 'Adios', :color => "0000FF", :show_marker => true, :smooth => true
+      chart.catAxis.title = 'X Axis'
+      chart.valAxis.title = 'Y Axis'
+    end
+=end
+
     xls.serialize(name)
     return name
   end

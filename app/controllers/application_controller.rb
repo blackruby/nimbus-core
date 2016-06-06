@@ -1519,7 +1519,11 @@ class ApplicationController < ActionController::Base
 
   def grid_del_row(cmp, row)
     cmp = cmp.to_sym
+    #@ajax << "$('#g_#{cmp}').jqGrid('delRowData','#{row}');"
     @ajax << "$('#g_#{cmp}').jqGrid('delRowData','#{row}');"
+    # Las dos líneas que siguen son para apañar un bug de jqGrid al borrar la ultima línea de datos
+    #@ajax << "$('#g_#{cmp}').jqGrid('resetSelection');"
+    @ajax << "$('#g_#{cmp}').trigger('reloadGrid', [{current:true}]);"
 
     @fact[cmp].del_row(row)
     @fant[cmp].del_row(row)
