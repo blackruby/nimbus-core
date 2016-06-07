@@ -1387,7 +1387,7 @@ Títulos y pies de página
       var el = $("#" + tabla + " tr").last();
       $.each(ban, function(j, cel) {
         el.append("<td>" + (cel.alias ? cel.alias : "&nbsp;") + "</td>");
-        el.find("td").last().data('prop', cel);
+        el.find("td").last().attr('title', cel.campo).data('prop', cel);
         nCol = Math.max(nCol, j+1);
       });
     });
