@@ -631,6 +631,8 @@ class ApplicationController < ActionController::Base
       @tabs << h[:tab] if h[:tab] and !@tabs.include?(h[:tab]) and h[:tab] != 'pre' and h[:tab] != 'post'
     }
     @head = (params[:head] ? params[:head].to_i : 1)
+    @menu_l = clm.menu_l
+    @menu_r = clm.menu_r
   end
 
   def set_empeje(eid=0, jid=0)

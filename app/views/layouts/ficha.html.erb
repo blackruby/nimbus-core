@@ -24,15 +24,20 @@
           <button class="cl-borrar mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_borrar()">
             <i class="material-icons">delete</i>
           </button>
-          <% if @menu_r %>
+          <% if @menu_r.size > 0 %>
             &nbsp; &nbsp;
             <button id="menu-r" class="mdl-button mdl-js-button mdl-button--icon">
               <i class="material-icons">more_vert</i>
             </button>
 
             <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="menu-r">
-              <% @menu_r.each {|k, v| %>
-                <li class="mdl-menu__item"> <%= nt(k) %> </li>
+              <%  @menu_r.each_with_index {|m, i| %>
+                <% m[:id] ||= '_mr_'+i.to_s %>
+                <% if m[:id].starts_with?('tag_') %>
+                  <%= m[:label].html_safe %>
+                <% else %>
+                  <li id="<%= m[:id] %>" class="mdl-menu__item" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>')"> <%= m[:label] %> </li>
+                <% end %>
               <% } %>
             </ul>
           <% end %>
@@ -50,11 +55,17 @@
   </header>
   <% end %>
 
-  <% if @menu_l %>
+  <% if @head > 0 %>
     <div class="mdl-layout__drawer">
-      <% @menu_l.each {|k, v| %>
-        <span class="mdl-layout-title"> <%= nt(k) %> </span>
-      <% } %>
+      <nav class="mdl-navigation">
+        <a class="mdl-navigation__link" href="#" onclick="historico()">Histórico</a>
+        <% if @menu_l.size > 0 %>
+          <hr>
+          <% @menu_l.each {|m| %>
+            <a class="mdl-navigation__link" href="<%= m[:url] %>" target="_blank"> <%= nt(m[:label]) %> </a>
+          <% } %>
+        <% end %>
+      </nav>
     </div>
   <% end %>
 
@@ -174,12 +185,25 @@
 
   function historico() {
     <% if @fact.id and @fact.id > 0 %>
+      /**
       window.open("/histo/" + _controlador + "/" + <%= @fact.id %>, "_blank", "location=no, menubar=no, status=no, toolbar=no" +
         ",height=800, width=1000" +
         ",left=" + (window.screenX + 10) +
         ",top=" + (window.screenY + 10)
-    );
+      );
+      **/
+      window.open("/histo/" + _controlador + "/" + <%= @fact.id %>);
     <% end %>
+  }
+
+  function liFon(li, fon, tipo) {
+    if ($(li).attr("disabled") == "disabled") return;
+    if (typeof fon == 'function')
+      fon.call();
+    else if (tipo == 'dlg')
+      abreDialogo(fon);
+    else
+      callFonServer(fon);
   }
 
   function redimWindow() {

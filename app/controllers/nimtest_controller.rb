@@ -32,7 +32,7 @@ class NimtestMod < Pais
   ]
 
   @menu_l = [
-    {label: 'Listado de Países', url: '/gi/edit/pais'},
+    {label: 'Listado de Países', url: '/gi/run/nimbus-core/paises'},
   ]
 
   @menu_r = [
