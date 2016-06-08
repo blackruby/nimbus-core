@@ -47,6 +47,7 @@ class WelcomeController < ApplicationController
   def menu
     @v = Vista.new
     @v.data = {auto_comp: {ej: "empresa_id=#{@usu.empresa_def_id}"}}
+    @v.data[:eid] = @usu.empresa_def_id
     @v.save
 
     @menu = ''
@@ -68,6 +69,7 @@ class WelcomeController < ApplicationController
       @ajax << '$("#d-ejercicio").css("visibility", "visible");$("#ejercicio").focus();'
     end
 
+    @dat[:eid] = params[:eid]
     @dat[:auto_comp][:ej] = "empresa_id=#{params[:eid]}"
   end
 end

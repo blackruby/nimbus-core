@@ -965,7 +965,7 @@ class ApplicationController < ActionController::Base
       ep = ep + 'empresa_id'
       msel = mselect_parse(mod, mod.auto_comp_mselect, ep)
       edb = msel[:alias_cmp][ep][:cmp_db]
-      wh << ' AND ' + edb + '=' + (params[:eid] || @dat[:eid])
+      wh << " AND #{edb}=#{(params[:eid] || @dat[:eid])}"
     else
       msel = mselect_parse(mod, mod.auto_comp_mselect)
     end
@@ -1641,12 +1641,12 @@ class ApplicationController < ActionController::Base
     @v.save if @v
   end
 
-  def pinta_exception(e)
-    puts '######## ERROR #############'
-    puts e.message
-    puts e.backtrace[0..10]
-    puts '############################'
-    mensaje 'Error interno'
+  def pinta_exception(e, msg=nil)
+    logger.fatal '######## ERROR #############'
+    logger.fatal e.message
+    logger.fatal e.backtrace[0..10]
+    logger.fatal '############################'
+    mensaje(msg) if msg
   end
 
   def borrar
@@ -1745,7 +1745,7 @@ class ApplicationController < ActionController::Base
         begin
           after_save if self.respond_to?('after_save')
         rescue Exception => e
-          pinta_exception(e)
+          pinta_exception(e, 'Error: after_save')
         end
 
         if clm.mant?
@@ -1766,7 +1766,7 @@ class ApplicationController < ActionController::Base
     rescue ActiveRecord::RecordNotUnique
       mensaje 'Grabación cancelada. Ya existe la clave'
     rescue Exception => e
-      pinta_exception(e)
+      pinta_exception(e, 'Error interno')
     end
 
     sincro_ficha :ajax => true
