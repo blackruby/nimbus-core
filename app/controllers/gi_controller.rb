@@ -1,6 +1,6 @@
 class GiMod
   @campos = {
-    formato: {sel: {pdf: 'pdf', xlsx: 'excel', xls: 'excel_old'}, tab: 'post', hr: true},
+    form_type: {sel: {pdf: 'pdf', xlsx: 'excel', xls: 'excel_old'}, tab: 'post', hr: true},
     form_modulo: {},
     form_file: {},
   }
@@ -207,26 +207,29 @@ class GiController < ApplicationController
       File.write(path + params[:formato] + '.yml', eval(params[:data]).to_yaml)
       render text: 's'
     rescue Exception => e
-      logger.fatal '######## ERROR #############'
-      logger.fatal e.message
-      logger.fatal e.backtrace[0..10]
-      logger.fatal '############################'
+      pinta_exception(e)
       render text: 'n'
     end
   end
 
   def before_edit
-    @form = GI.formato_read(params[:modulo], params[:formato], @usu.codigo)
+    #@form = GI.formato_read(params[:modulo], params[:formato], @usu.codigo)
+    @formato = GI.new(params[:modulo], params[:formato], @usu.codigo, nil)
+    @form = @formato.formato
     @form ? nil : {file: '/public/404.html', status: 404}
   end
 
   def ini_campos
-    @fact.formato = 'pdf'
+    @fact.form_type = 'pdf'
     @fact.form_modulo = params[:modulo]
     @fact.form_file = params[:formato]
 
     @form[:lim].each {|c, v|
       @fact.add_campo(c, eval('{' + v + '}'))
+    }
+    @formato.ini_campos(@fact) if @formato.respond_to?(:ini_campos)
+    @fact.campos.each {|c, v|
+      @fact[c] = params[c] if params[c]
     }
 
     if @form[:modelo]
@@ -248,9 +251,16 @@ class GiController < ApplicationController
     end
   end
 
+  def mi_render
+    if params[:go]
+      flash[:vista] = @v.id
+      redirect_to '/gi/abrir'
+    end
+  end
+
   def after_save
     #@ajax << 'window.open("/gi/abrir/' + @fact.form_file + '?vista=' + params[:vista] + '", "_blank", "location=no, menubar=no, status=no, toolbar=no ,height=800, width=1000 ,left=" + (window.screenX + 10) + ",top=" + (window.screenY + 10));'
-    @ajax << (@fact.formato == 'pdf' ? 'window.open("/gi/abrir");' : 'window.location.href="/gi/abrir";')
+    @ajax << (@fact.form_type == 'pdf' ? 'window.open("/gi/abrir");' : 'window.location.href="/gi/abrir";')
     flash[:vista] = @v.id
   end
 
@@ -273,15 +283,13 @@ class GiController < ApplicationController
 
     g = GI.new(@fact.form_modulo, @fact.form_file, @usu.codigo, lim)
 
-    @titulo = 'HOLA'
-
     fns = "/tmp/nim#{vid}" #file_name_server
 
     g.gen_xls("#{fns}.xlsx")
 
     fnc = g.formato[:modelo] ? g.formato[:modelo].table_name : 'listado' #file_name_client
 
-    case @fact.formato
+    case @fact.form_type
       when 'pdf'
         `libreoffice --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
         send_data File.read("#{fns}.pdf"), filename: "#{fnc}.pdf", type: :pdf, disposition: 'inline'
@@ -301,34 +309,7 @@ class GiController < ApplicationController
 end
 
 class GI
-  def self.formato_read(modulo, file, user)
-=begin
-    path = nil
-    fi = 'formatos/' + file + '.yml'
-    path = fi if File.exists?(fi)
-    if path.nil?
-      Dir.glob('modulos/*/formatos').each {|mod|
-        next if mod.ends_with?('/nimbus-core')
-        fi = mod + '/' + file + '.yml'
-        if File.exists?(fi)
-          path = fi
-          break
-        end
-      }
-    end
-    if path.nil?
-      fi = 'modulos/nimbus-core/formatos/' + file + '.yml'
-      path = fi if File.exists?(fi)
-    end
-
-    if path.nil?
-      {}
-    else
-      #eval('{' + File.read(path) + '}')
-      formato = YAML.load(File.read(path))
-      formato
-    end
-=end
+  def self.formato_read(modulo, file, user, cl=nil)
     case modulo
       when '', '_', Rails.app_class.to_s.split(':')[0].downcase
         path = "formatos/#{file}"
@@ -340,20 +321,39 @@ class GI
         path = "modulos/#{modulo}/formatos/#{file}"
     end
 
-    begin
-      YAML.load(File.read(path + '.yml'))
-    rescue
-      nil
+    # Cargar fuente si existe
+    if cl and File.exists?(path + '.rb')
+      cl.instance_eval(File.read(path + '.rb'))
     end
+
+    # Cargar formato
+    YAML.load(File.read(path + '.yml'))
   end
 
   def alias_cmp_db(cad, h_alias)
+    return(nil) unless cad
+
     new_cad = ''
     cad.split('~').each_with_index {|c, i|
       c = h_alias[c][:cmp_db] if i.odd?
       new_cad << c
     }
     new_cad
+  end
+
+  def val_select(ali)
+    i = (ali[0] == 'S' ? @ali_sel.index(ali.to_sym) : @vpluck.index(ali))
+    i ? @d[i] : nil
+  end
+
+  def val_alias(ali, ban=@form[:det])
+    ban = @form[ban] if ban.is_a? Symbol
+    ban.each {|fila|
+      fila.each {|cmp|
+        return(val_campo(cmp[:campo])) if cmp[:alias] == ali.to_s
+      }
+    }
+    nil
   end
 
   def procesa_macros(cad, vpl=true)
@@ -396,12 +396,12 @@ class GI
     }
   end
 
-  def initialize(modulo, form, user, lim={}, data=nil)
-    if form.is_a? String
-      @form = self.class.formato_read(modulo, form, user)
-    else
-      @form = form
-    end
+  def initialize(modulo, form, user, lim={})
+    @form = self.class.formato_read(modulo, form, user, self)
+
+    inicio if self.respond_to?(:inicio)
+
+    return unless lim
 
     @e = Empresa.find_by(id: lim[:eid]) if lim[:eid]
 
@@ -420,9 +420,6 @@ class GI
     @lim = lim
     @fx = {}
 
-    # Procesar fómulas
-    @form[:formulas].each {|k, v| @form[:formulas][k] = procesa_macros(v)}
-
     # Procesar select (1ª vuelta)
     @form[:select].each {|k, v|
       @ali_sel << k
@@ -439,6 +436,8 @@ class GI
       gen_alias("rc#{i}", r[:cab]) if r[:cab]
       gen_alias("rp#{i}", r[:pie]) if r[:pie]
     }
+
+    @form.each {|k, v| gen_alias(k, v) if k.to_s.starts_with?('bu_')}
 
     # Añadir where de empresa y ejercicio si procede
     if @form[:filt_emej]
@@ -469,9 +468,16 @@ class GI
       procesa_macros(v, false)
     }
 
-    if data
-      @data = data
-    else
+    # procesar join (1ª vuelta)
+    procesa_macros(@form[:join], false)
+
+    # Procesar fómulas
+    @form[:formulas].each {|k, v| @form[:formulas][k] = procesa_macros(v)}
+
+    # Procesar condición para pintado de la banda de detalle
+    @form[:detalle_cond] = procesa_macros(@form[:detalle_cond])
+
+    unless @data
       #@data = @form[:modelo].select(@form[:select]).ljoin(@form[:join]).where(@form[:where], lim).order(@form[:order])
       ms = mselect_parse @form[:modelo], @msel
 
@@ -505,8 +511,11 @@ class GI
         ha << alias_cmp_db(v, ms[:alias_cmp])
       }
 
+      # procesar join (2ª vuelta)
+      @form[:join] = alias_cmp_db(@form[:join], ms[:alias_cmp])
+
       # Obtener la query
-      @data = @form[:modelo].joins(ms[:cad_join]).where(wh, lim).group(@form[:group]).having(ha, lim).order(@form[:order]).pluck(*@vpluck)
+      @data = @form[:modelo].joins(ms[:cad_join]).joins(@form[:join]).where(wh, lim).group(@form[:group]).having(ha, lim).order(@form[:order]).pluck(*@vpluck)
     end
   end
 
@@ -520,10 +529,11 @@ class GI
 
   def tot(ali, niv=@rupi)
     col = @alias[:det][ali][:col]
-    "=SUBTOTAL(9,#{col}#{@rup[niv]}:#{col}#{@ri - 1})"
+    "=SUBTOTAL(9,#{col}#{@rup_ini[niv]}:#{col}#{@ri - 1})"
   end
 
   def val_campo(c, f=@d)
+=begin
     if c.is_a? Symbol
       return f.method(c).call
     elsif c.is_a? Fixnum
@@ -533,17 +543,17 @@ class GI
     else
       return c
     end
+=end
+    c ? eval(c) : nil
   end
 
-  def add_banda(ban)
-    return unless ban
-
+  def _add_banda(ban, valores)
     merg = []
     ban.each_with_index {|r, i|
       @bi = i
       res = []
       r.each_with_index {|c, i|
-        res << val_campo(c[:campo])
+        res << (valores[c[:alias].to_s.to_sym] || val_campo(c[:campo]))
         if c[:colspan].to_i > 0 or c[:rowspan].to_i > 0
           merg << "#{('A'.ord + i).chr}#{@ri}:#{('A'.ord + i + c[:colspan].to_i).chr}#{@ri + c[:rowspan].to_i}"
         end
@@ -553,6 +563,28 @@ class GI
       @ri += 1
     }
     merg.each {|m| @sh.merge_cells(m)}
+  end
+
+  def add_banda(rupa: @rupa, rup: @rup, ban: :det, valores: {})
+    (@nr - rupa...@nr).each {|i|
+      @ban = "rc#{i}"
+      @rupi = i + 1
+      _add_banda(@form[:rup][i][:cab], valores)
+      @rup_ini[i+1] = @ri
+    }
+
+    if ban
+      @rupi = 0
+      @ban = ban
+      _add_banda(@form[ban], valores)
+    end
+
+    (@nr - 1).downto(@nr - rup).each {|i|
+      @ban = "rp#{i}"
+      @rupi = i + 1
+      _add_banda(@form[:rup][i][:pie], valores)
+      @sh.add_page_break("A#{@ri - 1}") if @form[:rup][i][:salto]
+    }
   end
 
   def new_style(s, st)
@@ -597,19 +629,17 @@ class GI
     end
 
     # Inicializar vector de rupturas (para llevar la fila de inicio de cada una)
-    @rup = [@form[:cab].size + 1]
+    @rup_ini = [@form[:cab].size + 1]
 
     ds = @data.size - 1
-    nr = @form[:rup] ? @form[:rup].size : nil
+    @nr = @form[:rup] ? @form[:rup].size : 0
 
     @di = 0
     @ri = 1
 
     # Añadir banda de cabecera
     @d = @data[0]
-    @ban = :cab
-    @rupi = 0
-    add_banda(@form[:cab])
+    add_banda rupa: 0, rup: 0, ban: :cab
 
     @data.each_with_index {|dat, di|
       dat = [dat] unless dat.is_a?(Array)
@@ -621,6 +651,8 @@ class GI
       @form[:formulas].each {|k, v|
         @fx[k] = eval(v)
       }
+
+=begin
 
       # Añadir bandas de cabecera de ruptura
       if nr
@@ -650,7 +682,11 @@ class GI
       # Añadir banda de detalle
       @ban = :det
       @rupi = 0
-      add_banda(@form[:det])
+      if self.respond_to?(:detalle)
+        method(:detalle).call
+      else
+        add_banda(@form[:det]) unless eval(@form[:detalle_cond])
+      end
 
       # Añadir bandas de pie de ruptura
       if nr
@@ -675,11 +711,44 @@ class GI
         }
       end
     }
+=end
+
+      # Calcular rupa
+      if di == 0
+        @rupa = @nr
+      else
+        @rupa = 0
+        @form[:rup].each_with_index {|r, i|
+          if val_campo(r[:campo], dat) != val_campo(r[:campo], @data[di-1])
+            @rupa = @nr - i
+            break
+          end
+        }
+      end
+
+      # Calcular rup
+        if di == ds
+          @rup = @nr
+        else
+          @rup = 0
+          @form[:rup].each_with_index {|r, i|
+            if val_campo(r[:campo], dat) != val_campo(r[:campo], @data[di+1])
+              @rup = @nr - i
+              break
+            end
+          }
+        end
+
+      # Añadir banda de detalle (si no hay método específico)
+      if self.respond_to?(:detalle)
+        method(:detalle).call
+      else
+        add_banda ban: (eval(@form[:detalle_cond]) ? nil : :det)
+      end
+    }
 
     # Añadir banda de pie
-    @ban = :pie
-    @rupi = 0
-    add_banda(@form[:pie])
+    add_banda rupa: 0, rup: 0, ban: :pie
 
     # Opciones varias
     #@sh.page_setup.fit_to :width => 1

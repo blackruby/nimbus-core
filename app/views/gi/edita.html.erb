@@ -31,6 +31,9 @@
   <button title="Having" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#having').dialog('open')">
     <span style="font-size: 18px">H</span>
   </button>
+  <button title="Join" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#djoin').dialog('open')">
+    <span style="font-size: 18px">J</span>
+  </button>
   &nbsp;&nbsp;&nbsp;
   <button title="Grabar" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="abrirInforme = false;$('#grabar').dialog('open')">
     <i class="gi-img-button material-icons">save</i>
@@ -49,7 +52,7 @@
 <div id="prop-celdas" style="display: none; padding: 0">
   <table style="width: 100%">
     <col width="80px">
-    <tr><td class="subtit"><label for="campo">Campo:</label></td> <td><textarea rows="1" id="campo" class="i_cmp admite_campo"></textarea></td></tr>
+    <tr><td class="subtit"><label for="campo">Campo:</label></td> <td><textarea rows="1" id="campo" class="i_cmp admite_campo admite_lim1 admite_sel admite_for"></textarea></td></tr>
     <tr><td class="subtit"><label for="alias">Alias:</label></td> <td><input id="alias" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="estilo">Estilo:</label></td> <td><select id="estilo" class="i_cmp"></select></td></tr>
     <tr><td class="subtit"><label for="colspan">Cols. extra:</label></td> <td><input id="colspan" class="i_cmp" type="number" min="0"/></td></tr>
@@ -79,6 +82,7 @@
 
 <div id="bandas" style="display: none;">
   <div id="tool_ban" class="ui-widget-header ui-corner-all">
+    &nbsp;
     <button id="swp_w" class="b_banda">Mover a la izquierda</button>
     <button id="swp_e" class="b_banda">Mover a la derecha</button>
     <button id="swp_n" class="b_banda">Mover arriba</button>
@@ -90,7 +94,8 @@
     <button id="del_r" class="b_banda">Borrar fila</button>
     <button id="del_c" class="b_banda">Borrar columna</button>
     <button id="add_rup" title="Añadir bandas de ruptura">R+</button>
-    <button id="del_rup" title="Borrar bandas de ruptura "class="b_banda">R-</button>
+    <button id="del_rup" title="Borrar bandas de ruptura " class="b_banda">R-</button>
+    <button id="add_busu" title="Añadir banda de usuario">B+</button>
   </div>
   <p class="tit_band tit ui-widget-header ui-corner-all"> Cabecera </p>
   <table id="t_cab" class="t_banda"> <tbody></tbody> </table>
@@ -105,6 +110,7 @@
     <col width="150px">
     <tr><td class="subtit"><label for="descripcion">Descripción:</label></td> <td><input id="descripcion" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="filt_emej">Filtrar empresa:</label></td> <td><input type="checkbox" checked id="filt_emej" class="i_cmp" style="width: auto"/></td></tr>
+    <tr><td class="subtit"><label for="detalle_cond">Condición detalle:</label></td> <td><input id="detalle_cond" class="admite_campo admite_sel admite_for admite_lim1 i_cmp"/></td></tr>
     <tr><td class="tit" colspan="2">ASPECTO</td></tr>
     <tr><td class="subtit"><label for="npagw">Nº Páginas ancho:</label></td> <td><input type="number" id="npagw" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="npagh">Nº Páginas alto:</label></td> <td><input id="npagh" class="i_cmp"/></td></tr>
@@ -247,6 +253,10 @@
   </table>
 </div>
 
+<div id="djoin" title="Join" style="padding: 0; display: none">
+  <textarea id="join" rows="4" class="i_cmp admite_campo"></textarea>
+</div>
+
 <div id="grabar" title="Grabar" style="padding: 0;display: none">
   <table id="t_grabar">
     <col width="70px">
@@ -265,6 +275,11 @@
       </td>
     </tr>
   </table>
+</div>
+
+<div id="banda_usu" title="Banda de usuario" style="padding: 5;display: none">
+  <label for="banda_usu_name">Nombre: </label>
+  <input id="banda_usu_name" style="width:100%;"/>
 </div>
 
 <div id="help" title="Ayuda" style="display: none">
@@ -360,7 +375,7 @@ Títulos y pies de página
 
   #bandas {
     position: absolute;
-    width: 500px;
+    width: 540px;
   }
 
   .t_banda, #t_estilos, #t_lim, #t_config, #t_formulas, #t_select, #t_where, #t_having, #t_asist_lim, #t_grabar {
@@ -420,7 +435,7 @@ Títulos y pies de página
 
   function setTitulo() {
     $("#d-titulo").html(titMain + '&nbsp;&nbsp;&nbsp;&nbsp; Modelo: ' + modelo + '&nbsp;&nbsp;&nbsp;&nbsp; Módulo: ' + modulo + (fileName == '' ? '' : '&nbsp;&nbsp;&nbsp;&nbsp; Formato: ' + fileName));
-    document.title = titMain + ' Modelo: ' + modelo + '&nbsp;&nbsp;&nbsp;&nbsp; Módulo: ' + modulo + (fileName == '' ? '' : ' Formato: ' + fileName);
+    document.title = titMain + ' Modelo: ' + modelo + ' Módulo: ' + modulo + (fileName == '' ? '' : ' Formato: ' + fileName);
   }
 
   function nextItem(lista, pref, suf) {
@@ -500,6 +515,8 @@ Títulos y pies de página
       data.having[el.parent().prev().text()] = el.val();
     });
 
+    data.join = $("#join").val();
+
     data.cab = genArrayBan($("#t_cab tr"));
     data.det = genArrayBan($("#t_det tr"));
     data.pie = genArrayBan($("#t_pie tr"));
@@ -514,6 +531,11 @@ Títulos y pies de página
       h.pie = genArrayBan(trup.last().find("tr"));
       data.rup.push(h);
     });
+    $("table[class^=bu_]").each(function() {
+      var cl = $(this).attr('class');
+      cl = cl.slice(0, cl.indexOf(' '));
+      data[cl] = genArrayBan($(this).find("tr"));
+    });
 
     data.lim = {};
     $("#t_lim textarea").each(function() {
@@ -527,25 +549,6 @@ Títulos y pies de página
       data['style'][e.val()] = e.parent().next().children().val();
     });
 
-    /**
-    var ow = (file == fileName) ? 's' : 'n';
-    $.post('/gi/graba_fic', {file: file, ow: ow, data: JSON.stringify(data)}, function(d){
-      if (d == 's') {
-        if (abrirInforme) {
-          window.open('/gi/run/' + file);
-        } else {
-          fileName = file;
-        }
-        $("#grabar").dialog("close");
-      } else {
-        if (window.confirm('Ya existe el fichero. ¿Sobreescribir?')) {
-          fileName = file;
-          grabaFic(file);
-          $("#grabar").dialog("close");
-        }
-      }
-    });
-    */
     var fn = $("#filename").val();
     var mod = $("#destino").val();
 
@@ -553,6 +556,7 @@ Títulos y pies de página
       if (d == 's') {
         fileName = fn;
         modulo = mod;
+        if ($.inArray(fn, allFiles[mod]) == -1) allFiles[mod].push(fn);
         setTitulo();
         if (abrirInforme) {
           if (lastWindowPrint != undefined) lastWindowPrint.close();
@@ -622,6 +626,45 @@ Títulos y pies de página
   $("#destino").on("change", function() {
     checkFile($("#filename").val());
     $("#filename").focus();
+  });
+
+  // Diálogo de nueva banda de usuario
+
+  function nuevaBanUsu() {
+    addBanUsu($("#banda_usu_name").val(), genCadRow());
+    iniPropCell();
+    $("#banda_usu").dialog("close");
+  }
+
+  $( "#banda_usu" ).dialog({
+    autoOpen: false,
+    modal: true,
+    width: 400,
+    resizable: false,
+    show: {effect: "blind", duration: 500},
+    hide: {effect: "explode", duration: 500},
+    buttons: [{
+      id: 'b_busu',
+      text: "Aceptar",
+      click: nuevaBanUsu
+    }],
+  });
+
+  $("#banda_usu_name").on("input", function() {
+    var c;
+    var v = $(this).val();
+    var cur = $(this).caret().begin;
+
+    var vb = "";
+    for (var i = 0; c = v[i]; i++) if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == '-') vb += c; else cur--;
+
+    $(this).val(vb);
+    $(this).caret(cur);
+
+    var hb = (vb == '' || $('.bu_' + vb).length > 0);
+    $("#b_busu").button(hb ? "disable" : "enable")
+  }).on("keypress", function (e) {
+    if (e.which == 13 && $(this).val() != '') nuevaBanUsu();
   });
 
   // Diálogo de configuración
@@ -799,11 +842,16 @@ Títulos y pies de página
 
   $("#lim").on('dblclick', '.alias_lim', function(e) {
     if ($("#campo").is(":focus")) lastCmp = $("#campo");
-    if (lastCmp.is("#campo")) {
+    if (lastCmp && lastCmp.attr("disabled") != "disabled") {
       var v = lastCmp.val();
       var sel = lastCmp.caret();
-      lastCmp.val(v.slice(0, sel.begin) + '@lim[:' + $(this).text() + ']' + v.slice(sel.end));
-      lastCmp.focus();
+      if (lastCmp.hasClass("admite_lim1")) {
+        lastCmp.val(v.slice(0, sel.begin) + '@lim[:' + $(this).text() + ']' + v.slice(sel.end));
+        lastCmp.focus();
+      } else if (lastCmp.hasClass("admite_lim2")) {
+        lastCmp.val(v.slice(0, sel.begin) + ':' + $(this).text() + v.slice(sel.end));
+        lastCmp.focus();
+      }
     }
   });
 
@@ -831,7 +879,7 @@ Títulos y pies de página
     else
       elem = $("#t_formulas tr").last();
 
-    elem.after("<tr><td class='alias_formulas'>" + name + "</td><td><textarea rows=1 class='i_cmp admite_campo'>" + val + "</textarea></td></tr>");
+    elem.after("<tr><td class='alias_formulas'>" + name + "</td><td><textarea rows=1 class='i_cmp admite_campo admite_sel admite_for admite_lim1'>" + val + "</textarea></td></tr>");
     if (val == "") elem.next().find("textarea").focus();
   }
 
@@ -841,7 +889,7 @@ Títulos y pies de página
 
   $("#formulas").on('dblclick', '.alias_formulas', function(e) {
     if ($("#campo").is(":focus")) lastCmp = $("#campo");
-    if (lastCmp.is("#campo")) {
+    if (lastCmp && lastCmp.attr("disabled") != "disabled" && lastCmp.hasClass("admite_for")) {
       var v = lastCmp.val();
       var sel = lastCmp.caret();
       lastCmp.val(v.slice(0, sel.begin) + '@fx[:' + $(this).text() + ']' + v.slice(sel.end));
@@ -881,7 +929,8 @@ Títulos y pies de página
   }
 
   $("#select").on('dblclick', '.alias_select', function(e) {
-    if (lastCmp.is("#campo")) {
+    if ($("#campo").is(":focus")) lastCmp = $("#campo");
+    if (lastCmp && lastCmp.attr("disabled") != "disabled" && lastCmp.hasClass("admite_sel")) {
       var v = lastCmp.val();
       var sel = lastCmp.caret();
       lastCmp.val(v.slice(0, sel.begin) + '~' + $(this).text() + '~' + v.slice(sel.end));
@@ -912,7 +961,7 @@ Títulos y pies de página
     else
       elem = $("#t_where tr").last();
 
-    elem.after("<tr><td class='alias_where'>" + name + "</td><td><textarea rows=1 class='i_cmp admite_campo'>" + val + "</textarea></td></tr>");
+    elem.after("<tr><td class='alias_where'>" + name + "</td><td><textarea rows=1 class='i_cmp admite_campo admite_lim2'>" + val + "</textarea></td></tr>");
     if (val == "") elem.next().find("textarea").focus();
   }
 
@@ -965,13 +1014,24 @@ Títulos y pies de página
     else
       elem = $("#t_having tr").last();
 
-    elem.after("<tr><td class='alias_where'>" + name + "</td><td><textarea rows=1 class='i_cmp admite_campo'>" + val + "</textarea></td></tr>");
+    elem.after("<tr><td class='alias_where'>" + name + "</td><td><textarea rows=1 class='i_cmp admite_campo admite_lim2'>" + val + "</textarea></td></tr>");
     if (val == "") elem.next().find("textarea").focus();
   }
 
   function delHaving() {
     if (lastCmp && lastCmp.is("#having :input")) lastCmp.parent().parent().remove();
   }
+
+  // Diálogo de join
+
+  $("#djoin").dialog({
+    autoOpen: false,
+    width: 400,
+    position: {my: "left top", at: "left+75 bottom+90", of: "#bandas"},
+    show: {effect: "blind", duration: 300},
+    hide: {effect: "explode", duration: 300},
+    resizeStop: function() {$(this).dialog('option', 'height', 'auto')}
+  });
 
   // Diálogo de estilos
 
@@ -1224,11 +1284,19 @@ Títulos y pies de página
 
     $("#t_rup tr").last().after(
       '<tr class="' + cl +'">' +
-      '<td><textarea rows="1" class="i_cmp admite_campo">' + cmp +'</textarea></td>' +
+      '<td><textarea rows="1" class="i_cmp admite_campo admite_sel admite_for admite_lim1">' + cmp +'</textarea></td>' +
       '<td style="vertical-align: top;text-align: center"><input type="checkbox" class="i_cmp" style="width: auto"' + (salto ? ' checked' : '') + '/></td>' +
       '</tr>'
     );
     return cl;
+  }
+
+  function addBanUsu(name, htm) {
+    var cl = 'bu_' + name;
+    $(".t_banda").last().after(
+      '<p class="' + cl + ' tit_band tit ui-widget-header ui-corner-all">Banda de usuario: ' + name + '</p>' +
+      '<table id="' + cl + '" class="' + cl + ' t_banda"><tbody>' + htm + '</tbody></table>'
+    );
   }
 
   $("#swp_w").button({icons: {primary: "ui-icon-arrowthick-1-w"}, text: false}).click(function(){swpCell(celda.prev());});
@@ -1240,7 +1308,12 @@ Títulos y pies de página
   $("#add_rn").button({icons: {primary: "ui-icon-triangle-1-n"}, text: false}).click(function(){genRow("n")});
   $("#add_rs").button({icons: {primary: "ui-icon-triangle-1-s"}, text: false}).click(function(){genRow("s")});
   $("#del_r").button({icons: {primary: "ui-icon-circle-minus"}, text: false}).click(function(){
-    celda.parent().remove();
+    var cl = celda.parent().parent().parent().attr('class');
+    if (cl.slice(0, 3) == 'bu_' && celda.parent().parent().children().length == 1)
+      $("." + cl.slice(0, cl.indexOf(' '))).remove();
+    else
+      celda.parent().remove();
+
     noCell();
   });
   $("#del_c").button({icons: {primary: "ui-icon-circle-arrow-n"}, text: false, disabled: true}).click(function(){
@@ -1264,6 +1337,11 @@ Títulos y pies de página
         return false;
       }
     });
+  });
+  $("#add_busu").button().click(function(){
+    $("#banda_usu_name").val('');
+    $("#b_busu").button("disable");
+    $("#banda_usu").dialog('open');
   });
 
   $("#bandas").on('dblclick', 'p', function(e) {
@@ -1426,8 +1504,13 @@ Títulos y pies de página
         $.each(v, addLim);
         break;
       default:
-        var el = $("#" + k);
-        el.attr("type") == "checkbox" ? el.prop('checked', v) : el.val(v);
+        if (k.slice(0, 3) == 'bu_') { // Bandas de usuario
+          addBanUsu(k.slice(3), '');
+          leeFormBanda(k, v);
+        } else { // Parámetros de configuración
+          var el = $("#" + k);
+          el.attr("type") == "checkbox" ? el.prop('checked', v) : el.val(v);
+        }
     }
   });
 

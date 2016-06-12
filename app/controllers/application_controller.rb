@@ -855,7 +855,7 @@ class ApplicationController < ActionController::Base
       @ajax << 'var _vista=' + @v.id.to_s + ';var _controlador="' + params['controller'] + '";'
     end
 
-    before_envia_ficha if self.respond_to?('before_envia_ficha')
+    before_envia_ficha if self.respond_to?(:before_envia_ficha)
 
     unless clm.mant? and @fact.id == 0
       envia_ficha
@@ -864,7 +864,9 @@ class ApplicationController < ActionController::Base
       @v.save
     end
 
-    clm.mant? ? pag_render('ficha') : pag_render('proc')
+    r = false
+    r = mi_render if self.respond_to?(:mi_render)
+    (clm.mant? ? pag_render('ficha') : pag_render('proc')) unless r
   end
 
   def set_auto_comp_filter(cmp, wh)
@@ -958,7 +960,7 @@ class ApplicationController < ActionController::Base
       ep = ep + 'ejercicio_id'
       msel = mselect_parse(mod, mod.auto_comp_mselect, ep)
       edb = msel[:alias_cmp][ep][:cmp_db]
-      wh << ' AND ' + edb + '=' + (params[:jid] || @dat[:jid])
+      wh << " AND #{edb}=#{(params[:jid] || @dat[:jid])}"
     elsif mod.respond_to?(:empresa_path)
       ep = mod.empresa_path
       ep = ep + '.' unless ep.empty?
