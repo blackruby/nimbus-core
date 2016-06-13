@@ -399,19 +399,24 @@ class GI
   def initialize(modulo, form, user, lim={})
     @form = self.class.formato_read(modulo, form, user, self)
 
-    inicio if self.respond_to?(:inicio)
-
     return unless lim
 
     @e = Empresa.find_by(id: lim[:eid]) if lim[:eid]
 
     @form[:modelo] = @form[:modelo].constantize if @form[:modelo]
     @form[:style].each {|k, v| @form[:style][k] = eval('[' + v + ']')}
+    if @form[:row_height] and !@form[:row_height].strip.empty?
+      @form[:row_height] = @form[:row_height].to_i
+    else
+      @form[:row_height] = nil
+    end
 
     #@form[:tit_i] = '&B' + (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') + '&B' if @form[:tit_i].empty?
     @form[:tit_i] = '&B' + @e.try(:nombre) + '&B' if @form[:tit_i].empty?
     @form[:tit_d] = '&P de &N' if @form[:tit_d].empty?
     @form[:tit_c] = '&BListado de ' + nt(@form[:modelo].table_name) + '&B' if @form[:tit_c].empty? and @form[:modelo]
+
+    after_read_form if self.respond_to?(:after_read_form)
 
     @vpluck = []
     @msel = []
@@ -515,6 +520,7 @@ class GI
       @form[:join] = alias_cmp_db(@form[:join], ms[:alias_cmp])
 
       # Obtener la query
+      #@data = @form[:modelo].joins(ms[:cad_join]).joins(@form[:join]).where(wh, lim).group(@form[:group]).having(ha, lim).order(@form[:order]).limit(200).pluck(*@vpluck)
       @data = @form[:modelo].joins(ms[:cad_join]).joins(@form[:join]).where(wh, lim).group(@form[:group]).having(ha, lim).order(@form[:order]).pluck(*@vpluck)
     end
   end
@@ -547,7 +553,7 @@ class GI
     c ? eval(c) : nil
   end
 
-  def _add_banda(ban, valores)
+  def _add_banda(ban, valores={})
     merg = []
     ban.each_with_index {|r, i|
       @bi = i
@@ -559,13 +565,18 @@ class GI
         end
       }
       #@sh.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : nil}, widths: [:ignore, 10, :ignore], height: 0
-      @sh.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : @sty[:def]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}
+      @sh.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : @sty[:def]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}, height: @form[:row_height]
       @ri += 1
     }
     merg.each {|m| @sh.merge_cells(m)}
   end
 
   def add_banda(rupa: @rupa, rup: @rup, ban: :det, valores: {})
+    if ban == :_blank
+      _add_banda([[]])
+      return
+    end
+
     (@nr - rupa...@nr).each {|i|
       @ban = "rc#{i}"
       @rupi = i + 1
@@ -615,9 +626,6 @@ class GI
     marg = eval('{' + @form[:page_margins] + '}') if @form[:page_margins]
     @sh = wb.add_worksheet(:name => "Uno", page_margins: marg)
 
-    # Fijar las filas de cabecera para repetir en cada página
-    wb.add_defined_name("Uno!$1:$#{@form[:cab].size}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
-
     # Añadir estilos
     if @form[:style]
       @sty = {}
@@ -636,10 +644,18 @@ class GI
 
     @di = 0
     @ri = 1
+    @rupa = @rup = 0
+    @d = @data[0]
+
+    inicio if self.respond_to?(:inicio)
 
     # Añadir banda de cabecera
-    @d = @data[0]
+    row_ini_cab = @ri
     add_banda rupa: 0, rup: 0, ban: :cab
+
+    # Fijar las filas de cabecera para repetir en cada página
+    #wb.add_defined_name("Uno!$1:$#{@form[:cab].size}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
+    wb.add_defined_name("Uno!$#{row_ini_cab}:$#{@ri - 1}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
 
     @data.each_with_index {|dat, di|
       dat = [dat] unless dat.is_a?(Array)
@@ -747,8 +763,13 @@ class GI
       end
     }
 
+    @rupa = @rup = 0
+
     # Añadir banda de pie
-    add_banda rupa: 0, rup: 0, ban: :pie
+    add_banda ban: :pie
+
+    # Método de final si existe
+    final if self.respond_to?(:final)
 
     # Opciones varias
     #@sh.page_setup.fit_to :width => 1
