@@ -300,44 +300,12 @@ class ApplicationController < ActionController::Base
 
     eid, jid = get_empeje
 
-=begin
-    unless params[:mod]
-      if clm.column_names.include?('empresa_id') and eid.nil?
-        render file: '/public/no_emp.html', layout: false
-        return
-      elsif clm.column_names.include?('ejercicio_id') and jid.nil?
-        render file: '/public/no_eje.html', layout: false
-        return
-      end
-    end
-=end
-
     w = ''
     wemej = ''
     ljoin = ''
     if params[:mod]
       add_where(w, mod_tab + '.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
     else
-=begin
-      if clm.column_names.include?('empresa_id')
-        if eid
-          #add_where(w, mod_tab + '.empresa_id=' + params[:eid])
-          add_where(w, "#{mod_tab}.empresa_id=#{eid}")
-        else
-          render file: '/public/no_emp.html', layout: false
-          return
-        end
-      end
-      if clm.column_names.include?('ejercicio_id')
-        if jid
-          #add_where(w, mod_tab + '.ejercicio_id=' + params[:jid])
-          add_where(w, "#{mod_tab}.ejercicio_id=#{jid}")
-        else
-          render file: '/public/no_eje.html', layout: false
-          return
-        end
-      end
-=end
       if clm.respond_to?('ejercicio_path')
         if jid
           ljoin = clm.ejercicio_path
@@ -400,21 +368,14 @@ class ApplicationController < ActionController::Base
     @titulo = ''
 
     arg_ej = ''
-    if eid
-      arg_ej << '&eid=' + eid
-      #e = Empresa.find_by id: eid.to_i
-      #@titulo << e.codigo if clm.column_names.include?('empresa_id')
-      @titulo << Empresa.where('id=?', eid).pluck(:codigo)[0] if clm.respond_to?('empresa_path')
-    end
+    arg_ej << '&eid=' + eid if eid
+    arg_ej << '&jid=' + jid if jid
 
-    if jid
-      arg_ej << '&jid=' + jid
-      #j = Ejercicio.find_by id: jid.to_i
-      #@titulo << '/' + j.codigo if clm.column_names.include?('ejercicio_id')
-      if clm.respond_to?('ejercicio_path')
-        cj_ce = Ejercicio.where('ejercicios.id=?', jid).ljoin(:empresa).pluck('ta.codigo', 'ejercicios.codigo')
-        @titulo << cj_ce[0] + '/' + cj_ce[1]
-      end
+    if clm.respond_to?('ejercicio_path')
+      cj_ce = Ejercicio.where('ejercicios.id=?', jid).ljoin(:empresa).pluck('ta.codigo', 'ejercicios.codigo')
+      @titulo << cj_ce[0][0] + '/' + cj_ce[0][1]
+    elsif clm.respond_to?('empresa_path')
+      @titulo << Empresa.where('id=?', eid).pluck(:codigo)[0]
     end
 
     #@view[:arg_auto] = params[:mod] ? '&wh=' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id] : arg_ej
