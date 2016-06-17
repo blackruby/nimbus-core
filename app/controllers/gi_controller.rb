@@ -311,6 +311,17 @@ class GiController < ApplicationController
   end
 end
 
+=begin
+Clase GI
+
+Métodos disponibles para el fuente asociado al formato:
+
+ini_campos(f, args)
+  Este método se dispara sólo cuando entramos en la ventana de límites
+  Recibe dos argumentos:
+    f: es la ficha con la que accedemos a las propiedades de los campos
+=end
+
 class GI
   def self.formato_read(modulo, file, user, cl=nil)
     case modulo
@@ -647,7 +658,6 @@ class GI
 
     @sh.header_footer.odd_header = "&L#{@form[:tit_i]}&C#{@form[:tit_c]}&R#{@form[:tit_d]}"
     @sh.header_footer.odd_footer = "&L#{@form[:pie_i]}&C#{@form[:pie_c]}&R#{@form[:pie_d]}"
-    @sh.column_widths(*(@form[:col_widths].split(',').map{|w| w.to_i})) if @form[:col_widths]
     @sh.page_setup.set(@form[:page_setup])
     @sh.page_margins.set(@form[:page_margins])
     @sh.print_options.set(@form[:print_options])
@@ -824,6 +834,8 @@ class GI
       chart.add_series xData: @sh["B2:B6"], yData: @sh["C2:C6"], title: @sh["A1"], color: "FF0000"
     end
 =end
+
+    @sh.column_widths(*(@form[:col_widths].split(',').map{|w| w.to_i})) if @form[:col_widths]
 
     xls.serialize(name)
     return name
