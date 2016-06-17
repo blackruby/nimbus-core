@@ -1033,3 +1033,33 @@ module Modelo
     }
   end
 end
+
+# Módulo para hacer mixin en los modelos de históricos
+
+module Historico
+  def self.included(base)
+    base.extend(ClassMethods)
+    base.ini_datos
+  end
+
+  ### Métodos de clase
+
+  module ClassMethods
+    def ini_datos
+      belongs_to :created_by, :class_name => 'Usuario'
+
+      clp = self.to_s[1..-1].constantize
+      clp.reflect_on_all_associations(:belongs_to).each{|a| belongs_to a.name, class_name: a.options[:class_name]}
+      @propiedades = clp.propiedades
+
+      self.instance_eval("def empresa_path;'#{clp.empresa_path}';end") if clp.respond_to?(:empresa_path)
+      self.instance_eval("def ejercicio_path;'#{clp.ejercicio_path}';end") if clp.respond_to?(:ejercicio_path)
+    end
+
+    def propiedades
+      @propiedades
+    end
+  end
+
+  ### Métodos de instancia
+end

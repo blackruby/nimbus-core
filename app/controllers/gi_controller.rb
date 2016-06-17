@@ -115,36 +115,28 @@ class GiController < ApplicationController
 
   def campos
     begin
-      clr = params[:node].constantize
-      clr.column_names.include?('idid') ? cl = params[:node][1..-1].constantize : cl = clr
+      cl = params[:node].constantize
     rescue
       # Se supone que sería un histórico y está sin cargar su clase
-      cl = params[:node][1..-1].constantize
-      clr = params[:node].constantize
+      params[:node][1..-1].constantize
+      cl = params[:node].constantize
     end
 
     data = []
-    clr.column_names.each {|c|
+    cl.column_names.each {|c|
       d = {}
       if c.ends_with?('_id')
         d[:label] = c[0..-4]
         d[:load_on_demand] = true
-        if cl != clr and c == 'created_by_id'
-          d[:id] = 'Usuario'
-        else
-          d[:id] = cl.reflect_on_association(c[0..-4].to_sym).options[:class_name]
-        end
+        d[:id] = cl.reflect_on_association(c[0..-4].to_sym).options[:class_name]
       else
         cs = c.to_sym
         d[:label] = c
         d[:table] = cl.table_name
-        d[:pk] = (c == cl.pk[-1])
-        #d[:type] = cl.columns_hash[c] ? cl.columns_hash[c].type : cl.propiedades[cs][:type]
-        d[:type] = clr.columns_hash[c].type
-        if cl == clr
-          d[:manti] = cl.propiedades[cs][:manti] if cl.propiedades[cs] and cl.propiedades[cs][:manti]
-          decim = (cl.propiedades[cs] and cl.propiedades[cs][:decim]) ? cl.propiedades[cs][:decim] : 2
-        end
+        d[:pk] = cl.respond_to?(:pk) ? (c == cl.pk[-1]) : false
+        d[:type] = cl.columns_hash[c].type
+        d[:manti] = cl.propiedades[cs][:manti] if cl.propiedades[cs] and cl.propiedades[cs][:manti]
+        decim = (cl.propiedades[cs] and cl.propiedades[cs][:decim]) ? cl.propiedades[cs][:decim] : 2
 
         case d[:type]
           when :boolean
