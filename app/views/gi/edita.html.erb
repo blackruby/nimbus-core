@@ -19,11 +19,11 @@
   <button title="Select" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#select').dialog('open')">
     <span style="font-size: 18px">S</span>
   </button>
+  <button title="Join" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#djoin').dialog('open')">
+    <span style="font-size: 18px">J</span>
+  </button>
   <button title="Where" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#where').dialog('open')">
     <span style="font-size: 18px">W</span>
-  </button>
-  <button title="Order" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#dorder').dialog('open')">
-    <span style="font-size: 18px">O</span>
   </button>
   <button title="Group" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#dgroup').dialog('open')">
     <span style="font-size: 18px">G</span>
@@ -31,8 +31,8 @@
   <button title="Having" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#having').dialog('open')">
     <span style="font-size: 18px">H</span>
   </button>
-  <button title="Join" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#djoin').dialog('open')">
-    <span style="font-size: 18px">J</span>
+  <button title="Order" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#dorder').dialog('open')">
+    <span style="font-size: 18px">O</span>
   </button>
   &nbsp;&nbsp;&nbsp;
   <button title="Grabar" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="abrirInforme = false;$('#grabar').dialog('open')">
@@ -110,10 +110,8 @@
     <col width="150px">
     <tr><td class="subtit"><label for="descripcion">Descripción:</label></td> <td><input id="descripcion" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="filt_emej">Filtrar empresa:</label></td> <td><input type="checkbox" checked id="filt_emej" class="i_cmp" style="width: auto"/></td></tr>
-    <tr><td class="subtit"><label for="detalle_cond">Condición detalle:</label></td> <td><input id="detalle_cond" class="admite_campo admite_sel admite_for admite_lim1 i_cmp"/></td></tr>
+    <tr><td class="subtit"><label for="detalle_cond">Ocultar detalle if...:</label></td> <td><input id="detalle_cond" class="admite_campo admite_sel admite_for admite_lim1 i_cmp"/></td></tr>
     <tr><td class="tit" colspan="2">ASPECTO</td></tr>
-    <tr><td class="subtit"><label for="npagw">Nº Páginas ancho:</label></td> <td><input type="number" id="npagw" class="i_cmp"/></td></tr>
-    <tr><td class="subtit"><label for="npagh">Nº Páginas alto:</label></td> <td><input type="number" id="npagh" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="pingrid">Pintar Rejilla:</label></td> <td><input type="checkbox" id="pingrid" class="i_cmp" style="width: auto"/></td></tr>
     <tr><td class="subtit"><label for="tit_i">Título izquierda:</label></td> <td><input id="tit_i" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="tit_c">Título centro:</label></td> <td><input id="tit_c" class="i_cmp"/></td></tr>
@@ -123,8 +121,9 @@
     <tr><td class="subtit"><label for="pie_d">Pie derecha:</label></td> <td><input id="pie_d" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="page_setup">Config. Página:</label></td> <td><textarea id="page_setup" class="i_cmp"></textarea></td></tr>
     <tr><td class="subtit"><label for="col_widths">Ancho columnas:</label></td> <td><input id="col_widths" class="i_cmp"/></td></tr>
-    <tr><td class="subtit"><label for="row_height">Altura filas:</label></td> <td><input type="number" id="row_height" class="i_cmp"/></td></tr>
+    <tr><td class="subtit"><label for="row_height">Altura filas:</label></td> <td><input type="number" min=1 id="row_height" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="page_margins">Márgenes:</label></td> <td><textarea id="page_margins" class="i_cmp"></textarea></td></tr>
+    <tr><td class="subtit"><label for="print_options">Opciones de impresión:</label></td> <td><textarea id="print_options" class="i_cmp"></textarea></td></tr>
   </table>
 </div>
 
@@ -284,23 +283,35 @@
 </div>
 
 <div id="help" title="Ayuda" style="display: none">
+  <div class="tit"> Config. Página (Hash. Valores separados por comas) </div>
+  orientation: :landscape<br>
+  paper_width: "210mm"<br>
+  paper_height: "297mm"<br>
+  fit_to_width: n (n es el nº de páginas al que queremos ajustar la anchura)<br>
+  fit_to_height: m (m es el nº de páginas al que queremos ajustar la altura)<br>
+  &nbsp;&nbsp;&nbsp;Si se especifica algún fit_to, hay que especificar el otro. Si su valor vale 0 es auto.<br>
+
+  <div class="tit">Ancho columnas</div>
+  Lista de valores separados por comas indicando la anchura en caracteres<br>
+  de cada columna. El valor 0 (cero) se usará para ancho automático<br>
+
+  <div class="tit">Márgenes (Hash. Valores separados por comas)</div>
+  left: xx.xx<br>
+  right: xx.xx<br>
+  top: xx.xx<br>
+  bottom: xx.xx<br>
+  header: x.xx<br>
+  footer: xx.xx<br>
+  Los números (xx.xx) son con decimales e indican pulgadas.
+
+  <div class="tit">Opciones de impresión (Hash. Valores separados por comas)</div>
+  horizontal_centered: true|false<br>
+  vertical_centered: true|false<br>
+  grid_lines: true|false<br>
+  &nbsp;&nbsp;&nbsp;Por defecto todas valen false.
+
+  <div class="tit">Títulos y pies de página</div>
   <pre>
-Config. Página (Hash. Valores separados por ',')
----------------------------------------------------------------------------------------------
-orientation: :landscape, paper_width: "297mm", paper_height: "210mm"
-
-Ancho columnas
----------------------------------------------------------------------------------------------
-Lista de valores separados por comas indicando la anchura en caracteres
-de cada columna. El valor 0 (cero) se usará para ancho automático
-
-Márgenes (Hash. Valores separados por ',')
----------------------------------------------------------------------------------------------
-left: xx.xx, right: xx.xx, top: xx.xx, bottom: xx.xx, header: x.xx, footer: xx.xx
-Los números (xx.xx) son con decimales e indican pulgadas.
-
-Títulos y pies de página
----------------------------------------------------------------------------------------------
 &E              Activa o desactiva la impresión en subrayado doble.
 &X              Activa o desactiva la impresión en superíndice.
 &Y              Activa o desactiva la impresión en subíndice.
@@ -319,9 +330,9 @@ Títulos y pies de página
                 que se va a usar. Snnn especifica la sombra (el tono) de ese color de tema.
                 Especifique S como + para producir una sombra más clara;
                 especifique S como - para producir una sombra más oscura.
-                nnn es un número entero de tres dígitos que especifica un porcentaje de 0 a 100.
-                Si los valores que especifican el color o la sombra del tema no están en los
-                límites descritos, Excel usará el valor válido más cercano.
+                nnn es un número entero de tres dígitos indicando un porcentaje de 0 a 100.
+                Si los valores que especifican el color o la sombra del tema no están en
+                los límites descritos, Excel usará el valor válido más cercano.
 &D              Imprime la fecha actual.
 &T              Imprime la hora actual.
 &P              Imprime el número de página.
@@ -1103,6 +1114,7 @@ Títulos y pies de página
   $( "#help" ).dialog({
     autoOpen: false,
     width: 800,
+    height: 800,
     show: {effect: "blind", duration: 500},
     hide: {effect: "explode", duration: 500}
   });

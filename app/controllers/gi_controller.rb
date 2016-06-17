@@ -227,10 +227,12 @@ class GiController < ApplicationController
     @form[:lim].each {|c, v|
       @fact.add_campo(c, eval('{' + v + '}'))
     }
-    @formato.ini_campos(@fact) if @formato.respond_to?(:ini_campos)
     @fact.campos.each {|c, v|
       @fact[c] = params[c] if params[c]
     }
+    if @formato.respond_to?(:ini_campos)
+      @formato.method(:ini_campos).arity == 1 ? @formato.ini_campos(@fact) : @formato.ini_campos(@fact, params)
+    end
 
     if @form[:modelo]
       begin
@@ -287,7 +289,8 @@ class GiController < ApplicationController
 
     g.gen_xls("#{fns}.xlsx")
 
-    fnc = g.formato[:modelo] ? g.formato[:modelo].table_name : 'listado' #file_name_client
+    #fnc = g.formato[:modelo] ? g.formato[:modelo].table_name : 'listado' #file_name_client
+    fnc = @fact.form_file
 
     case @fact.form_type
       when 'pdf'
@@ -404,7 +407,10 @@ class GI
     @e = Empresa.find_by(id: lim[:eid]) if lim[:eid]
 
     @form[:modelo] = @form[:modelo].constantize if @form[:modelo]
-    @form[:style].each {|k, v| @form[:style][k] = eval('[' + v + ']')}
+    @form[:style].each {|k, v| @form[:style][k] = eval("[#{v}]")}
+    @form[:page_margins] = eval("{#{@form[:page_margins]}}")
+    @form[:page_setup] = eval("{#{@form[:page_setup]}}")
+    @form[:print_options] = eval("{#{@form[:print_options]}}")
     if @form[:row_height] and !@form[:row_height].strip.empty?
       @form[:row_height] = @form[:row_height].to_i
     else
@@ -416,7 +422,7 @@ class GI
     @form[:tit_d] = '&P de &N' if @form[:tit_d].empty?
     @form[:tit_c] = '&BListado de ' + nt(@form[:modelo].table_name) + '&B' if @form[:tit_c].empty? and @form[:modelo]
 
-    after_read_form if self.respond_to?(:after_read_form)
+    before_sql if self.respond_to?(:before_sql)
 
     @vpluck = []
     @msel = []
@@ -530,12 +536,12 @@ class GI
   end
 
   def cel(ali)
-    @alias[@ban][ali][:col] + (@ri - @bi + @alias[@ban][ali][:row]).to_s
+    @alias[@ban][ali][:col] + (@ri_act - @bi + @alias[@ban][ali][:row]).to_s
   end
 
   def tot(ali, niv=@rupi)
     col = @alias[:det][ali][:col]
-    "=SUBTOTAL(9,#{col}#{@rup_ini[niv]}:#{col}#{@ri - 1})"
+    "=SUBTOTAL(9,#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1})"
   end
 
   def val_campo(c, f=@d)
@@ -553,7 +559,8 @@ class GI
     c ? eval(c) : nil
   end
 
-  def _add_banda(ban, valores={})
+  def _add_banda(ban, valores={}, sheet)
+    @ri_act = @ris[sheet]
     merg = []
     ban.each_with_index {|r, i|
       @bi = i
@@ -561,40 +568,43 @@ class GI
       r.each_with_index {|c, i|
         res << (valores[c[:alias].to_s.to_sym] || val_campo(c[:campo]))
         if c[:colspan].to_i > 0 or c[:rowspan].to_i > 0
-          merg << "#{('A'.ord + i).chr}#{@ri}:#{('A'.ord + i + c[:colspan].to_i).chr}#{@ri + c[:rowspan].to_i}"
+          merg << "#{('A'.ord + i).chr}#{@ri_act}:#{('A'.ord + i + c[:colspan].to_i).chr}#{@ri_act + c[:rowspan].to_i}"
         end
       }
       #@sh.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : nil}, widths: [:ignore, 10, :ignore], height: 0
-      @sh.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : @sty[:def]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}, height: @form[:row_height]
-      @ri += 1
+      sheet.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : @sty[:def]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}, height: @form[:row_height]
+      @ris[sheet] += 1
+      @ri += 1 if sheet == @sh
     }
     merg.each {|m| @sh.merge_cells(m)}
   end
 
-  def add_banda(rupa: @rupa, rup: @rup, ban: :det, valores: {})
+  def add_banda(rupa: @rupa, rup: @rup, ban: :det, valores: {}, sheet: @sh)
     if ban == :_blank
-      _add_banda([[]])
+      _add_banda([[]], {}, sheet)
       return
     end
+
+    @ris[sheet]
 
     (@nr - rupa...@nr).each {|i|
       @ban = "rc#{i}"
       @rupi = i + 1
-      _add_banda(@form[:rup][i][:cab], valores)
-      @rup_ini[i+1] = @ri
+      _add_banda(@form[:rup][i][:cab], valores, sheet)
+      @rup_ini[i+1] = @ris[sheet]
     }
 
     if ban
       @rupi = 0
       @ban = ban
-      _add_banda(@form[ban], valores)
+      _add_banda(@form[ban], valores, sheet)
     end
 
     (@nr - 1).downto(@nr - rup).each {|i|
       @ban = "rp#{i}"
       @rupi = i + 1
-      _add_banda(@form[:rup][i][:pie], valores)
-      @sh.add_page_break("A#{@ri - 1}") if @form[:rup][i][:salto]
+      _add_banda(@form[:rup][i][:pie], valores, sheet)
+      @sh.add_page_break("A#{@ris[sheet]}") if @form[:rup][i][:salto]
     }
   end
 
@@ -606,6 +616,12 @@ class GI
     else
       st.merge!(s)
     end
+  end
+
+  def nueva_hoja(args)
+    sh = @wb.add_worksheet(args)
+    @ris[sh] = 1
+    sh
   end
 
   def gen_xls(name=nil)
@@ -620,11 +636,22 @@ class GI
       end
     }
 =end
+    @ris = {} # Hash para llevar la fila (row index) de las páginas adicionales que se puedan crear
 
     xls = Axlsx::Package.new
-    wb = xls.workbook
-    marg = eval('{' + @form[:page_margins] + '}') if @form[:page_margins]
-    @sh = wb.add_worksheet(:name => "Uno", page_margins: marg)
+    @wb = xls.workbook
+
+    after_create_worbook if self.respond_to?(:after_create_worbook)
+
+    @sh = nueva_hoja name: 'Uno'
+
+    @sh.header_footer.odd_header = "&L#{@form[:tit_i]}&C#{@form[:tit_c]}&R#{@form[:tit_d]}"
+    @sh.header_footer.odd_footer = "&L#{@form[:pie_i]}&C#{@form[:pie_c]}&R#{@form[:pie_d]}"
+    @sh.column_widths(*(@form[:col_widths].split(',').map{|w| w.to_i})) if @form[:col_widths]
+    @sh.page_setup.set(@form[:page_setup])
+    @sh.page_margins.set(@form[:page_margins])
+    @sh.print_options.set(@form[:print_options])
+    @sh.print_options.grid_lines = true if @form[:pingrid]
 
     # Añadir estilos
     if @form[:style]
@@ -632,7 +659,7 @@ class GI
       @form[:style].each {|c, v|
         st = {}
         new_style(v, st)
-        @sty[c] = wb.styles.add_style(st)
+        @sty[c] = @wb.styles.add_style(st)
       }
     end
 
@@ -654,8 +681,8 @@ class GI
     add_banda rupa: 0, rup: 0, ban: :cab
 
     # Fijar las filas de cabecera para repetir en cada página
-    #wb.add_defined_name("Uno!$1:$#{@form[:cab].size}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
-    wb.add_defined_name("Uno!$#{row_ini_cab}:$#{@ri - 1}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
+    #@wb.add_defined_name("Uno!$1:$#{@form[:cab].size}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
+    @wb.add_defined_name("Uno!$#{row_ini_cab}:$#{@ri - 1}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
 
     @data.each_with_index {|dat, di|
       dat = [dat] unless dat.is_a?(Array)
@@ -770,15 +797,6 @@ class GI
 
     # Método de final si existe
     final if self.respond_to?(:final)
-
-    # Opciones varias
-    #@sh.page_setup.fit_to :width => 1
-    #@sh.page_setup.set orientation: :landscape, paper_width: "210mm", paper_height: "297mm"
-    @sh.print_options.grid_lines = true if @form[:pingrid]
-    @sh.page_setup.set(eval('{' + @form[:page_setup] + '}')) if @form[:page_setup]
-    @sh.header_footer.odd_header = "&L#{@form[:tit_i]}&C#{@form[:tit_c]}&R#{@form[:tit_d]}"
-    @sh.header_footer.odd_footer = "&L#{@form[:pie_i]}&C#{@form[:pie_c]}&R#{@form[:pie_d]}"
-    @sh.column_widths(*(@form[:col_widths].split(',').map{|w| w.to_i})) if @form[:col_widths]
 
 =begin
     @sh.add_chart(Axlsx::Pie3DChart, start_at: "D1", end_at: "J15", title: 'Tarta') do |chart|
