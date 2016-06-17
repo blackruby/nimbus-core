@@ -233,7 +233,8 @@ namespace :nimbus do
         if prop[:histo]
           modelo.puts
           modelo.puts("class #{namesp}H#{modc} < ActiveRecord::Base")
-          modelo.puts("  belongs_to :created_by, :class_name => 'Usuario'")
+          #modelo.puts("  belongs_to :created_by, :class_name => 'Usuario'")
+          modelo.puts('  include Historico')
           modelo.puts('end')
         end
         modelo.rewind
