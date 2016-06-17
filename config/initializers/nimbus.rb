@@ -948,7 +948,7 @@ module Modelo
         }
         unless cad_eje.empty?
           self.instance_eval("def ejercicio_path;'#{cad_eje[0..-11]}';end")
-          self.class_eval("def ejercicio;#{cad_eje}';end")
+          self.class_eval("def ejercicio;#{cad_eje};end")
         end
       end
 
