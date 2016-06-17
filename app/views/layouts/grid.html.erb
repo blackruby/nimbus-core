@@ -74,8 +74,13 @@
       <a class="mdl-navigation__link" href="#" onclick="grid_historico()">Histórico</a>
       <% if @view[:menu_l].size > 0 %>
         <hr>
-        <% @view[:menu_l].each {|m| %>
-          <a class="mdl-navigation__link" href="<%= m[:url] %>" target="_blank"> <%= nt(m[:label]) %> </a>
+        <% @view[:menu_l].each_with_index {|m, i| %>
+          <% m[:id] ||= '_ml_'+i.to_s %>
+          <% if m[:id].starts_with?('tag_') %>
+            <%= m[:label].html_safe %>
+          <% else %>
+            <a id="<%= m[:id] %>" class="mdl-navigation__link" href="<%= m[:url] %>" target="_blank"> <%= nt(m[:label]) %> </a>
+          <% end %>
         <% } %>
       <% end %>
     </nav>
