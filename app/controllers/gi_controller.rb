@@ -997,33 +997,6 @@ class GI
     # Método de final si existe
     final if self.respond_to?(:final)
 
-=begin
-    @sh.add_chart(Axlsx::Pie3DChart, start_at: "D1", end_at: "J15", title: 'Tarta') do |chart|
-      chart.add_series data: @sh["B2:B6"], labels: @sh["A2:A6"], title: 'Hola', colors: ["00FF00", "0000FF", "FF0000", "d3d3d3", "FFA015"]
-    end
-
-    @sh.add_chart(Axlsx::Bar3DChart, start_at: "D16", end_at: "J30", title: 'Barras') do |chart|
-      chart.add_series data: @sh["B2:B6"], labels: @sh["A2:A6"], colors: ["00FF00", "0000FF", "FF0000", "d3d3d3", "FFA015"]
-      chart.valAxis.gridlines = true
-      chart.catAxis.gridlines = true
-      chart.catAxis.label_rotation = 45
-      chart.catAxis.color = "888888"
-      chart.show_legend = false
-      chart.bar_dir = :col
-    end
-
-    @sh.add_chart(Axlsx::LineChart, title: 'Línea', start_at: "D30", end_at: "M50") do |chart|
-      chart.add_series data: @sh["B2:B6"], title: @sh["A1"], color: "00FF00"
-      chart.add_series data: @sh["C2:C6"], title: 'Adios', color: "0000FF", show_marker: true, smooth: true
-      chart.catAxis.title = 'X Axis'
-      chart.valAxis.title = 'Y Axis'
-    end
-
-    @sh.add_chart(Axlsx::ScatterChart, start_at: "D51", end_at: "M70", title: 'Scatter') do |chart|
-      chart.add_series xData: @sh["B2:B6"], yData: @sh["C2:C6"], title: @sh["A1"], color: "FF0000"
-    end
-=end
-
     @sh.column_widths(*(@form[:col_widths].split(',').map{|w| w == '0' ? nil : w.to_i})) if @form[:col_widths]
 
     xls.serialize(name)
