@@ -358,7 +358,7 @@ before_sql
   datos. De esta forma podríamos hacer un listado totalmente personalizado
   añadiendo bandas manualmente en los métodos 'inicio' o 'final'.
 
-after_create_worbook
+after_create_workbook
   Se dispara justo después de la creación del workbook y antes de la creación
   de la hoja (sheet) que se usará para alojar el listado (@sh). Esto nos
   permite poder crear una hoja de usuario anterior a la principal (p.ej para
