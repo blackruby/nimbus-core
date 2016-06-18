@@ -306,12 +306,202 @@ end
 =begin
 Clase GI
 
-Métodos disponibles para el fuente asociado al formato:
+URLS asociadas
+--------------
+
+/gi ==> Accede a la pantalla principal del GI (a la que te lleva el menú principal).
+/gi/new ==> Accede a la pantalla desde la que se muestran todos los módulos con los
+            modelos correspondientes (la pantalla antigua de inicio).
+/gi/new/Modelo ==> Accede a la creación de un nuevo formato para el "Modelo" indicado.
+/gi/edit/modulo/formato ==> Edita el formato "formato" del módulo "modulo".
+/gi/run/modulo/formato ==> Abre la pantalla de límites para ejecutar el formato
+                           "formato" del módulo "modulo".
+
+En esta última URL se pueden pasar argumentos para indicar valores a límites. P.ej.:
+/gi/run/conta/mayor?L1=00001&L2=99999
+Además de los alias de límites que se hayan especificado en el formato, existe un
+alias que es ':form_type' para indicar el formato de salida (:pdf, :xlsx, :xls)
+Existe un argumento especial llamado 'go' que si tiene valor hará que el listado
+salga directamente sin pasar por la pantalla de límites. Ej.:
+/gi/run/conta/mayor?L1=00001&L2=99999&go=1
+
+Nomenclaturas de 'modulo'
+-------------------------
+
+privado: se refiere a "formatos/_usuarios/usuario"
+publico: "formatos/_publico"
+gestion: "formatos" (sustituir gestión por el nombre apropiado: cope, consejo, etc.)
+modulo: "modulos/modulo/formatos"
+
+Métodos disponibles para definirlos en el fuente asociado al formato
+--------------------------------------------------------------------
 
 ini_campos(f, args)
   Este método se dispara sólo cuando entramos en la ventana de límites
   Recibe dos argumentos:
-    f: es la ficha con la que accedemos a las propiedades de los campos
+    f:    es la ficha con la que accedemos a las propiedades de los campos.
+          Podemos acceder a un límite a través de su alias de dos formas:
+          f.L1 o f[:L1]
+          también está a nuestra disposición el método 'campos' a través del
+          cual podemos acceder a todas las propiedades de éste. P.ej:
+          f.campos[:L1][:manti] = 8
+          f.campos[:L1][:tab] = nil (para que no se muestre el campo en pantalla)
+    args: Es un hash conteniendo todas las parejas clave/valor recibidas
+          en la URL como argumentos.
+
+before_sql
+  Se dispara justo antes de hacer la consulta SQL correspondiente. Si el
+  método le da valor a la variable @data, la SQL no se ejecutará y se usarán
+  los datos contenidos en @data. @data es un array de arrays conteniendo los
+  datos de cada fila que será procesada en el listado. Si le damos el valor:
+  @data = [] conseguiremos que no se ejecute la SQL y además que no haya
+  datos. De esta forma podríamos hacer un listado totalmente personalizado
+  añadiendo bandas manualmente en los métodos 'inicio' o 'final'.
+
+after_create_worbook
+  Se dispara justo después de la creación del workbook y antes de la creación
+  de la hoja (sheet) que se usará para alojar el listado (@sh). Esto nos
+  permite poder crear una hoja de usuario anterior a la principal (p.ej para
+  pintar una página de título independiente).
+
+inicio
+  Se dispara cuando va a comenzar el listado y aún no se ha echado ninguna
+  banda (ni cabecera). Nos permite por ejemplo echar bandas previas a la
+  cabecera, para por ejemplo, dejar hueco para alojar un gráfico estadístico.
+  También nos permitiría alterar los datos en @data antes de empezar a
+  procesarlo. Por ejemplo se podrían añadir "a traición" nuevas filas, o
+  lo contrario, eliminar filas en función de determinadas condiciones.
+  Podría ser un sustituto de fcon_listo (en ewin), pero haciendo el filtro
+  completo de una sola vez y dejando ya los datos definitivos a pintar,
+  evitando así falsas rupturas.
+
+detalle
+  Si existe este método, sustituirá al pintado estándar de la banda de detalle.
+  Significando que asumimos el control y que es responsabilidad del programador
+  el pintar dicha banda. Si tuviéramos:
+  def detalle
+    add_banda
+  end
+  Sería equivalente a no tener el método (lo que se haría por defecto).
+  Se dispara cada vez que se procesa una nueva fila de @data
+
+final
+  Se dispara al final del listado, después de pintar la banda 'pie'
+
+Métodos disponibles para usar dentro de los métodos anteriores
+--------------------------------------------------------------
+
+nueva_hoja(opciones)
+  Sirve para crear una nueva hoja (sheet) en el workbook.
+  'opciones' es un hash con las siguientes posibilidades:
+  name: nombre de la hoja
+  state: :visible|:hidden|:very_hidden (por defecto :visible)
+         Indica la visibilidad de la hoja. Si es :hidden no se pintará
+  page_setup: hash
+              Las opciones de este hash son las descritas en la ayuda del GI
+              para el apartado 'Configuración de página'
+  page_margins: hash
+              Las opciones de este hash son las descritas en la ayuda del GI
+              para el apartado 'Márgenes'
+  print_options: hash
+              Las opciones de este hash son las descritas en la ayuda del GI
+              para el apartado 'Opciones de impresión'
+  Un ejemplo podría ser:
+    nueva_hoja name: 'mi_hoja', page_setup: {orientation: :landscape}
+
+  Al obtener el PDF se imprimirán en orden secuencial de creación todas las
+  hojas cuyo 'state' sea :visible (por defecto)
+
+add_banda(opciones)
+  Añade una nueva banda al listado. 'opciones' es un hash con las siguientes
+  claves (todas opcionales):
+  rupa: nivel de 'ruptura anterior'. Por defecto se usará la que corresponda.
+  rup:  nivel de 'ruptura siguiente'. Por defecto se usará la que corresponda.
+  sheet: Hoja en la queremos echar la banda (por defecto @sh)
+  ban: Banda que queremos echar (por defecto :det). La nomenclatura de las bandas
+       es la siguiente:
+       :cab    Banda de cabecera
+       :det    Banda de detalle
+       :pie    Banda de pie
+       'rcn'   Banda de cabecera de ruptura 'n', siendo 0 la más exterior
+       'rpn'   Banda de pie de ruptura 'n', siendo 0 la más exterior
+       :bu_xx  Banda de usuario cuyo nombre es 'xx'
+       :_blank Banda en blanco (para separador, por ejemplo)
+       nil     Ninguna banda
+  valores: Es un hash cuyas claves son alias de celdas y sus valores el valor que
+           queremos asignarles.
+
+  Si al añadir una banda especificamos 'ban: nil' querrá decir que no queremos
+  pintar ninguna banda, pero sí gestionar las rupturas y por lo tanto dichas
+  bandas (de ruptura) sí se pintarán.
+
+val_select(cmp)
+  Devuelve el valor del campo 'cmp'. El valor de 'cmp' puede ser o bien 'Sn'
+  refiriéndose al enésimo campo de la lista de Selects en el formato, o
+  'modelo1.modelo2...campo' para referirse a un campo cualquiera de los usados
+  en el formato. Ejemplos:
+  Si partimos de la tabla 'clientes' (como modelo del formato), podríamos
+  referenciar:
+    'nombre_comercial'
+    'agente.nombre'
+    'agente.pais.codigo'
+
+val_alias(alias, banda)
+  Devuelve el valor del campo cuya celda tiene como alias 'alias' en la
+  banda 'banda'. 'banda' es opcional, y si se omite vale por defecto ':det'
+
+Variables disponibles para usar en los métodos de usuario
+---------------------------------------------------------
+
+@form       Es un hash conteniendo el formato (tal cual está en el .yml)
+@e          Es la ficha de la empresa por defecto
+@dat        Es un hash vacío para poder almacenar variables de usuario
+@data       Es un array de arrays conteniendo todas las filas de datos
+            que se pintarán
+@wb         Referencia al workbook
+@sh         Hoja (sheet) principal
+@di         Índice de datos (indica el índice en @data que se está procesando)
+@ri         Índice de fila (row) por el que vamos en la Excel en la hoja @sh
+@ris[hoja]  Índice de fila (row) por el que vamos en la Excel en la hoja 'hoja'
+            @ris[@sh] sería equivalente a @ri. Si hemos creado una hoja p.ej.:
+            @dat[:mi_hoja] = nueva_hoja name: 'mi_hoja'
+            sabríamos el índice de fila por el que vamos con @ris[@dat[:mi_hoja]]
+@rupa       Ruptura con fila anterior actual
+@rup        Ruptura con fila siguiente actual
+@rup_ini[i] Índice de la primera fila de detalle correspondiente a la ruptura i.
+            Siendo 0 el índice de la ruptura más exterior.
+@fx         Es un hash con el valor calculado de las fórmulas de usuario.
+            @fx[:F1] nos daría el valor de la fórmula 'F1'
+@lim        Es un hash con el valor de los campos usados para límites.
+            @lim[:L1] nos daría el valor del campo asociado al límite 'L1'
+
+Ejemplos de gráficos estadísticos que se podrían añadir
+-------------------------------------------------------
+
+@sh.add_chart(Axlsx::Pie3DChart, start_at: "D1", end_at: "J15", title: 'Tarta') do |chart|
+  chart.add_series data: @sh["B2:B6"], labels: @sh["A2:A6"], title: 'Hola', colors: ["00FF00", "0000FF", "FF0000", "d3d3d3", "FFA015"]
+end
+
+@sh.add_chart(Axlsx::Bar3DChart, start_at: "D16", end_at: "J30", title: 'Barras') do |chart|
+  chart.add_series data: @sh["B2:B6"], labels: @sh["A2:A6"], colors: ["00FF00", "0000FF", "FF0000", "d3d3d3", "FFA015"]
+  chart.valAxis.gridlines = true
+  chart.catAxis.gridlines = true
+  chart.catAxis.label_rotation = 45
+  chart.catAxis.color = "888888"
+  chart.show_legend = false
+  chart.bar_dir = :col
+end
+
+@sh.add_chart(Axlsx::LineChart, title: 'Línea', start_at: "D30", end_at: "M50") do |chart|
+  chart.add_series data: @sh["B2:B6"], title: @sh["A1"], color: "00FF00"
+  chart.add_series data: @sh["C2:C6"], title: @sh["C1"], color: "0000FF", show_marker: true, smooth: true
+  chart.catAxis.title = 'X Axis'
+  chart.valAxis.title = 'Y Axis'
+end
+
+@sh.add_chart(Axlsx::ScatterChart, start_at: "D51", end_at: "M70", title: 'Scatter') do |chart|
+  chart.add_series xData: @sh["B2:B6"], yData: @sh["C2:C6"], title: @sh["A1"], color: "FF0000"
+end
 =end
 
 class GI
@@ -348,7 +538,8 @@ class GI
   end
 
   def val_select(ali)
-    i = (ali[0] == 'S' ? @ali_sel.index(ali.to_sym) : @vpluck.index(ali))
+    #i = (ali[0] == 'S' ? @ali_sel.index(ali.to_sym) : @vpluck.index(ali))
+    i = (ali[0] == 'S' ? @ali_sel.index(ali.to_sym) : @ali_cmp[ali])
     i ? @d[i] : nil
   end
 
@@ -407,6 +598,7 @@ class GI
 
     return unless lim
 
+    @dat = {} # Hash vacío para poder incluir variables de usuario
     @e = Empresa.find_by(id: lim[:eid]) if lim[:eid]
 
     @form[:modelo] = @form[:modelo].constantize if @form[:modelo]
@@ -496,11 +688,13 @@ class GI
       ms = mselect_parse @form[:modelo], @msel
 
       # procesar vpluck (2ª vuelta)
+      @ali_cmp = {}
       nsel = @form[:select].size
       @vpluck.size.times {|i|
         if i < nsel # Los primeros son los selects
           @vpluck[i] = alias_cmp_db(@vpluck[i], ms[:alias_cmp])
         else
+          @ali_cmp[@vpluck[i]] = i
           @vpluck[i] = ms[:alias_cmp][@vpluck[i]][:cmp_db]
         end
       }
@@ -672,12 +866,14 @@ class GI
     ds = @data.size - 1
     @nr = @form[:rup] ? @form[:rup].size : 0
 
-    @di = 0
     @ri = 1
     @rupa = @rup = 0
     @d = @data[0]
+    @di = 0
 
     inicio if self.respond_to?(:inicio)
+    @d = @data[0] # Por si 'inicio' ha alterado el array @data
+    @di = 0
 
     # Añadir banda de cabecera
     row_ini_cab = @ri

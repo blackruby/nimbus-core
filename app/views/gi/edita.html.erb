@@ -147,6 +147,7 @@
     <col width="130">
     <tr><td class="subtit"><label for="asist_lim_ref">Campo referencia:</label></td> <td><input id="asist_lim_ref" class="i_cmp admite_campo"/></td></tr>
     <tr><td class="subtit"><label for="asist_lim_alias">Alias:</label></td> <td><input id="asist_lim_alias" class="i_cmp"/></td></tr>
+    <tr><td class="subtit"><label for="asist_lim_pk">Tratar como PK:</label></td> <td><input id="asist_lim_pk" type="checkbox" checked/></td></tr>
     <tr><td class="subtit"><label for="asist_lim_label">Generar etiqueta:</label></td> <td><input id="asist_lim_label" type="checkbox" checked/></td></tr>
     <tr>
       <td class="subtit"><label for="asist_lim_cond">Tipo condición:</label></td>
@@ -754,7 +755,7 @@
 
     if (node.id) {
 
-    } else if (node.pk) {
+    } else if (node.pk && $("#asist_lim_pk").is(":checked")) {
       ali += '_id';
       var ref = node.parent.id;
       if (!ref) ref = modelo;
@@ -809,7 +810,7 @@
     var ali = $("#asist_lim_alias").val();
     var node = $("#asist_lim_ref").data("cmp");
     if (node) {
-      if (node.manti && !node.pk) prop += ", manti: " + node.manti;
+      if (node.manti && !(node.pk && $("#asist_lim_pk").is(":checked"))) prop += ", manti: " + node.manti;
       if (node.decim) prop += ", decim: " + node.decim;
 
       var cond = $("#asist_lim_cond").val();
@@ -834,6 +835,7 @@
       $("#asist_lim_alias").val(nextItem('t_lim', 'L', '_'));
       $("#asist_lim_cond").val('eq');
       $("#asist_lim_wh").val('wh');
+      $("#asist_lim_pk").attr("disabled", true);
       $("#asist_lim").dialog('open');
       return;
     }
@@ -1397,6 +1399,7 @@
         var sel = lastCmp.caret();
         if (lastCmp.is("#asist_lim_ref")) {
           lastCmp.val('~' + fullCampo(event.node) + '~').data("cmp", event.node);
+          if (event.node.pk) $("#asist_lim_pk").attr("disabled", false).prop("checked", true); else $("#asist_lim_pk").attr("disabled", true);
         } else
           lastCmp.val(v.slice(0, sel.begin) + '~' + fullCampo(event.node) + '~' + v.slice(sel.end));
 
