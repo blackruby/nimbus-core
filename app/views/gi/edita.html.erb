@@ -835,7 +835,7 @@
       $("#asist_lim_alias").val(nextItem('t_lim', 'L', '_'));
       $("#asist_lim_cond").val('eq');
       $("#asist_lim_wh").val('wh');
-      $("#asist_lim_pk").attr("disabled", true);
+      $("#asist_lim_pk").attr("disabled", true).prop("checked", false);
       $("#asist_lim").dialog('open');
       return;
     }
