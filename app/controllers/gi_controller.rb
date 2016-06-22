@@ -375,6 +375,12 @@ inicio
   completo de una sola vez y dejando ya los datos definitivos a pintar,
   evitando así falsas rupturas.
 
+cabecera
+  Si existe, sustituirá al pintado de la banda de cabecera (:cab) siendo
+  responsabilidad del programador el añadir dicha banda (add_banda :cab).
+  Se considerará cabecera (en el sentido de las filas que se repetirán
+  como título en cada página) a todo lo que pinte este método.
+
 detalle
   Si existe este método, sustituirá al pintado estándar de la banda de detalle.
   Significando que asumimos el control y que es responsabilidad del programador
@@ -384,6 +390,10 @@ detalle
   end
   Sería equivalente a no tener el método (lo que se haría por defecto).
   Se dispara cada vez que se procesa una nueva fila de @data
+
+pie
+  Si existe, sustituirá al pintado de la banda de pie (:pie) siendo
+  responsabilidad del programador el añadir dicha banda (add_banda :pie).
 
 final
   Se dispara al final del listado, después de pintar la banda 'pie'
@@ -860,9 +870,6 @@ class GI
       }
     end
 
-    # Inicializar vector de rupturas (para llevar la fila de inicio de cada una)
-    @rup_ini = [@form[:cab].size + 1]
-
     ds = @data.size - 1
     @nr = @form[:rup] ? @form[:rup].size : 0
 
@@ -875,13 +882,20 @@ class GI
     @d = @data[0] # Por si 'inicio' ha alterado el array @data
     @di = 0
 
-    # Añadir banda de cabecera
+    # Añadir banda de cabecera (si no hay método específico)
     row_ini_cab = @ri
-    add_banda rupa: 0, rup: 0, ban: :cab
+    if self.respond_to?(:cabecera)
+      method(:cabecera).call
+    else
+      add_banda rupa: 0, rup: 0, ban: :cab
+    end
 
     # Fijar las filas de cabecera para repetir en cada página
     #@wb.add_defined_name("Uno!$1:$#{@form[:cab].size}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
     @wb.add_defined_name("Uno!$#{row_ini_cab}:$#{@ri - 1}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
+
+    # Inicializar vector de rupturas (para llevar la fila de inicio de cada una)
+    @rup_ini = [@form[:cab].size + @ri - 1]
 
     @data.each_with_index {|dat, di|
       dat = [dat] unless dat.is_a?(Array)
@@ -992,7 +1006,11 @@ class GI
     @rupa = @rup = 0
 
     # Añadir banda de pie
-    add_banda ban: :pie
+    if self.respond_to?(:pie)
+      method(:pie).call
+    else
+      add_banda rupa: 0, rup: 0, ban: :pie
+    end
 
     # Método de final si existe
     final if self.respond_to?(:final)
