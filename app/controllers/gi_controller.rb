@@ -623,9 +623,15 @@ class GI
     end
 
     #@form[:tit_i] = '&B' + (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') + '&B' if @form[:tit_i].empty?
-    @form[:tit_i] = '&B' + @e.try(:nombre) + '&B' if @form[:tit_i].empty?
-    @form[:tit_d] = '&P de &N' if @form[:tit_d].empty?
-    @form[:tit_c] = '&BListado de ' + nt(@form[:modelo].table_name) + '&B' if @form[:tit_c].empty? and @form[:modelo]
+    @form[:tit_i] = '&B' + @e.try(:nombre) + '&B' if @form[:tit_i].strip.empty?
+    @form[:tit_d] = '&P de &N' if @form[:tit_d].strip.empty?
+    if @form[:tit_c].strip.empty?
+      if @form[:descripcion].strip.empty?
+        @form[:tit_c] = '&BListado de ' + nt(@form[:modelo].table_name) + '&B' if @form[:modelo]
+      else
+        @form[:tit_c] = @form[:descripcion].dup
+      end
+    end
 
     before_sql if self.respond_to?(:before_sql)
 
@@ -782,6 +788,7 @@ class GI
       #sheet.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : @sty[:def]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}, height: @form[:row_height]
       sheet.add_row res, style: r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}, height: @form[:row_height]
       @ris[sheet] += 1
+      @ri_act += 1
       @ri += 1 if sheet == @sh
     }
     merg.each {|m| @sh.merge_cells(m)}
