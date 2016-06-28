@@ -10,7 +10,7 @@ class Pais < ActiveRecord::Base
   after_initialize :ini_campos
 
   def ini_campos
-    self.tipo = 'R' if self.new_record?
+    self.tipo ||= 'R' if self.new_record?
   end
 end
 
