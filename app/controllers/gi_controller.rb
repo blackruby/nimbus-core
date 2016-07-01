@@ -616,6 +616,7 @@ class GI
     @form[:page_margins] = eval("{#{@form[:page_margins]}}")
     @form[:page_setup] = eval("{#{@form[:page_setup]}}")
     @form[:print_options] = eval("{#{@form[:print_options]}}")
+    @form[:print_options][:grid_lines] = true if @form[:pingrid]
     if @form[:row_height] and !@form[:row_height].strip.empty?
       @form[:row_height] = @form[:row_height].to_i
     else
@@ -625,7 +626,7 @@ class GI
     #@form[:tit_i] = '&B' + (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') + '&B' if @form[:tit_i].empty?
     @form[:tit_i] = '&B' + @e.try(:nombre) + '&B' if @form[:tit_i].strip.empty?
     @form[:tit_d] = '&P de &N' if @form[:tit_d].strip.empty?
-    if @form[:tit_c].strip.empty?
+    if @form[:tit_c].empty?
       if @form[:descripcion].strip.empty?
         @form[:tit_c] = '&BListado de ' + nt(@form[:modelo].table_name) + '&B' if @form[:modelo]
       else
@@ -633,14 +634,14 @@ class GI
       end
     end
 
-    before_sql if self.respond_to?(:before_sql)
-
     @vpluck = []
     @msel = []
     @ali_sel = []
     @alias = {}
     @lim = lim
     @fx = {}
+
+    before_sql if self.respond_to?(:before_sql)
 
     # Procesar select (1ª vuelta)
     @form[:select].each {|k, v|
@@ -784,14 +785,15 @@ class GI
           merg << "#{('A'.ord + i).chr}#{@ri_act}:#{('A'.ord + i + c[:colspan].to_i).chr}#{@ri_act + c[:rowspan].to_i}"
         end
       }
-      #@sh.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : nil}, widths: [:ignore, 10, :ignore], height: 0
-      #sheet.add_row res, style: r.map {|c| c[:estilo] ? @sty[c[:estilo].to_sym] : @sty[:def]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}, height: @form[:row_height]
-      sheet.add_row res, style: r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}, height: @form[:row_height]
+      sty = r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}
+      typ = r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}
+      #sheet.add_row res, style: r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}, height: @form[:row_height]
+      sheet.add_row res, style: sty, types: typ, height: @form[:row_height]
       @ris[sheet] += 1
       @ri_act += 1
       @ri += 1 if sheet == @sh
     }
-    merg.each {|m| @sh.merge_cells(m)}
+    merg.each {|m| sheet.merge_cells(m)}
   end
 
   def add_banda(rupa: @rupa, rup: @rup, ban: :det, valores: {}, sheet: @sh)
@@ -826,17 +828,35 @@ class GI
   def new_style(s, st)
     if s.is_a? Array
       s.each {|a|
-        (a.is_a? Symbol) ? new_style(@form[:style][a], st) : st.merge!(a)
+        (a.is_a? Symbol) ? new_style(@form[:style][a], st) : st.deep_merge!(a)
       }
     else
-      st.merge!(s)
+      st.deep_merge!(s)
     end
   end
 
   def nueva_hoja(args)
     sh = @wb.add_worksheet(args)
     @ris[sh] = 1
+
+    unless args[:header_footer]
+      sh.header_footer.odd_header = "&L#{@form[:tit_i]}&C#{@form[:tit_c]}&R#{@form[:tit_d]}"
+      sh.header_footer.odd_footer = "&L#{@form[:pie_i]}&C#{@form[:pie_c]}&R#{@form[:pie_d]}"
+    end
+    sh.page_setup.set(@form[:page_setup]) unless args[:page_setup]
+    sh.page_margins.set(@form[:page_margins]) unless args[:page_margins]
+    sh.print_options.set(@form[:print_options]) unless args[:print_options]
+    #sh.print_options.grid_lines = true if @form[:pingrid]
+
     sh
+  end
+
+  def set_col_widths(sheet=@sh, w=@form[:col_widths])
+    if w.is_a? Array
+      sheet.column_widths(*w)
+    else
+      sheet.column_widths(*(w.split(',').map{|a| a == '0' ? nil : a.to_i}))
+    end
   end
 
   def gen_xls(name=nil)
@@ -859,13 +879,6 @@ class GI
     after_create_worbook if self.respond_to?(:after_create_worbook)
 
     @sh = nueva_hoja name: 'Uno'
-
-    @sh.header_footer.odd_header = "&L#{@form[:tit_i]}&C#{@form[:tit_c]}&R#{@form[:tit_d]}"
-    @sh.header_footer.odd_footer = "&L#{@form[:pie_i]}&C#{@form[:pie_c]}&R#{@form[:pie_d]}"
-    @sh.page_setup.set(@form[:page_setup])
-    @sh.page_margins.set(@form[:page_margins])
-    @sh.print_options.set(@form[:print_options])
-    @sh.print_options.grid_lines = true if @form[:pingrid]
 
     # Añadir estilos
     if @form[:style]
@@ -1022,7 +1035,8 @@ class GI
     # Método de final si existe
     final if self.respond_to?(:final)
 
-    @sh.column_widths(*(@form[:col_widths].split(',').map{|w| w == '0' ? nil : w.to_i})) if @form[:col_widths]
+    #@sh.column_widths(*(@form[:col_widths].split(',').map{|w| w == '0' ? nil : w.to_i})) if @form[:col_widths]
+    set_col_widths
 
     xls.serialize(name)
     return name
