@@ -802,8 +802,6 @@ class GI
       return
     end
 
-    @ris[sheet]
-
     (@nr - rupa...@nr).each {|i|
       @ban = "rc#{i}"
       @rupi = i + 1
