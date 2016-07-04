@@ -23,6 +23,7 @@
             <td>Formato</td>
             <td>Modelo</td>
             <td>Descripción</td>
+            <td>Comentario</td>
           </tr>
         </thead>
         <% forms.each do |form| %>
@@ -30,6 +31,7 @@
             <td class="formato"><%= form[0] %></td>
             <td><%= form[1] %></td>
             <td><%= form[2] %></td>
+            <td><%= form[3] %></td>
           </tr>
         <% end %>
       </table>

@@ -30,15 +30,14 @@ class GiController < ApplicationController
 
       @forms[mod] ||= []
       if ext
-        modelo = desc = ''
+        modelo = desc = com = ''
         open(fic, 'r').each_with_index {|l, i|
           break if i > 3
-          #modelo = l[9..-1] if l.starts_with?(':modelo:')
-          #desc = l[14..-1] if l.starts_with?(':descripcion:')
           modelo = YAML.load(l)[:modelo] if l.starts_with?(':modelo:')
           desc = YAML.load(l)[:descripcion] if l.starts_with?(':descripcion:')
+          com = YAML.load(l)[:comentario] if l.starts_with?(':comentario:')
         }
-        @forms[mod] << [ficb[0..-5], modelo, desc]
+        @forms[mod] << [ficb[0..-5], modelo, desc, com]
       else
         @forms[mod] << ficb[0..-5]
       end
@@ -532,7 +531,7 @@ class GI
 
     # Cargar fuentes si existen
     if cl
-      cl.instance_eval(File.read(path + form[:fuente] + '.rb')) if File.exists?(path + form[:fuente] + '.rb')
+      cl.instance_eval(File.read(path + form[:fuente] + '.rb')) if File.exists?(path + form[:fuente].to_s + '.rb')
       cl.instance_eval(File.read(path + file + '.rb')) if File.exists?(path + file + '.rb')
     end
 
@@ -630,7 +629,7 @@ class GI
     @form[:tit_i] = '&B' + @e.try(:nombre) + '&B' if @form[:tit_i].strip.empty?
     @form[:tit_d] = '&P de &N' if @form[:tit_d].strip.empty?
     if @form[:tit_c].empty?
-      if @form[:descripcion].strip.empty?
+      if @form[:descripcion].to_s.strip.empty?
         @form[:tit_c] = '&BListado de ' + nt(@form[:modelo].table_name) + '&B' if @form[:modelo]
       else
         @form[:tit_c] = @form[:descripcion].dup
@@ -1020,7 +1019,7 @@ class GI
       if self.respond_to?(:detalle)
         method(:detalle).call
       else
-        add_banda ban: (eval(@form[:detalle_cond]) ? nil : :det)
+        add_banda ban: (eval(@form[:detalle_cond].to_s) ? nil : :det)
       end
     }
 
