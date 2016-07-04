@@ -518,22 +518,25 @@ class GI
   def self.formato_read(modulo, file, user, cl=nil)
     case modulo
       when '', '_', Rails.app_class.to_s.split(':')[0].downcase
-        path = "formatos/#{file}"
+        path = "formatos/"
       when 'publico'
-        path = "formatos/_publico/#{file}"
+        path = "formatos/_publico/"
       when 'privado'
-        path = "formatos/_usuarios/#{user}/#{file}"
+        path = "formatos/_usuarios//#{file}"
       else
-        path = "modulos/#{modulo}/formatos/#{file}"
-    end
-
-    # Cargar fuente si existe
-    if cl and File.exists?(path + '.rb')
-      cl.instance_eval(File.read(path + '.rb'))
+        path = "modulos/#{modulo}/formatos/"
     end
 
     # Cargar formato
-    YAML.load(File.read(path + '.yml'))
+    form = YAML.load(File.read(path + file + '.yml'))
+
+    # Cargar fuentes si existen
+    if cl
+      cl.instance_eval(File.read(path + form[:fuente] + '.rb')) if File.exists?(path + form[:fuente] + '.rb')
+      cl.instance_eval(File.read(path + file + '.rb')) if File.exists?(path + file + '.rb')
+    end
+
+    form
   end
 
   def alias_cmp_db(cad, h_alias)
