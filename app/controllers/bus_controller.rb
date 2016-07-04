@@ -254,7 +254,7 @@ class BusController < ApplicationController
   def genera_grid(kh, kv)
     mp = mselect_parse(@dat[:mod], @dat[:cols].map{|k, v| v[:label]})
     @dat[:cad_sel] = mp[:cad_sel]
-    jemej = @dat[:join_emej].empty? ? '' : ljoin_parse(@dat[:mod], @dat[:join_emej] + '(t_emej)')[:cad]
+    jemej = @dat[:join_emej].to_s.empty? ? '' : ljoin_parse(@dat[:mod], @dat[:join_emej] + '(t_emej)')[:cad]
     @dat[:cad_join] = mp[:cad_join] + ' ' + jemej
 
     col_mod = @dat[:cols].map {|k, c|
