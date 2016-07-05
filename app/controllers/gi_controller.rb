@@ -636,6 +636,8 @@ class GI
       end
     end
 
+    @nr = @form[:rup] ? @form[:rup].size : 0
+
     @vpluck = []
     @msel = []
     @ali_sel = []
@@ -891,7 +893,6 @@ class GI
     end
 
     ds = @data.size - 1
-    @nr = @form[:rup] ? @form[:rup].size : 0
 
     @ri = 1
     @rupa = @rup = 0
