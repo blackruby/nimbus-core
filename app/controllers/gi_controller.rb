@@ -892,8 +892,6 @@ class GI
       }
     end
 
-    ds = @data.size - 1
-
     @ri = 1
     @rupa = @rup = 0
     @d = @data[0]
@@ -902,6 +900,7 @@ class GI
     inicio if self.respond_to?(:inicio)
     @d = @data[0] # Por si 'inicio' ha alterado el array @data
     @di = 0
+    ds = @data.size - 1
 
     # Añadir banda de cabecera (si no hay método específico)
     row_ini_cab = @ri
