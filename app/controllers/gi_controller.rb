@@ -647,6 +647,8 @@ class GI
 
     before_sql if self.respond_to?(:before_sql)
 
+    @nr = @form[:rup] ? @form[:rup].size : 0 # Por si before_sql altera el número de rupturas
+
     # Procesar select (1ª vuelta)
     @form[:select].each {|k, v|
       @ali_sel << k
@@ -708,6 +710,8 @@ class GI
       #@data = @form[:modelo].select(@form[:select]).ljoin(@form[:join]).where(@form[:where], lim).order(@form[:order])
       ms = mselect_parse @form[:modelo], @msel
 
+      @join = ms[:cad_join]
+
       # procesar vpluck (2ª vuelta)
       @ali_cmp = {}
       nsel = @form[:select].size
@@ -721,10 +725,10 @@ class GI
       }
 
       # procesar where (2ª vuelta)
-      wh = ''
+      @where = ''
       @form[:where].each {|_, v|
-        wh << ' AND ' unless wh.empty?
-        wh << alias_cmp_db(v, ms[:alias_cmp])
+        @where << ' AND ' unless @where.empty?
+        @where << alias_cmp_db(v, ms[:alias_cmp])
       }
 
       # procesar order (2ª vuelta)
@@ -734,18 +738,18 @@ class GI
       @form[:group] = alias_cmp_db(@form[:group], ms[:alias_cmp])
 
       # procesar having (2ª vuelta)
-      ha = ''
+      @having = ''
       @form[:having].each {|_, v|
-        ha << ' AND ' unless ha.empty?
-        ha << alias_cmp_db(v, ms[:alias_cmp])
+        @having << ' AND ' unless @having.empty?
+        @having << alias_cmp_db(v, ms[:alias_cmp])
       }
 
       # procesar join (2ª vuelta)
       @form[:join] = alias_cmp_db(@form[:join], ms[:alias_cmp])
 
       # Obtener la query
-      #@data = @form[:modelo].joins(ms[:cad_join]).joins(@form[:join]).where(wh, lim).group(@form[:group]).having(ha, lim).order(@form[:order]).limit(200).pluck(*@vpluck)
-      @data = @form[:modelo].joins(ms[:cad_join]).joins(@form[:join]).where(wh, lim).group(@form[:group]).having(ha, lim).order(@form[:order]).pluck(*@vpluck)
+      #@data = @form[:modelo].joins(@join).joins(@form[:join]).where(@where, lim).group(@form[:group]).having(@having, lim).order(@form[:order]).limit(200).pluck(*@vpluck)
+      @data = @form[:modelo].joins(@join).joins(@form[:join]).where(@where, lim).group(@form[:group]).having(@having, lim).order(@form[:order]).pluck(*@vpluck)
     end
   end
 
