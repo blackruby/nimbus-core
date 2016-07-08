@@ -11,6 +11,10 @@ class GiMod
 end
 
 class GiController < ApplicationController
+  Colors = %w(4D4D4D 5DA5DA FAA43A 60BD68 F17CB0 B2912F B276B2 DECF3F F15854)
+  Colors20 = %w(278ECF 4BD762 FFCA1F FF9416 D42AE8 535AD7 FF402C 83BFFF 6EDB8F FFE366 FFC266 D284BD 8784DB FF7B65 CAEEFC 9ADBAD FFF1B2 FFE0B2 FFBEB2 B1AFDB)
+  Colors20d = %w(278ECF 4BD762 FFCA1F FF9416 D42AE8 535AD7 FF402C 83BFFF 6EDB8F 4D4D4D FFC266 D284BD 8784DB FF7B65 CAEEFC 9ADBAD FFF1B2 FFE0B2 FFBEB2 B1AFDB)
+
   def nuevo_mod(mod, path)
     Dir.glob(path).sort.each {|fic|
       ficb = Pathname(fic).basename.to_s
@@ -527,7 +531,7 @@ class GI
       when 'publico'
         path = "formatos/_publico/"
       when 'privado'
-        path = "formatos/_usuarios//#{file}"
+        path = "formatos/_usuarios/#{user}/"
       else
         path = "modulos/#{modulo}/formatos/"
     end
@@ -784,7 +788,19 @@ class GI
       return c
     end
 =end
-    c ? eval(c) : nil
+    if c
+      begin
+        eval(c)
+      rescue Exception => e
+        Rails.logger.fatal "######## ERROR al evaluar '#{c}'"
+        Rails.logger.fatal e.message
+        Rails.logger.fatal e.backtrace[0..10]
+        Rails.logger.fatal '############################'
+        '¡ERROR!'
+      end
+    else
+      nil
+    end
   end
 
   def _add_banda(ban, valores={}, sheet)
