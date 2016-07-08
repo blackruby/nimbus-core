@@ -222,7 +222,13 @@ class GiController < ApplicationController
       @fact[c] = params[c] if params[c]
     }
     if @formato.respond_to?(:ini_campos)
-      @formato.method(:ini_campos).arity == 1 ? @formato.ini_campos(@fact) : @formato.ini_campos(@fact, params)
+      if @formato.method(:ini_campos).arity == 1
+        @formato.ini_campos(@fact)
+      elsif @formato.method(:ini_campos).arity == 2
+        @formato.ini_campos(@fact, params)
+      else
+        @formato.ini_campos(@fact, params, @form)
+      end
     end
 
     if @form[:modelo]
@@ -827,7 +833,7 @@ class GI
       @ban = "rp#{i}"
       @rupi = i + 1
       _add_banda(@form[:rup][i][:pie], valores, sheet)
-      @sh.add_page_break("A#{@ris[sheet]}") if @form[:rup][i][:salto]
+      sheet.add_page_break("A#{@ris[sheet]}") if @form[:rup][i][:salto]
     }
   end
 
