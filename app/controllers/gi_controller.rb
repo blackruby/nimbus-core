@@ -11,10 +11,6 @@ class GiMod
 end
 
 class GiController < ApplicationController
-  Colors = %w(4D4D4D 5DA5DA FAA43A 60BD68 F17CB0 B2912F B276B2 DECF3F F15854)
-  Colors20 = %w(278ECF 4BD762 FFCA1F FF9416 D42AE8 535AD7 FF402C 83BFFF 6EDB8F FFE366 FFC266 D284BD 8784DB FF7B65 CAEEFC 9ADBAD FFF1B2 FFE0B2 FFBEB2 B1AFDB)
-  Colors20d = %w(278ECF 4BD762 FFCA1F FF9416 D42AE8 535AD7 FF402C 83BFFF 6EDB8F 4D4D4D FFC266 D284BD 8784DB FF7B65 CAEEFC 9ADBAD FFF1B2 FFE0B2 FFBEB2 B1AFDB)
-
   def nuevo_mod(mod, path)
     Dir.glob(path).sort.each {|fic|
       ficb = Pathname(fic).basename.to_s
@@ -524,6 +520,10 @@ end
 =end
 
 class GI
+  Colors = %w(4D4D4D 5DA5DA FAA43A 60BD68 F17CB0 B2912F B276B2 DECF3F F15854)
+  Colors20 = %w(278ECF 4BD762 FFCA1F FF9416 D42AE8 535AD7 FF402C 83BFFF 6EDB8F FFE366 FFC266 D284BD 8784DB FF7B65 CAEEFC 9ADBAD FFF1B2 FFE0B2 FFBEB2 B1AFDB)
+  Colors20d = %w(278ECF 4BD762 FFCA1F FF9416 D42AE8 535AD7 FF402C 83BFFF 6EDB8F 4D4D4D FFC266 D284BD 8784DB FF7B65 CAEEFC 9ADBAD FFF1B2 FFE0B2 FFBEB2 B1AFDB)
+
   def self.formato_read(modulo, file, user, cl=nil)
     case modulo
       when '', '_', Rails.app_class.to_s.split(':')[0].downcase
@@ -678,45 +678,45 @@ class GI
 
     @form.each {|k, v| gen_alias(k, v) if k.to_s.starts_with?('bu_')}
 
-    # Añadir where de empresa y ejercicio si procede
-    if @form[:filt_emej]
-      if @form[:modelo].respond_to?('ejercicio_path')
-        jp = @form[:modelo].ejercicio_path
-        jpi = jp + (jp.empty? ? '' : '.') + 'ejercicio_id'
-        @form[:where]['_weje'] = '~' + jpi + '~' + ' = :jid'
-      elsif @form[:modelo].respond_to?('empresa_path')
-        ep = @form[:modelo].empresa_path
-        epi = ep + (ep.empty? ? '' : '.') + 'empresa_id'
-        @form[:where]['_wemp'] = '~' + epi + '~' + ' = :eid'
-      end
-    end
-
-    # procesar where (1ª vuelta)
-    @form[:where].each {|_, v|
-      procesa_macros(v, false)
-    }
-
-    # procesar order (1ª vuelta)
-    procesa_macros(@form[:order], false)
-
-    # procesar group (1ª vuelta)
-    procesa_macros(@form[:group], false)
-
-    # procesar having (1ª vuelta)
-    @form[:having].each {|_, v|
-      procesa_macros(v, false)
-    }
-
-    # procesar join (1ª vuelta)
-    procesa_macros(@form[:join], false)
-
-    # Procesar fómulas
-    @form[:formulas].each {|k, v| @form[:formulas][k] = procesa_macros(v)}
-
-    # Procesar condición para pintado de la banda de detalle
-    @form[:detalle_cond] = procesa_macros(@form[:detalle_cond])
-
     unless @data
+      # Añadir where de empresa y ejercicio si procede
+      if @form[:filt_emej]
+        if @form[:modelo].respond_to?('ejercicio_path')
+          jp = @form[:modelo].ejercicio_path
+          jpi = jp + (jp.empty? ? '' : '.') + 'ejercicio_id'
+          @form[:where]['_weje'] = '~' + jpi + '~' + ' = :jid'
+        elsif @form[:modelo].respond_to?('empresa_path')
+          ep = @form[:modelo].empresa_path
+          epi = ep + (ep.empty? ? '' : '.') + 'empresa_id'
+          @form[:where]['_wemp'] = '~' + epi + '~' + ' = :eid'
+        end
+      end
+
+      # procesar where (1ª vuelta)
+      @form[:where].each {|_, v|
+        procesa_macros(v, false)
+      }
+
+      # procesar order (1ª vuelta)
+      procesa_macros(@form[:order], false)
+
+      # procesar group (1ª vuelta)
+      procesa_macros(@form[:group], false)
+
+      # procesar having (1ª vuelta)
+      @form[:having].each {|_, v|
+        procesa_macros(v, false)
+      }
+
+      # procesar join (1ª vuelta)
+      procesa_macros(@form[:join], false)
+
+      # Procesar fómulas
+      @form[:formulas].each {|k, v| @form[:formulas][k] = procesa_macros(v)}
+
+      # Procesar condición para pintado de la banda de detalle
+      @form[:detalle_cond] = procesa_macros(@form[:detalle_cond])
+
       #@data = @form[:modelo].select(@form[:select]).ljoin(@form[:join]).where(@form[:where], lim).order(@form[:order])
       ms = mselect_parse @form[:modelo], @msel
 
