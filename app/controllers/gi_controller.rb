@@ -210,7 +210,7 @@ class GiController < ApplicationController
     @form ? nil : {file: '/public/404.html', status: 404}
   end
 
-  def ini_campos
+  def before_envia_ficha
     @fact.form_type = 'pdf'
     @fact.form_modulo = params[:modulo]
     @fact.form_file = params[:formato]
@@ -615,6 +615,17 @@ class GI
     }
   end
 
+  def eval_tit_macros(cad)
+    if !cad.is_a?(String)
+      cad
+      return
+    end
+    cad.gsub!('#e', @e.codigo)
+    cad.gsub!('#E', @e.nombre)
+    cad.gsub!('#j', @j.codigo)
+    cad.gsub!('#J', @j.descripcion)
+  end
+
   def initialize(modulo, form, user, lim={})
     @form = self.class.formato_read(modulo, form, user, self)
 
@@ -622,6 +633,7 @@ class GI
 
     @dat = {} # Hash vacío para poder incluir variables de usuario
     @e = Empresa.find_by(id: lim[:eid]) if lim[:eid]
+    @j = Ejercicio.find_by(id: lim[:jid]) if lim[:jid]
 
     @form[:modelo] = @form[:modelo].constantize if @form[:modelo]
     @form[:style].each {|k, v| @form[:style][k] = eval("[#{v}]")}
@@ -636,14 +648,16 @@ class GI
     end
 
     #@form[:tit_i] = '&B' + (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') + '&B' if @form[:tit_i].empty?
-    @form[:tit_i] = '&B' + @e.try(:nombre) + '&B' if @form[:tit_i].strip.empty?
-    @form[:tit_d] = '&P de &N' if @form[:tit_d].strip.empty?
+    @form[:tit_i] = @form[:tit_i].empty? ? '&B' + @e.try(:nombre) + '&B' : eval_tit_macros(@form[:tit_i])
+    @form[:tit_d] = @form[:tit_d].empty? ? '&P de &N' : eval_tit_macros(@form[:tit_d])
     if @form[:tit_c].empty?
       if @form[:descripcion].to_s.strip.empty?
         @form[:tit_c] = '&BListado de ' + nt(@form[:modelo].table_name) + '&B' if @form[:modelo]
       else
         @form[:tit_c] = @form[:descripcion].dup
       end
+    else
+      eval_tit_macros(@form[:tit_c])
     end
 
     @nr = @form[:rup] ? @form[:rup].size : 0
