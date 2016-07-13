@@ -620,10 +620,13 @@ class GI
       cad
       return
     end
-    cad.gsub!('#e', @e.codigo)
-    cad.gsub!('#E', @e.nombre)
-    cad.gsub!('#j', @j.codigo)
-    cad.gsub!('#J', @j.descripcion)
+    begin
+      cad.gsub!('#e', @e.codigo)
+      cad.gsub!('#E', @e.nombre)
+      cad.gsub!('#j', @j.codigo)
+      cad.gsub!('#J', @j.descripcion)
+    rescue
+    end
   end
 
   def initialize(modulo, form, user, lim={})
