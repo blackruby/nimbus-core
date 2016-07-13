@@ -33,6 +33,7 @@ Rails.application.routes.draw do
   post 'gi/fon_server' => 'gi#fon_server'
 
   get 'application/auto' => 'application#auto'
+  get 'nim_download' => 'application#nim_download'
   post 'application/destroy_vista' => 'application#destroy_vista'
 
   post 'pref_user' => 'usuarios#pref_user'

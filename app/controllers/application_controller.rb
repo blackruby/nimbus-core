@@ -1355,7 +1355,7 @@ class ApplicationController < ActionController::Base
   # }
 
   def crea_grid(opts)
-    cmp = opts[:cmp]
+    cmp = opts[:cmp].to_sym
     return unless cmp
 
     modo = opts[:modo] ? opts[:modo].to_sym : :sel
@@ -1416,8 +1416,9 @@ class ApplicationController < ActionController::Base
       }
     end
 
-    @ajax << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data_grid.to_json}, '#{modo}');"
+    @ajax << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data_grid.to_json});"
 
+    @fact.campos[cmp][:grid_emb] = {opts: opts, data: data} if opts[:export]
     case modo
       when :ed
         @fact[cmp] = HashForGrids.new(opts[:cols], data)
@@ -1536,6 +1537,47 @@ class ApplicationController < ActionController::Base
       #@fact.method(campo + '=').call(params[:row].to_i)
       @fact[campo] = params[:row].to_i
     end
+  end
+
+  def nim_download
+    if flash[:file]
+      file_name = flash[:file]
+    else
+      render file: '/public/401.html', status: 401, layout: false
+      return
+    end
+
+    send_data File.read(file_name), filename: flash[:file_cli] || file_name
+    if flash[:rm]
+      FileUtils.rm file_name, force: true
+    end
+  end
+
+  def grid_local_export
+    return unless @v
+
+    cmp = params[:cmp].to_sym
+    cols = @fact.campos[cmp][:grid_emb][:opts][:cols]
+    data = @fact.campos[cmp][:grid_emb][:data]
+    nc = cols.size
+
+    xls = Axlsx::Package.new
+    wb = xls.workbook
+    sh = wb.add_worksheet(:name => "Hoja1")
+
+    sh.add_row(cols.map {|v| v[:label] || v[:name]})
+
+    data.each {|r| sh.add_row(r[1..nc])}
+
+    # Fijar la fila de cabecera para repetir en cada página
+    wb.add_defined_name("Hoja1!$1:$1", :local_sheet_id => sh.index, :name => '_xlnm.Print_Titles')
+
+    file_name = "/tmp/nim#{@v.id}.xlsx"
+    xls.serialize(file_name)
+    @ajax << "window.location.href='/nim_download';"
+    flash[:file] = file_name
+    flash[:file_cli] = @fact.campos[cmp][:grid_emb][:opts][:export] + '.xlsx'
+    flash[:rm] = true
   end
 
   def validar

@@ -809,10 +809,10 @@ class GI
       begin
         eval(c)
       rescue Exception => e
-        Rails.logger.fatal "######## ERROR al evaluar '#{c}'"
-        Rails.logger.fatal e.message
-        Rails.logger.fatal e.backtrace[0..10]
-        Rails.logger.fatal '############################'
+        Rails.logger.debug "######## ERROR al evaluar '#{c}'"
+        Rails.logger.debug e.message
+        Rails.logger.debug e.backtrace[0..10]
+        Rails.logger.debug '############################'
         '¡ERROR!'
       end
     else

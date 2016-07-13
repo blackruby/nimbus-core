@@ -414,7 +414,6 @@ function calc_code(v, tam, pref, rell) {
 }
 
 function vali_code(c, tam, pref, rell) {
-  console.log('AA', c, 'AA', c.val());
   c.val(calc_code(c.val(), tam, pref, rell));
   send_validar(c, c.val());
 }
@@ -736,11 +735,13 @@ function quitaBusy() {
   $(".mdl-spinner").remove();
 }
 
-function creaMdlButton(id, siz, mb, fsiz, icon) {
+function creaMdlButton(id, siz, mb, fsiz, icon, title) {
+  if (title == undefined) title = '';
   return(
     '<button id="' + id + '" ' +
     'class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" ' +
     'style="margin-bottom: ' + mb + 'px;height: ' + siz + 'px;width: ' + siz + 'px;min-width: ' + siz + 'px;" ' +
+    'title="' + title + '" ' +
     '>' +
     '<i class="material-icons" style="font-size: ' + fsiz + 'px">' + icon + '</i>' +
     '</button>'
@@ -776,7 +777,7 @@ function setDataGridLocal(cmp, data) {
     g.jqGrid("setCell", c[0], c[1], c[2]);
 }
 
-function creaGridLocal(opts, data, modo) {
+function creaGridLocal(opts, data) {
   var cmp = opts.cmp;
   $("#" + cmp).html("").append('<table id="g_' + cmp + '"></table>');
   var g = $("#g_" + cmp);
@@ -788,7 +789,7 @@ function creaGridLocal(opts, data, modo) {
   if (caption) delete grid.caption; else caption = '';
 
   var grid_a;
-  switch(modo) {
+  switch(opts.modo) {
     case 'ed':
       grid_a = {
         cellEdit: true,
@@ -835,20 +836,20 @@ function creaGridLocal(opts, data, modo) {
     altRows: true
   }, grid_a, grid));
 
-  switch(modo) {
+  switch(opts.modo) {
     case 'ed':
       g.jqGrid('bindKeys');
       ht = '<div class="nim-titulo">' + caption + '&nbsp;&nbsp;&nbsp;&nbsp;';
       if (opts.ins) {
-        ht += creaMdlButton('b_ib_' + cmp, 30, 2, 22, 'vertical_align_bottom');
+        ht += creaMdlButton('b_ib_' + cmp, 30, 2, 22, 'vertical_align_bottom', 'Insertar fila al final');
         if (opts.ins == 'pos') {
           ht += '&nbsp;&nbsp;';
-          ht += creaMdlButton('b_it_' + cmp, 30, 2, 22, 'vertical_align_center');
+          ht += creaMdlButton('b_it_' + cmp, 30, 2, 22, 'vertical_align_center', 'Insertar fila');
         }
       }
       if (opts.del) {
         ht += '&nbsp;&nbsp;';
-        ht += creaMdlButton('b_d_' + cmp, 30, 2, 22, 'delete');
+        ht += creaMdlButton('b_d_' + cmp, 30, 2, 22, 'delete', 'Borrar fila');
       }
       ht +=  '</div>';
       $('#gbox_g_' + cmp).prepend(ht);
@@ -872,7 +873,15 @@ function creaGridLocal(opts, data, modo) {
       });
       break;
     default :
-      if (caption != '') $('#gbox_g_' + cmp).prepend('<div class="nim-titulo">' + caption + '</div>');
+      if (caption != '') $('#gbox_g_' + cmp).prepend('<div class="nim-titulo">' + caption + '&nbsp;&nbsp;&nbsp;&nbsp;' + '</div>');
+  }
+  if (opts.export) {
+    $("#" + cmp + " .nim-titulo").append('&nbsp;&nbsp;' + creaMdlButton('b_ex_' + cmp, 30, 2, 22, 'assignment_returned', 'Exportar a Excel'));
+    $("#b_ex_" + cmp).click(function() {
+      //if (g.find('input').length > 0) return;
+      ponBusy();
+      callFonServer("grid_local_export", {cmp: cmp}, quitaBusy);
+    });
   }
 
   if (opts.search) g.jqGrid('filterToolbar',{searchOperators : true});
