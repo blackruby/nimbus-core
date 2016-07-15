@@ -950,13 +950,20 @@ class ApplicationController < ActionController::Base
     @fant = fant.deep_dup
   end
 
+  def forma_campo_id(ref, id, tipo = :form)
+    mod = ref.constantize
+    ret = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + id.to_s)[0]
+    ret ? ret.auto_comp_value(tipo) : nil
+  end
+
   def _forma_campo(tipo, cp, cmp, val)
     if cmp.ends_with?('_id')
       #id = ficha[cmp]
       if val and val != 0 and val != ''
-        mod = cp[:ref].constantize
-        ret = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + val.to_s)[0]
-        ret = ret ? ret.auto_comp_value(tipo) : nil
+        #mod = cp[:ref].constantize
+        #ret = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + val.to_s)[0]
+        #ret = ret ? ret.auto_comp_value(tipo) : nil
+        ret = forma_campo_id(cp[:ref], val, tipo)
       else
         ret = ''
       end
@@ -1567,7 +1574,7 @@ class ApplicationController < ActionController::Base
 
     sh.add_row(cols.map {|v| v[:label] || v[:name]})
 
-    data.each {|r| sh.add_row(r[1..nc])}
+    data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| cols[i][:ref] ? forma_campo_id(cols[i][:ref], d) : d})}
 
     # Fijar la fila de cabecera para repetir en cada página
     wb.add_defined_name("Hoja1!$1:$1", :local_sheet_id => sh.index, :name => '_xlnm.Print_Titles')
