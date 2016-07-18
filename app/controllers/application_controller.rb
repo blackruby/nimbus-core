@@ -1407,7 +1407,15 @@ class ApplicationController < ActionController::Base
           c[:editoptions] = {dataInit:  "~function(e){autoCompGridLocal(e,'#{c[:ref]}','#{c[:ref].constantize.table_name}','#{cmp}','#{c[:name]}');}~"}
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
         else
-          c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
+          if c[:sel]
+            c[:formatter] ||= 'select'
+            c[:edittype] ||= 'select'
+            c[:editoptions][:value] ||= c[:sel]
+            c[:align] ||= 'center'
+            c[:searchoptions][:sopt] ||= ['eq', 'ne', 'in', 'ni', 'nu', 'nn']
+          else
+            c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
+          end
       end
     }
 

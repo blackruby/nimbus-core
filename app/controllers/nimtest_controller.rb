@@ -69,13 +69,14 @@ class NimtestController < ApplicationController
       {name: 'double', type: :decimal, decim: 3, signo: true, width: 65, editable: '~vali_edit_pxa_double~', cellattr: '~style_cell_pxa_double~'},
       {name: 'bool', type: :boolean, width: 30},
       {name: 'fecha', type: :date, width: 80},
+      {name: 'Sel', sel: {a: 'Uno', b: 'Dos'}, width: 40},
     ]
     pl = @fact.nombre[0]
     q = Pais.where('nombre like ?', "#{pl}%")
 
     crea_grid cmp: :pxa, modo: :ed, export: 'paises', cols: cols, ins: :pos, sel: :cel, grid: {rowattr: '~style_row_pxa~', caption: "Países que empiezan por #{pl}", height: 300},
-              data: q.map{|p| [p.id, p.codigo, p.nombre, 3, p.nombre[-4..-1], (p.id.odd? ? 12345.67 : -9876.54), true, Date.today]}
-    crea_grid cmp: :pxb, modo: :ed, cols: cols, ins: :pos, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, nil, p.nombre[-4..-1], 0, false, Date.today]}
+              data: q.map{|p| [p.id, p.codigo, p.nombre, 3, p.nombre[-4..-1], (p.id.odd? ? 12345.67 : -9876.54), true, Date.today, 'a']}
+    crea_grid cmp: :pxb, modo: :ed, cols: cols, ins: :pos, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, nil, p.nombre[-4..-1], 0, false, Date.today, 'b']}
 
     @ajax << 'creaMiBoton_pxa();'
 
