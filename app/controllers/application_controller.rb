@@ -1403,6 +1403,9 @@ class ApplicationController < ActionController::Base
           c[:editoptions][:dataInit] ||= '~function(e){date_pick(e)}~'
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
           c[:sortfunc] ||= '~sortDate~'
+        when :time
+          c[:editoptions][:dataInit] ||= '~function(e){$(e).entrytime(' + (c[:seg] ? 'true,' : 'false,') + (c[:nil] ? 'true' : 'false') + ')}~'
+          c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
         when :references
           c[:editoptions] = {dataInit:  "~function(e){autoCompGridLocal(e,'#{c[:ref]}','#{c[:ref].constantize.table_name}','#{cmp}','#{c[:name]}');}~"}
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']

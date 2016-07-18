@@ -70,13 +70,15 @@ class NimtestController < ApplicationController
       {name: 'bool', type: :boolean, width: 30},
       {name: 'fecha', type: :date, width: 80},
       {name: 'Sel', sel: {a: 'Uno', b: 'Dos'}, width: 40},
+      {name: 'Time', type: :time, width: 40},
     ]
     pl = @fact.nombre[0]
     q = Pais.where('nombre like ?', "#{pl}%")
 
+    cols2 = cols.deep_dup
     crea_grid cmp: :pxa, modo: :ed, export: 'paises', cols: cols, ins: :pos, sel: :cel, grid: {rowattr: '~style_row_pxa~', caption: "Países que empiezan por #{pl}", height: 300},
               data: q.map{|p| [p.id, p.codigo, p.nombre, 3, p.nombre[-4..-1], (p.id.odd? ? 12345.67 : -9876.54), true, Date.today, 'a']}
-    crea_grid cmp: :pxb, modo: :ed, cols: cols, ins: :pos, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, nil, p.nombre[-4..-1], 0, false, Date.today, 'b']}
+    crea_grid cmp: :pxb, modo: :ed, cols: cols2, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, nil, p.nombre[-4..-1], 0, false, Date.today, 'b']}
 
     @ajax << 'creaMiBoton_pxa();'
 
