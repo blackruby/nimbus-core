@@ -785,10 +785,12 @@ class GI
   end
 
   def cel(ali)
+    ali = ali.to_sym
     @alias[@ban][ali][:col] + (@ri_act - @bi + @alias[@ban][ali][:row]).to_s
   end
 
   def tot(ali, niv=@rupi)
+    ali = ali.to_sym
     col = @alias[:det][ali][:col]
     "=SUBTOTAL(9,#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1})"
   end

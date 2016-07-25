@@ -1102,10 +1102,12 @@ class ApplicationController < ActionController::Base
     cp = @fact.campos[c.to_sym]
 
     case cp[:type]
-    when :integer, :float, :decimal
-      return v.gsub('.', '').gsub(',', '.')
-    when :string
-      return v.upcase if cp[:may]
+      when :integer, :float, :decimal
+        return v.gsub('.', '').gsub(',', '.')
+      when :string
+        return v.upcase if cp[:may]
+      when :boolean
+        return v == 'true'
     end
 
     return v
