@@ -356,12 +356,12 @@ function callFonServer(fon_s, data, fon_ret, sync) {
   })
 }
 
-function send_validar(c, v) {
+function send_validar(c, v, data) {
   $.ajax({
     url: '/' + _controlador + '/validar',
     type: "POST",
     async: false,
-    data: {vista: _vista, valor: v, campo: c.attr("id")}
+    data: $.extend(true, {vista: _vista, valor: v, campo: c.attr("id")}, data)
   });
 }
 
@@ -371,9 +371,10 @@ function validar(c) {
 
 function vali_auto_comp(ui, c) {
   if (ui.item == null) {
-    c.val('');
-    send_validar(c, '');
-    c.attr("dbid", null);
+    //c.val('');
+    //send_validar(c, '');
+    //c.attr("dbid", null);
+    send_validar(c, c.val(), {src: c.autocomplete('option', 'source')});
   } else {
     send_validar(c, ui.item.id);
     c.attr("dbid", ui.item.id);

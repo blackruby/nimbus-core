@@ -840,29 +840,29 @@ class ApplicationController < ActionController::Base
     @dat[:auto_comp] ? @dat[:auto_comp][cmp.to_sym] = wh : @dat[:auto_comp] = {cmp.to_sym => wh}
   end
 
-  def auto
+  def _auto(par)
     unless request.xhr? # Si la petición no es Ajax... ¡Puerta! (para evitar accesos desde la barra de direcciones)
       render json: ''
       return
     end
 
-    p = params[:term]
+    p = par[:term]
     if p == '-' or p == '--'
       render json: ''
       return
     end
 
-    mod = params[:mod].constantize
+    mod = par[:mod].constantize
 
     if @dat
       ac = @dat[:auto_comp]
-      whv = ac ? ac[params[:cmp].to_sym] : nil
+      whv = ac ? ac[par[:cmp].to_sym] : nil
     else
       whv = nil
     end
 
-    if params[:type]
-      type = params[:type].to_sym
+    if par[:type]
+      type = par[:type].to_sym
     else
       type = :form
     end
@@ -894,7 +894,6 @@ class ApplicationController < ActionController::Base
       patron = r
     end
 
-    res = []
     wh = '('
     data[:campos].each {|c|
 =begin
@@ -913,32 +912,33 @@ class ApplicationController < ActionController::Base
 
     wh = wh[0..-5] + ')'
 
-    #wh << ' AND ' + mod.table_name + '.' + 'empresa_id=' + params[:eid] if mod.column_names.include?('empresa_id') and params[:eid]
-    #wh << ' AND ' + mod.table_name + '.' + 'ejercicio_id=' + params[:jid] if mod.column_names.include?('ejercicio_id') and params[:jid]
+    #wh << ' AND ' + mod.table_name + '.' + 'empresa_id=' + par[:eid] if mod.column_names.include?('empresa_id') and par[:eid]
+    #wh << ' AND ' + mod.table_name + '.' + 'ejercicio_id=' + par[:jid] if mod.column_names.include?('ejercicio_id') and par[:jid]
     if mod.respond_to?(:ejercicio_path)
       ep = mod.ejercicio_path
       ep = ep + '.' unless ep.empty?
       ep = ep + 'ejercicio_id'
       msel = mselect_parse(mod, mod.auto_comp_mselect, ep)
       edb = msel[:alias_cmp][ep][:cmp_db]
-      wh << " AND #{edb}=#{(params[:jid] || @dat[:jid])}"
+      wh << " AND #{edb}=#{(par[:jid] || @dat[:jid])}"
     elsif mod.respond_to?(:empresa_path)
       ep = mod.empresa_path
       ep = ep + '.' unless ep.empty?
       ep = ep + 'empresa_id'
       msel = mselect_parse(mod, mod.auto_comp_mselect, ep)
       edb = msel[:alias_cmp][ep][:cmp_db]
-      wh << " AND #{edb}=#{(params[:eid] || @dat[:eid])}"
+      wh << " AND #{edb}=#{(par[:eid] || @dat[:eid])}"
     else
       msel = mselect_parse(mod, mod.auto_comp_mselect)
     end
 
-    #mod.mselect(mod.auto_comp_mselect).where(wh).where(whv).order(data[:orden]).limit(15).each {|r|
-    mod.select(msel[:cad_sel]).joins(msel[:cad_join]).where(wh).where(whv).order(data[:orden]).limit(15).each {|r|
-      res << {value: r.auto_comp_value(type), id: r[:id], label: r.auto_comp_label(type)}
+    mod.select(msel[:cad_sel]).joins(msel[:cad_join]).where(wh).where(whv).order(data[:orden]).limit(15).map {|r|
+      {value: r.auto_comp_value(type), id: r[:id], label: r.auto_comp_label(type)}
     }
+  end
 
-    render :json => res
+  def auto
+    render json: _auto(params)
   end
 
   def fact_clone
@@ -1611,14 +1611,26 @@ class ApplicationController < ActionController::Base
     campo = params[:campo]
     valor = params[:valor]
 
-    #@fact.method(campo + '=').call(raw_val(campo, valor))
+    @ajax = ''
+
+    if campo.ends_with?('_id') and params[:src] # Autocompletado sin id elegido (probable introducción rápida de texto)
+      par = {term: valor}
+      CGI::parse(URI::parse(params[:src]).query).each {|k, v| par[k.to_sym] = v[0]}
+      res = _auto(par)
+      if res.size == 1  # Se ha encontrado un registro único
+        valor = res[0][:id]
+        @ajax << "$('##{campo}').val(#{res[0][:value].to_json}).attr('dbid',#{valor});"
+      else
+        valor = ''
+        @ajax << "$('##{campo}').val('').attr('dbid',null);"
+      end
+    end
+
     @fact[campo] = raw_val(campo, valor)
 
     ## Validación
 
     err = valida_campo(campo, :all)
-
-    @ajax = ''
 
     if err.nil?
       @ajax << '$("#' + campo + '").removeClass("ui-state-error");'
