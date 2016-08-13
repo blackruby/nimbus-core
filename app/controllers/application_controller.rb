@@ -114,18 +114,36 @@ class ApplicationController < ActionController::Base
   end
 
   def enable(c)
+=begin
     if @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
       @ajax << '$("#' + c.to_s + '").datepicker("enable");'
     else
       @ajax << '$("#' + c.to_s + '").attr("disabled", false);'
     end
+=end
+    if c.to_s.ends_with?('_id')
+      @ajax << "$('##{c}').attr('readonly', false).attr('tabindex', 0);"
+    elsif @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
+      @ajax << "$('##{c}').datepicker('enable');"
+    else
+      @ajax << "$('##{c}').attr('disabled', false);"
+    end
   end
 
   def disable(c)
+=begin
     if @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
       @ajax << '$("#' + c.to_s + '").datepicker("disable");'
     else
       @ajax << '$("#' + c.to_s + '").attr("disabled", true);'
+    end
+=end
+    if c.to_s.ends_with?('_id')
+      @ajax << "$('##{c}').attr('readonly', true).attr('tabindex', -1);"
+    elsif @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
+      @ajax << "$('##{c}').datepicker('disable');"
+    else
+      @ajax << "$('##{c}').attr('disabled', true);"
     end
   end
 
@@ -1898,7 +1916,13 @@ class ApplicationController < ActionController::Base
       end
 
       plus = ''
-      plus << ' disabled' if ro == :all or ro == params[:action].to_sym
+      if ro == :all or ro == params[:action].to_sym
+        if cs.ends_with?('_id')
+          plus << ' readonly tabindex=-1'
+        else
+          plus << ' disabled'
+        end
+      end
 
       if prim or v[:hr] or v[:br]
         sal << '</div>' unless prim

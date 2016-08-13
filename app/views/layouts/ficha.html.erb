@@ -241,7 +241,7 @@
 
   $(window).load(function () {
     redimWindow();
-    $("input,select,textarea").filter(":enabled").first().focus();
+    $("input,select,textarea").filter(":enabled[readonly!='readonly']").first().focus();
     //componentHandler.upgradeDom();
     parent.redimWindow();
   });
@@ -249,7 +249,7 @@
   var _activeTab;
   function tabClick(tab) {
     _activeTab = tab;
-    setTimeout(function(){_activeTab.find(':input').filter(':enabled').first().focus();},100);
+    setTimeout(function(){_activeTab.find(":input").filter(":enabled[readonly!='readonly']").first().focus();},100);
   }
 </script>
 

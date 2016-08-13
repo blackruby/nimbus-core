@@ -915,18 +915,6 @@ $(window).load(function() {
     $(".nim-context-menu").css("display", "none");
   });
   $("body").on("focus", ".auto_comp", function (e) {
-    /*
-    $(this).parent().append(
-      '<button id="_auto_comp_button_" class="mdl-button mdl-js-button mdl-button--icon" style="position: absolute;top: -4px;right: -4px" tabindex=-1>'+
-      '<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
-      '</button>' +
-      '<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect ui-front" for="_auto_comp_button_" style="z-index: 10000">'+
-      '<li class="mdl-menu__item" onclick="autoCompBuscar()">Buscar</li>'+
-      '<li class="mdl-menu__item" onClick="autoCompIrAFicha()">Ir a</li>'+
-      '<li class="mdl-menu__item" onClick="autoCompNuevaFicha()">Nueva alta</li>'+
-      '</ul>'
-    );
-    */
     $(this).parent().append(
       '<button id="_auto_comp_button_" class="mdl-button mdl-js-button mdl-button--icon" style="position: absolute;top: -4px;right: -4px" tabindex=-1>'+
       '<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
@@ -936,12 +924,15 @@ $(window).load(function() {
       $('body').append(
         '<div id="_auto_comp_menu_" class="nim-context-menu">'+
         '<ul class="nim-context-menu-ul">'+
-        '<li class="nim-context-menu-li" onclick="autoCompBuscar()">Buscar</li>'+
-        '<li class="nim-context-menu-li" onClick="autoCompIrAFicha()">Ir a</li>'+
-        '<li class="nim-context-menu-li" onClick="autoCompNuevaFicha()">Nueva alta</li>'+
+        '<li class="nim-context-menu-li" onClick="autoCompIrAFicha()">Ir a...</li>'+
+        '<li class="nim-context-menu-li nim-context-menu-ed" onclick="autoCompBuscar()">Buscar</li>'+
+        '<li class="nim-context-menu-li nim-context-menu-ed" onClick="autoCompNuevaFicha()">Nueva alta</li>'+
         '</ul>'+
         '</div>'
       );
+
+    $(".nim-context-menu-ed").css("display", $(this).attr("readonly") == "readonly" ? "none" : "block");
+
     $('#_auto_comp_button_').on('click', function(e){
       e.stopPropagation();
       var menu = $("#_auto_comp_menu_");

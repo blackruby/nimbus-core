@@ -118,11 +118,11 @@ body {
   visibility: hidden;
 }
 
-.nim-input:disabled, .nim-select:disabled {
+.nim-input:disabled, .nim-input:read-only, .nim-select:disabled {
   color: $color-nim-label;
 }
 
-.nim-input:disabled ~ .nim-label, .nim-select:disabled ~ .nim-label {
+.nim-input:disabled ~ .nim-label, .nim-input:read-only ~ .nim-label, .nim-select:disabled ~ .nim-label {
   top:-18px;
   font-size:12px;
   color: $color-nim-label;
