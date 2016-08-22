@@ -75,14 +75,14 @@
   <% end %>
 
   <main class="mdl-layout__content">
-    <div class="page-content">
+    <div class="page-content nim-div-tab" style="visibility: hidden">
       <%= gen_form({tab: 'pre'}) %>
       <%= yield :pre %>
 
       <% if @tabs.size > 0 %>
         <% @tabs.each_with_index {|t, i| %>
           <section class="mdl-layout__tab-panel <%= i==0 ? 'is-active' : '' %>" id="t_<%= t %>">
-            <div class="page-content nim-div-tab" style="visibility: hidden">
+            <div class="page-content">
               <%= gen_form({tab: t}) %>
               <%= yield t.to_sym%>
               <% @hijos.each_with_index{|h, i| if h[:tab] == t then %>
