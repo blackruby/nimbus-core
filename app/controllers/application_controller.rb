@@ -1389,10 +1389,13 @@ class ApplicationController < ActionController::Base
     opts[:ins] = :end unless opts.key?(:ins)
     opts[:del] = true if opts[:del].nil?
 
+    opts[:add_prop] ||= []
+
     opts[:cols].each {|c|
       if c[:name].to_s.ends_with?('_id')
         c[:type] = :references
         c[:ref] ||= c[:name][0..-4].capitalize
+        opts[:add_prop] << '_' + c[:name]
       end
       c[:searchoptions] ||= {}
       c[:editoptions] ||= {}
@@ -1427,7 +1430,8 @@ class ApplicationController < ActionController::Base
           c[:editoptions][:dataInit] ||= '~function(e){$(e).entrytime(' + (c[:seg] ? 'true,' : 'false,') + (c[:nil] ? 'true' : 'false') + ')}~'
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
         when :references
-          c[:editoptions] = {dataInit:  "~function(e){autoCompGridLocal(e,'#{c[:ref]}','#{c[:ref].constantize.table_name}','#{cmp}','#{c[:name]}');}~"}
+          c[:controller] = c[:ref].constantize.table_name
+          c[:editoptions] = {dataInit:  "~function(e){autoCompGridLocal(e,'#{c[:ref]}','#{c[:controller]}','#{cmp}','#{c[:name]}');}~"}
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
         else
           if c[:sel]
@@ -1449,7 +1453,10 @@ class ApplicationController < ActionController::Base
       opts.delete(:data)
       data.each {|r|
         h = {id: r[0]}
-        opts[:cols].each_with_index {|c, i| h[c[:name]] = _forma_campo(:form, c, c[:name], r[i+1])}
+        opts[:cols].each_with_index {|c, i|
+          h[c[:name]] = _forma_campo(:form, c, c[:name], r[i+1])
+          h['_' + c[:name]] = r[i+1] if c[:name].ends_with?('_id')
+        }
         data_grid << h
       }
     end
@@ -1495,7 +1502,10 @@ class ApplicationController < ActionController::Base
   def grid_add_row(cmp, pos, data)
     cmp = cmp.to_sym
     h = {}
-    @fact[cmp][:cols].each_with_index {|c, i| h[c[:name]] = _forma_campo(:form, c, c[:name], data[i + 1])}
+    @fact[cmp][:cols].each_with_index {|c, i|
+      h[c[:name]] = _forma_campo(:form, c, c[:name], data[i + 1])
+      h['_' + c[:name]] = data[i + 1] if c[:name].ends_with?('_id')
+    }
     @ajax << "$('#g_#{cmp}').jqGrid('addRowData','#{data[0]}',#{h.to_json}"
     @ajax << ",'before',#{@fact[cmp][:data][pos][0]}" if pos >= 0
     @ajax << ");"

@@ -88,7 +88,7 @@ class NimtestController < ApplicationController
   end
 
   def new_pxa(pos)
-    [@fact.pxa.max_id.next, '001', 'Santuro', nil, 'isla']
+    [@fact.pxa.max_id.next, '001', 'Santuro', 101, 'isla']
   end
   def vali_borra_pxa(id)
     return 'Argentina no' if id.to_i == 11

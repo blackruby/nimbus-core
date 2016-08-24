@@ -717,7 +717,7 @@ function autoCompIrAFicha() {
   */
   var inp = $("#_auto_comp_button_").parent().find("input");
   var dbid = inp.attr("dbid");
-  if (dbid == undefined) return;
+  if (dbid == undefined || dbid == '') return;
   window.open('/' + inp.attr("controller") + '/' + dbid + '/edit', '_blank', '');
 }
 
@@ -800,6 +800,7 @@ function creaGridLocal(opts, data) {
               g.jqGrid("setCell", row, col, "", "", "", true);
             }
             val = g.attr("last_autocomp_id");
+            g.jqGrid("getLocalRow", row)['_'+col] = val;
           }
           callFonServer("validar_local_cell", {cmp: cmp, row: row, col: col, val: val}, null, true);
         },
@@ -830,11 +831,29 @@ function creaGridLocal(opts, data) {
   g.jqGrid($.extend(true, {
     datatype: "local",
     colModel: opts.cols,
+    additionalProperties: opts.add_prop,
     data: data,
     gridview: true,
     height: 150,
     ignoreCase: true,
-    altRows: true
+    altRows: true,
+    onRightClickRow: function(rowid, iRow, iCol, e) {
+      if (opts.modo != "ed") return;
+
+      var col = g.jqGrid("getGridParam", "colModel")[iCol].name;
+      var rc = g.find("input");
+      if (rc.length > 0 && rc.attr("id") == iRow + '_' + col) return;
+
+      e.preventDefault();
+      g.jqGrid('editCell', 0, 0, false);
+      g.jqGrid("resetSelection");
+      g.find("tr").removeClass('ui-state-highlight');
+
+      if (col.slice(-3) == '_id') {
+        var id = g.jqGrid("getLocalRow", rowid)['_' + col];
+        if (id && id != '') window.open('/' + g.jqGrid("getGridParam", "colModel")[iCol].controller + '/' + id + '/edit', '_blank', '');
+      }
+    }
   }, grid_a, grid));
 
   switch(opts.modo) {
@@ -856,15 +875,17 @@ function creaGridLocal(opts, data) {
       $('#gbox_g_' + cmp).prepend(ht);
 
       $("#b_it_" + cmp).click(function() {
-        if (g.find('input').length > 0) return;
+        //if (g.find('input').length > 0) return;
         var r = g.jqGrid('getGridParam', 'selrow');
+        g.jqGrid('editCell', 0, 0, false);
         if (r) {
           var iRow = g.find('#' + r)[0].rowIndex - 1;
           callFonServer("grid_local_ins", {cmp: cmp, pos: iRow});
         }
       });
       $("#b_ib_" + cmp).click(function() {
-        if (g.find('input').length > 0) return;
+        //if (g.find('input').length > 0) return;
+        g.jqGrid('editCell', 0, 0, false);
         callFonServer("grid_local_ins", {cmp: cmp, pos: -1});
       });
       $("#b_d_" + cmp).click(function() {
@@ -902,7 +923,7 @@ function autoCompGridLocal(el, modelo, ctrl, cmp, col) {
     //select: function(e, ui) {$(this).attr('dbid', ui.item.id); $(this).parents('table').attr('last_autocomp_id', ui.item.id)},
     select: function(e, ui) {$(this).attr('dbid', ui.item.id); g.attr('last_autocomp_id', ui.item.id)},
     response: function(e, ui) {auto_comp_error(e, ui);}
-  }).addClass("auto_comp").attr('controller', ctrl).attr('cmp', cmp).attr('col',  col);
+  }).addClass("auto_comp").attr('controller', ctrl).attr('cmp', cmp).attr('col',  col).attr('dbid', g.jqGrid('getLocalRow', rowid)['_'+col]);
 }
 
 $(window).load(function() {
