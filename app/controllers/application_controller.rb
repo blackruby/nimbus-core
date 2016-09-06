@@ -1645,7 +1645,8 @@ class ApplicationController < ActionController::Base
       par = {term: valor}
       CGI::parse(URI::parse(params[:src]).query).each {|k, v| par[k.to_sym] = v[0]}
       res = _auto(par)
-      if res.size == 1  # Se ha encontrado un registro único
+      #if res.size == 1  # Se ha encontrado un registro único
+      if res.size > 0  # Se ha encontrado algún registro
         valor = res[0][:id]
         @ajax << "$('##{campo}').val(#{res[0][:value].to_json}).attr('dbid',#{valor});"
       else
