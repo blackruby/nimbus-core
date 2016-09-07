@@ -241,10 +241,10 @@
 
   $(window).load(function () {
     redimWindow();
-    $("input,select,textarea").filter(":enabled[readonly!='readonly']").first().focus();
     $(".nim-div-tab").css("visibility", "visible");
     //componentHandler.upgradeDom();
     parent.redimWindow();
+    $("input,select,textarea").filter(":enabled[readonly!='readonly']").first().focus();
   });
 
   var _activeTab;
