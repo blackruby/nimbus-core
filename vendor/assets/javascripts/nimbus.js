@@ -700,7 +700,7 @@ function autoCompBuscar() {
     var col = bus_input_selected.attr("col");
     callFonServer("bus_call", {cmp: cmp, col: col, id: cmp + '_' + rowid + '_' + col});
   } else
-    callFonServer("bus_call", {id: bus_input_selected.attr("id")});
+    callFonServer("bus_call", {id: bus_input_selected.attr("id"), cmpid: bus_input_selected.attr("cmpid")});
   /*
   var inp = $("#_auto_comp_button_").parent().find("input");
   var w = window.open('/bus?mod=' + inp.attr("modelo") + '&eid=' + eid + '&jid=' + jid, "_blank", "width=700, height=500");

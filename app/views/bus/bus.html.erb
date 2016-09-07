@@ -298,12 +298,15 @@
         window.open("/" + _controlador_edit + "/" + id + "/edit");
         break;
       default:
-        callFonServer("bus_value", {id: id});
+        callFonServer("bus_value", {id: id}, null, true);
 
-        if (_autoCompField.attr("cmp")) // grids embebidos
+        _autoCompField.attr("dbid", id);
+        if (_autoCompField.data("fon_auto")) // función asociada propia
+          _autoCompField.data("fon_auto").call(null, _autoCompField, id);
+        else if (_autoCompField.attr("cmp")) // grids embebidos
           _autoCompField.parents('table').attr('last_autocomp_id', id);
         else {
-          _autoCompField.attr("dbid", id);
+          //_autoCompField.attr("dbid", id);
           window.opener.send_validar(_autoCompField, id);
         }
     }

@@ -1862,7 +1862,7 @@ class ApplicationController < ActionController::Base
   def bus_call
     @fact = @dat[:fact]
 
-    cmp = params[:id].to_sym
+    cmp = (params[:cmpid] ? params[:cmpid] : params[:id]).to_sym
     if params[:cmp] # Casos de campos (columnas) de grids editables
       v = @fact[params[:cmp]].col(params[:col])
     else  # Casos de campos normales de mantenimientos
