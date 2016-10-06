@@ -22,27 +22,27 @@
     <input id="_pk-input" style="margin-left: 5px;outline: none;padding-left: 4px" />
     <div class="mdl-layout-spacer"></div>
     <nav class="mdl-navigation">
-      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="searchBar()">
+      <button title="Muestra/Oculta barra de búsqueda (Alt-f)" class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="searchBar()">
         <i class="material-icons">visibility</i>
       </button>
       &nbsp; &nbsp;
-      <button class="cl-editar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="editInForm()">
+      <button title="Edita el registro seleccionado" class="cl-editar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="editInForm()">
         <i class="material-icons">edit</i>
       </button>
       &nbsp; &nbsp;
-      <button class="cl-crear nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="newFicha()">
+      <button title="Nueva alta (Alt-n)" class="cl-crear nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="newFicha()">
         <i class="material-icons">add</i>
       </button>
       &nbsp; &nbsp;
-      <button class="cl-grabar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" disabled onclick="mantGrabarGrid()">
+      <button title="Grabar (Alt-g / Alt-a graba + nueva alta)" class="cl-grabar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" disabled onclick="mantGrabarGrid()">
         <i class="material-icons">save</i>
       </button>
       &nbsp; &nbsp;
-      <button class="cl-borrar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" disabled onclick="mantBorrarGrid()">
+      <button title="Eliminar" class="cl-borrar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" disabled onclick="mantBorrarGrid()">
         <i class="material-icons">delete</i>
       </button>
       &nbsp; &nbsp; &nbsp; &nbsp;
-      <button id="b-collapse" onclick="gridCollapse()" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
+      <button title="Muestra/Oculta rejilla de datos (Alt-v)" id="b-collapse" onclick="gridCollapse()" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
         <i class="material-icons">swap_vert</i>
       </button>
       <button id="menu-r" class="nim-phone mdl-button mdl-js-button mdl-button--icon">
@@ -347,6 +347,19 @@
     $("#_pk-label").css('display', 'block');
     $(".mdl-navigation").css('display', 'flex');
   }
+
+  $(document).keydown(function(e) {
+    if (e.altKey) {
+      e.preventDefault();
+      if (e.which == 70) { // Alt-f
+        searchBar();
+      } else if (e.which == 78) { // Alt-n
+        newFicha();
+      } else if (e.which == 86) { // Alt-v
+        gridCollapse();
+      }
+    }
+  });
 
   $("#_pk-input").blur(pkBlur).autocomplete({
     source: "/application/auto?mod=<%= (@view[:model] + @view[:arg_auto]).html_safe %>",

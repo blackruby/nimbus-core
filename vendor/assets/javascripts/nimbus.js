@@ -419,13 +419,17 @@ function vali_code(c, tam, pref, rell) {
   send_validar(c, c.val());
 }
 
-function mant_grabar() {
+function mant_grabar(nueva) {
   var res;
   if (typeof jsGrabar == "function") {
     res = jsGrabar();
     if (res == null) return;
   }
   if (typeof res != 'object') res = {};
+
+  if (nueva) res = $.extend(true, {_new: true}, res);
+
+  console.log(nueva, res);
 
   $.ajax({
     url: '/' + _controlador + '/grabar',

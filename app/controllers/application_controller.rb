@@ -1815,13 +1815,17 @@ class ApplicationController < ActionController::Base
         end
 
         if clm.mant?
-          sincro_hijos if @fant[:id].nil?
-
           #Refrescar el grid si procede
           grid_reload
 
-          #Activar botones necesarios (Grabar/Borrar)
-          @ajax << 'statusBotones({borrar: true});'
+          if params[:_new] # Entrar en una ficha nueva después de grabar
+            @ajax << 'parent.newFicha();'
+          else
+            sincro_hijos if @fant[:id].nil?
+
+            #Activar botones necesarios (Grabar/Borrar)
+            @ajax << 'statusBotones({borrar: true});'
+          end
         end
 
         @ajax << 'hayCambios=false;'
