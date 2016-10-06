@@ -234,6 +234,8 @@
         if (parent != self && $.isFunction(parent.gridCollapse)) parent.gridCollapse();
       } else if (e.which == 78) { // Alt-n
         if (parent != self && $.isFunction(parent.newFicha)) parent.newFicha();
+      } else if (e.which == 66) { // Alt-b
+        if (parent != self && $.isFunction(parent.pkSearch)) parent.pkSearch();
       } else if (e.which == 65) { // Alt-a
         if (parent != self && $.isFunction(parent.newFicha)) {
           $(":focus").blur();
