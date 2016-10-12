@@ -374,7 +374,11 @@ function vali_auto_comp(ui, c) {
     //c.val('');
     //send_validar(c, '');
     //c.attr("dbid", null);
-    send_validar(c, c.val(), {src: c.autocomplete('option', 'source')});
+    if (c.val() == '') {
+      send_validar(c, '');
+      c.attr("dbid", null);
+    } else
+      send_validar(c, c.val(), {src: c.autocomplete('option', 'source')});
   } else {
     send_validar(c, ui.item.id);
     c.attr("dbid", ui.item.id);
