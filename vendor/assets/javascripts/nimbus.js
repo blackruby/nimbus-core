@@ -385,7 +385,9 @@ function vali_auto_comp(ui, c) {
   }
 }
 
+var _checkNoEventChange = false;
 function vali_check(c) {
+  if (_checkNoEventChange) {_checkNoEventChange = false; return;}
   if (c.is(':checked'))
     send_validar(c, 'true');
   else

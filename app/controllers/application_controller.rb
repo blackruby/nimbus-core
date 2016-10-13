@@ -1027,7 +1027,8 @@ class ApplicationController < ActionController::Base
     case cp[:type]
     when :boolean
       val = false unless val
-      @ajax << '$("#' + cmp_s + '").prop("checked",' + val.to_s + ');'
+      #@ajax << '$("#' + cmp_s + '").prop("checked",' + val.to_s + ');'
+      @ajax << "_checkNoEventChange=true;$('##{cmp_s}').click();"
     when :div
       ;
     else
