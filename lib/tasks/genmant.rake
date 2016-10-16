@@ -23,7 +23,8 @@ namespace :nimbus do
         tableh = modulo + '_h_' + modp
       end
 
-      return if tipo == :new and File.exists?("#{path}app/controllers/#{modulo}/#{modp}_controller.rb")
+      #return if tipo == :new and File.exists?("#{path}app/controllers/#{modulo}/#{modp}_controller.rb")
+      return if tipo == :new and File.exists?("#{path}app/models/#{modulo}/#{mod}.rb")
 
       begin
         puts "Procesando #{fic}..."
@@ -262,6 +263,7 @@ namespace :nimbus do
 
         File.write("#{path}app/controllers/#{modulo}/#{modp}_controller.rb", controller.read)
 
+=begin
         # Generar las vistas
         f = "#{path}app/views/#{modulo}/#{modp}"
         begin
@@ -271,6 +273,7 @@ namespace :nimbus do
         rescue
           #puts('  Ya existe el directorio de vistas. Se respetará su contenido')
         end
+=end
 
         # Generar las rutas
         if tipo != 'ctr'

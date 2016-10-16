@@ -12,7 +12,8 @@ end
 
 class GiController < ApplicationController
   def nuevo_mod(mod, path)
-    Dir.glob(path).sort.each {|fic|
+    path = path + '/' + mod if File.directory?(path + '/' + mod)
+    Dir.glob(path + '/*').sort.each {|fic|
       ficb = Pathname(fic).basename.to_s
 
       next if File.directory?(fic)
@@ -92,10 +93,12 @@ class GiController < ApplicationController
       @titulo = nt('gi')
       @tablas = {}
 
-      nuevo_mod(Rails.app_class.to_s.split(':')[0].downcase, 'app/models/*')
+      #nuevo_mod(Rails.app_class.to_s.split(':')[0].downcase, 'app/models/*')
+      nuevo_mod(Rails.app_class.to_s.split(':')[0].downcase, 'app/models')
 
       Dir.glob('modulos/*').each {|mod|
-        nuevo_mod(mod.split('/')[1].capitalize, mod + '/app/models/*')
+        #nuevo_mod(mod.split('/')[1].capitalize, mod + '/app/models/*')
+        nuevo_mod(mod.split('/')[1], mod + '/app/models')
       }
     end
   end

@@ -2059,7 +2059,9 @@ class ApplicationController < ActionController::Base
         sal << '&vista=' + @v.id.to_s
         sal << '&cmp=' + cs
         sal << '","' + v[:ref]
-        sal << '","' + v[:ref].constantize.table_name + '");'
+        #sal << '","' + v[:ref].constantize.table_name + '");'
+        mt = v[:ref].split('::')
+        sal << '","' + (mt.size == 1 ? v[:ref].constantize.table_name : mt[0].downcase + '/' + mt[1].downcase.pluralize) + '");'
       elsif mask
         sal << '$("#' + cs + '").mask("' + mask + '",{placeholder: " "});'
         #sal << 'mask({elem: "#' + cs + '", mask:"' + mask + '"'

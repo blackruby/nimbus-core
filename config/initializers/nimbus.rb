@@ -1048,7 +1048,9 @@ module Historico
     def ini_datos
       belongs_to :created_by, :class_name => 'Usuario'
 
-      clp = self.to_s[1..-1].constantize
+      #clp = self.to_s[1..-1].constantize
+      clpa = self.to_s.split('::')
+      clp = clpa.size == 1 ? clpa[0][1..-1].constantize : (clpa[0] + '::' + clpa[1][1..-1]).constantize
       clp.reflect_on_all_associations(:belongs_to).each{|a| belongs_to a.name, class_name: a.options[:class_name]}
       @propiedades = clp.propiedades
 
