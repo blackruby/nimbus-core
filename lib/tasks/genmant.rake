@@ -333,7 +333,8 @@ namespace :nimbus do
       end
       if f.start_with?('esquemas/') or f.start_with?('modulos/nimbus-core/')
         mod = ''
-      elsif File.directory?(f[0..f.rindex('/')-1].gsub('esquemas', '.git'))
+      #elsif File.directory?(f[0..f.rindex('/')-1].gsub('esquemas', '.git'))
+      elsif File.exists?(f[0..f.rindex('/')-1].gsub('esquemas', '.git'))
         mod = f[8..f.index('/', 8)-1]
       else
         mod = ''
@@ -343,7 +344,8 @@ namespace :nimbus do
       busca_esquemas('esquemas', '', ar)
       Dir.glob('modulos/*/esquemas').each {|d|
         nmod = d[8..d.rindex('/')-1]
-        mod = (nmod != 'nimbus-core' and File.directory?(d[0..d.rindex('/')] + '.git')) ? nmod : ''
+        #mod = (nmod != 'nimbus-core' and File.directory?(d[0..d.rindex('/')] + '.git')) ? nmod : ''
+        mod = (nmod != 'nimbus-core' and File.exists?(d[0..d.rindex('/')] + '.git')) ? nmod : ''
         busca_esquemas(d, mod, ar)
       }
     end
