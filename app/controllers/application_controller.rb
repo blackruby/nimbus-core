@@ -392,7 +392,7 @@ class ApplicationController < ActionController::Base
     if clm.respond_to?('ejercicio_path')
       cj_ce = Ejercicio.where('ejercicios.id=?', jid).ljoin(:empresa).pluck('ta.codigo', 'ejercicios.codigo')
       @titulo << cj_ce[0][0] + '/' + cj_ce[0][1]
-    elsif clm != EjerciciosMod and clm.respond_to?('empresa_path')
+    elsif clm.to_s != 'EjerciciosMod' and clm.respond_to?('empresa_path')
       @titulo << Empresa.where('id=?', eid).pluck(:codigo)[0]
     end
 
