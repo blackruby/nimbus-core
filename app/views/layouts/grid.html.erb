@@ -222,8 +222,8 @@
       alert("Seleccione un registro");
   }
 
-  function newFicha() {
-    $("#ficha").attr('src', '<%= @view[:url_new] %>');
+  function newFicha(lastId) {
+    $("#ficha").attr('src', '<%= @view[:url_new] %>' + (lastId ? '&last_id=' + lastId : ''));
   }
 
 /*
@@ -294,20 +294,21 @@
 
   //$("#ficha").css("height", $(window).height() - $("#ficha").offset().top - 40);
   function redimWindow() {
-    tf = $("#cell-ficha").offset().top;
+    var tf = $("#cell-ficha").offset().top;
     if (displayGrid) {
       grid.setGridWidth($("#gbox_grid").parent().width()-2, grid.jqGrid('getGridParam', 'shrinkToFit'));
-      tg = $("#cell-grid").offset().top;
+      var tg = $("#cell-grid").offset().top;
       if (tg == tf) {
-        h = $(window).height() - tf - 35;
+        var h = $(window).height() - tf - 60;
         $("#ficha").css("height", h);
         grid.setGridHeight(h);
         $("#gbox_grid").css("height", 'auto');
       } else {
-        h = $(window).height() / 2;
-        hgn = hg = $("#cell-grid").height();
+        var h = $(window).height() / 2;
+        var hg = $("#cell-grid").height();
+        var hgn = hg;
         if (hg < 40 || hg > h) hgn = grid.jqGrid('getGridParam', 'height_def');
-        if (hgn > h) hgn = h
+        if (hgn > h) hgn = h;
 
         //if ($("#cell-grid").height() > h) {
         if (hgn != hg) {

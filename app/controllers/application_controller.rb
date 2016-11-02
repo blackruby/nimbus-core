@@ -1819,8 +1819,8 @@ class ApplicationController < ActionController::Base
           #Refrescar el grid si procede
           grid_reload
 
-          if params[:_new] # Entrar en una ficha nueva después de grabar
-            @ajax << 'parent.newFicha();'
+          if @dat[:grabar_y_alta] or params[:_new] # Entrar en una ficha nueva después de grabar
+            @ajax << "parent.newFicha(#{@fact.id});"
           else
             sincro_hijos if @fant[:id].nil?
 

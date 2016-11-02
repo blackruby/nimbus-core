@@ -439,8 +439,6 @@ function mant_grabar(nueva) {
 
   if (nueva) res = $.extend(true, {_new: true}, res);
 
-  console.log(nueva, res);
-
   $.ajax({
     url: '/' + _controlador + '/grabar',
     type: "POST",
