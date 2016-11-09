@@ -63,7 +63,22 @@ namespace :nimbus do
         File.foreach(fic) {|l| head = l.chomp; break}
         cmps = head.split(',')
 
-        mod = fic.split('/')[-1][0..-5].downcase.capitalize.constantize
+        #mod = fic.split('/')[-1][0..-5].downcase.capitalize.constantize
+        name_a = fic.split('/')[-1][0..-5].downcase.split('_')
+        if name_a.size == 1
+          mod = name_a[0].capitalize.constantize
+        elsif name_a.size == 2
+          if name_a[0] == 'h'
+            name_a[1].capitalize.constantize
+            mod = ('H' + name_a[1].capitalize).constantize
+          else
+            mod = (name_a[0].capitalize '::' + name_a[1].capitalize).constantize
+          end
+        else
+          (name_a[0].capitalize '::' + name_a[2].capitalize).constantize
+          mod = (name_a[0].capitalize '::H' + name_a[2].capitalize).constantize
+        end
+
         tab = mod.table_name
         cmps_o = mod.column_names
         his = ActiveRecord::Base.const_defined?('H' + mod.to_s)
