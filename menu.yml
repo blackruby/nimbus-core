@@ -1,4 +1,5 @@
 General:
+  perfiles: /perfiles
   usuarios: /usuarios
   empresas: /empresas
   paises: /paises
