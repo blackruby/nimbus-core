@@ -5,6 +5,7 @@ class NimtestMod < Pais
     tipo: {tab: 'pre', gcols: 2, grid:{}},
     codigo_cr: {tab: 'pre', gcols: 2, grid:{}},
     final: {tab: 'pre', gcols: 2},
+    bool: {tab: 'pre', gcols: 2, type: :boolean},
     pxa: {tab: 'post', type: :div, gcols: 12},
     pxb: {tab: 'post', type: :div, gcols: 12},
 
@@ -45,8 +46,9 @@ class NimtestMod < Pais
 
   #@hijos = []
 
-  #def ini_campos_ctrl
-  #end
+  def ini_campos_ctrl
+    self.bool = true
+  end
 
   def final
     self.nombre[-4..-1]
@@ -58,6 +60,9 @@ class NimtestMod < Pais
 end
 
 class NimtestController < ApplicationController
+  def on_codigo_cr
+    @fact.bool = false
+  end
   def before_envia_ficha
     return if @fact.id.to_i == 0
 

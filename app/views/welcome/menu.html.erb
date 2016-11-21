@@ -175,6 +175,8 @@
       type: 'POST',
       data: {pref: "panel", data: JSON.stringify(h)}
     });
+
+    alert('Panel guardado');
   });
 
   $("#bCerrar").click(function (e) {
@@ -429,7 +431,8 @@
   _controlador = 'welcome';
 
   $("#empresa").autocomplete({
-    source: '/application/auto?type=grid&mod=Empresa',
+    //source: '/application/auto?type=grid&mod=Empresa',
+    source: '/application/auto?type=grid&mod=Empresa&vista=' + _vista + '&cmp=em',
     minLength: 1,
     select: function(e, ui) {
       empresa_id = ui.item.id;
@@ -437,22 +440,14 @@
 
       ejercicio_id = null;
       ejercicio_nom = "";
-      //$("#ejercicio").val('').autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
       $("#ejercicio").val('');
 
       // Consultar si tiene ejercicios la empresa para habilitar el campo ejercicio (lo hace la función del servidor en su respuesta)
-      /*
-      $.ajax({
-        //url: '/empresas/fon_server',
-        url: '/welcome/fon_server',
-        type: "POST",
-        data: {fon: 'ejercicio_en_menu', eid: empresa_id}
-      });
-      */
-      callFonServer('ejercicio_en_menu', {eid: empresa_id});
+      //callFonServer('ejercicio_en_menu', {eid: empresa_id});
 
       graba_emej();
-      set_cookie_emej();
+      //set_cookie_emej();
+      location.reload();
     },
     response: function(e, ui){well_auto_comp_error(e, ui);}
   });
@@ -465,7 +460,8 @@
       ejercicio_id = ui.item.id;
       ejercicio_nom = ui.item.value;
       graba_emej();
-      set_cookie_emej();
+      //set_cookie_emej();
+      location.reload();
     },
     response: function(e, ui){well_auto_comp_error(e, ui);}
   });

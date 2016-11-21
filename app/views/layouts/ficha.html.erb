@@ -271,7 +271,10 @@
   var _activeTab;
   function tabClick(tab) {
     _activeTab = tab;
-    setTimeout(function(){_activeTab.find(":input").filter(":enabled[readonly!='readonly']").first().focus();},100);
+    setTimeout(function(){
+      if (typeof tabClickUsu == "function") tabClickUsu(tab);
+      _activeTab.find(":input").filter(":enabled[readonly!='readonly']").first().focus();
+    },100);
   }
 </script>
 

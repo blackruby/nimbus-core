@@ -147,6 +147,12 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def disable_all
+    @ajax << '$(":input").attr("disabled", true);'
+    #@ajax << '$(".page-content").css("pointer-events", "none");'
+    status_botones grabar: false, crear: false, borrar: false
+  end
+
   def enable_menu(m)
     @ajax << "if (parent != self) $('##{m}', parent.document).attr('disabled', false);"
   end
@@ -194,6 +200,11 @@ class ApplicationController < ActionController::Base
 
   def open_url(url)
     @ajax << "window.open('#{url}', '_blank');"
+  end
+
+  # Vuelve a cargar la página index del mantenimiento
+  def index_reload
+    @ajax << 'if (parent != self) parent.location.reload();'
   end
 
   # Actualiza el contenido del grid
@@ -282,6 +293,7 @@ class ApplicationController < ActionController::Base
       #@ajax << '&jid=' + params[:jid] if params[:jid]
       @ajax << '&eid=' + @dat[:eid].to_s if @dat[:eid]
       @ajax << '&jid=' + @dat[:jid].to_s if @dat[:jid]
+      @ajax << '&prm=' + @dat[:prm]
       @ajax << '");});'
     }
   end
@@ -318,6 +330,19 @@ class ApplicationController < ActionController::Base
 
     eid, jid = get_empeje
 
+    if @usu.admin
+      prm = 'p'
+    else
+      prm = params[:mod] ? params[:prm] : @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid ? eid.to_i : 0]
+      case prm
+        when nil
+          render file: '/public/401.html', status: 401, layout: false
+          return
+        when 'c'
+          status_botones crear: false
+      end
+    end
+
     w = ''
     wemej = ''
     ljoin = ''
@@ -343,12 +368,10 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    if self.respond_to?(:grid_conf)
-      grid = clm.grid.deep_dup
-      grid_conf(grid)
-    else
-      grid = clm.grid
-    end
+    grid = clm.grid.deep_dup
+    grid_conf(grid) if self.respond_to?(:grid_conf)
+
+    grid[:cellEdit] = false if prm == 'c'
 
     add_where(w, grid[:wh]) if grid[:wh]
 
@@ -375,8 +398,9 @@ class ApplicationController < ActionController::Base
     @view[:url_base] = '/' + params[:controller] + '/'
     @view[:url_list] = @view[:url_base] + 'list'
     @view[:url_new] = @view[:url_base] + 'new'
-    @view[:arg_edit] = '?head=0'
-    arg_list_new = '?head=0'
+    @view[:arg_edit] = '?head=0' + (@usu.admin ? '' : "&prm=#{prm}")
+    #arg_list_new = '?head=0'
+    arg_list_new = @view[:arg_edit].clone
 
     if params[:mod] != nil
       arg_list_new << '&mod=' + params[:mod] + '&id=' + params[:id] + '&padre=' + params[:padre]
@@ -666,6 +690,16 @@ class ApplicationController < ActionController::Base
     @dat[:eid] = eid
     @dat[:jid] = jid
 
+    if @usu.admin
+      @dat[:prm] = 'p'
+    else
+      @dat[:prm] = params[:padre] ? params[:prm] : @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
+      if @dat[:prm].nil? or @dat[:prm] == 'c'
+        render file: '/public/401.html', status: 401, layout: false
+        return
+      end
+    end
+
     if params[:mod]
       # Si es un mant hijo, inicializar el id del padre
       eval('@fact.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
@@ -779,7 +813,7 @@ class ApplicationController < ActionController::Base
     ini_campos if self.respond_to?('ini_campos')
 
     @v = Vista.new
-    @v.save unless clm.mant? and @fact.id == 0
+    #@v.save unless clm.mant? and @fact.id == 0
     @v.data = {}
     @dat = @v.data
     @dat[:persistencia] = {}
@@ -828,6 +862,25 @@ class ApplicationController < ActionController::Base
 
       set_empeje(eid, jid)
     end
+
+    # Control de permisos
+    unless @usu.admin or params[:controller] == 'gi' or (clm.mant? and @fact.id == 0)
+      #case @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
+      prm = params[:padre] ? params[:prm] : @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
+      case prm
+        when nil
+          render file: '/public/401.html', status: 401, layout: false
+          return
+        when 'b'
+          status_botones borrar: false
+        when 'c'
+          disable_all
+      end
+    end
+
+    @dat[:prm] = @usu.admin ? 'p' : prm
+
+    @v.save unless clm.mant? and @fact.id == 0
 
     @ajax << 'var eid="' + @dat[:eid].to_s + '",jid="' + @dat[:jid].to_s + '";'
     unless clm.mant? and @fact.id == 0

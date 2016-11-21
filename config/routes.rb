@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  ['usuarios','nimtest','empresas','ejercicios','divisas','paises'].each{|c|
+  ['usuarios','nimtest','empresas','ejercicios','divisas','paises','perfiles'].each{|c|
     get c => "#{c}#index"
     get "#{c}/new" => "#{c}#new"
     get "#{c}/:id/edit" => "#{c}#edit"

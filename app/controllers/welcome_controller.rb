@@ -44,24 +44,86 @@ class WelcomeController < ApplicationController
     }
   end
 
+  def usu_menu(menu, path, prm, prf)
+    menu.delete_if {|k, v|
+      if k.starts_with? 'tag_'
+        false
+      else
+        st = prf[path + k] || prm
+        if v.class == Hash
+          usu_menu(v, path + k + '/', st, prf)
+          borrar = true
+          v.each {|k1, v1|
+            unless k1.starts_with?('tag_')
+              borrar = false
+              break
+            end
+          }
+          unless borrar
+            lk = v.keys.last
+            v.delete(lk) if lk.starts_with?('tag_')
+          end
+
+          borrar
+        else # Es una opción normal
+          st == 'x'
+        end
+      end
+    }
+  end
+
   def menu
     @v = Vista.new
-    @v.data = {auto_comp: {ej: "empresa_id=#{@usu.empresa_def_id}"}}
+    @v.data = {auto_comp: {ej: "empresa_id=#{@usu.empresa_def_id}", em: "id in (#{@usu.pref[:permisos][:emp].map{|e| e[0]}.join(',')})"}}
     @v.data[:eid] = @usu.empresa_def_id
     @v.save
 
     @menu = ''
-    hmenu = YAML.load(File.read('modulos/nimbus-core/menu.yml'))
-    Dir.glob('modulos/*/menu.yml').each {|m|
-      next if m == 'modulos/nimbus-core/menu.yml'
-      hmenu.merge!(YAML.load(File.read(m)))
-    }
-    hmenu.deep_merge!(YAML.load(File.read('menu.yml'))) if File.exists?('menu.yml')
-    gen_menu(hmenu)
+
+    #hmenu = self.class.load_menu
+    hmenu = Usuario.load_menu
+
+    if @usu.admin
+      gen_menu(hmenu)
+    else
+      ie = 0
+      @usu.pref[:permisos][:emp].each {|e|
+        if e[0] == @usu.empresa_def_id
+          ie = e[0]
+          break
+        end
+      }
+
+      if ie == 0
+        @usu.empresa_def_id = nil
+        @usu.ejercicio_def_id = nil
+        @usu.save
+      end
+
+      prm = 'x'
+      iprf = nil
+      @usu.pref[:permisos][:emp].each {|e|
+        if e[0] == ie
+          prm = e[1]
+          iprf = e[2]
+          break
+        end
+      }
+
+      if iprf
+        prf = Perfil.find(iprf)
+        if prf
+          usu_menu(hmenu, '/', prm, prf.data)
+          gen_menu(hmenu)
+        end
+      end
+    end
 
     @panel = @usu.pref['panel']
   end
 
+  # El siguiente método está obsoleto. Ahora al cambiar de empresa se recarga la página completa.
+=begin
   def ejercicio_en_menu
     if Ejercicio.where('empresa_id = ?', params[:eid]).count == 0
       @ajax << '$("#d-ejercicio").css("visibility", "hidden")'
@@ -72,4 +134,5 @@ class WelcomeController < ApplicationController
     @dat[:eid] = params[:eid]
     @dat[:auto_comp][:ej] = "empresa_id=#{params[:eid]}"
   end
+=end
 end

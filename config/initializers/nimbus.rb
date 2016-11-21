@@ -423,6 +423,7 @@ module MantMod
       @dialogos ||= []
       @menu_r ||= []
       @menu_l ||= []
+      @tags ||= []
       @col_model = []
       @columnas = []
       @campos_X = []
@@ -744,6 +745,10 @@ module MantMod
 
     def menu_r
       @menu_r
+    end
+
+    def tags
+      @tags
     end
   end
 

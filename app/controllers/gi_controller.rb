@@ -58,12 +58,22 @@ class GiController < ApplicationController
   end
 
   def gi
+    unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
+      render file: '/public/401.html', status: 401, layout: false
+      return
+    end
+
     @titulo = nt('gi')
     all_files(true)
     @modo = 'edit'
   end
 
   def giv
+    unless @usu.admin or @usu.pref[:permisos][:ctr]['giv']
+      render file: '/public/401.html', status: 401, layout: false
+      return
+    end
+
     @titulo = nt('giv')
     all_files(true)
     @modo = 'run'
@@ -71,6 +81,11 @@ class GiController < ApplicationController
   end
 
   def new
+    unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
+      render file: '/public/401.html', status: 401, layout: false
+      return
+    end
+
     if params[:modelo]
       @modelo = params[:modelo]
       begin
@@ -104,6 +119,11 @@ class GiController < ApplicationController
   end
 
   def edita
+    unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
+      render file: '/public/401.html', status: 401, layout: false
+      return
+    end
+
     @modulo = params[:modulo]
     @formato = params[:formato]
     @form = GI.formato_read(@modulo, @formato, @usu.codigo)
@@ -207,7 +227,8 @@ class GiController < ApplicationController
   end
 
   def before_edit
-    #@form = GI.formato_read(params[:modulo], params[:formato], @usu.codigo)
+    return('/public/401.html') unless @usu.admin or @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
+
     @formato = GI.new(params[:modulo], params[:formato], @usu.codigo, nil)
     @form = @formato.formato
     @form ? nil : {file: '/public/404.html', status: 404}
