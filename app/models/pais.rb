@@ -9,6 +9,8 @@ class Pais < ActiveRecord::Base
   after_save :control_histo
   after_initialize :ini_campos
 
+  @auto_comp_data = {campos: ['codigo', 'nombre', 'codigo_cr']}
+
   def ini_campos
     self.tipo ||= 'R' if self.new_record?
   end
