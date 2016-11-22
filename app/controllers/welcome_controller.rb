@@ -74,7 +74,7 @@ class WelcomeController < ApplicationController
 
   def menu
     @v = Vista.new
-    @v.data = {auto_comp: {ej: "empresa_id=#{@usu.empresa_def_id}", em: "id in (#{@usu.pref[:permisos][:emp].map{|e| e[0]}.join(',')})"}}
+    @v.data = {auto_comp: {ej: "empresa_id=#{@usu.empresa_def_id}", em: (@usu.admin ? '' : "id in (#{@usu.pref[:permisos][:emp].map{|e| e[0]}.join(',')})")}}
     @v.data[:eid] = @usu.empresa_def_id
     @v.save
 
@@ -111,9 +111,14 @@ class WelcomeController < ApplicationController
       }
 
       if iprf
-        prf = Perfil.find(iprf)
-        if prf
-          usu_menu(hmenu, '/', prm, prf.data)
+        if iprf != 0
+          prf = Perfil.find(iprf)
+          if prf
+            usu_menu(hmenu, '/', prm, prf.data)
+            gen_menu(hmenu)
+          end
+        else
+          usu_menu(hmenu, '/', prm, {})
           gen_menu(hmenu)
         end
       end

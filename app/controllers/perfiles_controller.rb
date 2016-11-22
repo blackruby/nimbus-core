@@ -3,7 +3,7 @@ class PerfilesMod < Perfil
     codigo: {tab: 'pre', grid: {}, gcols: 2},
     descripcion: {tab: 'pre', grid: {}, gcols: 6},
   }
-  
+
   @grid = {
     gcols: 3,
     cellEdit: false,
