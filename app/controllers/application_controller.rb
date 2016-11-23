@@ -113,6 +113,20 @@ class ApplicationController < ActionController::Base
     @ajax << '.dialog("open");'
   end
 
+  def select_options(cmp, val, options)
+    cmp = cmp.to_sym
+
+    return unless @fact.campos[cmp][:sel]
+
+    @ajax << "$('##{cmp}').html('"
+    options.each{|k, v|
+      @ajax << %Q(<option value="#{k}">#{nt(v)}</option>)
+    }
+    @ajax << %q[');]
+
+    @fact[cmp] = val
+  end
+
   def enable(c)
 =begin
     if @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
