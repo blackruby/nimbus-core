@@ -431,6 +431,12 @@ function vali_code(c, tam, pref, rell) {
 
 function mant_grabar(nueva) {
   var res;
+  if (parent == self) {
+    if ($("button.cl-grabar").attr('disabled') == 'disabled') return;
+  } else {
+    if ($("button.cl-grabar", parent.document).attr('disabled') == 'disabled') return;
+  }
+
   if (typeof jsGrabar == "function") {
     res = jsGrabar();
     if (res == null) return;

@@ -6,7 +6,7 @@ class NimtestMod < Pais
     codigo_cr: {tab: 'pre', gcols: 2, grid:{}},
     final: {tab: 'pre', gcols: 2},
     bool: {tab: 'pre', gcols: 2, type: :boolean},
-    combo: {tab: 'pre', gcols: 2, sel: {'a' => 'Opción A', 'b' => 'Opción B'}},
+    combo: {tab: 'pre', gcols: 2, type: :integer, sel: {1 => 'Opción A', 2 => 'Opción B'}},
     pxa: {tab: 'post', type: :div, gcols: 12},
     pxb: {tab: 'post', type: :div, gcols: 12},
 
@@ -49,7 +49,7 @@ class NimtestMod < Pais
 
   def ini_campos_ctrl
     self.bool = true
-    self.combo = 'b'
+    self.combo = 2
   end
 
   def final
@@ -177,7 +177,7 @@ class NimtestController < ApplicationController
   end
 
   def on_codigo_cr
-    select_options :combo, 'd', 'c' => 'Opción c', 'd' => 'Opción d', 'e' => 'Opción e'
+    select_options :combo, 5, 4 => 'Opción c', 5 => 'Opción d', 6 => 'Opción e'
   end
 
   def habilita_menu(cmp)

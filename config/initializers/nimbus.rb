@@ -616,6 +616,12 @@ module MantMod
             v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
             #v[:grid][:formatter] ||= 'number'
             #v[:grid][:formatoptions][:decimalPlaces] ||= v[:decim]
+            if v[:sel]
+              v[:grid][:formatter] ||= 'select'
+              v[:grid][:edittype] ||= 'select'
+              v[:grid][:editoptions][:value] ||= v[:sel]
+              v[:grid][:align] ||= 'center'
+            end
           end
         when :date
           v[:manti] ||= 8

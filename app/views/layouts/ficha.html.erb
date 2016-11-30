@@ -227,21 +227,22 @@
       e.preventDefault();
       $("<%= @fact.class.superclass.pk.map{|k| '#' + k}.join(',')%>").attr("disabled", false);
     } else if (e.altKey) {
-      e.preventDefault();
       if (e.which == 70) { // Alt-f
-        if (parent != self && $.isFunction(parent.searchBar)) parent.searchBar();
+        if (parent != self && $.isFunction(parent.searchBar)) {e.preventDefault(); parent.searchBar();}
       } else if (e.which == 86) { // Alt-v
-        if (parent != self && $.isFunction(parent.gridCollapse)) parent.gridCollapse();
+        if (parent != self && $.isFunction(parent.gridCollapse)) {e.preventDefault(); parent.gridCollapse();}
       } else if (e.which == 78) { // Alt-n
-        if (parent != self && $.isFunction(parent.newFicha)) parent.newFicha();
+        if (parent != self && $.isFunction(parent.newFicha)) {e.preventDefault(); parent.newFicha();}
       } else if (e.which == 66) { // Alt-b
-        if (parent != self && $.isFunction(parent.pkSearch)) parent.pkSearch();
+        if (parent != self && $.isFunction(parent.pkSearch)) {e.preventDefault(); parent.pkSearch();}
       } else if (e.which == 65) { // Alt-a
         if (parent != self && $.isFunction(parent.newFicha)) {
+          e.preventDefault();
           $(":focus").blur();
           mant_grabar(true);
         }
       } else if (e.which == 71) { // Alt-g
+        e.preventDefault();
         var f = $(":focus");
         f.blur();
         mant_grabar();
@@ -264,7 +265,7 @@
     redimWindow();
     $(".nim-div-tab").css("visibility", "visible");
     //componentHandler.upgradeDom();
-    parent.redimWindow();
+    if (parent != self && $.isFunction(parent.redimWindow)) parent.redimWindow();
     $("input,select,textarea").filter(":enabled[readonly!='readonly']").first().focus();
   });
 

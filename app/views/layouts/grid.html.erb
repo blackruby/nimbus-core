@@ -223,6 +223,7 @@
   }
 
   function newFicha(lastId) {
+    if ($("button.cl-crear").attr('disabled') == 'disabled') return;
     $("#ficha").attr('src', '<%= @view[:url_new] %>' + (lastId ? '&last_id=' + lastId : ''));
   }
 
@@ -351,14 +352,17 @@
 
   $(document).keydown(function(e) {
     if (e.altKey) {
-      e.preventDefault();
       if (e.which == 70) { // Alt-f
+        e.preventDefault();
         searchBar();
       } else if (e.which == 66) { // Alt-b
+        e.preventDefault();
         pkSearch();
       } else if (e.which == 78) { // Alt-n
+        e.preventDefault();
         newFicha();
       } else if (e.which == 86) { // Alt-v
+        e.preventDefault();
         gridCollapse();
       }
     }
