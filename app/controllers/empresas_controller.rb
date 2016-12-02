@@ -58,7 +58,7 @@ class EmpresasController < ApplicationController
   end
 
   def before_envia_ficha
-    status_botones(crear: false) unless get_prm_prf[0]
+    status_botones(crear: false) unless @usu.admin or get_prm_prf[0]
   end
 
   def after_save
