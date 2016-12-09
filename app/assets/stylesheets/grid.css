@@ -1,0 +1,32 @@
+/*.ui-search-menu {z-index: 1500;}*/
+.mdl-cell {margin: 1px;}
+#gbox_grid {height: auto;}
+
+.mdl-grid {padding: 0;}
+.mdl-layout__content::-webkit-scrollbar {display: none;}
+
+.nim-phone {
+  display: none;
+}
+
+@media screen and (min-width: 600px) {
+}
+@media screen and (max-width: 599px) {
+  .nim-hbut {
+    display: none;
+  }
+  .nim-phone {
+    display: block;
+  }
+}
+
+#_pk-input {
+  display: none;
+  background-color: #D1C4E9;
+  border-radius: 10px;
+  width: 15em;
+}
+
+#_pk-input:focus {
+  display: block;
+}

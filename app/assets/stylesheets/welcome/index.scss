@@ -1,0 +1,17 @@
+.w-card.mdl-card {
+  width: 350px;
+  position:fixed;
+  top: 50%;
+  left: 50%;
+  margin-left: -175px; /* Tiene que ser la mitad de la anchura*/
+}
+
+.w-card > .mdl-card__title {
+  color: #fff;
+  height: 176px;
+  background: #673AB7 image-url('logo.png') no-repeat top left;
+}
+
+.w-card > .mdl-card__menu {
+  color: #fff;
+}

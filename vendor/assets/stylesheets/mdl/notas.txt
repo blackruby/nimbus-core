@@ -1,0 +1,1 @@
+Al actualizar, procurar no reemplazar los ficheros iconfont.scss y roboto.scss. En todo caso añadir en ellos las novedades pertinentes.

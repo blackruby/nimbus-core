@@ -63,6 +63,9 @@ class UsuariosController < ApplicationController
   end
 
   def before_envia_ficha
+    @assets_stylesheets = %w(usuarios)
+    @assets_javascripts = %w(usuarios)
+
     unless @fact.admin || @fact.id.nil? || @fact.id == 0
       @tabs << 'empresas'
       @tabs << 'perfiles'

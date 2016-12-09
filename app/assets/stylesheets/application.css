@@ -10,6 +10,16 @@
  * defined in the other CSS/SCSS files in this directory. It is generally better to create a new
  * file per style scope.
  *
- *= require_tree .
+ *  require_tree .
+ *
+ *= require ui/jquery-ui.min
+ *= require jqGrid/ui.jqgrid.min
+ *= require jquery.mmenu.all
+ *= require jqtree
+ *= require mdl/material.min
+ *= require mdl/roboto
+ *= require mdl/iconfont
+ *= require nimbus
+ *
  *= require_self
- */
+*/

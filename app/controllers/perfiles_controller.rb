@@ -63,6 +63,9 @@ class PerfilesController < ApplicationController
   end
 
   def before_envia_ficha
+    @assets_stylesheets = %w(perfiles)
+    @assets_javascripts = %w(perfiles)
+
     return if @fact.id == 0
 
     #@menu = WelcomeController.load_menu

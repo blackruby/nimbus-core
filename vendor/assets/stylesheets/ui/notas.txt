@@ -1,0 +1,1 @@
+Al actualizar hay que cambiar el fichero '.css' por '.scss' y dentro cambiar los 'url' de imágenes (no los de imágenes con data:) por 'image_url' y las rutas de las imágenes tienen que tener path relativo: ui/images/la_imagen_que_sea.png

@@ -75,6 +75,9 @@
 
 class BusController < ApplicationController
   def bus
+    @assets_stylesheets = %w(bus)
+    @assets_javascripts = %w(bus)
+
     @titulo = nt('bus')
 
     @mod = flash[:mod] || params[:mod]

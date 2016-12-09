@@ -89,9 +89,7 @@
 </body>
 
 <style>
-  body {
-    margin-top: 0px;
-  }
+  body {margin-top: 0px;}
   .mdl-layout__content::-webkit-scrollbar {display: none;}
 </style>
 
@@ -100,11 +98,7 @@
     autoOpen: false,
     resizable: false,
     modal: true,
-    buttons: {
-      "Aceptar": function() {
-        $( this ).dialog( "close" );
-      }
-    }
+    buttons: {"Aceptar": function() {$( this ).dialog( "close" );}}
   });
 
   <% @dialogos.each {|d| %>
@@ -125,9 +119,7 @@
   <%= gen_js  %>
   <%= @ajax.html_safe %>
 
-  function abreDialogo(d) {
-    $("#" + d).dialog("open");
-  }
+  function abreDialogo(d) {$("#" + d).dialog("open");}
 
   $(window).load(function () {
     $("input,select,textarea").filter(":enabled").first().focus();

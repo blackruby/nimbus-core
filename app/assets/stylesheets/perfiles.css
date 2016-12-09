@@ -1,0 +1,35 @@
+#radios {
+  margin: 10px;
+  text-align: center;
+}
+
+.mdl-radio {
+  margin: 15px;
+}
+
+.mdl-radio__label {
+  padding-left: 7px;
+  padding-right: 7px;
+  border-radius: 10px;
+}
+
+#menu {
+  border: 1px solid #d3d3d3;
+  overflow-y: scroll;
+}
+
+.collapse, .status, .relleno {
+  font-size: 20px;
+}
+
+.collapse, .status {
+  vertical-align: middle;
+}
+
+.status {
+  border-radius: 50%;
+}
+
+.l-menu {
+  cursor: pointer;
+}

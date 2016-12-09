@@ -58,6 +58,8 @@ class GiController < ApplicationController
   end
 
   def gi
+    @assets_stylesheets = %w(gi)
+
     unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
       render file: '/public/401.html', status: 401, layout: false
       return
@@ -69,6 +71,8 @@ class GiController < ApplicationController
   end
 
   def giv
+    @assets_stylesheets = %w(gi)
+
     unless @usu.admin or @usu.pref[:permisos][:ctr]['giv']
       render file: '/public/401.html', status: 401, layout: false
       return
@@ -87,6 +91,9 @@ class GiController < ApplicationController
     end
 
     if params[:modelo]
+      @assets_stylesheets = %w(gi_edita)
+      @assets_javascripts = %w(gi)
+
       @modelo = params[:modelo]
       begin
         @modelo.constantize # Solo para provocar una excepción si no existe el modelo
@@ -105,6 +112,8 @@ class GiController < ApplicationController
       all_files(false)
       render 'edita'
     else
+      @assets_stylesheets = %w(gi_new)
+
       @titulo = nt('gi')
       @tablas = {}
 
@@ -119,6 +128,9 @@ class GiController < ApplicationController
   end
 
   def edita
+    @assets_stylesheets = %w(gi_edita)
+    @assets_javascripts = %w(gi)
+
     unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
       render file: '/public/401.html', status: 401, layout: false
       return

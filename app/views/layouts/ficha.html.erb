@@ -3,8 +3,8 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= @titulo.nil? ? 'Nimbus' : @titulo %></title>
-  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
-  <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+  <%= stylesheet_link_tag    "application", *@assets_stylesheets, media: "all", "data-turbolinks-track" => true %>
+  <%= javascript_include_tag "application", 'ficha', *@assets_javascripts, "data-turbolinks-track" => true %>
   <%= csrf_meta_tags %>
 </head>
 
@@ -130,153 +130,40 @@
 </style>
 
 <script>
-  $("#dialog-nim-alert").dialog({
-    autoOpen: false,
-    resizable: false,
-    modal: true,
-    width: "auto",
-    buttons: {
-      "Aceptar": function() {
-        $(this).dialog("close");
-      }
-    }
-  });
+  _pkCmps = "<%= @fact.class.superclass.pk.map{|k| '#' + k}.join(',')%>";
+  _factId = <%= @fact.id.to_json %>;
 
-  $("#dialog-borrar").dialog({
-    autoOpen: false,
-    resizable: false,
-    //height:170,
-    //width: 350,
-    modal: true,
-    buttons: {
-      "Sí": function() {
-        $(this).dialog("close");
-        mant_borrar_ok();
-      },
-      No: function() {
-        $(this).dialog("close");
-      }
-    }
-  });
+  function redimWindow() {
+    var f, fh, wh = $(window).height();
+    <% @hijos.each_with_index{|h, i| %>
+    f=$("#hijo_<%= i %>");fh=wh-f.offset().top;f.height(fh);
+    <% } %>
+  }
 
   <% @dialogos.each {|d| %>
-    $("#<%= d[:id] %>" ).dialog({
-      autoOpen: false,
-      resizable: false,
-      width: "<%= d[:width] ? d[:width] : '100%' %>",
-      height: "<%= d[:height] ? d[:height] : 'auto' %>",
-      modal: true,
-      title: "<%= d[:titulo] %>",
-      buttons: {
-        <% d[:botones].to_a.each {|b| %>
-          "<%= b[:label] %>": function () {
-            <% if b[:busy] %>
-              ponBusy();
-            <% end %>
-            callFonServer("<%= b[:accion] %>", {}, quitaBusy);
-            <%= (b[:close].nil? or b[:close]) ? '$(this).dialog("close");'.html_safe : '' %>
-          },
-        <% } %>
-      }
-    });
+  $("#<%= d[:id] %>" ).dialog({
+    autoOpen: false,
+    resizable: false,
+    width: "<%= d[:width] ? d[:width] : '100%' %>",
+    height: "<%= d[:height] ? d[:height] : 'auto' %>",
+    modal: true,
+    title: "<%= d[:titulo] %>",
+    buttons: {
+      <% d[:botones].to_a.each {|b| %>
+      "<%= b[:label] %>": function () {
+        <% if b[:busy] %>
+        ponBusy();
+        <% end %>
+        callFonServer("<%= b[:accion] %>", {}, quitaBusy);
+        <%= (b[:close].nil? or b[:close]) ? '$(this).dialog("close");'.html_safe : '' %>
+      },
+      <% } %>
+    }
+  });
   <% } %>
 
   <%= gen_js %>
   <%= @ajax.html_safe %>
-
-  function abreDialogo(d) {
-    $("#" + d).dialog("open");
-  }
-
-  function historico() {
-    <% if @fact.id and @fact.id > 0 %>
-      /**
-      window.open("/histo/" + _controlador + "/" + <%= @fact.id %>, "_blank", "location=no, menubar=no, status=no, toolbar=no" +
-        ",height=800, width=1000" +
-        ",left=" + (window.screenX + 10) +
-        ",top=" + (window.screenY + 10)
-      );
-      **/
-      window.open("/histo/" + _controlador + "/" + <%= @fact.id %>);
-    <% end %>
-  }
-
-  function liFon(li, fon, tipo) {
-    if ($(li).attr("disabled") == "disabled") return;
-    if (typeof fon == 'function')
-      fon.call();
-    else if (tipo == 'dlg')
-      abreDialogo(fon);
-    else
-      callFonServer(fon);
-  }
-
-  function redimWindow() {
-    <% @hijos.each_with_index{|h, i| %>
-    f = $("#hijo_<%= i %>");
-    wh = $(window).height();
-    fh = wh - f.offset().top;
-    //if (fh < wh/2) f.height(wh/2); else f.height(fh);
-    f.height(fh);
-    <% } %>
-  }
-
-  // Ctr-k Habilita los campos clave
-  $(document).keydown(function(e) {
-    if (e.ctrlKey && e.which == 75) {
-      e.preventDefault();
-      $("<%= @fact.class.superclass.pk.map{|k| '#' + k}.join(',')%>").attr("disabled", false);
-    } else if (e.altKey) {
-      if (e.which == 70) { // Alt-f
-        if (parent != self && $.isFunction(parent.searchBar)) {e.preventDefault(); parent.searchBar();}
-      } else if (e.which == 86) { // Alt-v
-        if (parent != self && $.isFunction(parent.gridCollapse)) {e.preventDefault(); parent.gridCollapse();}
-      } else if (e.which == 78) { // Alt-n
-        if (parent != self && $.isFunction(parent.newFicha)) {e.preventDefault(); parent.newFicha();}
-      } else if (e.which == 66) { // Alt-b
-        if (parent != self && $.isFunction(parent.pkSearch)) {e.preventDefault(); parent.pkSearch();}
-      } else if (e.which == 65) { // Alt-a
-        if (parent != self && $.isFunction(parent.newFicha)) {
-          e.preventDefault();
-          $(":focus").blur();
-          mant_grabar(true);
-        }
-      } else if (e.which == 71) { // Alt-g
-        e.preventDefault();
-        var f = $(":focus");
-        f.blur();
-        mant_grabar();
-        f.focus();
-      }
-    }
-  });
-
-  var hayCambios = false;
-
-  window.onbeforeunload = function() {
-    var jsHay = false;
-    if (typeof jsCambios == "function") jsHay = jsCambios();
-    if (hayCambios || jsHay) return('Hay cambios pendientes de grabar');
-  };
-
-  $(window).resize(redimWindow);
-
-  $(window).load(function () {
-    redimWindow();
-    $(".nim-div-tab").css("visibility", "visible");
-    //componentHandler.upgradeDom();
-    if (parent != self && $.isFunction(parent.redimWindow)) parent.redimWindow();
-    $("input,select,textarea").filter(":enabled[readonly!='readonly']").first().focus();
-  });
-
-  var _activeTab;
-  function tabClick(tab) {
-    _activeTab = tab;
-    setTimeout(function(){
-      if (typeof tabClickUsu == "function") tabClickUsu(tab);
-      _activeTab.find(":input").filter(":enabled[readonly!='readonly']").first().focus();
-    },100);
-  }
 </script>
 
 </html>

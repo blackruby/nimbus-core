@@ -1,0 +1,42 @@
+table {
+  margin: 0;
+  padding: 0;
+  border: 1px solid #d3d3d3;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+thead {
+  background-color: #673AB7;
+  color: #ffffff;
+}
+
+td {
+  border: 1px solid #d3d3d3;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+td select {
+  border: 0;
+}
+
+.contenedores {
+  border: 1px solid #d3d3d3;
+  overflow-y: scroll;
+  display: inline-block;
+}
+
+#d-perfiles, #d-usuarios {
+  padding: 10px;
+}
+
+.status {
+  font-size: 20px;
+  vertical-align: middle;
+  border-radius: 50%;
+}
+
+.dsbl {
+  background-color: #d3d3d3;
+}

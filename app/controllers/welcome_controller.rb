@@ -9,6 +9,7 @@ class WelcomeController < ApplicationController
       return
     end
     I18n.locale = cookies[:locale] || session[:locale] || I18n.default_locale
+    @assets_stylesheets = %w(welcome/index)
   end
 
   def login
@@ -73,6 +74,9 @@ class WelcomeController < ApplicationController
   end
 
   def menu
+    @assets_stylesheets = %w(welcome/menu)
+    @assets_javascripts = %w(menu)
+
     @v = Vista.new
     @v.data = {auto_comp: {ej: "empresa_id=#{@usu.empresa_def_id}", em: (@usu.admin ? '' : "id in (#{@usu.pref[:permisos][:emp].map{|e| e[0]}.join(',')})")}}
     @v.data[:eid] = @usu.empresa_def_id

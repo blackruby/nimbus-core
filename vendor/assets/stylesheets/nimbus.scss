@@ -7,6 +7,12 @@ $color-2-2: #F8BBD0;
 $color-nim-label: #BEBEBE;
 $color-nim-context-menu-li: #EEEEEE;
 
+.c-herencia {background-color: #d3d3d3}
+.c-permitido {background-color: greenyellow}
+.c-sinborrado {background-color: deepskyblue}
+.c-consulta {background-color: orange}
+.c-prohibido {background-color: orangered}
+
 * {box-sizing:border-box;}
 
 body {

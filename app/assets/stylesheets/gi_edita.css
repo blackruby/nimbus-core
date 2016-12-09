@@ -1,0 +1,79 @@
+.titulo {
+  background-color: #673AB7;
+  color: #ffffff;
+  height: 40px;
+  line-height: 40px;
+  font-size: large;
+  margin-bottom: 1px;
+  text-align: center;
+}
+
+.gi-img-button {
+  font-size: 20px;
+}
+
+#tree_campos {
+  float: left;
+  overflow-x: hidden;
+  overflow-y: auto;
+  vertical-align: top;
+  background-color: #d3d3d3;
+  padding: 3px 5px 10px 3px;
+}
+.centro {text-align: center;}
+.subtit {
+  background-color: #f0f0f0;
+}
+.tit {
+  background-color: #d3d3d3;
+  text-align: center;
+  margin-top: 1px;
+  margin-bottom: 1px;
+}
+
+#bandas {
+  position: absolute;
+  width: 540px;
+}
+
+.t_banda, #t_estilos, #t_lim, #t_config, #t_formulas, #t_select, #t_where, #t_having, #t_asist_lim, #t_grabar {
+  width: 100%;
+  table-layout: fixed;
+}
+.t_banda td {
+  overflow-x: hidden;
+}
+table, td {
+  border: 1px solid grey;
+  border-collapse: collapse;
+}
+.i_cmp {
+  border-width: 0;
+  font: normal normal normal normal 1.1em/normal Roboto, Arial, Helvetica, sans-serif;
+  width: 100%;
+}
+
+/*
+#f_abrir {
+  width: 100%;
+}
+*/
+
+input, textarea {
+  outline: none;
+}
+
+textarea {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.file_exists {
+  color: red;
+  background-color: #D1C4E9;
+}
+
+.no-close .ui-dialog-titlebar-close {
+  display: none;
+}

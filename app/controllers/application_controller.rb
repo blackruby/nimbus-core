@@ -1627,8 +1627,6 @@ class ApplicationController < ActionController::Base
   end
 
   def grid_local_select
-    #@dat = $h[params[:vista].to_i]
-    #@fact = @dat[:fact]
     campo = params[:cmp]
     if params[:multi]
       if params[:row] == ''
@@ -1696,11 +1694,25 @@ class ApplicationController < ActionController::Base
     flash[:rm] = true
   end
 
+  def get_fact_from_marshal
+    @fact = @dat[:fact]
+
+    # La siguiente línea es muy importante. No sé cuales son los motivos exactos
+    # pero es necesaria para que la clase a la que pertenece @fact se inicialice correctamente
+    # cuando el request es tratado por un nuevo worker (puma) que no ha usado aún dicha clase.
+    # Aunque la clase está cargada (en production todas las clases están cargadas), parece que
+    # algo interno no está activado hasta que no se hace un new por primera vez.
+    # No es algo haitual (en development o en production con un solo worker no se necesitaría nunca),
+    # pero en production, con varios workers en paralelo podrían darse errores aleatorios si no está
+    # esta línea. Así que.... NO QUITARLA AUNQUE PAREZCA ESTÚPIDA.
+    @fact.class.new
+  end
+
   def validar
     clm = class_mant
 
     #@dat = $h[params[:vista].to_i]
-    @fact = @dat[:fact]
+    get_fact_from_marshal
     @g = @dat[:persistencia]
     fact_clone
 
@@ -1756,9 +1768,11 @@ class ApplicationController < ActionController::Base
 
     @ajax = ''
     if params[:vista]
-      @fact = @dat[:fact]
       @g = @dat[:persistencia]
-      fact_clone if @fact
+      if @dat[:fact]
+        get_fact_from_marshal
+        fact_clone
+      end
     end
     method(params[:fon]).call
     sincro_ficha :ajax => true if @fact
@@ -1784,9 +1798,14 @@ class ApplicationController < ActionController::Base
   end
 
   def borrar
+    if @dat[:prm] != 'p'
+      render nothing: true
+      return
+    end
+
     @ajax = ''
 
-    @fact = @dat[:fact]
+    get_fact_from_marshal
     @g = @dat[:persistencia]
     err = vali_borra if self.respond_to?('vali_borra')
     if err
@@ -1805,8 +1824,13 @@ class ApplicationController < ActionController::Base
   #### GRABAR
 
   def grabar(ajx=true)
+    if @dat[:prm] == 'c'
+      render nothing: true
+      return
+    end
+
     clm = class_mant
-    @fact = @dat[:fact]
+    get_fact_from_marshal
     @g = @dat[:persistencia]
     fact_clone
     err = ''
@@ -1932,7 +1956,7 @@ class ApplicationController < ActionController::Base
   end
 
   def bus_call
-    @fact = @dat[:fact]
+    get_fact_from_marshal
 
     cmp = (params[:cmpid] ? params[:cmpid] : params[:id]).to_sym
     if params[:cmp] # Casos de campos (columnas) de grids editables
