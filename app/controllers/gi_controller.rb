@@ -687,7 +687,7 @@ class GI
     end
 
     #@form[:tit_i] = '&B' + (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') + '&B' if @form[:tit_i].empty?
-    @form[:tit_i] = @form[:tit_i].empty? ? '&B' + @e.try(:nombre) + '&B' : eval_tit_macros(@form[:tit_i])
+    @form[:tit_i] = @form[:tit_i].empty? ? '&B' + @e.try(:nombre).to_s + '&B' : eval_tit_macros(@form[:tit_i])
     @form[:tit_d] = @form[:tit_d].empty? ? '&P de &N' : eval_tit_macros(@form[:tit_d])
     if @form[:tit_c].empty?
       if @form[:descripcion].to_s.strip.empty?
