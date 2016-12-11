@@ -214,7 +214,7 @@ class BusController < ApplicationController
 
     # Formar la cadena de ordenación
     #
-    @dat[:order] = params[:sidx].empty? ? '' : params[:sidx] + params[:sord]
+    @dat[:order] = params[:sidx].empty? ? '' : params[:sidx] + ' ' + params[:sord]
     ord = ''
     sort_elem = params[:sidx].split(',')  #Partimos por ',' así tenemos un vector de campos por los que ordenar
     sort_elem.each{|c|
@@ -242,7 +242,12 @@ class BusController < ApplicationController
       h = {:id => s.id, :cell => []}
       cols.each {|k, v|
         begin
-          h[:cell] << s[v[:alias]].to_s
+          case v[:type]
+          when 'datetime'
+            h[:cell] << s[v[:alias]].to_time.strftime('%d-%m-%Y %H:%M:%S')
+          else
+            h[:cell] << s[v[:alias]].to_s
+          end
         rescue
           h[:cell] << ''
         end

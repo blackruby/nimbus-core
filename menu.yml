@@ -7,3 +7,5 @@ General:
   tag_gi: <hr>
   gi: /gi
   giv: /giv
+  tag_accesos: <hr>
+  ctraccess: /bus?mod=Acceso&ctr=no

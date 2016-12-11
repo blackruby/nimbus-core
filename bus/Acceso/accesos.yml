@@ -1,0 +1,25 @@
+---
+:cols:
+  :c01:
+    :label: fecha
+    :w: 119
+    :type: datetime
+  :c02:
+    :label: login
+    :w: 82
+    :type: string
+  :c03:
+    :label: usuario.nombre
+    :w: 266
+    :type: string
+  :c04:
+    :label: ip
+    :w: 105
+    :type: string
+  :c05:
+    :label: status
+    :w: 54
+    :type: string
+:filters:
+  :rules: []
+:order: c01 desc

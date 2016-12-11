@@ -129,11 +129,6 @@ function pkSearch() {
   $("#_pk-input").css('display', 'block').val('').focus();
 }
 
-$("#_pk-label").contextmenu(function(e) {
-  e.preventDefault();
-  callFonServer("bus_call_pk");
-});
-
 function pkBlur() {
   $("#_pk-input").css('display', 'none');
   $(".grid-title").css('display', 'block');
@@ -206,6 +201,11 @@ $(window).load(function () {
         gridCollapse();
       }
     }
+  });
+
+  $("#_pk-label").contextmenu(function(e) {
+    e.preventDefault();
+    callFonServer("bus_call_pk");
   });
 
   $("#_pk-input").blur(pkBlur).autocomplete({

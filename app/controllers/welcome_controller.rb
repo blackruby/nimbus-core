@@ -12,6 +12,10 @@ class WelcomeController < ApplicationController
     @assets_stylesheets = %w(welcome/index)
   end
 
+  def log_acceso(uid, login, status)
+    Acceso.create usuario_id: uid, login: login, fecha: Time.now, ip: request.remote_ip, status: status
+  end
+
   def login
     usu = Usuario.find_by codigo: params[:usuario]
     if usu and usu.password_hash == BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
@@ -19,15 +23,25 @@ class WelcomeController < ApplicationController
       session[:fec] = Time.now        #Fecha de creación
       session[:fem] = session[:fec]   #Fecha de modificación (último uso)
       cookies.permanent[:locale] = session[:locale] = I18n.locale_available?(usu.pref[:locale]) ? usu.pref[:locale] : I18n.default_locale
+
+      log_acceso usu.id, params[:usuario], 'C'
+
       redirect_to '/menu'
     else
       session[:uid] = nil
-      render 'index'
+
+      log_acceso nil, params[:usuario], '-'
+
+      #render 'index'
+      redirect_to '/'
     end
   end
 
   def logout
     session[:uid] = nil
+
+    log_acceso @usu.id, @usu.codigo, 'D'
+
     render :nothing => true
   end
 

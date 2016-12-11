@@ -18,7 +18,6 @@ end
 
 class Pais < ActiveRecord::Base
   include Modelo
-
 end
 
 class HPais < ActiveRecord::Base
