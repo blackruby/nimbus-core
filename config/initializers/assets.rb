@@ -11,7 +11,7 @@
 # # Rails.application.config.assets.precompile += %w( search.js )
 
 
-Rails.application.config.assets.precompile += ['*.png', '*.eot', '*.ttf', '*.woff', '*.woff2', '*.svg']
+Rails.application.config.assets.precompile += ['*.png', '*.gif', '*.jpg', '*.eot', '*.ttf', '*.woff', '*.woff2', '*.svg']
 
 Dir.glob('app/assets/stylesheets/**/*.{css,scss,erb}').each {|d|
   f = d.split('/')[3..-1].join('/')
