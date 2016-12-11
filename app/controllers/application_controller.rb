@@ -878,10 +878,11 @@ class ApplicationController < ActionController::Base
     end
 
     # Control de permisos
+    @dat[:prm] = 'p'
     unless @usu.admin or params[:controller] == 'gi' or (clm.mant? and @fact.id == 0)
       #case @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
-      prm = params[:padre] ? params[:prm] : @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
-      case prm
+      @dat[:prm] = params[:padre] ? params[:prm] : @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
+      case @dat[:prm]
         when nil
           render file: '/public/401.html', status: 401, layout: false
           return
@@ -891,8 +892,6 @@ class ApplicationController < ActionController::Base
           disable_all
       end
     end
-
-    @dat[:prm] = @usu.admin ? 'p' : prm
 
     @v.save unless clm.mant? and @fact.id == 0
 
