@@ -14,7 +14,7 @@ class Vista < ActiveRecord::Base
   def unmarshal
     self.data = Marshal.load(self.data) if self.id.to_i != 0
   end
-  
+
   alias save_vista save
 
   def save
