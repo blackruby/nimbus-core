@@ -161,7 +161,7 @@ $(window).load(function () {
     cellEdit: varView.grid.cellEdit,
     gridview: true,
 
-    toppager: varView.grid.scroll,
+    toppager: !varView.grid.scroll,
     rowList:[10,20,30,50,100,500,1000],
     altRows: true,
     sortable: true,
