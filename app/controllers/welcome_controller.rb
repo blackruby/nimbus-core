@@ -145,6 +145,11 @@ class WelcomeController < ApplicationController
     @panel = @usu.pref['panel']
   end
 
+  def cambio_emej
+    sql_exe "UPDATE usuarios SET empresa_def_id=#{params[:eid].empty? ? 'NULL' : params[:eid]}, ejercicio_def_id=#{params[:jid].empty? ? 'NULL' : params[:jid]} where id=#{@usu.id}"
+    @ajax << 'location.reload();'
+  end
+
   # El siguiente método está obsoleto. Ahora al cambiar de empresa se recarga la página completa.
 =begin
   def ejercicio_en_menu

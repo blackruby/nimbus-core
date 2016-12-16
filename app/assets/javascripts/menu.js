@@ -180,6 +180,7 @@ function well_auto_comp_error(e, ui) {
   }
 }
 
+/*
 function graba_emej() {
   $.ajax({
     url: '/usuarios/validar_cell',
@@ -195,6 +196,7 @@ function graba_emej() {
     data: {nocallback: true, id: usu_id, ejercicio_def_id: ejercicio_id}
   });
 }
+*/
 
 function set_cookie_emej() {
   //document.cookie = "<%= Nimbus::CookieEmEj %>=" + empresa_id + ":" + ejercicio_id + ";path=/";
@@ -318,9 +320,11 @@ $(window).load(function () {
       // Consultar si tiene ejercicios la empresa para habilitar el campo ejercicio (lo hace la función del servidor en su respuesta)
       //callFonServer('ejercicio_en_menu', {eid: empresa_id});
 
-      graba_emej();
+      callFonServer('cambio_emej', {eid: empresa_id, jid: ejercicio_id});
+
+      //graba_emej();
       //set_cookie_emej();
-      location.reload();
+      //location.reload();
     },
     response: function (e, ui) {
       well_auto_comp_error(e, ui);
@@ -334,9 +338,10 @@ $(window).load(function () {
     select: function (e, ui) {
       ejercicio_id = ui.item.id;
       ejercicio_nom = ui.item.value;
-      graba_emej();
+      callFonServer('cambio_emej', {eid: empresa_id, jid: ejercicio_id});
+      //graba_emej();
       //set_cookie_emej();
-      location.reload();
+      //location.reload();
     },
     response: function (e, ui) {
       well_auto_comp_error(e, ui);
