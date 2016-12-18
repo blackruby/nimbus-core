@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   get 'histo/:tabla/:id' => 'application#histo'
   post 'histo_list' => 'application#histo_list'
 
+  get 'login' => 'welcome#index'
   post 'login' => 'welcome#login'
   post 'welcome/fon_server' => 'welcome#fon_server'
   get 'logout' => 'welcome#logout'

@@ -1,0 +1,23 @@
+<div class="w-card mdl-card mdl-shadow--2dp">
+  <div class="mdl-card__title">
+    <h2 class="mdl-card__title-text"><%= nt('hola_nimbus') %></h2>
+  </div>
+  <div class="mdl-card__supporting-text">
+    Usuario <%= @login %> bloqueado.
+  </div>
+  <div class="mdl-card__actions mdl-card--border" style="text-align: center;">
+    Tiempo restante de bloqueo:
+    <br><br>
+    <label id="reloj" style="font-weight: bold;font-size: 40px"></label>
+  </div>
+</div>
+
+<script>
+  var wCard = $(".w-card.mdl-card");wCard.css("margin-top", -wCard.height()/2);
+
+  var reloj = <%= @seg_blq %>;
+  setInterval(function() {
+    $('#reloj').text(('0'+parseInt(reloj/60)).slice(-2) + ':' + ('0'+reloj%60).slice(-2));
+    if (reloj-- == 0) window.location.replace('/');
+  }, 1000);
+</script>

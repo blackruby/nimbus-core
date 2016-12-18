@@ -12,28 +12,51 @@ class WelcomeController < ApplicationController
     @assets_stylesheets = %w(welcome/index)
   end
 
+  # Los status posibles son:
+  # ------------------------
+  # C Conexión correcta
+  # D Desconexión
+  # - Conexión errónea (no existe el usuario o la contraseña es errónea. Para saber si existe el usuario hay que mirar usuario_id)
+  # * Intento de conexión en el periodo de bloqueo (La conexión no se produce aunque la contraseña sea válida)
+
   def log_acceso(uid, login, status)
     Acceso.create usuario_id: uid, login: login, fecha: Time.now, ip: request.remote_ip, status: status
   end
 
   def login
-    usu = Usuario.find_by codigo: params[:usuario]
+    @assets_stylesheets = %w(welcome/index)
+    @seg_blq = 300  # Nº de segundos que un usuario permanecerá bloqueado si introduce tres veces mal la contraseña.
+
+    @login = params[:usuario]
+
+    usu = Usuario.find_by codigo: @login
+
+    acs = Acceso.where('login=? AND fecha>?', @login, Time.now - @seg_blq).order('fecha desc').limit(3)
+    if acs.size > 2 and acs[0].status < 'A' and acs[1].status < 'A' and acs[2].status < 'A'
+      log_acceso usu.try(:id), @login, '*'
+      render 'bloqueo'
+      return
+    end
+
     if usu and usu.password_hash == BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
       session[:uid] = usu.id
       session[:fec] = Time.now        #Fecha de creación
       session[:fem] = session[:fec]   #Fecha de modificación (último uso)
       cookies.permanent[:locale] = session[:locale] = I18n.locale_available?(usu.pref[:locale]) ? usu.pref[:locale] : I18n.default_locale
 
-      log_acceso usu.id, params[:usuario], 'C'
+      log_acceso usu.id, @login, 'C'
 
       redirect_to '/menu'
     else
       session[:uid] = nil
 
-      log_acceso nil, params[:usuario], '-'
+      log_acceso usu.try(:id), @login, '-'
 
-      #render 'index'
-      redirect_to '/'
+      if acs.size > 1 and acs[0].status < 'A' and acs[1].status < 'A'
+        render 'bloqueo'
+      else
+        redirect_to '/'
+      end
     end
   end
 
