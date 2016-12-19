@@ -32,7 +32,8 @@ class WelcomeController < ApplicationController
     usu = Usuario.find_by codigo: @login
 
     acs = Acceso.where('login=? AND fecha>?', @login, Time.now - @seg_blq).order('fecha desc').limit(3)
-    if acs.size > 2 and acs[0].status < 'A' and acs[1].status < 'A' and acs[2].status < 'A'
+    nacs = acs.length
+    if nacs > 2 and acs[0].status < 'A' and acs[1].status < 'A' and acs[2].status < 'A'
       log_acceso usu.try(:id), @login, '*'
       render 'bloqueo'
       return
@@ -52,7 +53,7 @@ class WelcomeController < ApplicationController
 
       log_acceso usu.try(:id), @login, '-'
 
-      if acs.size > 1 and acs[0].status < 'A' and acs[1].status < 'A'
+      if nacs > 1 and acs[0].status < 'A' and acs[1].status < 'A'
         render 'bloqueo'
       else
         redirect_to '/'
