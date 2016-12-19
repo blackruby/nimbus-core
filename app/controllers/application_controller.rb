@@ -1650,6 +1650,9 @@ class ApplicationController < ActionController::Base
       #@fact.method(campo + '=').call(params[:row].to_i)
       @fact[campo] = params[:row].to_i
     end
+
+    fun = "sel_#{campo}"
+    self.method(fun).call(params[:row]) if self.respond_to?(fun)
   end
 
   def nim_download
