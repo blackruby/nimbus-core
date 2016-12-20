@@ -20,7 +20,7 @@ class WelcomeController < ApplicationController
   # * Intento de conexión en el periodo de bloqueo (La conexión no se produce aunque la contraseña sea válida)
 
   def log_acceso(uid, login, status)
-    Acceso.create usuario_id: uid, login: login, fecha: Time.now, ip: request.remote_ip, status: status
+    Acceso.create usuario_id: uid, login: login, fecha: @ahora, ip: request.remote_ip, status: status
   end
 
   def login
@@ -28,20 +28,22 @@ class WelcomeController < ApplicationController
     @seg_blq = 300  # Nº de segundos que un usuario permanecerá bloqueado si introduce tres veces mal la contraseña.
 
     @login = params[:usuario]
+    @ahora = Time.now
 
     usu = Usuario.find_by codigo: @login
 
-    acs = Acceso.where('login=? AND fecha>?', @login, Time.now - @seg_blq).order('fecha desc').limit(3)
+    acs = Acceso.where('login=? AND fecha>?', @login, @ahora - @seg_blq).order('fecha desc').limit(3)
     nacs = acs.length
     if nacs > 2 and acs[0].status < 'A' and acs[1].status < 'A' and acs[2].status < 'A'
       log_acceso usu.try(:id), @login, '*'
+      @seg_blq -= (@ahora - acs[1].fecha).round
       render 'bloqueo'
       return
     end
 
     if usu and usu.password_hash == BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
       session[:uid] = usu.id
-      session[:fec] = Time.now        #Fecha de creación
+      session[:fec] = @ahora        #Fecha de creación
       session[:fem] = session[:fec]   #Fecha de modificación (último uso)
       cookies.permanent[:locale] = session[:locale] = I18n.locale_available?(usu.pref[:locale]) ? usu.pref[:locale] : I18n.default_locale
 
@@ -54,6 +56,7 @@ class WelcomeController < ApplicationController
       log_acceso usu.try(:id), @login, '-'
 
       if nacs > 1 and acs[0].status < 'A' and acs[1].status < 'A'
+        @seg_blq -= (@ahora - acs[1].fecha).round
         render 'bloqueo'
       else
         redirect_to '/'
@@ -62,6 +65,8 @@ class WelcomeController < ApplicationController
   end
 
   def logout
+    @ahora = Time.now
+
     session[:uid] = nil
 
     log_acceso @usu.id, @usu.codigo, 'D'
