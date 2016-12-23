@@ -1,0 +1,40 @@
+<div class="w-card mdl-card mdl-shadow--2dp">
+  <div class="mdl-card__title">
+    <h2 class="mdl-card__title-text"><%= nt('hola_nimbus') %></h2>
+  </div>
+  <div class="mdl-card__supporting-text" style="text-align: center">
+    Bienvenido, <b><%= @login %></b><br>
+    Su contraseña ha caducado.<br>Introduzca una nueva.
+  </div>
+  <div class="mdl-card__actions mdl-card--border">
+    <%= form_tag("/cambia_pass", method: "post") do %>
+      <br>
+      <div class="nim-group">
+        <input class="nim-input" type="password" name="password" id="password" required style="max-width: 16em"/>
+        <label class="nim-label" for="password"> <%= nt('password') %> </label>
+      </div>
+      <br>
+      <div class="nim-group">
+        <input class="nim-input" type="password" name="password2" id="password2" required style="max-width: 16em"/>
+        <label class="nim-label-out" for="password2"> <%= nt('password_rep') %> </label>
+      </div>
+      <br>
+      <input name="commit" type="submit" style="display: none"/>
+      <div style="text-align: center;color: red">
+        <%= @error %>
+      </div>
+    <% end %>
+  </div>
+  <div class="mdl-card__menu">
+    <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="$('form').submit()">
+      <i class="material-icons">done</i>
+    </button>
+  </div>
+</div>
+
+<script>
+  $("#password").val('').focus();
+  $("#password2").val('');
+  wCard = $(".w-card.mdl-card");
+  wCard.css("margin-top", -wCard.height()/2);
+</script>

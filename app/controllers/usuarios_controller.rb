@@ -5,9 +5,13 @@ class UsuariosMod < Usuario
     admin: {tab: 'general', gcols: 2, hr: true, grid: {}},
     timeout: {tab: 'general', gcols: 4},
     locale: {tab: 'general', gcols: 2, sel:{es: 'espanol', en: 'ingles'}, pref: true},
-    password: {tab: 'general', hr: true, gcols: 4},
-    password_rep: {tab: 'general', gcols: 4},
-    empresa_def_id: {tab: 'general', hr: true, gcols: 4},
+    password: {tab: 'general', hr: true, gcols: 3},
+    password_rep: {tab: 'general', gcols: 3},
+    fecha_baja: {tab: 'general', gcols: 3, grid: {}},
+    num_dias_validez_pass: {tab: 'general', label: 'dias_validez', gcols: 3},
+    ips: {tab: 'general', gcols: 12},
+    ldapservidor_id: {tab: 'general', gcols: 4},
+    empresa_def_id: {tab: 'general', gcols: 4},
     ejercicio_def_id: {tab: 'general', gcols: 4},
   }
 
@@ -191,13 +195,25 @@ class UsuariosController < ApplicationController
       disable(:admin)
       status_botones(borrar: false) if @usu.id == @fact.id
     end
+
+    unless @usu.admin or @usu.id != @fact.id
+      disable(:fecha_baja)
+      disable(:num_dias_validez_pass)
+      disable(:ips)
+      disable(:ldapservidor_id)
+    end
   end
 
   def before_save
     if @fact.password and @fact.password != ''
+      ahora = Time.now
+
       @fact.password_salt = BCrypt::Engine.generate_salt
       @fact.password_hash = BCrypt::Engine.hash_secret(@fact.password, @fact.password_salt)
-      @fact.password_fec_mod = Time.now
+      @fact.password_fec_mod = ahora
+
+      session[:fec] = ahora + 1       #Fecha de creación
+      session[:fem] = session[:fec]   #Fecha de modificación (último uso)
     end
 
     unless @fact.admin
@@ -234,9 +250,27 @@ class UsuariosController < ApplicationController
     end
   end
 
+  def vali_ips
+    err = ''
+    @fact.ips.strip.split(',').each {|ip|
+      ip = ip.strip
+      begin
+        IPAddr.new(ip)
+      rescue
+        err << "IP: '<b>#{ip}</b>' Sintaxis incorrecta.<br>"
+      end
+    }
+    if err.empty?
+      return nil
+    else
+      err << '<br>Sintaxis: xxx.xxx.xxx.xxx[/xx][, ...]'
+      return err
+    end
+  end
+
   def pref_user
     @usu.pref[params[:pref]] = params[:data]
     @usu.update_column(:pref, @usu.pref)
-    render nothing: true;
+    render nothing: true
   end
 end

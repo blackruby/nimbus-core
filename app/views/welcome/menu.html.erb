@@ -55,4 +55,5 @@
   ejercicio_nom = "<%= @usu.ejercicio_def_id ? @usu.ejercicio_def.auto_comp_value(:grid) : '' %>";
   panel = <%= raw @panel ? @panel : {} %>;
   numEjer = <%= Ejercicio.where('empresa_id = ?', @usu.empresa_def_id).count %>
+  daysLeft = <%= @days_left.to_json %>;
 </script>

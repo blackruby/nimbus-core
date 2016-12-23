@@ -11,15 +11,22 @@ class ApplicationController < ActionController::Base
   skip_before_action :ini_controller, only: [:destroy_vista]
 
   def sesion_invalida
+    ahora = Time.now
     @usu = Usuario.find_by id: session[:uid]
-    return true if @usu.nil? or session[:fec] < @usu.password_fec_mod
+
+    return(true) unless @usu
+
     fex = @usu.timeout.nil? ? SESSION_EXPIRATION_TIME : @usu.timeout.minutes
-    fex != 0 and session[:fem].to_time + fex < Time.now
+
+    session[:fec] < @usu.password_fec_mod or
+    (@usu.num_dias_validez_pass.to_i != 0 and (ahora - @usu.password_fec_mod)/86400 > @usu.num_dias_validez_pass) or
+    (@usu.fecha_baja and @usu.fecha_baja <= Date.today) or
+    (fex != 0 and session[:fem].to_time + fex < ahora)
   end
 
   def ini_controller
     if sesion_invalida
-      session[:uid] = nil
+      #session[:uid] = nil
       if request.xhr? # Si la petición es Ajax...
         case params[:action]
         when 'noticias'
@@ -30,11 +37,13 @@ class ApplicationController < ActionController::Base
         when 'list'
           render json: {error: 'no_session'}
         when 'validar'
-          #@fact = $h[params[:vista].to_i][:fact]
-          #c = params[:campo]
-          #v = @fact.method(c).call
-          @ajax =  'alert(js_t("no_session"));'
-          #envia_campo(c, v)
+          @ajax = 'alert(js_t("no_session"));'
+          c = params[:campo]
+          d = Vista.find_by({id: params[:vista].to_i}).try(:data)
+          if d
+            @fact = d[:fact]
+            envia_campo(c, @fact[c]) if @fact
+          end
           render js: @ajax
         else
           render js: 'alert(js_t("no_session"))'
@@ -42,6 +51,8 @@ class ApplicationController < ActionController::Base
       else
         render file: '/public/401.html', status: 401, layout: false
       end
+
+      return
     end
 
     session[:fem] = Time.now unless params[:action] == 'noticias'    #Actualizar fecha de último uso

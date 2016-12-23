@@ -1,7 +1,7 @@
 class WelcomeController < ApplicationController
   require 'bcrypt'
 
-  skip_before_action :ini_controller, only: [:index, :login]
+  skip_before_action :ini_controller, only: [:index, :login, :cambia_pass]
 
   def index
     unless sesion_invalida
@@ -18,6 +18,8 @@ class WelcomeController < ApplicationController
   # D Desconexión
   # - Conexión errónea (no existe el usuario o la contraseña es errónea. Para saber si existe el usuario hay que mirar usuario_id)
   # * Intento de conexión en el periodo de bloqueo (La conexión no se produce aunque la contraseña sea válida)
+  # B Intento de conexión de un usuario de baja
+  # I Intento de conexión desde una IP no válida
 
   def log_acceso(uid, login, status)
     Acceso.create usuario_id: uid, login: login, fecha: @ahora, ip: request.remote_ip, status: status
@@ -32,6 +34,37 @@ class WelcomeController < ApplicationController
 
     usu = Usuario.find_by codigo: @login
 
+
+    if usu
+      # Control de que el usuario no esté de baja
+      if usu.fecha_baja and usu.fecha_baja <= @ahora
+        log_acceso usu.id, @login, 'B'
+        redirect_to '/'
+        return
+      end
+
+      # Control de acceso por IP
+      usu.ips.strip!
+      unless usu.ips.empty?
+        bloqueo = true
+        usu.ips.split(',').each {|ip|
+          ip = ip.strip
+          begin
+            if IPAddr.new(ip).include?(request.remote_ip)
+              bloqueo = false
+              break
+            end
+          rescue
+          end
+        }
+        if bloqueo
+          log_acceso usu.id, @login, 'I'
+          redirect_to '/'
+          return
+        end
+      end
+    end
+
     acs = Acceso.where('login=? AND fecha>?', @login, @ahora - @seg_blq).order('fecha desc').limit(3)
     nacs = acs.length
     if nacs > 2 and acs[0].status < 'A' and acs[1].status < 'A' and acs[2].status < 'A'
@@ -43,13 +76,19 @@ class WelcomeController < ApplicationController
 
     if usu and usu.password_hash == BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
       session[:uid] = usu.id
-      session[:fec] = @ahora        #Fecha de creación
+      session[:fec] = @ahora          #Fecha de creación
       session[:fem] = session[:fec]   #Fecha de modificación (último uso)
       cookies.permanent[:locale] = session[:locale] = I18n.locale_available?(usu.pref[:locale]) ? usu.pref[:locale] : I18n.default_locale
 
       log_acceso usu.id, @login, 'C'
 
-      redirect_to '/menu'
+      # Comprobar si el password ha expirado y solicitar uno nuevo o llevar al menú
+
+      if usu.num_dias_validez_pass.to_i != 0 and (@ahora - usu.password_fec_mod)/86400 > usu.num_dias_validez_pass
+        render 'cambia_pass'
+      else
+        redirect_to '/menu'
+      end
     else
       session[:uid] = nil
 
@@ -61,6 +100,39 @@ class WelcomeController < ApplicationController
       else
         redirect_to '/'
       end
+    end
+  end
+
+  def cambia_pass
+    @assets_stylesheets = %w(welcome/index)
+
+    usu = Usuario.find_by id: session[:uid]
+
+    unless usu
+      redirect_to '/'
+      return
+    end
+
+    @login = usu.codigo
+
+    if params[:password] != params[:password2]
+      @error = 'Las contraseñas no coinciden'
+      render 'cambia_pass'
+    elsif usu.password_hash == BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
+      @error = 'No puede usar la contraseña anterior'
+      render 'cambia_pass'
+    else
+      ahora = Time.now
+
+      usu.password_salt = BCrypt::Engine.generate_salt
+      usu.password_hash = BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
+      usu.password_fec_mod = ahora
+      usu.save
+
+      session[:fec] = ahora + 1       #Fecha de creación
+      session[:fem] = session[:fec]   #Fecha de modificación (último uso)
+
+      redirect_to '/menu'
     end
   end
 
@@ -172,6 +244,13 @@ class WelcomeController < ApplicationController
     end
 
     @panel = @usu.pref['panel']
+
+    if @usu.num_dias_validez_pass.to_i != 0
+      days_left = @usu.num_dias_validez_pass - ((Time.now - @usu.password_fec_mod)/86400).to_i
+      if days_left <= 3
+        @days_left = days_left
+      end
+    end
   end
 
   def cambio_emej

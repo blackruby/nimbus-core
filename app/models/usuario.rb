@@ -10,6 +10,10 @@ class Usuario < ActiveRecord::Base
     timeout: {manti: 6, nil: true},
     empresa_def_id: {ro: :all},
     ejercicio_def_id: {ro: :all},
+    fecha_baja: {},
+    num_dias_validez_pass: {manti: 3, nil: true},
+    ips: {manti: 80},
+    ldapservidor_id: {},
     pref: {},
   }
 
@@ -17,6 +21,7 @@ class Usuario < ActiveRecord::Base
 
   belongs_to :empresa_def, :class_name => 'Empresa'
   belongs_to :ejercicio_def, :class_name => 'Ejercicio'
+  belongs_to :ldapservidor, :class_name => 'Pais'
 
   after_save :control_histo
   after_initialize :ini_campos

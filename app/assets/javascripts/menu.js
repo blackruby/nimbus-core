@@ -362,4 +362,15 @@ $(window).load(function () {
   for (var i in panel.win) {
     creaWin(panel.win[i].src, panel.win[i]);
   }
+
+  if (daysLeft) {
+    if (daysLeft == 1) {
+      var plQ = '';
+      var plD = '';
+    } else {
+      var plQ = 'n';
+      var plD = 's';
+    }
+    alert('Le queda' + plQ + ' menos de ' + daysLeft + ' día' + plD + ' para que caduque su contraseña.\n\nConsidere entrar en su perfil y cambiarla ya.')
+  }
 });
