@@ -652,17 +652,17 @@ class GI
   end
 
   def eval_tit_macros(cad)
-    if !cad.is_a?(String)
-      cad
-      return
+    if cad.is_a?(String)
+      begin
+        cad.gsub!('#e', @e.codigo)
+        cad.gsub!('#E', @e.nombre)
+        cad.gsub!('#j', @j.codigo)
+        cad.gsub!('#J', @j.descripcion)
+      rescue
+      end
     end
-    begin
-      cad.gsub!('#e', @e.codigo)
-      cad.gsub!('#E', @e.nombre)
-      cad.gsub!('#j', @j.codigo)
-      cad.gsub!('#J', @j.descripcion)
-    rescue
-    end
+
+    return cad
   end
 
   def initialize(modulo, form, user, lim={})
@@ -686,7 +686,6 @@ class GI
       @form[:row_height] = nil
     end
 
-    #@form[:tit_i] = '&B' + (lim[:eid] ? Empresa.find_by(id: lim[:eid]).nombre : '') + '&B' if @form[:tit_i].empty?
     @form[:tit_i] = @form[:tit_i].empty? ? '&B' + @e.try(:nombre).to_s + '&B' : eval_tit_macros(@form[:tit_i])
     @form[:tit_d] = @form[:tit_d].empty? ? '&P de &N' : eval_tit_macros(@form[:tit_d])
     if @form[:tit_c].empty?
