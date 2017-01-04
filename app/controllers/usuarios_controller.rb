@@ -10,7 +10,7 @@ class UsuariosMod < Usuario
     num_dias_validez_pass: {tab: 'general', label: 'dias_validez', gcols: 3},
     fecha_baja: {tab: 'general', gcols: 3, grid: {}},
     ips: {tab: 'general', gcols: 12},
-    ldapservidor_id: {tab: 'general', gcols: 4},
+    #ldapservidor_id: {tab: 'general', gcols: 4},
     empresa_def_id: {tab: 'general', gcols: 4},
     ejercicio_def_id: {tab: 'general', gcols: 4},
   }
