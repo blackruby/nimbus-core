@@ -327,13 +327,25 @@ class GiController < ApplicationController
 
     case @fact.form_type
       when 'pdf'
-        `libreoffice --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
+        # LibreOffice, de momento, no es capaz de rodar instancias en paralelo. Parece que esto se va a
+        # solucionar en la versión 5.3.0
+        # Mientras tanto y como "workaround" se puede solventar forzando en cada instancia un directorio
+        # distinto de configuración con la opción: -env:UserInstallation=file:///directorio_de_conf
+        # Cuando el tema esté resuelto habría que quitar esta opción de la llamada a libreoffice.
+
+        #`libreoffice --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
+        `libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
         send_data File.read("#{fns}.pdf"), filename: "#{fnc}.pdf", type: :pdf, disposition: 'inline'
-        FileUtils.rm "#{fns}.pdf", force: true
+        #FileUtils.rm "#{fns}.pdf", force: true
+        FileUtils.rm_rf %W(#{fns}.pdf #{fns}_lo_dir)
       when 'xls'
-        `libreoffice --headless --convert-to xls --outdir /tmp #{fns}.xlsx`
+        # La misma historia que en el caso anterior
+
+        #`libreoffice --headless --convert-to xls --outdir /tmp #{fns}.xlsx`
+        `libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to xls --outdir /tmp #{fns}.xlsx`
         send_data File.read("#{fns}.xls"), filename: "#{fnc}.xls"
-        FileUtils.rm "#{fns}.pdf", force: true
+        #FileUtils.rm "#{fns}.xls", force: true
+        FileUtils.rm_rf %W(#{fns}.xls #{fns}_lo_dir)
       when 'xlsx'
         send_data File.read("#{fns}.xlsx"), filename: "#{fnc}.xlsx"
       else
