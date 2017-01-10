@@ -646,7 +646,9 @@ module MantMod
 
       v[:decim] ||= 0
       v[:gcols] ||= 3
-      v[:size] ||= v[:manti]
+      # Mejor no dar valor a 'size'. Cuando hay parámetros dependientes de emp/ej
+      # aquí no tiene sentido darle valor: mejor en gen_form (application_controller)
+      #v[:size] ||= v[:manti]
 
       # Cálculo de la anchura de las columnas
       if hay_grid and v[:grid][:width].nil?

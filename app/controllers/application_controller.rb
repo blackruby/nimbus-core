@@ -439,10 +439,15 @@ class ApplicationController < ActionController::Base
     arg_ej << '&jid=' + jid if jid
 
     if clm.respond_to?('ejercicio_path')
-      cj_ce = Ejercicio.where('ejercicios.id=?', jid).ljoin(:empresa).pluck('ta.codigo', 'ejercicios.codigo')
-      @titulo << cj_ce[0][0] + '/' + cj_ce[0][1]
+      #cj_ce = Ejercicio.where('ejercicios.id=?', jid).ljoin(:empresa).pluck('ta.codigo', 'ejercicios.codigo')
+      #@titulo << cj_ce[0][0] + '/' + cj_ce[0][1]
+      @j = Ejercicio.find_by id: jid
+      @e = @j.empresa
+      @titulo << @e.codigo + '/' + @j.codigo
     elsif clm.to_s != 'EjerciciosMod' and clm.respond_to?('empresa_path')
-      @titulo << Empresa.where('id=?', eid).pluck(:codigo)[0]
+      #@titulo << Empresa.where('id=?', eid).pluck(:codigo)[0]
+      @e = Empresa.find_by id: eid
+      @titulo << @e.codigo
     end
 
     #@view[:arg_auto] = params[:mod] ? '&wh=' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id] : arg_ej
@@ -875,6 +880,7 @@ class ApplicationController < ActionController::Base
         @e = Empresa.find_by id: params[:eid]
         @j = Ejercicio.find_by id: params[:jid]
 =end
+        set_empeje(*get_empeje)
 
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: false, borrar: false});'
@@ -2017,8 +2023,8 @@ class ApplicationController < ActionController::Base
       next if v[tab_dlg].nil? or v[tab_dlg] != h[tab_dlg]
 
       ro = eval_cad(v[:ro])
-      manti = eval_cad(v[:manti])
-      decim = eval_cad(v[:decim])
+      manti = eval_cad(v[:manti]).to_i
+      decim = eval_cad(v[:decim]).to_i
       if v[:size]
         size = v[:size].to_s
       elsif v[:type] == :integer or v[:type] == :decimal
