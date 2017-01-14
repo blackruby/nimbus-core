@@ -252,6 +252,26 @@ class ApplicationController < ActionController::Base
     @ajax << "statusBotones(#{h.to_json});"
   end
 
+  # Método para hacer download
+  def envia_fichero(file:, file_cli: nil, rm: true)
+    flash[:file] = file
+    flash[:file_cli] = file_cli
+    flash[:rm] = rm
+    @ajax << "window.open('/nim_download');"
+  end
+
+  def nim_download
+    if flash[:file]
+      file_name = flash[:file]
+    else
+      render file: '/public/401.html', status: 401, layout: false
+      return
+    end
+
+    send_data File.read(file_name), filename: flash[:file_cli] || file_name.split('/')[-1]
+    FileUtils.rm_f(file_name) if flash[:rm]
+  end
+
   # Funciones para el manejo del histórico de un modelo
   def histo
     begin
@@ -1670,20 +1690,6 @@ class ApplicationController < ActionController::Base
 
     fun = "sel_#{campo}"
     self.method(fun).call(params[:row]) if self.respond_to?(fun)
-  end
-
-  def nim_download
-    if flash[:file]
-      file_name = flash[:file]
-    else
-      render file: '/public/401.html', status: 401, layout: false
-      return
-    end
-
-    send_data File.read(file_name), filename: flash[:file_cli] || file_name
-    if flash[:rm]
-      FileUtils.rm file_name, force: true
-    end
   end
 
   def grid_local_export

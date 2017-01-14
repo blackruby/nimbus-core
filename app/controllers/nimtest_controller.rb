@@ -62,9 +62,6 @@ class NimtestMod < Pais
 end
 
 class NimtestController < ApplicationController
-  def on_codigo_cr
-    @fact.bool = false
-  end
   def before_envia_ficha
     return if @fact.id.to_i == 0
 
@@ -177,7 +174,8 @@ class NimtestController < ApplicationController
   end
 
   def on_codigo_cr
-    select_options :combo, 5, 4 => 'Opción c', 5 => 'Opción d', 6 => 'Opción e'
+    #select_options :combo, 5, 4 => 'Opción c', 5 => 'Opción d', 6 => 'Opción e'
+    envia_fichero file: '/tmp/z.pdf', rm: false
   end
 
   def habilita_menu(cmp)
