@@ -1227,7 +1227,7 @@ class ApplicationController < ActionController::Base
       when :integer, :float, :decimal
         return v.gsub('.', '').gsub(',', '.')
       when :string
-        return v.upcase if cp[:may]
+        return cp[:may] ? v.upcase : v.dup
       when :boolean
         return v == 'true'
     end
@@ -1775,7 +1775,11 @@ class ApplicationController < ActionController::Base
       mensaje(err)
     end
 
-    sincro_ficha :ajax => true, :exclude => campo
+    if @fact[campo] == @fant[campo.to_sym]
+      sincro_ficha :ajax => true, :exclude => campo
+    else
+      sincro_ficha :ajax => true
+    end
 
     @ajax << 'hayCambios=' + @fact.changed?.to_s + ';' if clm.mant?
 
