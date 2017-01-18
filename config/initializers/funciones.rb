@@ -42,7 +42,7 @@ class String
     b = [0,2,4,6].inject(0) { |acum, pos| acum +
       add_digits_from_int(central_digits[pos] * 2) }
 
-    candidate_digit = 10 - ( (a+b) % 10)
+    candidate_digit = (10 - ( (a+b) % 10)) % 10
     candidate_letter = "JABCDEFGHI"[candidate_digit,1]
 
     control_digit = self[8,1]
