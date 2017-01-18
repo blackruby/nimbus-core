@@ -1181,6 +1181,7 @@ class ApplicationController < ActionController::Base
           end
         end
       }
+      h.delete :exclude
       vc.each {|cv|
         @fant[cv[0]] = cv[1]
       }
@@ -1227,7 +1228,7 @@ class ApplicationController < ActionController::Base
       when :integer, :float, :decimal
         return v.gsub('.', '').gsub(',', '.')
       when :string
-        return cp[:may] ? v.upcase : v.dup
+        return v.upcase if cp[:may]
       when :boolean
         return v == 'true'
     end
@@ -1761,6 +1762,7 @@ class ApplicationController < ActionController::Base
     end
 
     @fact[campo] = raw_val(campo, valor)
+    valor = @fact.campos[campo.to_sym][:type] == :string ? @fact[campo].dup : @fact[campo]
 
     ## Validación
 
@@ -1775,7 +1777,7 @@ class ApplicationController < ActionController::Base
       mensaje(err)
     end
 
-    if @fact[campo] == @fant[campo.to_sym]
+    if @fact[campo] == valor
       sincro_ficha :ajax => true, :exclude => campo
     else
       sincro_ficha :ajax => true

@@ -173,9 +173,13 @@ class NimtestController < ApplicationController
     disable_menu(:mr_1)
   end
 
+  def vali_codigo_cr
+    @fact.codigo_cr = @fact.codigo_cr.upcase
+    nil
+  end
   def on_codigo_cr
-    #select_options :combo, 5, 4 => 'Opción c', 5 => 'Opción d', 6 => 'Opción e'
-    envia_fichero file: '/tmp/z.pdf', rm: false
+    select_options :combo, 5, 4 => 'Opción c', 5 => 'Opción d', 6 => 'Opción e'
+    #envia_fichero file: '/tmp/z.pdf', rm: false
   end
 
   def habilita_menu(cmp)
