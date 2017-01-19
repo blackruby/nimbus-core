@@ -1762,7 +1762,7 @@ class ApplicationController < ActionController::Base
     end
 
     @fact[campo] = raw_val(campo, valor)
-    valor = @fact.campos[campo.to_sym][:type] == :string ? @fact[campo].dup : @fact[campo]
+    valor = @fact[campo].dup rescue @fact[campo]
 
     ## Validación
 
