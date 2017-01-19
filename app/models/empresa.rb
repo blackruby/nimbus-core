@@ -20,7 +20,7 @@ class Empresa < ActiveRecord::Base
   after_initialize :ini_campos
 
   def ini_campos
-    self.param ||= {}
+    self.param ||= {} if self.respond_to? :param
   end
 end
 

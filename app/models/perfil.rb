@@ -8,7 +8,7 @@ class Perfil < ActiveRecord::Base
   serialize :data
 
   def ini_campos
-    self.data ||= {}
+    self.data ||= {} if self.respond_to? :data
   end
 end
 

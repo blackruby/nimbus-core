@@ -27,8 +27,10 @@ class Usuario < ActiveRecord::Base
   after_initialize :ini_campos
 
   def ini_campos
-    self.pref ||= {}
-    self.pref[:permisos] ||= {emp: [], prf: [], usu: [], ctr: {}}
+    if self.respond_to? :pref
+      self.pref ||= {}
+      self.pref[:permisos] ||= {emp: [], prf: [], usu: [], ctr: {}}
+    end
   end
 
   def self.load_menu
