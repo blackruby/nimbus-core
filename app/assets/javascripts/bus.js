@@ -128,7 +128,8 @@ function gridSelect(id) {
       window.close();
       break;
     case 'auto':
-      if (_controlador_edit != 'no') window.open("/" + _controlador_edit + "/" + id + "/edit");
+      //if (_controlador_edit != 'no') window.open("/" + _controlador_edit + "/" + id + "/edit");
+      if (_controlador_edit != 'no') window.open("/" + _controlador_edit + "?id_edit=" + id);
       break;
     default:
       callFonServer("bus_value", {id: id}, null, true);

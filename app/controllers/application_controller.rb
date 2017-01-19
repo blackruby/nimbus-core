@@ -417,6 +417,7 @@ class ApplicationController < ActionController::Base
     grid_conf(grid) if self.respond_to?(:grid_conf)
 
     grid[:cellEdit] = false if prm == 'c'
+    grid[:visible] = false if params[:hidegrid]
 
     add_where(w, grid[:wh]) if grid[:wh]
 
@@ -437,6 +438,7 @@ class ApplicationController < ActionController::Base
     @view = {grid: grid}
     @view[:eid] = eid
     @view[:jid] = jid
+    @view[:id_edit] = params[:id_edit] ? params[:id_edit] : 0
     @view[:model] = clm.superclass.to_s
     @view[:menu_r] = clm.menu_r
     @view[:menu_l] = clm.menu_l

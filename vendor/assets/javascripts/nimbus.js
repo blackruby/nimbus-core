@@ -736,7 +736,8 @@ function autoCompIrAFicha() {
   var inp = $("#_auto_comp_button_").parent().find("input");
   var dbid = inp.attr("dbid");
   if (dbid == undefined || dbid == '') return;
-  window.open('/' + inp.attr("controller") + '/' + dbid + '/edit', '_blank', '');
+  //window.open('/' + inp.attr("controller") + '/' + dbid + '/edit', '_blank', '');
+  window.open('/' + inp.attr("controller") + '?hidegrid=1&id_edit=' + dbid, '_blank', '');
 }
 
 function autoCompNuevaFicha() {
