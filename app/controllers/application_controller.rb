@@ -1141,15 +1141,31 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def call_on(c)
+  def call_on(c, val)
     cs = c.to_sym
     v = @fact.campos[cs]
+    hay_on = false
     if self.respond_to?(v[:on].to_s)
+      hay_on = true
+      val_ant = val.dup rescue val
       method(v[:on]).arity == 0 ? method(v[:on]).call() : method(v[:on]).call(cs)
     end
 
     fun = 'on_' << c
-    method(fun).call if self.respond_to?(fun)
+    if self.respond_to?(fun)
+      unless hay_on
+        val_ant = val.dup rescue val
+      end
+      hay_on = true
+      method(fun).call
+    end
+
+    if hay_on
+      val = @fact[cs]
+      return [val_ant != val, val]
+    else
+      return [false, val]
+    end
   end
 
   def sincro_ficha(h={})
@@ -1173,11 +1189,11 @@ class ApplicationController < ActionController::Base
           if v.is_a? HashForGrids
             sincro_grid(cs, v, va) if va
           else
-            if h[:ajax] and c != h[:exclude] and ch[:form]
+            res, v = call_on(c, v)
+
+            if h[:ajax] and ch[:form] and (res or c != h[:exclude])
               envia_campo(c, v)
             end
-
-            call_on(c)
           end
         end
       }

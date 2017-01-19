@@ -174,7 +174,7 @@ class NimtestController < ApplicationController
   end
 
   def vali_codigo_cr
-    @fact.codigo_cr = @fact.codigo_cr.upcase
+    @fact.codigo_cr.upcase!
     nil
   end
   def on_codigo_cr
