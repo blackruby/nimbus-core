@@ -151,6 +151,7 @@
     buttons: {
       <% d[:botones].to_a.each {|b| %>
       "<%= b[:label] %>": function () {
+        $(this).find(".ui-jqgrid-btable").jqGrid('editCell', 0, 0, false);
         <% if b[:busy] %>
         ponBusy();
         <% end %>

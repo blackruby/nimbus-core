@@ -437,6 +437,9 @@ function mant_grabar(nueva) {
     if ($("button.cl-grabar", parent.document).attr('disabled') == 'disabled') return;
   }
 
+  // Para forzar la salida de edición de cualquier celda en cualquier grid editable que haya
+  $(".ui-jqgrid-btable").jqGrid('editCell', 0, 0, false);
+
   if (typeof jsGrabar == "function") {
     res = jsGrabar();
     if (res == null) return;
