@@ -573,7 +573,11 @@ class ApplicationController < ActionController::Base
         end
 
         ty = f[:field].split('.')
-        ty = ty[-2].model.columns_hash[ty[-1]].type
+        if ty.size == 2
+          ty = clm.campos[ty[-1].to_sym][:type]
+        else
+          ty = ty[-2].model.columns_hash[ty[-1]].type
+        end
         add_where w, ([:bn,:ni,:en,:nc].include?(op) ? 'NOT ' : '') + (ty == :string ? 'UNACCENT(LOWER(' + f[:field] + '))' : f[:field])
         w << ({eq: '=', ne: '<>', cn: ' LIKE ', bw: ' LIKE ', ew: ' LIKE ', nc: ' LIKE ', bn: ' LIKE ', en: ' LIKE ', in: ' IN (', ni: ' IN (', lt: '<', le: '<=', gt: '>', ge: '>='}[op] || '=')
         if op == :in or op == :ni
