@@ -242,11 +242,17 @@ class BusController < ApplicationController
       h = {:id => s.id, :cell => []}
       cols.each {|k, v|
         begin
+          puts k
+          puts v
+          puts '---------'
           case v[:type]
-          when 'datetime'
-            h[:cell] << s[v[:alias]].to_time.strftime('%d-%m-%Y %H:%M:%S')
-          else
-            h[:cell] << s[v[:alias]].to_s
+            when 'datetime'
+              h[:cell] << s.attributes[v[:alias]].to_time.strftime('%d-%m-%Y %H:%M:%S')
+            else
+              puts v[:alias]
+              puts s[v[:alias]]
+              puts '========='
+              h[:cell] << s.attributes[v[:alias]].to_s
           end
         rescue
           h[:cell] << ''
