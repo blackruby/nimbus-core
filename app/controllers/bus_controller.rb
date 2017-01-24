@@ -242,16 +242,12 @@ class BusController < ApplicationController
       h = {:id => s.id, :cell => []}
       cols.each {|k, v|
         begin
-          puts k
-          puts v
-          puts '---------'
+          # Para acceder a los atributos de "s" es mejor usar el hash "attributes" que acceder a pelo (s[atributo]) porque el atributo "id" cuando
+          # la tabla que se procesa es una vista no es accesible "a pelo"
           case v[:type]
             when 'datetime'
               h[:cell] << s.attributes[v[:alias]].to_time.strftime('%d-%m-%Y %H:%M:%S')
             else
-              puts v[:alias]
-              puts s[v[:alias]]
-              puts '========='
               h[:cell] << s.attributes[v[:alias]].to_s
           end
         rescue
