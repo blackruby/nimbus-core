@@ -1864,7 +1864,7 @@ class ApplicationController < ActionController::Base
     if err
       mensaje err
     else
-      @fact.destroy
+      class_mant.view? ? class_modelo.destroy(@fact.id) : @fact.destroy
 
       grid_reload
       @ajax << "window.location.replace('/' + _controlador + '/0/edit?head=#{@dat[:head]}');"
