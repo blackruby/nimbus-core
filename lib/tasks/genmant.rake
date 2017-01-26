@@ -238,6 +238,8 @@ namespace :nimbus do
           modelo.puts('  include Historico')
           modelo.puts('end')
         end
+        modelo.puts
+        modelo.puts('Nimbus.load_adds __FILE__')
         modelo.rewind
 
         File.write("#{path}app/models/#{modulo}/#{mod}.rb", modelo.read) if tipo != 'ctr'
@@ -259,6 +261,8 @@ namespace :nimbus do
         controller.puts
         controller.puts("class #{namesp}#{modcp}Controller < ApplicationController")
         controller.puts('end')
+        controller.puts
+        controller.puts('Nimbus.load_adds __FILE__')
         controller.rewind
 
         File.write("#{path}app/controllers/#{modulo}/#{modp}_controller.rb", controller.read)

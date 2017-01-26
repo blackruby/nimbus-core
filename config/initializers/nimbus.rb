@@ -14,11 +14,26 @@ Rails.application.config.active_record.schema_format = :sql
 Date::DATE_FORMATS[:sp] = '%d-%m-%Y'
 
 module Nimbus
-  # Variable global para activar/desactivar mensajes de debug
+  # Constante global para activar/desactivar mensajes de debug
   Debug = false
 
   # Nombre de la cookie de empresa/ejercicio
   CookieEmEj = ('_' + Rails.app_class.to_s.split(':')[0].downcase + '_emej').to_sym
+
+  # Cálculo de los módulos 'puros' disponibles
+  Modulos = Dir.glob('modulos/*').select{|m| m != 'modulos/idiomas' and m != 'modulos/nimbus-core'} + ['.']
+
+  def self.load_adds(fi)
+    f = fi.split('/')
+    iapp = f.index('app')
+    f = '/' + f[iapp..-1].join('/')[0..-4] + '_add.rb'
+    Modulos.each {|m|
+      p = Rails.root.to_s + '/' + m + f
+      if File.exists? p
+        Rails.env == 'development' ? require_dependency(p) : load(p)
+      end
+    }
+  end
 end
 
 #Cambiar inflections por defecto a español
@@ -428,6 +443,7 @@ module MantMod
       @columnas = []
       @campos_X = []
 
+=begin
       @dialogos.each {|d|
         if d[:menu]
           h = {label: d[:menu], accion: d[:id], tipo: 'dlg'}
@@ -435,6 +451,8 @@ module MantMod
           @menu_r << h
         end
       }
+=end
+      add_dialogos(@dialogos)
 
       @grid ||= {}
       @grid[:ew] ||= :w
@@ -485,6 +503,29 @@ module MantMod
       end
 
       @titulo = nt(@titulo)
+    end
+
+    def add_campos(cmps)
+      cmps.each {|c, v|
+        if @campos[c]
+          @campos[c].deep_merge!(v)
+        else
+          @campos[c] = v
+          ini_campo(c, v, nil)
+        end
+      }
+    end
+
+    def add_dialogos(diag)
+      @dialogos += diag if diag.object_id != @dialogos_id
+
+      diag.each {|d|
+        if d[:menu]
+          h = {label: d[:menu], accion: d[:id], tipo: 'dlg'}
+          h[:id] = d[:menu_id] if d[:menu_id]
+          @menu_r << h
+        end
+      }
     end
 
     def ini_campo(c, v, context)
@@ -966,6 +1007,10 @@ module Modelo
       end
 
       after_initialize :_ini_campos
+    end
+
+    def add_propiedades(cmps)
+      @propiedades.deep_merge!(cmps)
     end
 
     def propiedades

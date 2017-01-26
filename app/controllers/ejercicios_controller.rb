@@ -25,3 +25,5 @@ end
 
 class EjerciciosController < ApplicationController
 end
+
+Nimbus.load_adds __FILE__

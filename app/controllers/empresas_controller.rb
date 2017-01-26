@@ -70,3 +70,5 @@ class EmpresasController < ApplicationController
     end
   end
 end
+
+Nimbus.load_adds __FILE__

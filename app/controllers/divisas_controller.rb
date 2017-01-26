@@ -21,3 +21,5 @@ end
 
 class DivisasController < ApplicationController
 end
+
+Nimbus.load_adds __FILE__

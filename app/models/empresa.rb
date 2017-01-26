@@ -31,3 +31,5 @@ end
 class HEmpresa < ActiveRecord::Base
   belongs_to :created_by, :class_name => 'Usuario'
 end
+
+Nimbus.load_adds __FILE__

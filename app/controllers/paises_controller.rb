@@ -27,3 +27,5 @@ end
 
 class PaisesController < ApplicationController
 end
+
+Nimbus.load_adds __FILE__

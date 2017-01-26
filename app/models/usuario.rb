@@ -142,3 +142,5 @@ class HUsuario < ActiveRecord::Base
   belongs_to :created_by, :class_name => 'Usuario'
   serialize :pref
 end
+
+Nimbus.load_adds __FILE__

@@ -10,6 +10,27 @@ class ApplicationController < ActionController::Base
   before_action :ini_controller
   skip_before_action :ini_controller, only: [:destroy_vista]
 
+  def self.nimbus_hook(h)
+    @nimbus_hooks ||= {}
+    h.each {|k, v|
+      k = k.to_sym
+      v = v.to_sym
+      @nimbus_hooks[k] ? @nimbus_hooks[k] << v : @nimbus_hooks[k] = [v]
+    }
+  end
+
+  def self.nimbus_hooks
+    @nimbus_hooks
+  end
+
+  def call_nimbus_hook(fun)
+    fun = fun.to_sym
+    method(fun).call if self.respond_to?(fun)
+    if self.class.nimbus_hooks and self.class.nimbus_hooks[fun]
+      self.class.nimbus_hooks[fun].each {|f| method(f).call}
+    end
+  end
+
   def sesion_invalida
     ahora = Time.now
     @usu = Usuario.find_by id: session[:uid]
@@ -784,7 +805,8 @@ class ApplicationController < ActionController::Base
     #Activar botones necesarios (Grabar/Borrar)
     @ajax << 'statusBotones({grabar: true, borrar: false});'
 
-    before_envia_ficha if self.respond_to?('before_envia_ficha')
+    #before_envia_ficha if self.respond_to?('before_envia_ficha')
+    call_nimbus_hook :before_envia_ficha
     envia_ficha
 
     @v.save
@@ -866,7 +888,8 @@ class ApplicationController < ActionController::Base
     end
 
     var_for_views(clm)
-    ini_campos if self.respond_to?('ini_campos')
+    #ini_campos if self.respond_to?('ini_campos')
+    call_nimbus_hook :ini_campos
 
     @v = Vista.new
     #@v.save unless clm.mant? and @fact.id == 0
@@ -943,7 +966,8 @@ class ApplicationController < ActionController::Base
       @ajax << 'var _vista=' + @v.id.to_s + ';var _controlador="' + params['controller'] + '";'
     end
 
-    before_envia_ficha if self.respond_to?(:before_envia_ficha)
+    #before_envia_ficha if self.respond_to?(:before_envia_ficha)
+    call_nimbus_hook :before_envia_ficha
 
     unless clm.mant? and @fact.id == 0
       envia_ficha
@@ -1157,13 +1181,23 @@ class ApplicationController < ActionController::Base
       method(v[:on]).arity == 0 ? method(v[:on]).call() : method(v[:on]).call(cs)
     end
 
-    fun = 'on_' << c
+    fun = ('on_' + c).to_sym
     if self.respond_to?(fun)
       unless hay_on
         val_ant = val.dup rescue val
+        hay_on = true
       end
-      hay_on = true
       method(fun).call
+    end
+
+    if self.class.nimbus_hooks and self.class.nimbus_hooks[fun]
+      unless hay_on
+        val_ant = val.dup rescue val
+        hay_on = true
+      end
+      self.class.nimbus_hooks[fun].each {|f|
+        method(f).call
+      }
     end
 
     if hay_on
@@ -1925,7 +1959,8 @@ class ApplicationController < ActionController::Base
       end
 
       if err == ''
-        before_save if self.respond_to?('before_save')
+        #before_save if self.respond_to?('before_save')
+        call_nimbus_hook :before_save
         if clm.view?
           clmod = class_modelo
           if (@fact.id)
@@ -1954,7 +1989,8 @@ class ApplicationController < ActionController::Base
         end
 
         begin
-          after_save if self.respond_to?('after_save')
+          #after_save if self.respond_to?('after_save')
+          call_nimbus_hook :after_save
         rescue Exception => e
           pinta_exception(e, 'Error: after_save')
         end

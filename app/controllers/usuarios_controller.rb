@@ -274,3 +274,5 @@ class UsuariosController < ApplicationController
     render nothing: true
   end
 end
+
+Nimbus.load_adds __FILE__
