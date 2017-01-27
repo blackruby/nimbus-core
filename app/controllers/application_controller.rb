@@ -23,6 +23,15 @@ class ApplicationController < ActionController::Base
     @nimbus_hooks
   end
 
+  def self.set_nimbus_views(tipo, path)
+    @nimbus_views ||= {}
+    @nimbus_views[tipo] = path
+  end
+
+  def self.nimbus_views
+    @nimbus_views
+  end
+
   def call_nimbus_hook(fun)
     fun = fun.to_sym
     method(fun).call if self.respond_to?(fun)
@@ -691,11 +700,20 @@ class ApplicationController < ActionController::Base
     render :json => res
   end
 
-  def pag_render(pag)
-    begin
-      render action: pag, layout: pag
-    rescue
-      render html: '', layout: pag
+  def pag_render(pag, lay=pag)
+    if self.class.nimbus_views
+      r = ''
+      self.class.nimbus_views[pag.to_sym].each {|v|
+        r << "<%= render file: '#{v}' %>"
+      }
+
+      render inline: r, layout: lay
+    else
+      begin
+        render action: pag, layout: lay
+      rescue
+        render html: '', layout: lay
+      end
     end
   end
 
@@ -978,7 +996,7 @@ class ApplicationController < ActionController::Base
 
     r = false
     r = mi_render if self.respond_to?(:mi_render)
-    (clm.mant? ? pag_render('ficha') : pag_render('proc')) unless r
+    (clm.mant? ? pag_render('ficha') : pag_render('ficha', 'proc')) unless r
   end
 
   def set_auto_comp_filter(cmp, wh)

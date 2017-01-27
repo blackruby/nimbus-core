@@ -26,13 +26,41 @@ module Nimbus
   def self.load_adds(fi)
     f = fi.split('/')
     iapp = f.index('app')
-    f = '/' + f[iapp..-1].join('/')[0..-4] + '_add.rb'
+    fic = '/' + f[iapp..-1].join('/')[0..-4] + '_add.rb'
+    rails_root = Rails.root.to_s
     Modulos.each {|m|
-      p = Rails.root.to_s + '/' + m + f
+      p = rails_root + '/' + m + fic
       if File.exists? p
         Rails.env == 'development' ? require_dependency(p) : load(p)
       end
     }
+
+    # Cálculo de las vistas en el caso de que sea un controlador
+
+    if f[iapp + 1] == 'controllers'
+      ctr_name = f[-1][0..f[-1].index('_controller')-1]
+      mod = f[-2] == 'controllers' ? '' : f[-2]
+      ctr = ((mod == '' ? '' : mod.capitalize + '::') + ctr_name.capitalize + 'Controller').constantize
+
+      def self.procesa_vistas(tipo, rails_root, f, iapp, ctr_name, ctr, mod)
+        views = []
+        ruta = "/app/views/#{mod}/#{ctr_name}/#{tipo}.html.erb"
+
+        fic = f[0..iapp-1].join('/') + '/' + ruta
+        views << fic if File.exists?(fic)
+
+        Modulos.each {|m|
+          next if m == f[iapp-2] + '/' + f[iapp-1]
+          fic = rails_root + '/' + m + ruta
+          views << fic if File.exists?(fic)
+        }
+
+        ctr.set_nimbus_views tipo, views
+      end
+
+      procesa_vistas(:ficha, rails_root, f, iapp, ctr_name, ctr, mod)
+      procesa_vistas(:grid, rails_root, f, iapp, ctr_name, ctr, mod)
+    end
   end
 end
 
