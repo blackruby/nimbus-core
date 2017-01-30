@@ -516,7 +516,7 @@ module MantMod
         self.superclass.column_names.each{|c|
           cs = c.to_sym
           unless c == 'id' or @campos.include?(cs)
-            @campos[cs] = self.superclass.propiedades[cs]
+            @campos[cs] = self.superclass.propiedades[cs].deep_dup
             @campos[cs] ||= {}
             @campos[cs][:type] = self.superclass.columns_hash[c].type
           end
@@ -539,8 +539,8 @@ module MantMod
           @campos[c].deep_merge!(v)
         else
           @campos[c] = v
-          ini_campo(c, v, nil)
         end
+        ini_campo(c, @campos[c], nil)
       }
     end
 
