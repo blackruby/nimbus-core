@@ -603,7 +603,7 @@ class ApplicationController < ActionController::Base
         end
 
         ty = f[:field].split('.')
-        if ty.size == 2
+        if ty[-2] == clm.table_name
           ty = clm.campos[ty[-1].to_sym][:type]
         else
           ty = ty[-2].model.columns_hash[ty[-1]].type

@@ -239,7 +239,7 @@ class GiController < ApplicationController
   end
 
   def before_edit
-    return('/public/401.html') unless @usu.admin or @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
+    return('/public/401.html') unless @usu.admin or params[:modulo] == 'publico' or params[:modulo] == 'privado' or @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
 
     @formato = GI.new(params[:modulo], params[:formato], @usu.codigo, nil)
     @form = @formato.formato
