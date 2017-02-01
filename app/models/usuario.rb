@@ -132,6 +132,10 @@ class Usuario < ActiveRecord::Base
 
     return [menu, pf]
   end
+
+  def self.valida_password(p)
+    return (p.size >= 8 and p =~ /[a-z]/ and p =~ /[A-Z]/ and p =~ /[0-9]/) ? nil : 'La contraseña debe de tener al menos 8 caracteres y contenr mayúsculas, minúsculas y números'
+  end
 end
 
 class Usuario < ActiveRecord::Base

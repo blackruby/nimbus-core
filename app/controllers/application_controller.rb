@@ -48,6 +48,7 @@ class ApplicationController < ActionController::Base
 
     fex = @usu.timeout.nil? ? SESSION_EXPIRATION_TIME : @usu.timeout.minutes
 
+    @usu.password_fec_mod.nil? or
     session[:fec] < @usu.password_fec_mod or
     (@usu.num_dias_validez_pass.to_i != 0 and (ahora - @usu.password_fec_mod)/86400 > @usu.num_dias_validez_pass) or
     (@usu.fecha_baja and @usu.fecha_baja <= Date.today) or

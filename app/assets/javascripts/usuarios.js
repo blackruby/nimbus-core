@@ -100,5 +100,5 @@ $(window).load(function () {
     }
   });
 
-  $(window).resize(tabClickUsu);
+  //$(window).resize(tabClickUsu);
 });
