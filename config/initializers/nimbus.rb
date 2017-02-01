@@ -460,6 +460,16 @@ module MantMod
   module ClassMethods
     def ini_datos
       @mant = self < ActiveRecord::Base ? true : false
+      if @mant
+        if self.superclass.modelo_base
+          @view = true
+          self.table_name = self.superclass.table_name
+        else
+          @view = self.superclass.table_name != self.table_name
+        end
+      else
+        @view = false
+      end
 
       @campos ||= {}
       @hijos ||= []
@@ -482,27 +492,6 @@ module MantMod
 =end
       add_dialogos(@dialogos)
 
-      @grid ||= {}
-      @grid[:ew] ||= :w
-      @grid[:gcols].is_a?(Fixnum) ? @grid[:gcols] = [@grid[:gcols]] : @grid[:gcols] ||= [5]
-      @grid[:gcols][1] ||= (@grid[:gcols][0] - 1)*7/11 + 1
-      @grid[:gcols][2] ||= 4
-      @grid[:visible] = true if @grid[:visible].nil?
-      @grid[:height] ||= 250
-      @grid[:rowNum] ||= 100
-      @grid[:cellEdit] = true if @grid[:cellEdit].nil?
-      @grid[:shrinkToFit] = true if @grid[:shrinkToFit].nil?
-      @grid[:multiSort] = false if @grid[:multiSort].nil?
-      @grid[:scroll] = false if @grid[:scroll].nil?
-      @grid[:sortorder] ||= 'asc'
-      if @grid[:sortname].nil?
-        @campos.each {|c, v|
-          if v[:grid]
-            @grid[:sortname] = (v[:grid][:index] ? v[:grid][:index] : self.table_name + '.' + c.to_s)
-            break
-          end
-        }
-      end
 
       @refs_ids = [] #Contiene las distintas clases asociadas a los id's que van apareciendo (para calcular bien el index)
       @campos.each {|c, v|
@@ -511,7 +500,6 @@ module MantMod
 
       if @mant
         @titulo ||= self.table_name
-        @view = self.superclass.table_name != self.table_name
 
         self.superclass.column_names.each{|c|
           cs = c.to_sym
@@ -522,10 +510,31 @@ module MantMod
           end
         }
 
+        @grid ||= {}
+        @grid[:ew] ||= :w
+        @grid[:gcols].is_a?(Fixnum) ? @grid[:gcols] = [@grid[:gcols]] : @grid[:gcols] ||= [5]
+        @grid[:gcols][1] ||= (@grid[:gcols][0] - 1)*7/11 + 1
+        @grid[:gcols][2] ||= 4
+        @grid[:visible] = true if @grid[:visible].nil?
+        @grid[:height] ||= 250
+        @grid[:rowNum] ||= 100
+        @grid[:cellEdit] = true if @grid[:cellEdit].nil?
+        @grid[:shrinkToFit] = true if @grid[:shrinkToFit].nil?
+        @grid[:multiSort] = false if @grid[:multiSort].nil?
+        @grid[:scroll] = false if @grid[:scroll].nil?
+        @grid[:sortorder] ||= 'asc'
+        if @grid[:sortname].nil?
+          @campos.each {|c, v|
+            if v[:grid]
+              @grid[:sortname] = (v[:grid][:index] ? v[:grid][:index] : self.table_name + '.' + c.to_s)
+              break
+            end
+          }
+        end
+
         after_initialize :_ini_campos_ctrl
       else
         @titulo ||= self.to_s[0..-4]
-        @view = false
 
         self.class_eval('def initialize;_ini_campos_ctrl;end')
       end
@@ -559,7 +568,7 @@ module MantMod
     def ini_campo(c, v, context)
       campo = c.to_s
       if @mant
-        cmo = self.superclass.columns_hash[campo]
+        cmo = self.superclass.modelo_base ? self.superclass.modelo_base.columns_hash[campo] : self.superclass.columns_hash[campo]
         cm = self.columns_hash[campo]
         cm_p = self.superclass.propiedades[c]
         v.merge!(cm_p) {|k, ov, nv| ov} if cm_p
@@ -567,7 +576,7 @@ module MantMod
         cm = nil
       end
 
-      if cm.nil? and self.method_defined?(campo) or cm and cmo.nil?
+      if (cm.nil? and self.method_defined?(campo)) or (cm and cmo.nil?)
         v[:calculado] = true
         v[:ro] = :all
       else
@@ -1043,6 +1052,19 @@ module Modelo
 
     def propiedades
       @propiedades
+    end
+
+    def nimbus_vista(vista)
+      @modelo_base = self.superclass
+      self.table_name = vista
+      @propiedades = self.superclass.propiedades.deep_dup
+      @pk = self.superclass.pk.deep_dup
+      @auto_comp_data = self.superclass.auto_comp_data.deep_dup
+      @auto_comp_mselect = self.superclass.auto_comp_mselect.deep_dup
+    end
+
+    def modelo_base
+      @modelo_base
     end
 
     def pk
