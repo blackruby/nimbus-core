@@ -6,14 +6,16 @@ function historico() {
   if (_factId && _factId > 0) window.open("/histo/" + _controlador + "/" + _factId);
 }
 
-function liFon(li, fon, tipo) {
+function liFon(li, fon, tipo, side) {
   if ($(li).attr("disabled") == "disabled") return;
   if (typeof fon == 'function')
     fon.call();
   else if (tipo == 'dlg')
     abreDialogo(fon);
-  else
-    callFonServer(fon);
+  else {
+    if (side == 'js' || side == 'ambos') window[fon]();
+    if (side != 'js') callFonServer(fon);
+  }
 }
 
 function tabClick(tab) {

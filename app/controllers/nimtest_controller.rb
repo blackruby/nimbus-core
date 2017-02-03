@@ -38,7 +38,7 @@ class NimtestMod < Pais
   ]
 
   @menu_r = [
-    {label: 'Opción 1', accion: 'mi_funcion'},
+    {label: 'Opción 1', accion: 'mi_funcion', side: 'ambos'},
     {id: 'tag_1', label: '<hr>'},
     {label: 'Diálogo 1', accion: 'diag_1', id: 'mr_1'},
   ]

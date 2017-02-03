@@ -36,7 +36,7 @@
                 <% if m[:id].starts_with?('tag_') %>
                   <%= m[:label].html_safe %>
                 <% else %>
-                  <li id="<%= m[:id] %>" class="mdl-menu__item" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>')"> <%= m[:label] %> </li>
+                  <li id="<%= m[:id] %>" class="mdl-menu__item" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>', '<%= m[:side] %>')"> <%= m[:label] %> </li>
                 <% end %>
               <% } %>
             </ul>

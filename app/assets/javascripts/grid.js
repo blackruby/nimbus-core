@@ -45,14 +45,16 @@ function grid_reload() {
   grid.trigger('reloadGrid', [{current:true}]);
 }
 
-function liFon(li, fon, tipo) {
+function liFon(li, fon, tipo, side) {
   if ($(li).attr("disabled") == "disabled") return;
   if (typeof fon == 'function')
     fon.call();
   else if (tipo == 'dlg')
     $("#ficha")[0].contentWindow.abreDialogo(fon);
-  else
-    $("#ficha")[0].contentWindow.callFonServer(fon);
+  else {
+    if (side == 'js' || side == 'ambos') $("#ficha")[0].contentWindow[fon]();
+    if (side != 'js') $("#ficha")[0].contentWindow.callFonServer(fon);
+  }
 }
 
 // Mostrar/Ocultar el grid

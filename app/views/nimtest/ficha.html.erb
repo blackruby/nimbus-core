@@ -46,5 +46,10 @@
     $("#pxa .nim-titulo").append("&nbsp;&nbsp;&nbsp;&nbsp;" + creaMdlButton("mi_boton", 30, 2, 22, "comment"));
     $("#mi_boton").click(function () {callFonServer("fun_mi_boton");});
   }
+
+  function mi_funcion() {
+    console.log('Forzar la salida de edición de cualquier celda del grid pxa');
+    $("#g_pxa").jqGrid('editCell', 0, 0, false);
+  }
 </script>
 
