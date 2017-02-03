@@ -49,9 +49,10 @@ function liFon(li, fon, tipo, side) {
   if ($(li).attr("disabled") == "disabled") return;
   if (typeof fon == 'function')
     fon.call();
-  else if (tipo == 'dlg')
+  else if (tipo == 'dlg') {
+    if (side) $("#ficha")[0].contentWindow[side]();
     $("#ficha")[0].contentWindow.abreDialogo(fon);
-  else {
+  } else {
     if (side == 'js' || side == 'ambos') $("#ficha")[0].contentWindow[fon]();
     if (side != 'js') $("#ficha")[0].contentWindow.callFonServer(fon);
   }
@@ -72,7 +73,7 @@ function gridCollapse() {
     displayGrid = false;
   } else {
     $("#cell-grid").css('display', 'block');
-    $(".only-grid").attr("disabled", false)
+    $(".only-grid").attr("disabled", false);
     $("#cell-ficha").attr('class', classFicha);
     displayGrid = true;
     $("#ficha").height(0);

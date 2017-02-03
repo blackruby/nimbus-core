@@ -556,10 +556,16 @@ module MantMod
     def add_dialogos(diag)
       @dialogos += diag if diag.object_id != @dialogos_id
 
+      # Construir una entrada en @menu_r por cada diálogo que incluya la clave :menu
+      # la entrada que se crea reaprovecha la clave :accion de menu_r para guardar
+      # el id del diálogo para luego poder abrirlo, y la clave :side para guardar
+      # la función :js que se le puede asociar a un diálogo para ser llamada
+      # antes de su apertura.
       diag.each {|d|
         if d[:menu]
           h = {label: d[:menu], accion: d[:id], tipo: 'dlg'}
           h[:id] = d[:menu_id] if d[:menu_id]
+          h[:side] = d[:js] if d[:js]
           @menu_r << h
         end
       }

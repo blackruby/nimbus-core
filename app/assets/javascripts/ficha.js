@@ -10,9 +10,10 @@ function liFon(li, fon, tipo, side) {
   if ($(li).attr("disabled") == "disabled") return;
   if (typeof fon == 'function')
     fon.call();
-  else if (tipo == 'dlg')
+  else if (tipo == 'dlg') {
+    if (side) window[side]();
     abreDialogo(fon);
-  else {
+  } else {
     if (side == 'js' || side == 'ambos') window[fon]();
     if (side != 'js') callFonServer(fon);
   }

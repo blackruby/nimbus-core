@@ -30,7 +30,7 @@ class NimtestMod < Pais
 
   @dialogos = [
     {id: 'uno', titulo: 'Diálogo uno', botones: [{label: 'Hecho', accion: 'fin_diag_1', close: false}]},
-    {id: 'dos', titulo: 'Diálogo dos', menu: 'Diálogo 2', menu_id: 'mr_d2'},
+    {id: 'dos', titulo: 'Diálogo dos', menu: 'Diálogo 2', menu_id: 'mr_d2', js: :mi_funcion},
   ]
 
   @menu_l = [
