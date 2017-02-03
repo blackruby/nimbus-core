@@ -82,9 +82,9 @@ class WelcomeController < ApplicationController
 
       log_acceso usu.id, @login, 'C'
 
-      # Comprobar si el password ha expirado y solicitar uno nuevo o llevar al menú
+      # Comprobar si el password ha expirado o password_fec_mod es nil (primer login) y solicitar uno nuevo o llevar al menú
 
-      if usu.num_dias_validez_pass.to_i != 0 and (@ahora - usu.password_fec_mod)/86400 > usu.num_dias_validez_pass
+      if usu.password_fec_mod.nil? or (usu.num_dias_validez_pass.to_i != 0 and (@ahora - usu.password_fec_mod)/86400 > usu.num_dias_validez_pass)
         render 'cambia_pass'
       else
         redirect_to '/menu'
@@ -120,6 +120,8 @@ class WelcomeController < ApplicationController
       render 'cambia_pass'
     elsif usu.password_hash == BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
       @error = 'No puede usar la contraseña anterior'
+      render 'cambia_pass'
+    elsif (@error = Usuario.valida_password(params[:password]))
       render 'cambia_pass'
     else
       ahora = Time.now
