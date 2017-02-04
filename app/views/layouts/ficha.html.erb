@@ -163,10 +163,8 @@
   });
   <% } %>
 
-  $(window).load(function () {
-    <%= gen_js %>
-    <%= @ajax.html_safe %>
-  });
+  <%= gen_js %>
+  <%= @ajax.html_safe %>
 </script>
 
 </html>
