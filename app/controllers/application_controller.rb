@@ -465,7 +465,7 @@ class ApplicationController < ActionController::Base
     lj << ljoin + '(t_emej)' unless ljoin.empty?
     @dat[:cad_join] = ljoin_parse(clm, lj)[:cad]
     @v.save
-    @ajax << 'var _vista=' + @v.id.to_s + ';var _controlador="' + params['controller'] + '";'
+    @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
 
     @view = {grid: grid}
     @view[:eid] = eid
@@ -521,7 +521,8 @@ class ApplicationController < ActionController::Base
     if clm.mant? # No es un proc, y por lo tanto preparamos los datos del grid
       @view[:url_cell] = @view[:url_base] + '/validar_cell'
 
-      cm = clm.col_model.deep_dup
+      #cm = clm.col_model.deep_dup
+      cm = clm.columnas.map{|c| clm.campos[c.to_sym][:grid]}.deep_dup
       cm.each {|h|
         h[:label] = nt(h[:label])
         if h[:edittype] == 'select'
@@ -820,7 +821,7 @@ class ApplicationController < ActionController::Base
 
     set_empeje(eid, jid)
 
-    @ajax << 'var _vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
+    @ajax << '_vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
 
     #Activar botones necesarios (Grabar/Borrar)
     @ajax << 'statusBotones({grabar: true, borrar: false});'
@@ -981,9 +982,9 @@ class ApplicationController < ActionController::Base
 
     @v.save unless clm.mant? and @fact.id == 0
 
-    @ajax << 'var eid="' + @dat[:eid].to_s + '",jid="' + @dat[:jid].to_s + '";'
+    @ajax << 'eid="' + @dat[:eid].to_s + '",jid="' + @dat[:jid].to_s + '";'
     unless clm.mant? and @fact.id == 0
-      @ajax << 'var _vista=' + @v.id.to_s + ';var _controlador="' + params['controller'] + '";'
+      @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
     end
 
     #before_envia_ficha if self.respond_to?(:before_envia_ficha)

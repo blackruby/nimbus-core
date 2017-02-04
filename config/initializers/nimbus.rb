@@ -477,7 +477,7 @@ module MantMod
       @menu_r ||= []
       @menu_l ||= []
       @tags ||= []
-      @col_model = []
+      #@col_model = []
       @columnas = []
       @campos_X = []
 
@@ -554,7 +554,7 @@ module MantMod
     end
 
     def add_dialogos(diag)
-      @dialogos += diag if diag.object_id != @dialogos_id
+      @dialogos += diag if diag.object_id != @dialogos.object_id
 
       # Construir una entrada en @menu_r por cada diálogo que incluya la clave :menu
       # la entrada que se crea reaprovecha la clave :accion de menu_r para guardar
@@ -629,9 +629,10 @@ module MantMod
           end
         end
 
-        @col_model << v[:grid]
-        #@columnas << v[:grid][:index]
-        @columnas << campo
+        unless @columnas.include?(campo)
+          #@col_model << v[:grid]
+          @columnas << campo
+        end
 
         v[:grid][:editable] = !v[:ro] if v[:grid][:editable].nil?
         v[:grid][:editoptions] ||= {}
@@ -787,9 +788,9 @@ module MantMod
       end
     end
 
-    def col_model
-      @col_model
-    end
+    #def col_model
+    #  @col_model
+    #end
 
     def col_model_html(cm)
       cm.to_json.gsub('"~', '').gsub('~"', '')
