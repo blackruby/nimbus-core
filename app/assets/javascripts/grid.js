@@ -225,6 +225,7 @@ $(window).load(function () {
     //response: function(e, ui){auto_comp_error(e, ui);}
   });
 
+  /*
   $("#dialog-nim-alert").dialog({
     autoOpen: false,
     resizable: false,
@@ -236,6 +237,7 @@ $(window).load(function () {
       }
     }
   });
+  */
 
   // Activar menú derecho si existe
   if (varView.menu_r.length > 0) $("#menu-r").css("display", "block");

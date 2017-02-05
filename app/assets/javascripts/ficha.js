@@ -36,6 +36,7 @@ window.onbeforeunload = function() {
 };
 
 $(window).load(function () {
+  /*
   $("#dialog-nim-alert").dialog({
     autoOpen: false,
     resizable: false,
@@ -47,6 +48,7 @@ $(window).load(function () {
       }
     }
   });
+  */
 
   $("#dialog-borrar").dialog({
     autoOpen: false,

@@ -141,6 +141,7 @@ class ApplicationController < ActionController::Base
     h[:bot] ||= []
     h[:close] = true if h[:close].nil?
 
+=begin
     @ajax << '$("#dialog-nim-alert").html(' + h[:msg].to_json + ')'
     @ajax << '.dialog("option", "title", "' + h[:tit] + '")'
     @ajax << '.dialog("option", "buttons", {'
@@ -154,6 +155,23 @@ class ApplicationController < ActionController::Base
     }
     @ajax << '})'
     @ajax << '.dialog("open");'
+=end
+    @ajax << "$('<div></div>').html(#{h[:msg].to_json}).dialog({"
+    @ajax << 'resizable: false, modal: true, width: "auto",'
+    @ajax << 'close: function(){$(this).remove();},'
+    @ajax << "title: #{h[:tit].to_json},"
+    @ajax << 'buttons: {'
+    h[:bot].each {|b|
+      b[:close] = h[:close] if b[:close].nil?
+      @ajax << "#{nt(b[:label]).to_json}: function(){"
+      if b[:accion]
+        @ajax << 'ponBusy();' if b[:busy]
+        @ajax << "callFonServer(#{b[:accion].to_json}, {}, quitaBusy);"
+      end
+      @ajax << '$(this).dialog("close");' if b[:close]
+      @ajax << '},'
+    }
+    @ajax << '}});'
   end
 
   def select_options(cmp, val, options)

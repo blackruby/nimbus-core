@@ -116,8 +116,6 @@
 
 <%= yield :after %>
 
-<div id="dialog-nim-alert" style="display: none"></div>
-
 <script>
   varView = <%= raw @view.to_json %>
   <%= @ajax.html_safe %>
