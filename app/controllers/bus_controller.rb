@@ -89,6 +89,7 @@ class BusController < ApplicationController
     clm = @mod.constantize
     tabla = clm.table_name
     @tabla = nt tabla
+    @views = [@mod] + clm.db_views.to_a
 
     ctr = flash[:ctr] || params[:ctr] || '_'
 
@@ -96,8 +97,6 @@ class BusController < ApplicationController
 
     w = flash[:wh] || ''
 
-    #add_where(w, tabla + '.empresa_id=' + ej[0]) if clm.column_names.include?('empresa_id')
-    #add_where(w, tabla + '.ejercicio_id=' + ej[1]) if clm.column_names.include?('ejercicio_id')
     if clm.respond_to?('ejercicio_path')
       join_emej = clm.ejercicio_path
       add_where(w, "#{join_emej.empty? ? tabla : 't_emej'}.ejercicio_id=#{ej[1]}")
@@ -107,7 +106,7 @@ class BusController < ApplicationController
     end
 
     @v = Vista.new
-    @v.data = {mod: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, join_emej: join_emej, order: '', wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1]}
+    @v.data = {mod: clm, view: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, join_emej: join_emej, order: '', wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1]}
 
     # Calcular fichero de preferencias
     fic_pref = nil
@@ -149,9 +148,9 @@ class BusController < ApplicationController
     @v.save
 
     @ajax = "_vista=#{@v.id};"
-    @ajax << (params[:ctr] ? "_controlador_edit='#{params[:ctr]}';" : "_controlador_edit='#{clm.table_name}';")
-    #@ajax << (fic_pref ? "callFonServer('bus_sel', {fic: '#{fic_pref}'}); $('#bus-sel').val('#{fic_pref}')" : '')
+    @ajax << (params[:ctr] ? "_controlador_edit='#{params[:ctr]}';" : "_controlador_edit='#{@mod.include?('::') ? clm.table_name.sub('_', '/') : clm.table_name}';")
     @ajax << "fic_pref=#{fic_pref.to_json};"
+    @ajax << "view='#{clm}';"
   end
 
   def list
@@ -167,13 +166,9 @@ class BusController < ApplicationController
       return
     end
 
-    clm = @dat[:mod]
+    #clm = @dat[:mod]
+    clm = @dat[:view]
     tabla = clm.table_name
-
-    #w = ''
-
-    #add_where(w, tabla + '.empresa_id=' + dat[:eid]) if clm.column_names.include?('empresa_id')
-    #add_where(w, tabla + '.ejercicio_id=' + dat[:jid]) if clm.column_names.include?('ejercicio_id')
 
     w = @dat[:wh].dup
 
@@ -262,9 +257,11 @@ class BusController < ApplicationController
   end
 
   def genera_grid(kh, kv)
-    mp = mselect_parse(@dat[:mod], @dat[:cols].map{|k, v| v[:label]})
+    #mp = mselect_parse(@dat[:mod], @dat[:cols].map{|k, v| v[:label]})
+    mp = mselect_parse(@dat[:view], @dat[:cols].map{|k, v| v[:label]})
     @dat[:cad_sel] = mp[:cad_sel]
-    jemej = @dat[:join_emej].to_s.empty? ? '' : ljoin_parse(@dat[:mod], @dat[:join_emej] + '(t_emej)')[:cad]
+    #jemej = @dat[:join_emej].to_s.empty? ? '' : ljoin_parse(@dat[:mod], @dat[:join_emej] + '(t_emej)')[:cad]
+    jemej = @dat[:join_emej].to_s.empty? ? '' : ljoin_parse(@dat[:view], @dat[:join_emej] + '(t_emej)')[:cad]
     @dat[:cad_join] = mp[:cad_join] + ' ' + jemej
 
     col_mod = @dat[:cols].map {|k, c|
@@ -322,11 +319,8 @@ class BusController < ApplicationController
   end
 
   def nueva_col
-    #vid = params[:vista].to_i
-    #return unless vid
     return unless @v
 
-    #dat = $h[vid]
     arg = eval(params[:dat])
     col = arg[:col]
 
@@ -372,12 +366,14 @@ class BusController < ApplicationController
     end
 
     genera_grid(arg[:modo] == 'del', keep_scroll_v)
+    @ajax << "$('#view-sel').attr('disabled', #{@dat[:cols].empty? ? 'false' : 'true'});"
   end
 
   def bus_value
     return '' unless @v
 
-    mod =  @dat[:mod]
+    #mod =  @dat[:mod]
+    mod =  @dat[:view]
     val =  mod.mselect(mod.auto_comp_mselect).where("#{mod.table_name}.id = #{params[:id]}")[0].auto_comp_value(:form)
     @ajax << "_autoCompField.val('#{val}');"
     @ajax << 'window.close();'
@@ -388,22 +384,30 @@ class BusController < ApplicationController
 
     arg = eval(params[:dat])
 
-    h = {cols: arg[:cols], filters: @dat[:filters], order: @dat[:order]}
+    h = {view: @dat[:view].to_s, cols: arg[:cols], filters: @dat[:filters], order: @dat[:order]}
     path = "bus/_usuarios/#{@usu.codigo}/#{@dat[:mod]}"
     FileUtils.mkdir_p(path)
     File.write("#{path}/#{params[:fic]}.yml", h.to_yaml)
   end
 
-  def genera_grid_from_file(fic)
-    @dat.merge! YAML.load(File.read(fic))
-    genera_grid(false, false)
-    @dat[:last_col] = @dat[:cols].map{|k, v| k}.max.to_s
+  def change_tabe_in_view(view)
+    @dat[:join_emej].gsub!(@dat[:view].table_name + '.', view.table_name + '.')
+    @dat[:wh].gsub!(@dat[:view].table_name + '.', view.table_name + '.')
   end
 
   def bus_sel
     return unless @v
 
-    genera_grid_from_file(params[:fic])
+    h = YAML.load(File.read(params[:fic]))
+    h[:view] = h[:view] ? h[:view].constantize : @dat[:mod]
+    @ajax << "view='#{h[:view]}';$('#view-sel').val(view).attr('disabled', true);"
+    if h[:view] != @dat[:view]
+      change_tabe_in_view(h[:view])
+      @ajax << "$('#tree-campos').tree('loadDataFromUrl', '/gi/campos?node=#{h[:view]}');"
+    end
+    @dat.merge! h
+    genera_grid(false, false)
+    @dat[:last_col] = @dat[:cols].map{|k, v| k}.max.to_s
   end
 
   def bus_send
@@ -432,7 +436,8 @@ class BusController < ApplicationController
 
     sh.add_row(cols.map {|k, v| v[:label]})
 
-    @dat[:mod].select(@dat[:cad_sel]).joins(@dat[:cad_join]).where(@dat[:cad_where]).order(@dat[:cad_order]).each {|s|
+    #@dat[:mod].select(@dat[:cad_sel]).joins(@dat[:cad_join]).where(@dat[:cad_where]).order(@dat[:cad_order]).each {|s|
+    @dat[:view].select(@dat[:cad_sel]).joins(@dat[:cad_join]).where(@dat[:cad_where]).order(@dat[:cad_order]).each {|s|
       sh.add_row(cols.map {|k, v| v[:type] == 'string' ? ' ' + s[v[:alias]].to_s : s[v[:alias]]})
     }
 
@@ -465,5 +470,11 @@ class BusController < ApplicationController
   def bus_del
     f = params[:fic]
     FileUtils.rm(f, {force: true}) if f.starts_with?("bus/_usuarios/#{@usu.codigo}/")
+  end
+
+  def view_sel
+    view = params[:view].constantize
+    change_tabe_in_view(view)
+    @dat[:view] = view
   end
 end

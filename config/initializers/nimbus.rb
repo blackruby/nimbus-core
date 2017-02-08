@@ -1089,6 +1089,11 @@ module Modelo
     def hijo?
       !column_names.include?('empresa_id') and !column_names.include?('ejercicio_id') and @pk[0].ends_with?('_id')
     end
+
+    def db_views
+      # Contiene un array de modelos que son views en la DB asociadas a este modelo (para usar en búsquedas)
+      @db_views
+    end
   end
 
   ### Métodos de instancia

@@ -11,7 +11,7 @@
   -->
 
   &nbsp;
-  <select id="bus-sel" onchange="busSel()">
+  <select id="bus-sel" title="Plantilla" onchange="busSel()">
     <% @sel.each {|k, v| %>
       <optgroup label="<%= k %>">
         <% v.each {|f| %>
@@ -20,6 +20,15 @@
       </optgroup>
     <% } %>
   </select>
+
+  <% if @views.size > 1 %>
+    &nbsp;
+    <select id="view-sel" title="Vista" onchange="viewSel()">
+      <% @views.each {|v| %>
+        <option value="<%= v %>"><%= nt(v) %></option>
+      <% } %>
+    </select>
+  <% end %>
 
   <!--
   &nbsp;&nbsp;&nbsp;

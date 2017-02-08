@@ -164,6 +164,12 @@ function redimWindow() {
   gridDim();
 }
 
+function viewSel() {
+  view = $("#view-sel").val();
+  $('#tree-campos').tree('loadDataFromUrl', '/gi/campos?node=' + view);
+  callFonServer("view_sel", {view: view});
+}
+
 function gridExport(tipo) {
   ponBusy();
   callFonServer("bus_export", {tipo: tipo}, quitaBusy);
@@ -171,6 +177,8 @@ function gridExport(tipo) {
 
 function busNew() {
   $("#bus-sel").prop("selectedIndex", -1);
+  view = modelo;
+  $('#view-sel').val(view).attr("disabled", false);
   generaGrid([],'','',{},false,false);
 }
 
@@ -282,7 +290,8 @@ $(window).load(function() {
 
   $("#tree-campos").tree({
     selectable: false,
-    dataUrl: '/gi/campos?node=' + modelo
+    //dataUrl: '/gi/campos?node=' + modelo
+    dataUrl: '/gi/campos?node=' + view
   });
 
   $('#tree-campos')
