@@ -188,6 +188,10 @@ class ApplicationController < ActionController::Base
     @fact[cmp] = val
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'enable(campo)'}
+  # Habilita el campo <i>campo</i>
+  ##
+
   def enable(c)
 =begin
     if @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
@@ -204,6 +208,10 @@ class ApplicationController < ActionController::Base
       @ajax << "$('##{c}').attr('disabled', false);"
     end
   end
+
+  ##nim-doc {sec: 'Métodos de usuario', met: 'disable(campo)'}
+  # Deshabilita el campo <i>campo</i>
+  ##
 
   def disable(c)
 =begin
@@ -222,87 +230,155 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'disable_all'}
+  # Deshabilita todos los campos
+  ##
+
   def disable_all
     @ajax << '$(":input").attr("disabled", true);'
     #@ajax << '$(".page-content").css("pointer-events", "none");'
     status_botones grabar: false, crear: false, borrar: false
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'enable_menu(id)'}
+  # Habilita la opción de @menu_r con id <i>id</i>
+  ##
+
   def enable_menu(m)
     @ajax << "if (parent != self) $('##{m}', parent.document).attr('disabled', false);"
   end
+
+  ##nim-doc {sec: 'Métodos de usuario', met: 'disable_menu(id)'}
+  # Deshabilita la opción de @menu_r con id <i>id</i>
+  ##
 
   def disable_menu(m)
     @ajax << "if (parent != self) $('##{m}', parent.document).attr('disabled', true);"
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'enable_tab(tab)'}
+  # Habilita la pestaña <i>tab</i>
+  ##
+
   def enable_tab(t)
     @ajax << "$('#h_#{t}').attr('href', '#t_#{t}').css('cursor', 'pointer');"
   end
+
+  ##nim-doc {sec: 'Métodos de usuario', met: 'disable_tab(tab)'}
+  # Deshabilita la pestaña <i>tab</i>
+  ##
 
   def disable_tab(t)
     @ajax << "$('#h_#{t}').attr('href', '#').css('cursor', 'not-allowed');"
   end
 
-  # Métodos para hacer visibles/invisibles campos. El argumento collapse a true hará
-  # que desaparezca el elemento y su hueco, acomodándose el resto de elementos al
-  # nuevo layout. Por el contrario si vale false el elemento desaparece
-  # pero el hueco continúa
+  ##nim-doc {sec: 'Métodos de usuario', met: 'visible(cmp)'}
+  # Hace que el campo <i>cmp</i> sea visible
+  ##
 
   def visible(c)
     @ajax << "$('##{c}').parent().css('display', 'block').parent().css('display', 'block');"
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'invisible(cmp, collapse)'}
+  # Hace que el campo <i>cmp</i> desaparezca de pantalla.
+  # Si <i>collapse</i> vale true hará que desaparezca el elemento y su hueco, acomodándose el resto de elementos al nuevo layout.
+  # Por el contrario si vale false el elemento desaparece pero el hueco continúa.
+  ##
+
   def invisible(c, collapse=false)
     @ajax << "$('##{c}').parent().#{collapse ? 'parent().' : ''}css('display', 'none');"
   end
+
+  ##nim-doc {sec: 'Métodos de usuario', met: 'foco(cmp)'}
+  # Cede el foco al campo <i>cmp</i>
+  ##
 
   def foco(c)
     @ajax << '$("#' + c.to_s + '").focus();'
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'abre_dialogo(dlg)'}
+  # Abre el diálogo <i>dlg</i>
+  ##
+
   def abre_dialogo(diag)
     @ajax << "$('##{diag}').dialog('open');"
   end
+
+  ##nim-doc {sec: 'Métodos de usuario', met: 'cierra_dialogo(dlg)'}
+  # Cierra el diálogo <i>dlg</i>
+  ##
 
   def cierra_dialogo(diag)
     @ajax << "$('##{diag}').dialog('close');"
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'edita_ficha(id)'}
+  # Edita en una nueva pestaña la ficha con id <i>id</i> del mantenimiento en curso
+  ##
+
   def edita_ficha(id)
     @ajax << "window.open('/#{params[:controller]}/#{id}/edit', '_self');"
   end
+
+  ##nim-doc {sec: 'Métodos de usuario', met: 'open_url(url)'}
+  # Abre la URL especificada en una nueva pestaña
+  ##
 
   def open_url(url)
     @ajax << "window.open('#{url}', '_blank');"
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'index_reload'}
   # Vuelve a cargar la página index del mantenimiento
+  ##
+
   def index_reload
     @ajax << 'if (parent != self) parent.location.reload();'
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'grid_reload'}
   # Actualiza el contenido del grid
+  ##
+
   def grid_reload
     @ajax << 'parentGridReload();'
   end
 
-  # Muestra el grid
+  ##nim-doc {sec: 'Métodos de usuario', met: 'grid_show'}
+  # Muestra el grid del mantenimiento
+  ##
+
   def grid_show
     @ajax << 'parentGridShow();'
   end
 
-  # Oculta el grid
+  ##nim-doc {sec: 'Métodos de usuario', met: 'grid_hide'}
+  # Oculta el grid del mantenimiento
+  ##
+
   def grid_hide
     @ajax << 'parentGridHide();'
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'status_botones(hash)'}
   # Control del estado de los botones del mantenimiento
+  ##
+
   def status_botones(h={})
     @ajax << "statusBotones(#{h.to_json});"
   end
 
-  # Método para hacer download
+  ##nim-doc {sec: 'Métodos de usuario', met: 'envia_fichero(file:, file_cli: nil, rm: true)'}
+  # Método para hacer download del fichero <i>file</i><br>
+  # <i>file_cli</i> es el nombre que se propondrá para la descarga<br>
+  # <i>rm</i> puede valer true o false en función de si queremos que el fichero se borre tras la descarga.<br>
+  # Notar que los argumentos son con nombre. Ejemplo de uso:<br>
+  # <pre>envia_fichero file: '/tmp/zombi.pdf', file_cli: 'datos.pdf', rm: false</pre>
+  # Si no se especifica <i>file_cli</i> se usará <i>file</i>. Y si no se especifica <i>rm</i> se asume true
+  ##
+
   def envia_fichero(file:, file_cli: nil, rm: true)
     flash[:file] = file
     flash[:file_cli] = file_cli
@@ -1020,6 +1096,10 @@ class ApplicationController < ActionController::Base
     (clm.mant? ? pag_render('ficha') : pag_render('ficha', 'proc')) unless r
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'set_auto_comp_filter(cmp, wh)'}
+  # Asocia el filtro where <i>wh</i> al campo <i>cmp</i>. Obviamente, el campo tiene que ser de tipo _id
+  ##
+
   def set_auto_comp_filter(cmp, wh)
     if wh.is_a? Symbol  # En este caso wh es otro campo de @fact
       #v = @fact.method(wh).call
@@ -1445,6 +1525,8 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'crea_grid(opts)'}
+  # <pre>
   # Método para crear un grid dinámicamente
   #
   # opts es un hash con las siguientes claves:
@@ -1517,10 +1599,10 @@ class ApplicationController < ActionController::Base
   #       width: Anchura de la columna. Por defecto 150.
   #
   #       Cualquier clave admitida por jqGrid en colModel
-  #       ver: http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options
+  #       ver: <a href="http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options" target="_blank">colmodel_options</a>
   #
   # grid: Es un hash con opciones específicas para el grid. Admite todas las
-  #       referidas en: http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options
+  #       referidas en: <a href="http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options" target="_blank">grid_options</a>
   #       Las más interesantes serían:
   #       caption: Es una string con un título para el grid. Añade una barra
   #                de título con dicha string y un botón para colapsar el grid.
@@ -1580,6 +1662,8 @@ class ApplicationController < ActionController::Base
       # 'edit' es un booleano que indica si la fila ha sido editada (alguna de sus celdas)
       # 'i' es el índice de la fila (0,1,2...)
   # }
+  # </pre>
+  ##
 
   def crea_grid(opts)
     cmp = opts[:cmp].to_sym
@@ -1823,7 +1907,7 @@ class ApplicationController < ActionController::Base
     # cuando el request es tratado por un nuevo worker (puma) que no ha usado aún dicha clase.
     # Aunque la clase está cargada (en production todas las clases están cargadas), parece que
     # algo interno no está activado hasta que no se hace un new por primera vez.
-    # No es algo haitual (en development o en production con un solo worker no se necesitaría nunca),
+    # No es algo habitual (en development o en production con un solo worker no se necesitaría nunca),
     # pero en production, con varios workers en paralelo podrían darse errores aleatorios si no está
     # esta línea. Así que.... NO QUITARLA AUNQUE PAREZCA ESTÚPIDA.
     @fact.class.new

@@ -1,0 +1,60 @@
+<style>
+  #indice {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    margin: 0;
+    padding-right: 10px;
+    background-color: #D1C4E9;
+  }
+
+  #contenido {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 100px;
+    margin: 0;
+  }
+
+  li {
+    cursor: pointer;
+  }
+
+</style>
+
+<div id="indice">
+  <ul>
+    <% @cap.each_with_index {|h, i| %>
+      <li><a href="#c<%= i %>"><%= h[0] %>
+        <ul>
+          <% h[1].each_with_index {|h, i| %>
+            <li><a href="#s<%= i %>"><%= h[0] %>
+              <ul>
+                <% h[1].each_with_index {|m, i| %>
+                  <li><a href="#m<%= i %>"><%= m[0][0..m[0].index('(').to_i-1] %></a></li>
+                <% } %>
+              </ul>
+            </a></li>
+          <% } %>
+        </ul>
+      </a></li>
+    <% } %>
+  </ul>
+</div>
+
+<div id="contenido">
+  <% @cap.each_with_index {|h, i| %>
+    <div id=c<%= i %> style="background-color: #673AB7;color: #ffffff"><h2><%= h[0] %></h2></div>
+    <% h[1].each_with_index {|h, i| %>
+      <div id=s<%= i %> style="background-color: #D1C4E9;"><h3><%= h[0] %></h3></div>
+      <% h[1].each_with_index {|m, i| %>
+        <h4 style="color: #512DA8;"><%= m[0] %></h4>
+        <p id=m<%= i %>><%= m[1].html_safe %></p>
+      <% } %>
+    <% } %>
+  <% } %>
+</div>
+
+<script>
+  $("#contenido").css("left", $("#indice").width()+20+'px');
+</script>

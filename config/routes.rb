@@ -46,4 +46,6 @@ Rails.application.routes.draw do
   get 'bus/send' => 'bus#bus_send'
   post 'bus/list' => 'bus#list'
   post 'bus/fon_server' => 'bus#fon_server'
+
+  get 'nimbus_help' => 'nimbus_help#index'
 end
