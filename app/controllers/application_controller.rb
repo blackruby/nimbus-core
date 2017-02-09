@@ -135,6 +135,10 @@ class ApplicationController < ActionController::Base
 
   # Funciones para interactuar con el cliente
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'mensaje(arg)'}
+  # Saca una ventana flotante modal mostrando un mensaje
+  ##
+
   def mensaje(h)
     h = {msg: h} if h.is_a? String
     h[:tit] ||= nt('aviso')
@@ -173,6 +177,13 @@ class ApplicationController < ActionController::Base
     }
     @ajax << '}});'
   end
+
+  ##nim-doc {sec: 'Métodos de usuario', met: 'select_options(cmp, val, options)'}
+  # Asigna un set de opciones al campo <i>cmp</i> que previamente ha tenido que
+  # ser declarado como "select" (cláusula <i>sel</i> en la definición de campos).
+  # <i>val</i> será la opción por defecto que quedará seleccionada.
+  # <i>options</i> es un hash con la lista de opciones (clave: valor).
+  ##
 
   def select_options(cmp, val, options)
     cmp = cmp.to_sym

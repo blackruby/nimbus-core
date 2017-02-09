@@ -24,11 +24,7 @@ class NimbusHelpController < ApplicationController
       else
         next unless met
 
-        if l.starts_with?('##')
-          met = nil
-        else
-          met << l[1..-1] + "\n"
-        end
+        l.starts_with?('##') ? met = nil : met << "#{l[1..-1]}\n"
       end
     }
   end

@@ -3,23 +3,28 @@
     position: fixed;
     top: 0;
     bottom: 0;
-    margin: 0;
-    padding-right: 10px;
+    padding-right: 20px;
     background-color: #D1C4E9;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   #contenido {
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 100px;
-    margin: 0;
   }
 
-  li {
-    cursor: pointer;
+  .capitulo {
+    background-color: #673AB7;
+    color: #ffffff;
   }
 
+  .seccion {
+    background-color: #D1C4E9;
+  }
+
+  .metodo {
+    color: #512DA8;
+  }
 </style>
 
 <div id="indice">
@@ -44,11 +49,11 @@
 
 <div id="contenido">
   <% @cap.each_with_index {|h, i| %>
-    <div id=c<%= i %> style="background-color: #673AB7;color: #ffffff"><h2><%= h[0] %></h2></div>
+    <div id=c<%= i %> class="capitulo"><h2><%= h[0] %></h2></div>
     <% h[1].each_with_index {|h, i| %>
-      <div id=s<%= i %> style="background-color: #D1C4E9;"><h3><%= h[0] %></h3></div>
+      <div id=s<%= i %> class="seccion"><h3><%= h[0] %></h3></div>
       <% h[1].each_with_index {|m, i| %>
-        <h4 style="color: #512DA8;"><%= m[0] %></h4>
+        <h4 class="metodo"><%= m[0] %></h4>
         <p id=m<%= i %>><%= m[1].html_safe %></p>
       <% } %>
     <% } %>
@@ -56,5 +61,5 @@
 </div>
 
 <script>
-  $("#contenido").css("left", $("#indice").width()+20+'px');
+  $("#contenido").css("left", $("#indice").width()+30+'px');
 </script>
