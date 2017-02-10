@@ -178,8 +178,9 @@ function gridExport(tipo) {
 function busNew() {
   $("#bus-sel").prop("selectedIndex", -1);
   view = modelo;
+  $('#tree-campos').tree('loadDataFromUrl', '/gi/campos?node=' + view);
   $('#view-sel').val(view).attr("disabled", false);
-  generaGrid([],'','',{},false,false);
+  callFonServer("view_sel", {view: view});
 }
 
 function busSave() {

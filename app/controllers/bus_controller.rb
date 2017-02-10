@@ -390,9 +390,9 @@ class BusController < ApplicationController
     File.write("#{path}/#{params[:fic]}.yml", h.to_yaml)
   end
 
-  def change_tabe_in_view(view)
-    @dat[:join_emej].gsub!(@dat[:view].table_name + '.', view.table_name + '.')
-    @dat[:wh].gsub!(@dat[:view].table_name + '.', view.table_name + '.')
+  def change_table_in_view(view)
+    @dat[:join_emej].gsub!(@dat[:view].table_name + '.', view.table_name + '.') if @dat[:join_emej]
+    @dat[:wh].gsub!(@dat[:view].table_name + '.', view.table_name + '.') if @dat[:wh]
   end
 
   def bus_sel
@@ -402,7 +402,7 @@ class BusController < ApplicationController
     h[:view] = h[:view] ? h[:view].constantize : @dat[:mod]
     @ajax << "view='#{h[:view]}';$('#view-sel').val(view).attr('disabled', true);"
     if h[:view] != @dat[:view]
-      change_tabe_in_view(h[:view])
+      change_table_in_view(h[:view])
       @ajax << "$('#tree-campos').tree('loadDataFromUrl', '/gi/campos?node=#{h[:view]}');"
     end
     @dat.merge! h
@@ -474,7 +474,13 @@ class BusController < ApplicationController
 
   def view_sel
     view = params[:view].constantize
-    change_tabe_in_view(view)
+    change_table_in_view(view)
     @dat[:view] = view
+    @dat[:cols] = {}
+    @dat[:last_col] = 'c00'
+    @dat[:types] = {}
+    @dat[:order] = ''
+    @dat[:filters] = {rules: []}
+    genera_grid(false, false)
   end
 end
