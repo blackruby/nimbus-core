@@ -1,0 +1,41 @@
+class CreateContaCuentas < ActiveRecord::Migration
+  def change
+    col = lambda {|t|
+        t.references :ejercicio
+        t.string :codigo
+        t.string :descripcion
+    }
+
+    create_table(:conta_cuentas) {|t| col.call(t)}
+
+    add_index 'conta_cuentas', ['ejercicio_id','codigo'], unique: true
+
+    create_table(:conta_h_cuentas) {|t|
+      col.call(t)
+      t.integer :idid
+      t.references :created_by
+      t.timestamp :created_at
+    }
+
+    sql_exe %Q(
+      create function conta_f_dh(ejer int, codigo text, dh text)
+      returns decimal
+      language sql
+      as $$
+        select coalesce(sum(importe), 0) from conta_apuntes
+          left join conta_asientos on asiento_id = conta_asientos.id
+          left join conta_cuentas on cuenta_id = conta_cuentas.id
+          where
+            ejercicio_id = $1 AND
+            cuentas.codigo like $2||'%' AND
+            signo = $3;
+      $$;
+
+      create view conta_v_cuentas_dh as
+        select *, conta_f_dh(ejercicio_id, codigo, 'D') as debe, conta_f_dh(ejercicio_id, codigo, 'H') as haber
+          from conta_cuentas;
+
+      create view conta_v_cuentas as select *, debe-haber as saldo from conta_v_cuentas_dh;
+    )
+  end
+end
