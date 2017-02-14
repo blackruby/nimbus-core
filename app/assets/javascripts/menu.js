@@ -120,26 +120,6 @@ function creaWin(url, prop) {
   nPan += 1;
 }
 
-$("#div-body").on("mouseenter", ".res-tit", function () {
-  id = $(this).attr("id").slice(2);
-  $("#t" + id).css("display", "block");
-});
-
-$("#div-body").on("click", ".base", function () {
-  zmax = -1;
-  $(".base").each(function () {
-    z = $(this).css("z-index");
-    if (z > zmax) {
-      zmax = z;
-      obj = $(this);
-    }
-  });
-
-  z = $(this).css("z-index");
-  obj.css("z-index", z);
-  $(this).css("z-index", zmax);
-});
-
 function ajustaWin() {
   wmax = hmax = 0;
   $(".base").each(function () {
@@ -295,6 +275,26 @@ $(window).load(function () {
        */
       w = window.open(url, "_blank");
     }
+  });
+
+  $("#div-body").on("mouseenter", ".res-tit", function () {
+    id = $(this).attr("id").slice(2);
+    $("#t" + id).css("display", "block");
+  });
+
+  $("#div-body").on("click", ".base", function () {
+    zmax = -1;
+    $(".base").each(function () {
+      z = $(this).css("z-index");
+      if (z > zmax) {
+        zmax = z;
+        obj = $(this);
+      }
+    });
+
+    z = $(this).css("z-index");
+    obj.css("z-index", z);
+    $(this).css("z-index", zmax);
   });
 
   $("#empresa").blur(function () {
