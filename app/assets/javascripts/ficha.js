@@ -29,10 +29,14 @@ function tabClick(tab) {
 
 hayCambios = false;
 
-window.onbeforeunload = function() {
+function CambiosPendientesDeGrabar() {
   var jsHay = false;
   if (typeof jsCambios == "function") jsHay = jsCambios();
-  if (hayCambios || jsHay) return('Hay cambios pendientes de grabar');
+  return(hayCambios || jsHay);
+}
+
+window.onbeforeunload = function() {
+  if (CambiosPendientesDeGrabar()) return('Hay cambios pendientes de grabar');
 };
 
 $(window).load(function () {
