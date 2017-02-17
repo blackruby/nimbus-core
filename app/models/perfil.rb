@@ -1,6 +1,6 @@
 class Perfil < ActiveRecord::Base
   @propiedades = {
-    codigo: {manti: 5, pk: 1},
+    codigo: {manti: 30, pk: 1},
     descripcion: {manti: 50},
     data: {},
   }

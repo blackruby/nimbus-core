@@ -1,6 +1,6 @@
 class Usuario < ActiveRecord::Base
   @propiedades = {
-    codigo: {pk: true, manti: 15},
+    codigo: {pk: true, manti: 30},
     nombre: {},
     email: {},
     password_salt: {},

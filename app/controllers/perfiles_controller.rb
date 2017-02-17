@@ -1,6 +1,6 @@
 class PerfilesMod < Perfil
   @campos = {
-    codigo: {tab: 'pre', grid: {}, gcols: 2},
+    codigo: {tab: 'pre', grid: {}, gcols: 4},
     descripcion: {tab: 'pre', grid: {}, gcols: 6},
   }
 

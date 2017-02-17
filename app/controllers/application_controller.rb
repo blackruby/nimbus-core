@@ -2254,6 +2254,9 @@ class ApplicationController < ActionController::Base
         end
       end
 
+      plus << " title='#{nt(v[:title])}'" if v[:title]
+      plus << " #{v[:attr]}" if v[:attr]
+
       if prim or v[:hr] or v[:br]
         sal << '</div>' unless prim
         sal << '<hr>' if v[:hr]
@@ -2268,30 +2271,30 @@ class ApplicationController < ActionController::Base
 
       if v[:type] == :boolean
         sal << '<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="' + cs + '">'
-        sal << '<input id="' + cs + '" type="checkbox" class="mdl-checkbox__input" onchange="vali_check($(this))" ' + plus + '/>'
+        sal << '<input id="' + cs + '" type="checkbox" class="mdl-checkbox__input" onchange="vali_check($(this))"' + plus + '/>'
         sal << '<span class="mdl-checkbox__label">' + nt(v[:label]) + '</span>'
         sal << '</label>'
       elsif v[:type] == :text
         sal << '<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">'
-        sal << '<textarea class="nim-textarea mdl-textfield__input" type="text" id="' + cs + '" cols=' + size + ' rows=' + rows.to_s + ' onchange="validar($(this))" ' + plus + '>'
+        sal << '<textarea class="nim-textarea mdl-textfield__input" type="text" id="' + cs + '" cols=' + size + ' rows=' + rows.to_s + ' onchange="validar($(this))"' + plus + '>'
         sal << '</textarea>'
         sal << '<label class="mdl-textfield__label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
 =begin
         sal << '<div class="nim-group">'
-        sal << '<textarea id="' + cs + '" cols=' + size + ' rows=' + rows.to_s + ' required onchange="validar($(this))" ' + plus + '>'
+        sal << '<textarea id="' + cs + '" cols=' + size + ' rows=' + rows.to_s + ' required onchange="validar($(this))"' + plus + '>'
         sal << '</textarea>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
 =end
       elsif v[:code]
         sal << '<div class="nim-group">'
-        sal << '<input class="nim-input" id="' + cs + '" maxlength=' + size + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" required style="max-width: ' + size + 'em" ' + plus + '/>'
+        sal << '<input class="nim-input" id="' + cs + '" maxlength=' + size + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" required style="max-width: ' + size + 'em"' + plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
       elsif sel
         sal << '<div class="nim-group">'
-        sal << '<select class="nim-select" id="' + cs + '" required onchange="validar($(this))" ' + plus + '>'
+        sal << '<select class="nim-select" id="' + cs + '" required onchange="validar($(this))"' + plus + '>'
         sel.each{|k, tex|
           sal << '<option value="' + k.to_s + '">' + nt(tex) + '</option>'
         }
@@ -2300,9 +2303,9 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
       elsif cs.ends_with?('_id')
         sal << '<div class="nim-group">'
-        #sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em" ' + plus + '/>'
-        sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em" '
-        sal << 'dialogo="' + h[:dlg] + '" ' if h[:dlg]
+        #sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em"' + plus + '/>'
+        sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em"'
+        sal << ' dialogo="' + h[:dlg] + '"' if h[:dlg]
         sal << plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
 =begin
@@ -2322,7 +2325,7 @@ class ApplicationController < ActionController::Base
         #sal << '<input id="' + cs + '" size=' + size + ' required onchange="validar($(this))"'
         sal << '<input class="nim-input' + (v[:may] ? ' nim-may' : '') + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
         sal << ' maxlength=' + size if v[:type] == :string
-        sal << ' ' + plus + '/>'
+        sal << plus + '/>'
         sal << '<label class="nim-label" for="' + cs + '">' + nt(v[:label]) + '</label>'
         sal << '</div>'
       end

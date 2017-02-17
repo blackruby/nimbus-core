@@ -5,8 +5,8 @@ class UsuariosMod < Usuario
     admin: {tab: 'general', gcols: 2, hr: true, grid: {}},
     timeout: {tab: 'general', gcols: 4},
     locale: {tab: 'general', gcols: 2, sel:{es: 'espanol', en: 'ingles'}, pref: true},
-    password: {tab: 'general', hr: true, gcols: 3},
-    password_rep: {tab: 'general', gcols: 3},
+    password: {tab: 'general', hr: true, gcols: 3, attr: 'autocomplete="new-password" type="password"'},
+    password_rep: {tab: 'general', gcols: 3, attr: 'autocomplete="new-password" type="password"'},
     num_dias_validez_pass: {tab: 'general', label: 'dias_validez', gcols: 3},
     fecha_baja: {tab: 'general', gcols: 3, grid: {}},
     ips: {tab: 'general', gcols: 12},
@@ -237,11 +237,11 @@ class UsuariosController < ApplicationController
   end
 
   def vali_password
-    Usuario.valida_password @fact.password
+     @fact.password.empty? ? nil : Usuario.valida_password(@fact.password)
   end
 
   def vali_password_rep
-    @fact.password != @fact.password_rep ? nt('errors.messages.pass_mismatch') : nil
+    @fact.password != @fact.password_rep ? nt('pass_mismatch') : nil
   end
 
   def on_admin

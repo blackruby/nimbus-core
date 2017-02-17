@@ -10,12 +10,12 @@
     <%= form_tag("/cambia_pass", method: "post") do %>
       <br>
       <div class="nim-group">
-        <input class="nim-input" type="password" name="password" id="password" required style="max-width: 16em"/>
+        <input class="nim-input" autocomplete="new-password" type="password" name="password" id="password" required style="max-width: 16em"/>
         <label class="nim-label" for="password"> <%= nt('password') %> </label>
       </div>
       <br>
       <div class="nim-group">
-        <input class="nim-input" type="password" name="password2" id="password2" required style="max-width: 16em"/>
+        <input class="nim-input" autocomplete="new-password" type="password" name="password2" id="password2" required style="max-width: 16em"/>
         <label class="nim-label-out" for="password2"> <%= nt('password_rep') %> </label>
       </div>
       <br>

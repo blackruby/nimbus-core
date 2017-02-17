@@ -3,7 +3,7 @@ class NimtestMod < Pais
     codigo: {tab: 'pre', gcols: 2, grid:{cellattr: '~style_codigo~'}},
     nombre: {tab: 'pre', gcols: 4, grid:{}},
     tipo: {tab: 'pre', gcols: 2, grid:{}},
-    codigo_cr: {tab: 'pre', gcols: 2, grid:{}},
+    codigo_cr: {tab: 'pre', title: "Código para el Consejo regulador.\nNo es necesario rellenarlo.", gcols: 2, grid:{}},
     final: {tab: 'pre', gcols: 2},
     bool: {tab: 'pre', gcols: 2, type: :boolean},
     combo: {tab: 'pre', gcols: 2, type: :integer, sel: {1 => 'Opción A', 2 => 'Opción B'}},
