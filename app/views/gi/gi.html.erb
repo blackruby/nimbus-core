@@ -2,13 +2,17 @@
   <%= @titulo %>
   <% if @modo == 'edit' %>
     &nbsp;&nbsp;&nbsp;
-    <button title="Nuevo formato" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="window.location.href='/gi/new'">
-      <i class="gi-img-button material-icons">add</i>
+    <button title="Nuevo informe" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="window.location.href='/gi/new'">
+      <i class="material-icons">add</i>
+    </button>
+    &nbsp;&nbsp;
+    <button title="Ayuda" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 28px;width: 28px;min-width: 28px;" onclick="$('#ayuda').dialog('open')">
+      <i class="material-icons">help</i>
     </button>
   <% end %>
 </div>
 
-<div id="solapas">
+<div id="solapas" style="display: none">
   <ul>
     <% @forms.each_key do |mod| %>
       <li><a href="#<%= mod %>"> <%= nt(mod) %> </a></li>
@@ -20,7 +24,7 @@
       <table>
         <thead>
           <tr>
-            <td>Formato</td>
+            <td>Informe</td>
             <td>Modelo</td>
             <td>Descripción</td>
             <td>Comentario</td>
@@ -39,7 +43,14 @@
   <% end %>
 </div>
 
+<div id="ayuda" style="display: none">
+  <ul>
+    <li>Haga click izquierdo sobre el nombre de un informe para editarlo</li>
+    <li>Haga click derecho sobre el nombre de un informe para eliminarlo</li>
+  </ul>
+</div>
+<div id="borrar" style="display: none"></div>
+
 <script>
-  $(".formato").on("click", function() {window.open('/gi/<%= @modo %>/' + $(this).parentsUntil('#solapas').last().attr('id') + '/' + $(this).text(), '_self');});
-  $("#solapas").tabs();
+  modo = "<%= @modo %>";
 </script>

@@ -50,15 +50,19 @@ class GiController < ApplicationController
 
     nuevo_form('privado', "formatos/_usuarios/#{@usu.codigo}", ext)
     nuevo_form('publico', 'formatos/_publico', ext)
-    nuevo_form(Rails.app_class.to_s.split(':')[0].downcase, 'formatos', ext)
 
-    Dir.glob('modulos/*').sort.each {|mod|
-      nuevo_form(mod.split('/')[1], mod + '/formatos', ext) unless mod.ends_with?('/idiomas') or mod.ends_with?('/nimbus-core')
-    }
+    if (@usu.codigo == 'admin')
+      nuevo_form(Rails.app_class.to_s.split(':')[0].downcase, 'formatos', ext)
+
+      Dir.glob('modulos/*').sort.each {|mod|
+        nuevo_form(mod.split('/')[1], mod + '/formatos', ext) unless mod.ends_with?('/idiomas') or mod.ends_with?('/nimbus-core')
+      }
+    end
   end
 
   def gi
     @assets_stylesheets = %w(gi)
+    @assets_javascripts = %w(gi)
 
     unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
       render file: '/public/401.html', status: 401, layout: false
@@ -72,6 +76,7 @@ class GiController < ApplicationController
 
   def giv
     @assets_stylesheets = %w(gi)
+    @assets_javascripts = %w(gi)
 
     unless @usu.admin or @usu.pref[:permisos][:ctr]['giv']
       render file: '/public/401.html', status: 401, layout: false
@@ -92,7 +97,7 @@ class GiController < ApplicationController
 
     if params[:modelo]
       @assets_stylesheets = %w(gi_edita)
-      @assets_javascripts = %w(gi)
+      @assets_javascripts = %w(gi_edita)
 
       @modelo = params[:modelo]
       begin
@@ -129,7 +134,7 @@ class GiController < ApplicationController
 
   def edita
     @assets_stylesheets = %w(gi_edita)
-    @assets_javascripts = %w(gi)
+    @assets_javascripts = %w(gi_edita)
 
     unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
       render file: '/public/401.html', status: 401, layout: false
@@ -236,6 +241,26 @@ class GiController < ApplicationController
       pinta_exception(e)
       render text: 'n'
     end
+  end
+
+  def borra_formato
+    form = params[:form]
+    return unless form
+    form = form.split('/')
+    return if form.size != 2
+    return if !(@usu.codigo == 'admin' || @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr]['gi'] && (form[0] == 'publico' || form[0] == 'privado'))
+
+    if form[0] == 'publico'
+      pref = 'formatos/_publico'
+    elsif form[0] == 'privado'
+      pref = "formatos/_usuarios/#{@usu.codigo}"
+    elsif form[0] == Rails.app_class.to_s.split(':')[0].downcase
+      pref = 'formatos'
+    else
+      pref = "modulos/#{form[0]}/formatos"
+    end
+
+    FileUtils.rm_rf "#{pref}/#{form[1]}.yml"
   end
 
   def before_edit
