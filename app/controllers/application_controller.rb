@@ -2122,13 +2122,6 @@ class ApplicationController < ActionController::Base
 =end
         end
 
-        begin
-          #after_save if self.respond_to?('after_save')
-          call_nimbus_hook :after_save
-        rescue Exception => e
-          pinta_exception(e, 'Error: after_save')
-        end
-
         if clm.mant?
           #Refrescar el grid si procede
           grid_reload
@@ -2141,6 +2134,12 @@ class ApplicationController < ActionController::Base
             #Activar botones necesarios (Grabar/Borrar)
             @ajax << 'statusBotones({borrar: true});'
           end
+        end
+
+        begin
+          call_nimbus_hook :after_save
+        rescue Exception => e
+          pinta_exception(e, 'Error: after_save')
         end
 
         @ajax << 'hayCambios=false;'
