@@ -345,7 +345,7 @@ class GiController < ApplicationController
 
     fns = "/tmp/nim#{vid}" #file_name_server
 
-    g.gen_xls("#{fns}.xlsx")
+    g.gen_xls("#{fns}.xlsx", @fact.form_type == 'pdf')
 
     #fnc = g.formato[:modelo] ? g.formato[:modelo].table_name : 'listado' #file_name_client
     fnc = @fact.form_file
@@ -722,6 +722,9 @@ class GI
     else
       @form[:row_height] = nil
     end
+    @form[:linxpag] = @form[:linxpag].to_i == 0 ? nil : @form[:linxpag].to_i
+    @form[:cab_din] = false unless @form[:linxpag]
+    @form[:cab_din_pdf] = true unless @form[:cab_din]
 
     @form[:tit_i] = @form[:tit_i].empty? ? '&B' + @e.try(:nombre).to_s + '&B' : eval_tit_macros(@form[:tit_i])
     @form[:tit_d] = @form[:tit_d].empty? ? '&P de &N' : eval_tit_macros(@form[:tit_d])
@@ -909,6 +912,16 @@ class GI
       sty = r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}
       typ = r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}
       #sheet.add_row res, style: r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}, height: @form[:row_height]
+      if @form[:linxpag]
+        if @lis[sheet] == -1 || @lis[sheet] == @form[:linxpag] && (@pdf || !@form[:cab_din_pdf])  # El caso -1 es cuando ha habido ruptura con salto
+          sheet.add_page_break("A#{@ri_act}")
+          @lis[sheet] = 0
+          if ban != @form[:cab] and @form[:cab_din]
+            self.respond_to?(:cabecera) ? method(:cabecera).call : _add_banda(@form[:cab], {}, sheet)
+          end
+        end
+        @lis[sheet] += 1
+      end
       sheet.add_row res, style: sty, types: typ, height: @form[:row_height]
       @ris[sheet] += 1
       @ri_act += 1
@@ -940,7 +953,10 @@ class GI
       @ban = "rp#{i}"
       @rupi = i + 1
       _add_banda(@form[:rup][i][:pie], valores, sheet)
-      sheet.add_page_break("A#{@ris[sheet]}") if @form[:rup][i][:salto]
+      if @form[:rup][i][:salto]
+        sheet.add_page_break("A#{@ris[sheet]}") unless @form[:cab_din]
+        @lis[sheet] = -1
+      end
     }
   end
 
@@ -957,6 +973,7 @@ class GI
   def nueva_hoja(args)
     sh = @wb.add_worksheet(args)
     @ris[sh] = 1
+    @lis[sh] = 0
 
     unless args[:header_footer]
       sh.header_footer.odd_header = "&L#{@form[:tit_i]}&C#{@form[:tit_c]}&R#{@form[:tit_d]}"
@@ -978,8 +995,9 @@ class GI
     end
   end
 
-  def gen_xls(name=nil)
+  def gen_xls(name=nil, pdf=false)
     name ||= Dir::Tmpname.make_tmpname('/tmp/', '.xlsx')
+    @pdf = pdf
 
     # Procesar la banda de detalle para extraer campos a totalizar
 =begin
@@ -990,7 +1008,8 @@ class GI
       end
     }
 =end
-    @ris = {} # Hash para llevar la fila (row index) de las páginas adicionales que se puedan crear
+    @ris = {} # Hash para llevar la fila (row index) de las hojas adicionales que se puedan crear
+    @lis = {} # Hash para llevar el número de línea de impresión por página física de las hojas adicionales que se puedan crear
 
     xls = Axlsx::Package.new
     @wb = xls.workbook
@@ -1027,9 +1046,10 @@ class GI
       add_banda rupa: 0, rup: 0, ban: :cab
     end
 
-    # Fijar las filas de cabecera para repetir en cada página
-    #@wb.add_defined_name("Uno!$1:$#{@form[:cab].size}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
-    @wb.add_defined_name("Uno!$#{row_ini_cab}:$#{@ri - 1}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
+    unless @form[:cab_din]
+      # Fijar las filas de cabecera para repetir en cada página
+      @wb.add_defined_name("Uno!$#{row_ini_cab}:$#{@ri - 1}", :local_sheet_id => @sh.index, :name => '_xlnm.Print_Titles')
+    end
 
     # Inicializar vector de rupturas (para llevar la fila de inicio de cada una)
     @rup_ini = [@form[:cab].size + @ri - 1]

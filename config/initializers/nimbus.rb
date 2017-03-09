@@ -574,11 +574,14 @@ module MantMod
     def ini_campo(c, v, context)
       campo = c.to_s
       if @mant
-        cmo = self.superclass.modelo_base ? self.superclass.modelo_base.columns_hash[campo] : self.superclass.columns_hash[campo]
+        mo = self.superclass.modelo_base ? self.superclass.modelo_base : self.superclass
+        #cmo = self.superclass.modelo_base ? self.superclass.modelo_base.columns_hash[campo] : self.superclass.columns_hash[campo]
+        cmo = mo.columns_hash[campo]
         cm = self.columns_hash[campo]
         cm_p = self.superclass.propiedades[c]
         v.merge!(cm_p) {|k, ov, nv| ov} if cm_p
       else
+        mo = nil
         cm = nil
       end
 
@@ -599,6 +602,13 @@ module MantMod
         if v[:ref].nil?
           v[:ref] = self.superclass.reflect_on_association(campo[0..-4].to_sym).options[:class_name] unless cm.nil?
           v[:ref] ||= campo.split('_')[0].capitalize
+        end
+      end
+
+      if v[:img]
+        v[:type] = :integer
+        if mo and !v[:img][:modelo]
+          v[:img][:modelo] = mo.to_s
         end
       end
 

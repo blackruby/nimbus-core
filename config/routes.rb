@@ -37,6 +37,7 @@ Rails.application.routes.draw do
 
   get 'application/auto' => 'application#auto'
   get 'nim_download' => 'application#nim_download'
+  get 'nim_send_file' => 'application#nim_send_file'
   post 'application/destroy_vista' => 'application#destroy_vista'
 
   post 'pref_user' => 'usuarios#pref_user'

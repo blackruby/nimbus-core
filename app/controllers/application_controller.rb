@@ -409,6 +409,16 @@ class ApplicationController < ActionController::Base
     FileUtils.rm_f(file_name) if flash[:rm]
   end
 
+  def nim_send_file
+    f = params[:file]
+    return if f.include?('..')
+    send_file f.starts_with?('/tmp') ? f : "data/#{f}"
+  end
+
+  def update_img_src
+    @ajax << "$('##{params[:campo]}_img').attr('src', '/nim_send_file?file=#{@fact.campos[params[:campo].to_sym][:img][:file]}');"
+  end
+
   # Funciones para el manejo del histórico de un modelo
   def histo
     begin
@@ -1287,6 +1297,8 @@ class ApplicationController < ActionController::Base
     cmp_s = cmp.to_s
     cp = @fact.campos[cmp.to_sym]
 
+    return if cp[:img]
+
     case cp[:type]
     when :boolean
       val = false unless val
@@ -1932,10 +1944,18 @@ class ApplicationController < ActionController::Base
     @g = @dat[:persistencia]
     fact_clone
 
-    campo = params[:campo]
-    valor = params[:valor]
-
     @ajax = ''
+
+    campo = params[:campo]
+    cs = @fact.campos[campo.to_sym]
+
+    if cs[:img]
+      cs[:img][:file] = params[campo].tempfile.path
+      @v.save
+      return
+    end
+
+    valor = params[:valor]
 
     if campo.ends_with?('_id') and params[:src] # Autocompletado sin id elegido (probable introducción rápida de texto)
       par = {term: valor}
@@ -2058,8 +2078,11 @@ class ApplicationController < ActionController::Base
     @ajax = ''
     last_c = nil
     begin
+      cmps_img = [] # Crear un vector con los campos de imagen modificados
       @fact.campos.each {|cs, v|
         c = cs.to_s
+
+        cmps_img << cs if v[:img] && v[:img][:file]
 
         if v[:req]
           valor = @fact[c]
@@ -2093,8 +2116,12 @@ class ApplicationController < ActionController::Base
       end
 
       if err == ''
-        #before_save if self.respond_to?('before_save')
         call_nimbus_hook :before_save
+
+        # Tratar campos imagen
+        cmps_img.each {|c|
+        }
+
         if clm.view?
           clmod = class_modelo
           if (@fact.id)
@@ -2319,10 +2346,30 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
       elsif v[:type] == :div
         sal << "<div id='#{cs}' style='overflow: auto'></div>"
+      elsif v[:img]
+        sal << "<div style='text-align: left;overflow: auto'>"
+        sal << "<label class='nim-label-img' for='#{cs}'>Imagen<br>"
+        #sal << "<img id='#{cs}_img' src='/nim_send_file?file=ferari.jpg' width=100>"
+        sal << "<img id='#{cs}_img'"
+        sal << " width=#{v[:img][:width]}" if v[:img][:width]
+        sal << " height=#{v[:img][:height]}" if v[:img][:height]
+        sal << '></label>'
+        sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true)
+        sal << "<input id='#{cs}' name='#{cs}' type='file' style='display: none' onchange='submitNimImg($(this))'/>"
+        sal << '</form>'
+        sal << '</div>'
       else
+        clase = 'nim-input'
+        case v[:rol]
+          when :email
+            clase << ' nim-input-email'
+          when :url
+            clase << ' nim-input-url'
+        end
+        clase << ' nim-may' if v[:may]
         sal << '<div class="nim-group">'
-        #sal << '<input id="' + cs + '" size=' + size + ' required onchange="validar($(this))"'
-        sal << '<input class="nim-input' + (v[:may] ? ' nim-may' : '') + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
+        #sal << '<input class="nim-input nim_input_email' + (v[:may] ? ' nim-may' : '') + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
+        sal << '<input class="' + clase + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
         sal << ' maxlength=' + size if v[:type] == :string
         sal << plus + '/>'
         sal << '<label class="nim-label" for="' + cs + '">' + nt(v[:label]) + '</label>'
@@ -2350,7 +2397,7 @@ class ApplicationController < ActionController::Base
     end
 
     @fact.campos.each{|c, v|
-      next unless v[:form]
+      next unless v[:form] and !v[:img]
 
       if block_given?
         plus = yield(c)

@@ -948,19 +948,26 @@ function autoCompGridLocal(el, modelo, ctrl, cmp, col) {
   }).addClass("auto_comp").attr('controller', ctrl).attr('cmp', cmp).attr('col',  col).attr('dbid', g.jqGrid('getLocalRow', rowid)['_'+col]);
 }
 
+function submitNimImg(el) {
+  el.parent().submit();
+  setTimeout(function() {callFonServer("update_img_src", {campo: el.attr("id")});}, 500);
+}
+
 $(window).load(function() {
   var _auto_comp_menu_;
 
   //$("body").on("focus", ".nim-input", function (e) {
   $("body").on("focus", "input", function (e) {
-    $("#_auto_comp_button_").remove();
+    //$("#_auto_comp_button_").remove();
+    $(".nim-remove-on-input").remove();
   }).on("click", function() {
     $(".nim-context-menu").css("display", "none");
   });
   $("body").on("focus", ".auto_comp", function (e) {
     $(this).parent().append(
-      '<button id="_auto_comp_button_" class="mdl-button mdl-js-button mdl-button--icon" style="position: absolute;top: -4px;right: -4px" tabindex=-1>'+
-      '<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
+      '<button id="_auto_comp_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" style="position: absolute;top: -4px;right: -4px" tabindex=-1>'+
+      //'<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
+      '<i class="material-icons">more_vert</i>'+
       '</button>'
     );
     if ($("#_auto_comp_menu_").length == 0)
@@ -987,6 +994,26 @@ $(window).load(function() {
     });
 
     componentHandler.upgradeDom();
+  }).on("focus", ".nim-input-email", function (e) {
+    $(this).parent().append(
+      '<button id="_nim_email_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" title="Enviar correo" style="position: absolute;top: -4px;right: -4px" tabindex=-1>' +
+      '<i class="material-icons nim-color-2">message</i>' +
+      '</button>'
+    );
+    $('#_nim_email_button_').on('click', function(e){
+      var v = $(this).parent().find('input').val().trim();
+      if (v != '') window.open('mailto:' + v);
+    });
+  }).on("focus", ".nim-input-url", function (e) {
+    $(this).parent().append(
+      '<button id="_nim_url_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" title="Enviar correo" style="position: absolute;top: -4px;right: -4px" tabindex=-1>' +
+      '<i class="material-icons nim-color-2">link</i>' +
+      '</button>'
+    );
+    $('#_nim_url_button_').on('click', function(e){
+      var v = $(this).parent().find('input').val().trim();
+      if (v != '') window.open(v);
+    });
   });
 
   $(window).unload(function() {

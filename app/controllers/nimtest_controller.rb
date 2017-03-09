@@ -208,3 +208,5 @@ class NimtestController < ApplicationController
     mensaje txt
   end
 end
+
+Nimbus.load_adds __FILE__

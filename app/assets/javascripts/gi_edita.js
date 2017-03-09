@@ -543,6 +543,19 @@ function leeFormBanda(tabla, arr_ban) {
   });
 }
 
+function linXPag() {
+  var lxp = $("#linxpag");
+  var cd = $("#cab_din");
+  var v = lxp.val();
+  if (v <= 0 || v == '') {
+    lxp.val('');
+    cd.attr("disabled", true);
+    $("#cab_din_pdf").attr("disabled", true);
+  } else {
+    cd.attr("disabled", false);
+    $("#cab_din_pdf").attr("disabled", !cd.is(":checked"));
+  }
+}
 
 $(window).load(function () {
   // Diálogo de grabar
@@ -600,7 +613,7 @@ $(window).load(function () {
       id: 'b_busu',
       text: "Aceptar",
       click: nuevaBanUsu
-    }],
+    }]
   });
 
   $("#banda_usu_name").on("input", function () {
@@ -1188,6 +1201,13 @@ $(window).load(function () {
     $("#t_det tbody").append(genCadRow());
     iniPropCell();
   }
+
+  // Deshabilitar lo que proceda
+  if ($("#linxpag").val() == '') {
+    $("#cab_din").attr("disabled", true);
+    $("#cab_din_pdf").attr("disabled", true);
+  } else if (!$("#cab_din").is(":checked"))
+    $("#cab_din_pdf").attr("disabled", true);
 
   iniGrabar();
 
