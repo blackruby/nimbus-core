@@ -250,7 +250,11 @@ $(window).load(function () {
   $(window).resize(redimWindow);
 
   //$("#ficha").attr('src', '<%= @view[:url_base] %>0/edit' + '<%= @view[:arg_edit] %>');
-  $("#ficha").attr('src', varView.url_base + varView.id_edit + '/edit' + varView.arg_edit);
+  if (varView.id_edit == -1)
+    $("#ficha").attr('src', varView.url_new);
+  else
+    $("#ficha").attr('src', varView.url_base + varView.id_edit + '/edit' + varView.arg_edit);
+
   var eid = varView.eid;
   var jid = varView.jid;
   if (varView.grid.visible) redimWindow(); else gridCollapse();

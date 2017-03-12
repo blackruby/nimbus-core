@@ -476,16 +476,16 @@ class ApplicationController < ActionController::Base
   end
 
   def sincro_hijos
+    id_hijos = params[:hijos] ? eval('{' + params[:hijos] + '}') : {}
     class_mant.hijos.each_with_index {|h, i|
       @ajax << '$(function(){$("#hijo_' + i.to_s + '").attr("src", "/' + h[:url]
       @ajax << '?mod=' + class_modelo.to_s
       @ajax << '&id=' + @fact.id.to_s
       @ajax << '&padre=' + @v.id.to_s
-      #@ajax << '&eid=' + params[:eid] if params[:eid]
-      #@ajax << '&jid=' + params[:jid] if params[:jid]
       @ajax << '&eid=' + @dat[:eid].to_s if @dat[:eid]
       @ajax << '&jid=' + @dat[:jid].to_s if @dat[:jid]
-      @ajax << '&prm=' + @dat[:prm]
+      @ajax << "&id_edit=#{id_hijos[h[:url].to_sym]}" if id_hijos[h[:url].to_sym]
+      #@ajax << '&prm=' + @dat[:prm]
       @ajax << '");});'
     }
   end
@@ -525,7 +525,8 @@ class ApplicationController < ActionController::Base
     if @usu.admin
       prm = 'p'
     else
-      prm = params[:mod] ? params[:prm] : @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid ? eid.to_i : 0]
+      #prm = params[:mod] ? params[:prm] : @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid ? eid.to_i : 0]
+      prm = @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid ? eid.to_i : 0]
       case prm
         when nil
           render file: '/public/401.html', status: 401, layout: false
@@ -592,13 +593,16 @@ class ApplicationController < ActionController::Base
     @view[:url_base] = '/' + params[:controller] + '/'
     @view[:url_list] = @view[:url_base] + 'list'
     @view[:url_new] = @view[:url_base] + 'new'
-    @view[:arg_edit] = '?head=0' + (@usu.admin ? '' : "&prm=#{prm}")
-    #arg_list_new = '?head=0'
+    #@view[:arg_edit] = '?head=0' + (@usu.admin ? '' : "&prm=#{prm}")
+    @view[:arg_edit] = '?head=0'
     arg_list_new = @view[:arg_edit].clone
 
     if params[:mod] != nil
-      arg_list_new << '&mod=' + params[:mod] + '&id=' + params[:id] + '&padre=' + params[:padre]
-      @view[:arg_edit] << '&padre=' + params[:padre]
+      #arg_list_new << '&mod=' + params[:mod] + '&id=' + params[:id] + '&padre=' + params[:padre]
+      #@view[:arg_edit] << '&padre=' + params[:padre]
+      padre = params[:padre] ? "&padre=#{params[:padre]}" : ''
+      arg_list_new << '&mod=' + params[:mod] + '&id=' + params[:id] + padre
+      @view[:arg_edit] << padre
     end
 
     @titulo = ''
@@ -631,6 +635,10 @@ class ApplicationController < ActionController::Base
     if params[:arg]
       @view[:url_new] << '&arg=' + params[:arg]
       @view[:arg_edit] << '&arg=' + params[:arg]
+    end
+
+    if params[:hijos]
+      @view[:arg_edit] << '&hijos=' + params[:hijos]
     end
 
     if clm.mant? # No es un proc, y por lo tanto preparamos los datos del grid
@@ -906,7 +914,8 @@ class ApplicationController < ActionController::Base
     if @usu.admin
       @dat[:prm] = 'p'
     else
-      @dat[:prm] = params[:padre] ? params[:prm] : @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
+      #@dat[:prm] = params[:padre] ? params[:prm] : @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
+      @dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
       if @dat[:prm].nil? or @dat[:prm] == 'c'
         render file: '/public/401.html', status: 401, layout: false
         return
@@ -1082,8 +1091,8 @@ class ApplicationController < ActionController::Base
     # Control de permisos
     @dat[:prm] = 'p'
     unless @usu.admin or params[:controller] == 'gi' or (clm.mant? and @fact.id == 0)
-      #case @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
-      @dat[:prm] = params[:padre] ? params[:prm] : @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
+      #@dat[:prm] = params[:padre] ? params[:prm] : @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
+      @dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
       case @dat[:prm]
         when nil
           render file: '/public/401.html', status: 401, layout: false
@@ -2332,6 +2341,8 @@ class ApplicationController < ActionController::Base
         #sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em"' + plus + '/>'
         sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em"'
         sal << ' dialogo="' + h[:dlg] + '"' if h[:dlg]
+        sal << " go='go_#{cs}'" if self.respond_to?('go_' + cs)
+        sal << " new='new_#{cs}'" if self.respond_to?('new_' + cs)
         sal << plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
 =begin

@@ -739,12 +739,22 @@ function autoCompIrAFicha() {
   var inp = $("#_auto_comp_button_").parent().find("input");
   var dbid = inp.attr("dbid");
   if (dbid == undefined || dbid == '') return;
-  //window.open('/' + inp.attr("controller") + '/' + dbid + '/edit', '_blank', '');
-  window.open('/' + inp.attr("controller") + '?hidegrid=1&id_edit=' + dbid, '_blank', '');
+  var go = inp.attr("go");
+  if (go == undefined) {
+    //window.open('/' + inp.attr("controller") + '/' + dbid + '/edit', '_blank', '');
+    window.open('/' + inp.attr("controller") + '?hidegrid=1&id_edit=' + dbid, '_blank', '');
+  } else
+    callFonServer(go);
 }
 
 function autoCompNuevaFicha() {
-  window.open('/' +  $("#_auto_comp_button_").parent().find("input").attr("controller") + '/new', '_blank', '');
+  var inp = $("#_auto_comp_button_").parent().find("input");
+  var nw = inp.attr("new");
+  if (nw == undefined) {
+    //window.open('/' + inp.attr("controller") + '/new', '_blank', '');
+    window.open('/' + inp.attr("controller") + '?hidegrid=1&id_edit=-1', '_blank', '');
+  } else
+    callFonServer(nw);
 }
 
 function ponBusy() {

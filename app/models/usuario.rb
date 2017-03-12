@@ -83,12 +83,17 @@ class Usuario < ActiveRecord::Base
             cl = ps.size == 3 ? ps[1].capitalize + '::' + ps[2].capitalize : ps[1].capitalize
             (cl + 'Controller').constantize # Para forzar el "lazy load" del controlador asociado
             cl = (cl + 'Mod').constantize
+            # Asignación de permisos a las opciones de menu_l
             cl.menu_l.each {|m|
               st2 = []
               emp.each_with_index {|e, i|
                 st2[i] = prf[e[2]] ? (prf[e[2]][path + k + '/' + m[:label]] || prm[i]) : 'x'
               }
               asigna_permiso(m[:url], st2, emp, dest)
+            }
+            # Asignación de permisos a los hijos
+            cl.hijos.each {|h|
+              asigna_permiso('/' + h[:url], st, emp, dest)
             }
           end
         rescue
