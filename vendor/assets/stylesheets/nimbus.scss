@@ -67,6 +67,10 @@ body {
   width: 100%;
 }
 
+.nim-input-img {
+  display: none;
+}
+
 .mdl-textfield {width: 100%;}
 
 .nim-select {
@@ -98,6 +102,7 @@ body {
 .nim-label-img {
   font-size: 12px;
   color: $color-1;
+  cursor: pointer;
 }
 
 .nim-label-out {
@@ -139,6 +144,11 @@ body {
   top:-18px;
   font-size:12px;
   color: $color-nim-label;
+}
+
+.nim-input-img:disabled ~ .nim-label-img {
+  color: $color-nim-label;
+  cursor: default;
 }
 
 .nim-campo-cambiado {

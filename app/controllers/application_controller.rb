@@ -412,11 +412,7 @@ class ApplicationController < ActionController::Base
   def nim_send_file
     f = params[:file]
     return if f.include?('..')
-    send_file f.starts_with?('/tmp') ? f : "data/#{f}"
-  end
-
-  def update_img_src
-    @ajax << "$('##{params[:campo]}_img').attr('src', '/nim_send_file?file=#{@fact.campos[params[:campo].to_sym][:img][:file]}');"
+    send_file (f.starts_with?('/tmp') ? f : "data/#{f}"), disposition: :inline
   end
 
   # Funciones para el manejo del histórico de un modelo
@@ -1957,14 +1953,26 @@ class ApplicationController < ActionController::Base
 
     campo = params[:campo]
     cs = @fact.campos[campo.to_sym]
+    valor = params[:valor]
 
     if cs[:img]
-      cs[:img][:file] = params[campo].tempfile.path
-      @v.save
+      if valor == '*' # Es un borrado de imagen
+        @fact[campo] = '*'
+        render js: "$('##{campo}_img').attr('src','');"
+      else # Es una asignación de imagen que viene del submit del form asociado. La respuesta va al iframe asociado al campo imagen
+        return unless params[campo] # Por si llega un submit sin fichero para upload
+
+        @fact[campo] = "/tmp/nimImg-#{@v.id}-#{campo}.#{params[campo].tempfile.path.split('.')[1]}"
+        `cp #{params[campo].tempfile.path} #{@fact[campo]}`
+        @v.save
+        render html: %Q(
+          <script>
+            $(window).load(function(){$("##{campo}_img",parent.document).attr('src', '/nim_send_file?file=#{params[campo].tempfile.path}')})
+          </script>
+        ).html_safe, layout: 'basico'
+      end
       return
     end
-
-    valor = params[:valor]
 
     if campo.ends_with?('_id') and params[:src] # Autocompletado sin id elegido (probable introducción rápida de texto)
       par = {term: valor}
@@ -2063,6 +2071,9 @@ class ApplicationController < ActionController::Base
     else
       class_mant.view? ? class_modelo.destroy(@fact.id) : @fact.destroy
 
+      # Borrar los datos asociados
+      `rm -rf data/#{class_modelo}/#{@fact.id}`
+
       grid_reload
       @ajax << "window.location.replace('/' + _controlador + '/0/edit?head=#{@dat[:head]}');"
     end
@@ -2091,7 +2102,7 @@ class ApplicationController < ActionController::Base
       @fact.campos.each {|cs, v|
         c = cs.to_s
 
-        cmps_img << cs if v[:img] && v[:img][:file]
+        cmps_img << cs if v[:img] && @fact[c]
 
         if v[:req]
           valor = @fact[c]
@@ -2127,10 +2138,6 @@ class ApplicationController < ActionController::Base
       if err == ''
         call_nimbus_hook :before_save
 
-        # Tratar campos imagen
-        cmps_img.each {|c|
-        }
-
         if clm.view?
           clmod = class_modelo
           if (@fact.id)
@@ -2144,19 +2151,25 @@ class ApplicationController < ActionController::Base
           }
           f.save
         else
-          #begin
             @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
-=begin
-          rescue ActiveRecord::RecordNotUnique
-            @ajax = ''
-            sincro_ficha :ajax => true
-            mensaje 'Grabación cancelada. Ya existe la clave'
-            @v.save
-            render :js => @ajax if ajx
-            return
-          end
-=end
         end
+
+        # Tratar campos imagen
+        cmps_img.each {|c|
+          v = @fact.campos[c][:img]
+          path = "data/#{v[:modelo]}/#{@fact.id}/_imgs"
+
+          # Borrar imágenes previas
+          `rm -f #{path}/#{v[:tag]}.*`
+
+          unless @fact[c] == '*' # el valor asterisco es borrar la imagen, cosa que se ha hecho en la línea anterior
+            ia = @fact[c].split('.')
+            FileUtils.mkdir_p(path)
+            `mv #{@fact[c]} #{path}/#{v[:tag]}.#{ia[1]}`
+          end
+
+          @fact[c] = nil
+        }
 
         if clm.mant?
           #Refrescar el grid si procede
@@ -2210,6 +2223,8 @@ class ApplicationController < ActionController::Base
 
   def destroy_vista
     sql_exe("DELETE FROM vistas where id = #{params[:vista]}")
+    # Borrar todas las imágenes temporales que queden
+    `rm -f /tmp/nimImg-#{params[:vista]}-*`
     render nothing: true
   end
 
@@ -2338,36 +2353,36 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
       elsif cs.ends_with?('_id')
         sal << '<div class="nim-group">'
-        #sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em"' + plus + '/>'
         sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em"'
         sal << ' dialogo="' + h[:dlg] + '"' if h[:dlg]
         sal << " go='go_#{cs}'" if self.respond_to?('go_' + cs)
         sal << " new='new_#{cs}'" if self.respond_to?('new_' + cs)
         sal << plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
-=begin
-        sal << '<button id="_acb_' + cs + '" class="nim-autocomp-button mdl-button mdl-js-button mdl-button--icon" style="position: absolute;top: -8px; right: 0">'
-        sal << '<i class="material-icons">more_vert</i>'
-        sal << '</button>'
-        sal << '<ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="_acb_' + cs + '">'
-        sal << '<li class="mdl-menu__item">Buscar</li>'
-        sal << '<li class="mdl-menu__item">Ir a</li>'
-        sal << '</ul>'
-=end
         sal << '</div>'
       elsif v[:type] == :div
         sal << "<div id='#{cs}' style='overflow: auto'></div>"
       elsif v[:img]
-        sal << "<div style='text-align: left;overflow: auto'>"
-        sal << "<label class='nim-label-img' for='#{cs}'>Imagen<br>"
-        #sal << "<img id='#{cs}_img' src='/nim_send_file?file=ferari.jpg' width=100>"
+        if v[:img][:fon_id]
+          plus << ' disabled' unless plus.include?(' disabled')
+          img_id = method(v[:img][:fon_id]).call
+        else
+          img_id = @fact.id == 0 ? nil : @fact.id
+        end
+        sal << '<div style="text-align: left;overflow: auto">'
+        sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true, target: "#{cs}_iframe")
+        sal << "<input id='#{cs}' name='#{cs}' type='file' accept='image/*' class='nim-input-img' onchange='$(this).parent().submit()' #{plus}/>"
+        sal << "<label class='nim-label-img' for='#{cs}'>#{nt(v[:label])}</label><br>"
         sal << "<img id='#{cs}_img'"
+        if img_id
+          src = Dir.glob("data/#{v[:img][:modelo]}/#{img_id}/_imgs/#{v[:img][:tag]}.*")
+          sal << "src='/nim_send_file?file=#{src[0][5..-1]}'" if src.size > 0
+        end
         sal << " width=#{v[:img][:width]}" if v[:img][:width]
         sal << " height=#{v[:img][:height]}" if v[:img][:height]
-        sal << '></label>'
-        sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true)
-        sal << "<input id='#{cs}' name='#{cs}' type='file' style='display: none' onchange='submitNimImg($(this))'/>"
-        sal << '</form>'
+        #sal << '></label>'
+        sal << '></form>'
+        sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
         sal << '</div>'
       else
         clase = 'nim-input'

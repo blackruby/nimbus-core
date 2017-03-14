@@ -606,10 +606,11 @@ module MantMod
       end
 
       if v[:img]
-        v[:type] = :integer
         if mo and !v[:img][:modelo]
           v[:img][:modelo] = mo.to_s
         end
+        v[:img][:tag] ||= c
+        v[:nil] = true
       end
 
       v[:type] ||= cm.type unless cm.nil?

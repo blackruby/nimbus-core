@@ -958,9 +958,8 @@ function autoCompGridLocal(el, modelo, ctrl, cmp, col) {
   }).addClass("auto_comp").attr('controller', ctrl).attr('cmp', cmp).attr('col',  col).attr('dbid', g.jqGrid('getLocalRow', rowid)['_'+col]);
 }
 
-function submitNimImg(el) {
-  el.parent().submit();
-  setTimeout(function() {callFonServer("update_img_src", {campo: el.attr("id")});}, 500);
+function borrarNimImg(el) {
+  alert('hola');
 }
 
 $(window).load(function() {
@@ -972,8 +971,7 @@ $(window).load(function() {
     $(".nim-remove-on-input").remove();
   }).on("click", function() {
     $(".nim-context-menu").css("display", "none");
-  });
-  $("body").on("focus", ".auto_comp", function (e) {
+  }).on("focus", ".auto_comp", function (e) {
     $(this).parent().append(
       '<button id="_auto_comp_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" style="position: absolute;top: -4px;right: -4px" tabindex=-1>'+
       //'<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
@@ -1023,6 +1021,28 @@ $(window).load(function() {
     $('#_nim_url_button_').on('click', function(e){
       var v = $(this).parent().find('input').val().trim();
       if (v != '') window.open(v);
+    });
+  }).on("contextmenu", ".nim-label-img", function(e) {
+    e.preventDefault();
+    var cmp = $(this).attr("for");
+    var inp = $("#" + cmp);
+    var img = $("#" + cmp + "_img");
+    if (inp.attr("disabled") || img.attr("src") == undefined || img.attr("src") == '') return;
+
+    $('<div>¿Desea eliminar la imagen?</div>').dialog({
+      resizable: false, modal: true, width: "auto", title: "Borrar imagen",
+      close: function () {
+        $(this).remove();
+      },
+      buttons: {
+        "No": function () {
+          $(this).dialog("close");
+        },
+        "Sí": function () {
+          send_validar(inp, "*");
+          $(this).dialog("close");
+        }
+      }
     });
   });
 
