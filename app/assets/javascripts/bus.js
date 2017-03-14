@@ -185,7 +185,7 @@ function busNew() {
 
 function busSave() {
   ficheros = [];
-  $("#bus-sel optgroup[label=" + usuCod + "] option").each(function() {ficheros.push($(this).text())});
+  $("#bus-sel optgroup[label='" + usuCod + "'] option").each(function() {ficheros.push($(this).text())});
   var fs = $("#bus-sel option:selected");
   var fn = (fs.length > 0 && fs.val().slice(0, 14)) == "bus/_usuarios/" ? fs.text() : "";
   $("#inp-save").val(fn);
