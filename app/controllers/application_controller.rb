@@ -710,6 +710,10 @@ class ApplicationController < ActionController::Base
     end
 =end
 
+    # Definimos @e y @j por si hay campos que los utilizan algún parámetro (p.ej. :decim)
+    @e = Empresa.find_by(id: @dat[:eid]) if @dat[:eid]
+    @j = Ejercicio.find_by(id: @dat[:jid]) if @dat[:jid]
+
     if params[:filters]
       fil = eval(params[:filters])
       fil[:rules].each {|f|
@@ -1282,7 +1286,7 @@ class ApplicationController < ActionController::Base
     else
       case cp[:type]
       when :integer, :float, :decimal
-        return number_with_precision(val, separator: ',', delimiter: '.', precision: cp[:decim])
+        return number_with_precision(val, separator: ',', delimiter: '.', precision: eval_cad(cp[:decim]).to_i)
       when :date
         return val.to_s(:sp)
       when :time
