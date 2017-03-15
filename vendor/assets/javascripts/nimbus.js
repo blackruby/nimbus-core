@@ -1014,13 +1014,34 @@ $(window).load(function() {
     });
   }).on("focus", ".nim-input-url", function (e) {
     $(this).parent().append(
-      '<button id="_nim_url_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" title="Enviar correo" style="position: absolute;top: -4px;right: -4px" tabindex=-1>' +
+      '<button id="_nim_url_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" title="Seguir enlace" style="position: absolute;top: -4px;right: -4px" tabindex=-1>' +
       '<i class="material-icons nim-color-2">link</i>' +
       '</button>'
     );
     $('#_nim_url_button_').on('click', function(e){
       var v = $(this).parent().find('input').val().trim();
       if (v != '') window.open(v);
+    });
+  }).on("focus", ".nim-input-map", function (e) {
+    $(this).parent().append(
+      '<button id="_nim_map_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" title="Abrir en google maps" style="position: absolute;top: -4px;right: -4px" tabindex=-1>' +
+      '<i class="material-icons nim-color-2">location_on</i>' +
+      '</button>'
+    );
+    $('#_nim_map_button_').on('click', function(e){
+      var cl = $(this).parent().find('input').attr("map");
+      var place = '';
+      $("." + cl).each(function() {
+        var v = $(this).val().replace(/c\//gi, '').replace(/nº/gi, '');
+        var i, l = v.length;
+        for (i = 0; i < l; i++) if (v[i] >= '0' && v[i] <= '9') break;
+        for (;i < l; i++) if (v[i] < '0' || v[i] > '9') break;
+        v = v.substr(0, i);
+
+        if (place != '') place += ',';
+        place += v;
+      });
+      window.open('http://www.google.com/maps/place/' + place);
     });
   }).on("contextmenu", ".nim-label-img", function(e) {
     e.preventDefault();

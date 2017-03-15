@@ -2395,7 +2395,12 @@ class ApplicationController < ActionController::Base
             clase << ' nim-input-email'
           when :url
             clase << ' nim-input-url'
+          when :map
+            clase << ' nim-input-map'
+            v[:map] ||= cs
+            plus << " map='nim-map-#{v[:map]}'"
         end
+        clase << " nim-map-#{v[:map]}" if v[:map]
         clase << ' nim-may' if v[:may]
         sal << '<div class="nim-group">'
         #sal << '<input class="nim-input nim_input_email' + (v[:may] ? ' nim-may' : '') + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
@@ -2406,7 +2411,7 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
       end
 
-      sal << '</div>'
+      sal << '</div>' # Fin de <div class="mdl-cell">
     }
     sal << '</div>' if sal != ''   # Fin de <div class="mdl-grid">
 
