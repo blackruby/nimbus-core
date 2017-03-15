@@ -2314,8 +2314,10 @@ class ApplicationController < ActionController::Base
       plus << " title='#{nt(v[:title])}'" if v[:title]
       plus << " #{v[:attr]}" if v[:attr]
 
+      sal << '</div>' unless prim or v[:span] # Cerrar el div mdl-cell si procede
+
       if prim or v[:hr] or v[:br]
-        sal << '</div>' unless prim
+        sal << '</div>' unless prim # Cerrar el div mdl-grid si procede
         sal << '<hr>' if v[:hr]
         sal << '<div class="mdl-grid">'
         ncols = 0
@@ -2324,7 +2326,9 @@ class ApplicationController < ActionController::Base
 
       ncols += v[:gcols]
 
-      sal << '<div class="mdl-cell mdl-cell--' + v[:gcols].to_s + '-col">'
+      div_class = v[:span] ? 'nim-group-span' : 'nim-group'
+
+      sal << '<div class="mdl-cell mdl-cell--' + v[:gcols].to_s + '-col">' if prim or !v[:span]
 
       if v[:type] == :boolean
         sal << '<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="' + cs + '">'
@@ -2345,12 +2349,14 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
 =end
       elsif v[:code]
-        sal << '<div class="nim-group">'
+        #sal << '<div class="nim-group">'
+        sal << "<div class='#{div_class}'>"
         sal << '<input class="nim-input" id="' + cs + '" maxlength=' + size + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" required style="max-width: ' + size + 'em"' + plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
       elsif sel
-        sal << '<div class="nim-group">'
+        #sal << '<div class="nim-group">'
+        sal << "<div class='#{div_class}'>"
         sal << '<select class="nim-select" id="' + cs + '" required onchange="validar($(this))"' + plus + '>'
         sel.each{|k, tex|
           sal << '<option value="' + k.to_s + '">' + nt(tex) + '</option>'
@@ -2359,7 +2365,8 @@ class ApplicationController < ActionController::Base
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
       elsif cs.ends_with?('_id')
-        sal << '<div class="nim-group">'
+        #sal << '<div class="nim-group">'
+        sal << "<div class='#{div_class}'>"
         sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em"'
         sal << ' dialogo="' + h[:dlg] + '"' if h[:dlg]
         sal << " go='go_#{cs}'" if self.respond_to?('go_' + cs)
@@ -2405,7 +2412,9 @@ class ApplicationController < ActionController::Base
         end
         clase << " nim-map-#{v[:map]}" if v[:map]
         clase << ' nim-may' if v[:may]
-        sal << '<div class="nim-group">'
+
+        #sal << '<div class="nim-group">'
+        sal << "<div class='#{div_class}'>"
         #sal << '<input class="nim-input nim_input_email' + (v[:may] ? ' nim-may' : '') + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
         sal << '<input class="' + clase + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
         sal << ' maxlength=' + size if v[:type] == :string
@@ -2414,8 +2423,9 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
       end
 
-      sal << '</div>' # Fin de <div class="mdl-cell">
+      #sal << '</div>' # Fin de <div class="mdl-cell">
     }
+    sal << '</div>' if sal != ''   # Fin de <div class="mdl-cell">
     sal << '</div>' if sal != ''   # Fin de <div class="mdl-grid">
 
     sal.html_safe
