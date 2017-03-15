@@ -2445,8 +2445,8 @@ class ApplicationController < ActionController::Base
 
       next if plus == 'stop'
 
-      manti = eval_cad(v[:manti]).to_s
-      decim = eval_cad(v[:decim])
+      manti = eval_cad(v[:manti]).to_i
+      decim = eval_cad(v[:decim]).to_i
       signo = eval_cad(v[:signo])
       mask = eval_cad(v[:mask])
       date_opts = eval_cad(v[:date_opts])
@@ -2474,7 +2474,8 @@ class ApplicationController < ActionController::Base
       elsif v[:type] == :time
         sal << '$("#' + cs + '").entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true);' : 'false);')
       elsif v[:type] == :integer or v[:type] == :decimal
-        sal << 'numero("#' + cs + '",' + manti + ',' + decim.to_s + ',' + signo.to_s + ');'
+        #sal << 'numero("#' + cs + '",' + manti + ',' + decim.to_s + ',' + signo.to_s + ');'
+        sal << "numero('##{cs}',#{manti},#{decim},#{signo});"
       end
     }
 
