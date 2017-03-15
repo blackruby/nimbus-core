@@ -199,18 +199,32 @@ class ApplicationController < ActionController::Base
     @fact[cmp] = val
   end
 
+  def enable_disable(c, ed)
+    ty = rol = nil
+
+    if @fact
+      v = @fact.campos[c.to_sym]
+      if v
+        ty = v[:type]
+        rol = true if v[:rol]
+      end
+    end
+
+    if c.to_s.ends_with?('_id') or rol
+      @ajax << "$('##{c}').attr('readonly', #{ed == :d ? 'true' : 'false'}).attr('tabindex', #{ed == :d ? '-1' : '0'});"
+    elsif ty == :date
+      @ajax << "$('##{c}').datepicker('#{ed == :d ? 'disable' : 'enable'}');"
+    else
+      @ajax << "$('##{c}').attr('disabled', #{ed == :d ? 'true' : 'false'});"
+    end
+  end
+
   ##nim-doc {sec: 'Métodos de usuario', met: 'enable(campo)'}
   # Habilita el campo <i>campo</i>
   ##
 
   def enable(c)
 =begin
-    if @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
-      @ajax << '$("#' + c.to_s + '").datepicker("enable");'
-    else
-      @ajax << '$("#' + c.to_s + '").attr("disabled", false);'
-    end
-=end
     if c.to_s.ends_with?('_id')
       @ajax << "$('##{c}').attr('readonly', false).attr('tabindex', 0);"
     elsif @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
@@ -218,6 +232,8 @@ class ApplicationController < ActionController::Base
     else
       @ajax << "$('##{c}').attr('disabled', false);"
     end
+=end
+    enable_disable(c, :e)
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'disable(campo)'}
@@ -225,20 +241,7 @@ class ApplicationController < ActionController::Base
   ##
 
   def disable(c)
-=begin
-    if @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
-      @ajax << '$("#' + c.to_s + '").datepicker("disable");'
-    else
-      @ajax << '$("#' + c.to_s + '").attr("disabled", true);'
-    end
-=end
-    if c.to_s.ends_with?('_id')
-      @ajax << "$('##{c}').attr('readonly', true).attr('tabindex', -1);"
-    elsif @fact and @fact.campos[c.to_sym] and @fact.campos[c.to_sym][:type] == :date
-      @ajax << "$('##{c}').datepicker('disable');"
-    else
-      @ajax << "$('##{c}').attr('disabled', true);"
-    end
+    enable_disable(c, :d)
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'disable_all'}
