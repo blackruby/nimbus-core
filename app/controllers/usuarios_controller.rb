@@ -1,8 +1,9 @@
 class UsuariosMod < Usuario
   @campos = {
     codigo: {tab: 'pre', gcols: 4, grid: {}},
-    nombre: {tab: 'pre', gcols: 4, grid: {}},
-    admin: {tab: 'general', gcols: 2, hr: true, grid: {}},
+    nombre: {tab: 'pre', gcols: 4, span: true, grid: {}},
+    foto: {tab: 'pre', gcols: 2, img: {height: 80}},
+    admin: {tab: 'general', gcols: 2, br: true, grid: {}},
     timeout: {tab: 'general', gcols: 4},
     locale: {tab: 'general', gcols: 2, sel:{es: 'espanol', en: 'ingles'}, pref: true},
     password: {tab: 'general', hr: true, gcols: 3, attr: 'autocomplete="new-password" type="password"'},
