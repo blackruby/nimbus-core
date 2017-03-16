@@ -1020,7 +1020,10 @@ $(window).load(function() {
     );
     $('#_nim_url_button_').on('click', function(e){
       var v = $(this).parent().find('input').val().trim();
-      if (v != '') window.open(v);
+      if (v != '') {
+        if (v.indexOf('://') == -1) v = 'http://' + v;
+        window.open(v);
+      }
     });
   }).on("focus", ".nim-input-map", function (e) {
     $(this).parent().append(

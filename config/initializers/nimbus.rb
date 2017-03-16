@@ -517,7 +517,7 @@ module MantMod
         @grid[:gcols][2] ||= 4
         @grid[:visible] = true if @grid[:visible].nil?
         @grid[:height] ||= 250
-        @grid[:rowNum] ||= 100
+        @grid[:rowNum] ||= 50
         @grid[:cellEdit] = true if @grid[:cellEdit].nil?
         @grid[:shrinkToFit] = true if @grid[:shrinkToFit].nil?
         @grid[:multiSort] = false if @grid[:multiSort].nil?
