@@ -71,7 +71,7 @@
 </header>
   <div class="mdl-layout__drawer">
     <nav class="mdl-navigation">
-      <a class="mdl-navigation__link" href="#" onclick="grid_historico()">Histórico</a>
+      <a class="mdl-navigation__link" style="cursor: pointer" onclick="grid_historico()">Histórico</a>
       <% if @view[:menu_l].size > 0 %>
         <hr>
         <% @view[:menu_l].each_with_index {|m, i| %>
