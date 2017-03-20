@@ -52,17 +52,11 @@
 r = 'db/migrate'
 mods = Dir.glob('modulos/*').map{|m| m.split('/')[1]}
 
-mods.each {|m|
-  Dir.glob("#{r}/#{m}").each {|s|
-    config.paths[r] << s
-  }
-}
-
-Dir.glob('modulos/*/' + r).each {|d|
-  config.paths[r] << d
+Dir.glob('modulos/*/db').each {|d|
+  s = "#{d}/migrate"
+  config.paths[r] << s if File.exists?(s)
   mods.each {|m|
-    Dir.glob("modulos/*/#{r}/#{m}").each {|s|
-      config.paths[r] << s
-    }
+    s = "#{d}/migrate_#{m}"
+    config.paths[r] << s if File.exists?(s)
   }
 }
