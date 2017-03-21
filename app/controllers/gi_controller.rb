@@ -1052,7 +1052,8 @@ class GI
     end
 
     # Inicializar vector de rupturas (para llevar la fila de inicio de cada una)
-    @rup_ini = [@form[:cab].size + @ri - 1]
+    #@rup_ini = [@form[:cab].size + @ri - 1]
+    @rup_ini = [@ri]
 
     @data.each_with_index {|dat, di|
       dat = [dat] unless dat.is_a?(Array)
