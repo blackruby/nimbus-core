@@ -2465,6 +2465,7 @@ class ApplicationController < ActionController::Base
       cs = c.to_s
       if cs.ends_with?('_id')
         sal << 'auto_comp("#' + cs + '","/application/auto?mod=' + v[:ref]
+        sal << '&type=' + v[:auto_tipo].to_s if v[:auto_tipo]
         sal << '&eid=' + @e.id.to_s if @e
         sal << '&jid=' + @j.id.to_s if @j
         sal << '&vista=' + @v.id.to_s
