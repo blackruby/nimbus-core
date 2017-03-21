@@ -2331,10 +2331,12 @@ class ApplicationController < ActionController::Base
       sal << '<div class="mdl-cell mdl-cell--' + v[:gcols].to_s + '-col">' if prim or !v[:span]
 
       if v[:type] == :boolean
+        sal << "<div class='#{div_class}'>"
         sal << '<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="' + cs + '">'
         sal << '<input id="' + cs + '" type="checkbox" class="mdl-checkbox__input" onchange="vali_check($(this))"' + plus + '/>'
         sal << '<span class="mdl-checkbox__label">' + nt(v[:label]) + '</span>'
         sal << '</label>'
+        sal << '</div>'
       elsif v[:type] == :text
         sal << '<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">'
         sal << '<textarea class="nim-textarea mdl-textfield__input" type="text" id="' + cs + '" cols=' + size + ' rows=' + rows.to_s + ' onchange="validar($(this))"' + plus + '>'
