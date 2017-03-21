@@ -5,6 +5,18 @@ class String
     num = (n ? (n.to_s+self[1..-1]).to_i : num = self.to_i)
     'TRWAGMYFPDXBNJZSQVHLCKE'[num % 23]
   end
+  def cp2provincia
+    listaprovincias = ["ALAVA","ALBACETE","ALICANTE","ALMERIA","AVILA","BADAJOZ","BALEARES",
+      "BARCELONA","BURGOS","CACERES","CADIZ","CASTELLON","CIUDAD REAL",
+      "CORDOBA","LA CORU▒A","CUENCA","GERONA","GRANADA","GUADALAJARA",
+      "GUIPUZCOA","HUELVA","HUESCA","JAEN","LEON","LERIDA","LA RIOJA","LUGO",
+      "MADRID","MALAGA","MURCIA","NAVARRA","ORENSE","ASTURIAS","PALENCIA",
+      "LAS PALMAS","PONTEVEDRA","SALAMANCA","STA.CRUZ DE TENERIFE",
+      "CANTABRIA","SEGOVIA","SEVILLA","SORIA","TARRAGONA","TERUEL","TOLEDO",
+      "VALENCIA","VALLADOLID","VIZCAYA","ZAMORA","ZARAGOZA", "CEUTA","MELILLA"]
+
+    return listaprovincias[self[0..1].to_i-1]
+  end
 
   def add_digits_from_int(n)
     digits = str_to_int_array(n.to_s)
