@@ -1749,7 +1749,9 @@ class ApplicationController < ActionController::Base
           c[:editoptions][:dataInit] ||= '~function(e){$(e).entrytime(' + (c[:seg] ? 'true,' : 'false,') + (c[:nil] ? 'true' : 'false') + ')}~'
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
         when :references
-          c[:controller] = c[:ref].constantize.table_name
+          #c[:controller] = c[:ref].constantize.table_name
+          mt = c[:ref].split('::')
+          c[:controller] = (mt.size == 1 ? c[:ref].constantize.table_name : mt[0].downcase + '/' + mt[1].downcase.pluralize)
           c[:editoptions] = {dataInit:  "~function(e){autoCompGridLocal(e,'#{c[:ref]}','#{c[:controller]}','#{cmp}','#{c[:name]}');}~"}
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
         else
