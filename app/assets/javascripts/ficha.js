@@ -21,6 +21,8 @@ function liFon(li, fon, tipo, side) {
 
 function tabClick(tab) {
   _activeTab = tab;
+  var fs = "ontab_" + tab.attr("id").slice(2);
+  if ($.inArray(fs, nimOnTabs) >= 0) callFonServer(fs);
   setTimeout(function(){
     if (typeof tabClickUsu == "function") tabClickUsu(tab);
     _activeTab.find(":input").filter(":enabled[readonly!='readonly']").first().focus();

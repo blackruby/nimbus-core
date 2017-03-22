@@ -854,6 +854,7 @@ class ApplicationController < ActionController::Base
   def var_for_views(clm)
     @titulo = clm.titulo
     @tabs = []
+    @on_tabs = []
     @hijos = clm.hijos
     @dialogos = clm.dialogos
     @fact.campos.each{|c, v|
@@ -862,6 +863,11 @@ class ApplicationController < ActionController::Base
     clm.hijos.each{|h|
       @tabs << h[:tab] if h[:tab] and !@tabs.include?(h[:tab]) and h[:tab] != 'pre' and h[:tab] != 'post'
     }
+    @tabs.each {|t|
+      f = "ontab_#{t}"
+      @on_tabs << f if self.respond_to?(f)
+    }
+
     @head = (params[:head] ? params[:head].to_i : 1)
     @menu_l = clm.menu_l
     @menu_r = clm.menu_r
@@ -2282,7 +2288,6 @@ class ApplicationController < ActionController::Base
     clm = class_mant
 
     sal = ''
-    ncols = 0
     prim = true
     tab_dlg = h[:tab] ? :tab : :dlg
 
@@ -2324,19 +2329,35 @@ class ApplicationController < ActionController::Base
 
       sal << '</div>' unless prim or v[:span] # Cerrar el div mdl-cell si procede
 
+      sal << '</div>' if !prim && !v[:span] && (v[:hr] || v[:br]) # Cerrar el div mdl-grid si procede
+
+      if v[:hr]
+        case v[:hr].class.to_s
+          when 'String'
+            sal << "<div class='nim-hr-div'><label class='nim-hr-label'>#{nt(v[:hr])}</label><hr></div>"
+          when 'Hash'
+            sal << "<div class='#{v[:hr][:class_div] ? v[:hr][:class_div] : 'nim-hr-div'}'><label class='#{v[:hr][:class_label] ? v[:hr][:class_label] : 'nim-hr-label'}'>#{nt(v[:hr][:label])}</label><hr></div>"
+          else
+            sal << '<hr>'
+        end
+      end
+
+      sal << '<div class="mdl-grid">' if prim || !v[:span] && (v[:hr] || v[:br])
+=begin
       if prim or v[:hr] or v[:br]
         sal << '</div>' unless prim # Cerrar el div mdl-grid si procede
         sal << '<hr>' if v[:hr]
         sal << '<div class="mdl-grid">'
-        ncols = 0
         prim = false
       end
-
-      ncols += v[:gcols]
+=end
 
       div_class = v[:span] ? 'nim-group-span' : 'nim-group'
 
-      sal << '<div class="mdl-cell mdl-cell--' + v[:gcols].to_s + '-col">' if prim or !v[:span]
+      #sal << '<div class="mdl-cell mdl-cell--' + v[:gcols].to_s + '-col">' if prim or !v[:span]
+      sal << "<div class='mdl-cell mdl-cell--#{v[:gcols]}-col #{v[:class]}'>" if prim or !v[:span]
+
+      prim = false
 
       if v[:type] == :boolean
         sal << "<div class='#{div_class}'>"

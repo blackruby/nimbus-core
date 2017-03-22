@@ -197,6 +197,20 @@ body {
   font-weight: 400;
   line-height: 48px;
 }
+
 .nim-context-menu-li:hover {
   background-color: $color-nim-context-menu-li;
+}
+
+.nim-hr-div {
+  position: relative;
+  text-align: center;
+}
+
+.nim-hr-label {
+  position: absolute;
+  top: -10px;
+  background-color: white;
+  padding-left: 3px;
+  padding-right: 3px;
 }
