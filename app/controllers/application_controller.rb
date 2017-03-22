@@ -418,6 +418,11 @@ class ApplicationController < ActionController::Base
     send_file (f.starts_with?('/tmp') ? f : "data/#{f}"), disposition: :inline
   end
 
+  def nim_path_image(modelo, id, tag)
+    src = Dir.glob("data/#{modelo}/#{id}/_imgs/#{tag}.*")
+    src.size > 0 ? "src='/nim_send_file?file=#{src[0][5..-1]}'" : ''
+  end
+
   # Funciones para el manejo del histórico de un modelo
   def histo
     begin
@@ -1973,13 +1978,14 @@ class ApplicationController < ActionController::Base
 
         @fact[campo] = "/tmp/nimImg-#{@v.id}-#{campo}.#{params[campo].tempfile.path.split('.')[1]}"
         `cp #{params[campo].tempfile.path} #{@fact[campo]}`
-        @v.save
         render html: %Q(
           <script>
             $(window).load(function(){$("##{campo}_img",parent.document).attr('src', '/nim_send_file?file=#{params[campo].tempfile.path}')})
           </script>
         ).html_safe, layout: 'basico'
       end
+
+      @v.save
       return
     end
 
@@ -2392,10 +2398,11 @@ class ApplicationController < ActionController::Base
         sal << "<input id='#{cs}' name='#{cs}' type='file' accept='image/*' class='nim-input-img' onchange='$(this).parent().submit()' #{plus}/>"
         sal << "<label class='nim-label-img' for='#{cs}'>#{nt(v[:label])}</label><br>"
         sal << "<img id='#{cs}_img'"
-        if img_id
-          src = Dir.glob("data/#{v[:img][:modelo]}/#{img_id}/_imgs/#{v[:img][:tag]}.*")
-          sal << "src='/nim_send_file?file=#{src[0][5..-1]}'" if src.size > 0
-        end
+        #if img_id
+        #  src = Dir.glob("data/#{v[:img][:modelo]}/#{img_id}/_imgs/#{v[:img][:tag]}.*")
+        #  sal << "src='/nim_send_file?file=#{src[0][5..-1]}'" if src.size > 0
+        #end
+        sal << nim_path_image(v[:img][:modelo], img_id, v[:img][:tag])
         sal << " width=#{v[:img][:width]}" if v[:img][:width]
         sal << " height=#{v[:img][:height]}" if v[:img][:height]
         #sal << '></label>'
@@ -2499,4 +2506,5 @@ class ApplicationController < ActionController::Base
 
   helper_method :gen_form
   helper_method :gen_js
+  helper_method :nim_path_image
 end

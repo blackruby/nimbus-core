@@ -14,10 +14,9 @@
   </div>
 
   <div class="div-head">
-    <a id="a-usuario" target="_blank" href="/usuarios/<%= @usu.id %>/edit">
-      <label style="font-size: 20px"><%= @usu.codigo %></label>
-      <!--<img id="foto" src="/admin.jpg" width="32" height="32" border="0" style="margin-left: 8px">-->
-      <%= image_tag 'admin.jpg', width: '32', height: '32', border: '0', style: 'margin-left: 8px' %>
+    <a id="a-usuario" target="_blank" href="/usuarios/<%= @usu.id %>/edit" style="font-size: 20px">
+      <%= @usu.codigo %>
+      <img <%= nim_path_image('Usuario', @usu.id, :foto).html_safe %>" height="40" border="0" style="margin-left: 8px">
     </a>
   </div>
 </div>
