@@ -65,6 +65,8 @@ class NimtestController < ApplicationController
   def before_envia_ficha
     return if @fact.id.to_i == 0
 
+    texto = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+
     cols = [
       {name: 'codigo', label: 'Código', editable: false, width: 40},
       {name: 'nombre'},
@@ -75,13 +77,14 @@ class NimtestController < ApplicationController
       {name: 'fecha', type: :date, width: 80},
       {name: 'Sel', sel: {a: 'Uno', b: 'Dos'}, width: 40},
       {name: 'Time', type: :time, width: 40},
+      {name: 'Text', type: :text, width: 200},
     ]
     pl = @fact.nombre[0]
     q = Pais.where('nombre like ?', "#{pl}%")
 
     cols2 = cols.deep_dup
-    crea_grid cmp: :pxa, modo: :ed, export: 'paises', cols: cols, ins: :pos, sel: :cel, grid: {rowattr: '~style_row_pxa~', caption: "Países que empiezan por #{pl}", height: 300},
-              data: q.map{|p| [p.id, p.codigo, p.nombre, 3, p.nombre[-4..-1], (p.id.odd? ? 12345.67 : -9876.54), true, Date.today, 'a']}
+    crea_grid cmp: :pxa, modo: :ed, export: 'paises', cols: cols, ins: :pos, sel: :cel, bsearch: true, bcollapse: true, search: true, grid: {rowattr: '~style_row_pxa~', caption: "Países que empiezan por #{pl}", height: 300},
+              data: q.map{|p| [p.id, p.codigo, p.nombre, 3, p.nombre[-4..-1], (p.id.odd? ? 12345.67 : -9876.54), true, Date.today, 'a', nil, texto]}
     crea_grid cmp: :pxb, modo: :ed, cols: cols2, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, nil, p.nombre[-4..-1], 0, false, Date.today, 'b']}
 
     @ajax << 'creaMiBoton_pxa();'

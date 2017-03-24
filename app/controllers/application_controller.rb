@@ -1613,8 +1613,14 @@ class ApplicationController < ActionController::Base
   #      máximo de los existentes más uno (o el siguiente en orden alfabético
   #      si los ids son cadenas).
   #
-  # search: (true/false) indica si aparece o no la barra de búsqueda
-  #         en el grid. Por defecto vale false.
+  # search: (true/false) indica si aparece o no por defecto la barra
+  #         de búsqueda en el grid. Por defecto vale false.
+  #
+  # bsearch: (true/false) indica si aparece o no un botón para mostrar/ocultar
+  #          la barra de búsqueda en el grid. Por defecto vale false.
+  #
+  # bcollapse: (true/false) indica si aparece o no un botón para mostrar/ocultar
+  #            el grid cmpleto. Por defecto vale false.
   #
   # cols: Es un array de hashes conteniendo información de cada columna.
   #       Las posibles claves del hash de cada columna son:
@@ -1764,6 +1770,9 @@ class ApplicationController < ActionController::Base
           mt = c[:ref].split('::')
           c[:controller] = (mt.size == 1 ? c[:ref].constantize.table_name : mt[0].downcase + '/' + mt[1].downcase.pluralize)
           c[:editoptions] = {dataInit:  "~function(e){autoCompGridLocal(e,'#{c[:ref]}','#{c[:controller]}','#{cmp}','#{c[:name]}');}~"}
+          c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
+        when :text
+          c[:edittype] ||= 'textarea'
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
         else
           if c[:sel]

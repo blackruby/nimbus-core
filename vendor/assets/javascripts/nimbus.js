@@ -860,7 +860,7 @@ function creaGridLocal(opts, data) {
       };
   }
 
-  g.jqGrid($.extend(true, {
+  var vg = g.jqGrid($.extend(true, {
     datatype: "local",
     colModel: opts.cols,
     additionalProperties: opts.add_prop,
@@ -888,6 +888,8 @@ function creaGridLocal(opts, data) {
     }
   }, grid_a, grid));
 
+  var gview = $("#gview_g_" + cmp);
+
   switch(opts.modo) {
     case 'ed':
       g.jqGrid('bindKeys');
@@ -903,6 +905,14 @@ function creaGridLocal(opts, data) {
         ht += '&nbsp;&nbsp;';
         ht += creaMdlButton('b_d_' + cmp, 30, 2, 22, 'delete', 'Borrar fila');
       }
+      if (opts.bsearch) {
+        ht += '&nbsp;&nbsp;';
+        ht += creaMdlButton('b_s_' + cmp, 30, 2, 22, 'filter_list', 'Mostrar/Ocultar filtros');
+      }
+      if (opts.bcollapse) {
+        ht += '&nbsp;&nbsp;';
+        ht += creaMdlButton('b_c_' + cmp, 30, 2, 22, 'swap_vert', 'Mostrar/Ocultar rejilla de datos');
+      }
       ht +=  '</div>';
       $('#gbox_g_' + cmp).prepend(ht);
 
@@ -915,16 +925,27 @@ function creaGridLocal(opts, data) {
           callFonServer("grid_local_ins", {cmp: cmp, pos: iRow});
         }
       });
+
       $("#b_ib_" + cmp).click(function() {
         //if (g.find('input').length > 0) return;
         g.jqGrid('editCell', 0, 0, false);
         callFonServer("grid_local_ins", {cmp: cmp, pos: -1});
       });
+
       $("#b_d_" + cmp).click(function() {
         if (g.find('input').length > 0) return;
         var r = g.jqGrid('getGridParam', 'selrow');
         if (r) callFonServer("grid_local_del", {cmp: cmp, row: r});
       });
+
+      $("#b_s_" + cmp).click(function() {
+        vg[0].toggleToolbar();
+      });
+
+      $("#b_c_" + cmp).click(function() {
+        gview.css("display") == "none" ? gview.css("display", "block") : gview.css("display", "none");
+      });
+
       break;
     default :
       if (caption != '') $('#gbox_g_' + cmp).prepend('<div class="nim-titulo">' + caption + '&nbsp;&nbsp;&nbsp;&nbsp;' + '</div>');
@@ -938,7 +959,10 @@ function creaGridLocal(opts, data) {
     });
   }
 
-  if (opts.search) g.jqGrid('filterToolbar',{searchOperators : true});
+  if (opts.search || opts.bsearch) {
+    g.jqGrid('filterToolbar',{searchOperators : true});
+    if (!opts.search) vg[0].toggleToolbar();
+  }
 
   //_addDataGridLocal(g, data);
   g.setGridWidth(g.width());
