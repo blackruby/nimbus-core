@@ -423,6 +423,25 @@ class ApplicationController < ActionController::Base
     src.size > 0 ? "src='/nim_send_file?file=#{src[0][5..-1]}'" : ''
   end
 
+  def ir_a_origen
+    return unless @fact.id
+
+    org = $nim_origenes[@fact[params[:cmp]].to_sym]
+
+    unless org
+      mensaje 'Origen no registrado'
+      return
+    end
+
+    url = org[:clase].constantize.method(org[:metodo]).call(@fact.id)
+
+    if !url or url.empty?
+      mensaje 'No existe la ficha asociada'
+    else
+      open_url url
+    end
+  end
+
   # Funciones para el manejo del histórico de un modelo
   def histo
     begin
@@ -1299,14 +1318,18 @@ class ApplicationController < ActionController::Base
       return ''
     else
       case cp[:type]
-      when :integer, :float, :decimal
-        return number_with_precision(val, separator: ',', delimiter: '.', precision: eval_cad(cp[:decim]).to_i)
-      when :date
-        return val.to_s(:sp)
-      when :time
-        return val.strftime('%H:%M' + (cp[:seg] ? ':%S' : ''))
-      else
-        return val
+        when :integer, :float, :decimal
+          number_with_precision(val, separator: ',', delimiter: '.', precision: eval_cad(cp[:decim]).to_i)
+        when :date
+          val.to_s(:sp)
+        when :time
+          val.strftime('%H:%M' + (cp[:seg] ? ':%S' : ''))
+        else
+          if cp[:rol] == :origen
+            nt(val)
+          else
+            val
+          end
       end
     end
   end
@@ -2325,8 +2348,8 @@ class ApplicationController < ActionController::Base
       end
 
       plus = ''
-      if ro == :all or ro == params[:action].to_sym
-        if cs.ends_with?('_id')
+      if ro == :all or ro == params[:action].to_sym or v[:rol] == :origen
+        if cs.ends_with?('_id') or v[:rol]
           plus << ' readonly tabindex=-1'
         else
           plus << ' disabled'
@@ -2442,6 +2465,8 @@ class ApplicationController < ActionController::Base
       else
         clase = 'nim-input'
         case v[:rol]
+          when :origen
+            clase << ' nim-input-origen'
           when :email
             clase << ' nim-input-email'
           when :url

@@ -60,3 +60,7 @@ Dir.glob('modulos/*/db').each {|d|
     config.paths[r] << s if File.exists?(s)
   }
 }
+
+# Inicializar hash de orígenes (procedencias).
+
+$nim_origenes = {}

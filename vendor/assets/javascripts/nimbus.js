@@ -982,8 +982,13 @@ function autoCompGridLocal(el, modelo, ctrl, cmp, col) {
   }).addClass("auto_comp").attr('controller', ctrl).attr('cmp', cmp).attr('col',  col).attr('dbid', g.jqGrid('getLocalRow', rowid)['_'+col]);
 }
 
-function borrarNimImg(el) {
-  alert('hola');
+function addRolButton(el, label, icon, fon) {
+  el.parent().append(
+    '<button id="_nim_rol_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" title="' + label + '" style="position: absolute;top: -4px;right: -4px" tabindex=-1>' +
+    '<i class="material-icons nim-color-2">' + icon + '</i>' +
+    '</button>'
+  );
+  $('#_nim_rol_button_').on('click', fon);
 }
 
 $(window).load(function() {
@@ -1026,23 +1031,19 @@ $(window).load(function() {
     });
 
     componentHandler.upgradeDom();
+  }).on("focus", ".nim-input-origen", function (e) {
+    addRolButton($(this), 'Abrir ficha asociada', 'exit_to_app', function() {
+      var cmp = $(this).parent().find('input');
+      var v = cmp.val().trim();
+      if (v != '') callFonServer('ir_a_origen', {cmp: cmp.attr('id')});
+    });
   }).on("focus", ".nim-input-email", function (e) {
-    $(this).parent().append(
-      '<button id="_nim_email_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" title="Enviar correo" style="position: absolute;top: -4px;right: -4px" tabindex=-1>' +
-      '<i class="material-icons nim-color-2">message</i>' +
-      '</button>'
-    );
-    $('#_nim_email_button_').on('click', function(e){
+    addRolButton($(this), 'Enviar correo', 'message', function() {
       var v = $(this).parent().find('input').val().trim();
       if (v != '') window.open('mailto:' + v);
     });
   }).on("focus", ".nim-input-url", function (e) {
-    $(this).parent().append(
-      '<button id="_nim_url_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" title="Seguir enlace" style="position: absolute;top: -4px;right: -4px" tabindex=-1>' +
-      '<i class="material-icons nim-color-2">link</i>' +
-      '</button>'
-    );
-    $('#_nim_url_button_').on('click', function(e){
+    addRolButton($(this), 'Seguir enlace', 'link', function() {
       var v = $(this).parent().find('input').val().trim();
       if (v != '') {
         if (v.indexOf('://') == -1) v = 'http://' + v;
@@ -1050,12 +1051,7 @@ $(window).load(function() {
       }
     });
   }).on("focus", ".nim-input-map", function (e) {
-    $(this).parent().append(
-      '<button id="_nim_map_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" title="Abrir en google maps" style="position: absolute;top: -4px;right: -4px" tabindex=-1>' +
-      '<i class="material-icons nim-color-2">location_on</i>' +
-      '</button>'
-    );
-    $('#_nim_map_button_').on('click', function(e){
+    addRolButton($(this), 'Abrir en google maps', 'location_on', function() {
       var cl = $(this).parent().find('input').attr("map");
       var place = '';
       $("." + cl).each(function() {
