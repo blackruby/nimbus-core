@@ -442,6 +442,17 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'crea_iframe(cmp:, src:, height: 300)'}
+  # Crea un iframe sobre el campo X <i>cmp</i>, que debe estar declarado con type: :div<br>
+  # <i>src</i> es la url que mostrará el iframe y <i>height</i> la altura del mismo.<br>
+  # Este último argumento es opcional y por defecto vale 300px.
+  ##
+
+  def crea_iframe(cmp:, src:, height: 300)
+    @fact[cmp] = src
+    @ajax << %Q($('##{cmp}').html('<iframe src="#{src}" style="height: #{height}px"></iframe>');)
+  end
+
   # Funciones para el manejo del histórico de un modelo
   def histo
     begin
