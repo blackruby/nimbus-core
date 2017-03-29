@@ -2557,7 +2557,8 @@ class ApplicationController < ActionController::Base
         #sal << ', may:' + may.to_s if may
         #sal << '});'
       elsif v[:type] == :date
-        sal << 'date_pick("#' + cs + '",' + (date_opts == {} ? '{showOn: "button"}' : date_opts.to_json) + ');'
+        #sal << 'date_pick("#' + cs + '",' + (date_opts == {} ? '{showOn: "button"}' : date_opts.to_json) + ');'
+        sal << 'date_pick("#' + cs + '",' + date_opts.to_json + ');'
         sal << "$('##{cs}').datepicker('disable');" if ro == :all or ro == params[:action].to_sym
       elsif v[:type] == :time
         sal << '$("#' + cs + '").entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true);' : 'false);')

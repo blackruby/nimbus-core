@@ -1,3 +1,131 @@
+jQuery.fn.entrydate = function() {
+  var ov, lastv, month, year;
+
+  function checkDate(val) {
+    var dia = parseInt(val.substr(0, 2));
+    if (isNaN(dia)) return(null);
+    var mes = parseInt(val.substr(3, 2));
+    if (isNaN(mes)) return(null);
+    var ano = parseInt(val.substr(6, 4));
+    if (isNaN(ano)) return(null);
+
+    if (ano > 99 && ano < 1000) return(null);
+    if (ano < 100) ano += 2000;
+    if (ano < 1900 || ano > 2100) return(null); // Esto es discutible. Es sólo por acotar un rango razonable de años válidos
+
+    if (mes < 1 || mes > 12) return(null);
+
+    if (dia < 1 || dia > 31) return(null);
+
+    if (dia == 31 && [4,6,9,11].includes(mes)) return(null);
+
+    if (mes == 2 && dia > 28 + (ano % 4 == 0 ? 1 : 0)) return(null); // Estoy considerando años bisiestos a los mútiplos de cuatro. Estoy ignorando el caso múltiplo de 100
+
+    return((dia < 10 ? '0' : '') + dia + '-' + (mes < 10 ? 0 : '') + mes + '-' + ano);
+  }
+
+  $(this).on("focus", function(e) {
+    var hoy = new Date;
+    month = hoy.getMonth() + 1;
+    year = hoy.getYear() - 100;
+
+    ov = lastv = $(this).val();
+
+  }).on("input", function(e) {
+    var v = checkDate($(this).val());
+    $(this).val(v ? v : lastv);
+
+  }).on("keydown", function(e) {
+    var key = e.key;
+    var cur = $(this).caret().begin;
+    var curf = $(this).caret().end;
+    var val = $(this).val();
+
+    // Si está  el campo entero seleccionado y se pulsa alguna de las teclas de borrado... Vaciar el campo.
+    if (cur == 0 && curf == val.length && (key == 'Delete' || key == 'Backspace')) {
+      e.preventDefault();
+      $(this).val('');
+      return;
+    }
+
+    switch(key) {
+      case 'Delete':
+        e.preventDefault();
+        return;
+      case 'Backspace':
+      case 'ArrowLeft':
+        if (e.shiftKey && key == 'ArrowLeft') return;  // Esto sería una selección de texto... Dejar la acción por defecto.
+        e.preventDefault();
+        $(this).caret(cur - (cur == 3 || cur == 6 ? 2 : 1));
+        return;
+      case 'ArrowRight':
+      case ' ':
+        if (e.shiftKey && key == 'ArrowRight') return;  // Esto sería una selección de texto... Dejar la acción por defecto.
+        e.preventDefault();
+        $(this).caret(cur + (cur == 1 || cur == 4 ? 2 : 1));
+        return;
+    }
+
+    // Dejar en paz las teclas especiales y ctrl-c y ctrl-v
+    if (e.keyCode < 48 || (key == 'v' || key == 'c') && e.ctrlKey) return;
+
+    var valido = true;
+
+    // Controlar que la tecla pulsada es numérica y que no se ha sobrepasado la longitud máxima
+    if (key < '0' || key > '9' || cur > 9) {
+      e.preventDefault();
+      return;
+    }
+
+    var curadd = 1;
+
+    switch (cur) {
+      case 0:
+        if (key > '3') valido = false;
+        break;
+      case 1:
+        if (val[0] == '3' && key > '1') valido = false; else curadd++;
+        break;
+      case 3:
+        if (key > '1') valido = false;
+        break;
+      case 4:
+        if (val[3] == '1' && key > '2') valido = false; else curadd++;
+        break;
+    }
+
+    e.preventDefault();
+
+    if (valido) {
+      val = val.substr(0, cur) + key + val.substr(cur + 1);
+      if (val.length == 2)  val = val + '-' + (month < 10 ? '0' : '') + month + '-' + year;
+
+      $(this).val(val);
+      lastv = val;
+
+      $(this).caret(cur + curadd);
+    }
+
+  }).on("blur", function(e) {
+    var el = $(this);
+    var v = el.val();
+    if (v == '') return;
+
+    v = checkDate(v);
+
+    if (v) {
+      if (v != ov) el.val(v).trigger("change");
+    } else {
+      el.addClass('nim-color-2');
+      setTimeout(function() {
+        el.val(ov).removeClass('nim-color-2');
+      }, 1000);
+    }
+  });
+
+  return $(this);
+};
+
 jQuery.fn.entrytime = function(segundos, nil) {
   var lt = (segundos ? 8 : 5);
   var vt = "00:00:00";
@@ -81,7 +209,7 @@ jQuery.fn.entrytime = function(segundos, nil) {
   });
 
   return $(this);
-}
+};
 
 jQuery.fn.entryn = function (manti, decim, signo) {
   var lastKey, old_value;
@@ -102,7 +230,7 @@ jQuery.fn.entryn = function (manti, decim, signo) {
       $(this).trigger("keypress");
       e.preventDefault();
     }
-  })
+  });
 
   $(this).on("keypress", function(e) {
     c = e.which;
@@ -563,21 +691,15 @@ function auto_comp(e, s, modelo, cntr) {
 }
 
 /*
-function set_auto_comp_filter(cmp, wh) {
-  var s = cmp.autocomplete('option', 'source');
-  var wi = s.indexOf('&wh=');
-  if (wi == -1)
-    cmp.autocomplete('option', 'source', s + '&wh=' + wh);
-  else
-    cmp.autocomplete('option', 'source', s.slice(0, wi+4) + wh);
-}
-*/
-
 function date_pick(e, opt) {
   if (opt == undefined)
     $(e).datepicker({onClose: function(){$(this).focus();}});
   else
     $(e).datepicker($.extend(true, {onClose: function(){$(this).focusNextInputField();}}, opt));
+}
+*/
+function date_pick(e, opt) {
+  $(e).datepicker($.extend(true, {onSelect: function(){$(this).trigger("change").focusNextInputField();}}, opt)).entrydate();
 }
 
 function dateToNumber(d) {

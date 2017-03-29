@@ -729,6 +729,12 @@ module MantMod
             #v[:grid][:searchoptions][:dataInit] ||= '~function(e){date_pick(e,' + v[:date_opts].to_json + ')}~'
             v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
           end
+        when :time
+          v[:manti] ||= 8
+          if hay_grid
+            v[:grid][:editoptions][:dataInit] ||= '~function(e){$(e).entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true' : 'false') + ')}~'
+            v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
+          end
         when :text
           v[:manti] ||= 50
           v[:rows] ||= 5
