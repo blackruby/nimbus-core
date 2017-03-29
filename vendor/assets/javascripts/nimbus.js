@@ -24,6 +24,20 @@ jQuery.fn.entrydate = function() {
     return((dia < 10 ? '0' : '') + dia + '-' + (mes < 10 ? 0 : '') + mes + '-' + ano);
   }
 
+  function calculaKey(keyCode) {
+    if (keyCode >= 48 && keyCode <= 90) return(String.fromCharCode(keyCode));
+
+    switch(keyCode) {
+      case 8: return('Backspace');
+      case 32: return(' ');
+      case 37: return('ArrowLeft');
+      case 38: return('ArrowUp');
+      case 39: return('ArrowRight');
+      case 40: return('ArrowRight');
+      case 46: return('Delete');
+    }
+  }
+
   $(this).on("focus", function(e) {
     var hoy = new Date;
     month = hoy.getMonth() + 1;
@@ -36,7 +50,8 @@ jQuery.fn.entrydate = function() {
     $(this).val(v ? v : lastv);
 
   }).on("keydown", function(e) {
-    var key = e.key;
+    //var key = e.key;  // Esto sería válido para versiones modernas de javascript
+    var key = calculaKey(e.keyCode);  // Apaño para versiones de javascript que no rellenan 'key'
     var cur = $(this).caret().begin;
     var curf = $(this).caret().end;
     var val = $(this).val();
@@ -54,20 +69,20 @@ jQuery.fn.entrydate = function() {
         return;
       case 'Backspace':
       case 'ArrowLeft':
-        if (e.shiftKey && key == 'ArrowLeft') return;  // Esto sería una selección de texto... Dejar la acción por defecto.
+        if ((e.ctrlKey || e.shiftKey) && key == 'ArrowLeft') return;  // Esto sería una selección de texto... Dejar la acción por defecto.
         e.preventDefault();
         $(this).caret(cur - (cur == 3 || cur == 6 ? 2 : 1));
         return;
       case 'ArrowRight':
       case ' ':
-        if (e.shiftKey && key == 'ArrowRight') return;  // Esto sería una selección de texto... Dejar la acción por defecto.
+        if ((e.ctrlKey || e.shiftKey) && key == 'ArrowRight') return;  // Esto sería una selección de texto... Dejar la acción por defecto.
         e.preventDefault();
         $(this).caret(cur + (cur == 1 || cur == 4 ? 2 : 1));
         return;
     }
 
     // Dejar en paz las teclas especiales y ctrl-c y ctrl-v
-    if (e.keyCode < 48 || (key == 'v' || key == 'c') && e.ctrlKey) return;
+    if (e.keyCode < 48 || (key == 'v' || key == 'V' || key == 'c' || key == 'C') && e.ctrlKey) return;
 
     var valido = true;
 
