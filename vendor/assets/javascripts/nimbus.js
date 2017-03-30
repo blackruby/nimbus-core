@@ -107,6 +107,9 @@ jQuery.fn.entrydate = function() {
       case 4:
         if (val[3] == '1' && key > '2') valido = false; else curadd++;
         break;
+      case 6:
+        val = val.substr(0, 6);
+        $(this).val(val);
     }
 
     e.preventDefault();
@@ -124,6 +127,9 @@ jQuery.fn.entrydate = function() {
   }).on("blur", function(e) {
     var el = $(this);
     var v = el.val();
+
+    el.datepicker("hide");
+
     if (v == '') return;
 
     v = checkDate(v);
@@ -132,9 +138,15 @@ jQuery.fn.entrydate = function() {
       if (v != ov) el.val(v).trigger("change");
     } else {
       el.addClass('nim-color-2');
-      setTimeout(function() {
-        el.val(ov).removeClass('nim-color-2');
-      }, 1000);
+
+      $('<div>Fecha Errónea. Se repondrá el valor anterior.</div>').dialog({
+        resizable: false, modal: true, width: "auto", title: "Error",
+        close: function () {
+          $(this).remove();
+          el.val(ov).removeClass('nim-color-2').focus().caret(0);
+        },
+        buttons: {"Aceptar": function () {$(this).dialog("close");}}
+      });
     }
   });
 
