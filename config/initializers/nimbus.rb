@@ -62,6 +62,30 @@ module Nimbus
       procesa_vistas(:grid, rails_root, f, iapp, ctr_name, ctr, mod)
     end
   end
+
+  # Array con los parámetros de los campos de un mantenimiento que necesitan doble eval (integer, boolean, symbol)
+  ParamsDobleEval = [:manti, :decim, :visible, :ro]
+
+  def self.contexto(hsh, cntxt)
+    hsh.each {|k, v|
+      # parámetros de tipo integer, sym y booleanos (necesitan doble eval)
+      ParamsDobleEval.each {|p|
+        v[p] = eval(nim_eval(v[p], cntxt)) if v[p].is_a?(String)
+      }
+
+      # parámetros de tipo string
+      [:mask].each {|p|
+        v[p] = nim_eval(v[p], cntxt) if v[p]
+      }
+
+      #Parámetros anidados
+      if v[:code]
+        [:prefijo, :relleno].each {|p|
+          v[:code][p] = nim_eval(v[:code][p], cntxt)
+        }
+      end
+    }
+  end
 end
 
 #Cambiar inflections por defecto a español
@@ -108,6 +132,11 @@ def nt(tex, h={})
   rescue
     return '####'
   end
+end
+
+# Método para evaluar cadenas literales como si fueran de dobles comillas (con #{} en su interior) dentro de un contexto (binding)
+def nim_eval(cad, cntxt)
+  cad.is_a?(String) ? eval('%~' + cad.gsub('~', '\~') + '~', cntxt) : cad
 end
 
 # Método para ejecutar sentencias SQL (abreviado)
@@ -619,6 +648,8 @@ module MantMod
 
       v[:label] ||= campo.ends_with?('_id') ? campo[0..-4] : campo
 
+      v[:visible] = true unless v.include?(:visible)
+
       hay_grid = !v[:grid].nil?
       if hay_grid
         v[:grid][:name] = campo
@@ -959,6 +990,14 @@ module MantMod
   def campos
     @campos
   end
+
+  # Método para poner en contexto las propiedades que dependen de él (dependencias de parámetros de empresa/ejercicio etc.)
+  # Este método sobrecarga al del modelo original, pero es necesario para los procs, que no heredan de nadie
+  # Al retornar "self" es encadenable en ActiveRecord si procede (sin sentido en los procs) (p.ej.: p = PaisesMod.new.contexto(binding))
+  def contexto(cntxt)
+    Nimbus::contexto(@campos, cntxt)
+    self
+  end
 end
 
 module Modelo
@@ -1078,6 +1117,10 @@ module Modelo
       @propiedades
     end
 
+    def campos
+      @campos ? @campos : @propiedades
+    end
+
     def nimbus_vista(vista)
       @modelo_base = self.superclass
       self.table_name = vista
@@ -1110,6 +1153,14 @@ module Modelo
     def db_views
       # Contiene un array de modelos que son views en la DB asociadas a este modelo (para usar en búsquedas)
       @db_views
+    end
+
+    def propiedad(cmp, prop, cntxt=nil)
+      cmp = cmp.to_sym
+      prop = prop.to_sym
+
+      res = nim_eval((@campos ? @campos : @propiedades)[cmp][prop], cntxt)
+      Nimbus::ParamsDobleEval.include?(prop) && res.is_a?(String) ? eval(res) : res
     end
   end
 
@@ -1149,25 +1200,54 @@ module Modelo
         unless !pr.include?(cs) or pr[cs][:nil] or c.ends_with?('_id')
           case ch[c].type
             when :boolean
-              ini = 'false'
+              #ini = 'false'
+              ini = false
             when :integer
-              ini = '0'
+              #ini = '0'
+              ini = 0
             when :decimal
-              ini = '0.to_d'
+              #ini = '0.to_d'
+              ini = 0.to_d
             when :date
               #ini = 'Date.today'
-              ini = 'nil'
+              #ini = 'nil'
+              ini = nil
             when :time
               #ini = 'Time.now'
-              ini = 'nil'
+              #ini = 'nil'
+              ini = nil
             else
-              ini = "''"
+              #ini = "''"
+              ini = ''
           end
-          eval("self.#{c}=#{ini} if self.#{c}.nil?")
+          #eval("self.#{c}=#{ini} if self.#{c}.nil?")
+          self[c] = ini if self[c].nil?
         end
       rescue
       end
     }
+  end
+
+  # Método para poner en contexto las propiedades que dependen de él (dependencias de parámetros de empresa/ejercicio etc.)
+  # Al retornar "self" es encadenable en ActiveRecord (p.ej.: p = Pais.new.contexto(binding))
+  def contexto(cntxt)
+    @propiedades = self.class.propiedades.deep_dup
+    Nimbus::contexto(@propiedades, cntxt)
+    self
+  end
+
+  def propiedades
+    if @campos
+      @campos
+    elsif @propiedades
+      @propiedades
+    else
+      self.class.propiedades
+    end
+  end
+
+  def campos
+    propiedades
   end
 end
 

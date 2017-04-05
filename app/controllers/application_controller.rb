@@ -133,6 +133,10 @@ class ApplicationController < ActionController::Base
     render js: ''
   end
 
+  def eval_cad(cad)
+    cad.is_a?(String) ? eval('%~' + cad.gsub('~', '\~') + '~') : cad
+  end
+
   # Funciones para interactuar con el cliente
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'mensaje(arg)'}
@@ -989,6 +993,8 @@ class ApplicationController < ActionController::Base
 
     set_empeje(eid, jid)
 
+    @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
+
     @ajax << '_vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
 
     #Activar botones necesarios (Grabar/Borrar)
@@ -1032,6 +1038,8 @@ class ApplicationController < ActionController::Base
     set_empeje
 
     var_for_views(clm)
+
+    @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
     @ajax = ''
     envia_ficha
@@ -1147,6 +1155,8 @@ class ApplicationController < ActionController::Base
           disable_all
       end
     end
+
+    @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
     @v.save unless clm.mant? and @fact.id == 0
 
@@ -2323,10 +2333,6 @@ class ApplicationController < ActionController::Base
     @ajax << 'var w = window.open("/bus", "_blank", "width=700, height=500"); w._autoCompField = "mant";'
   end
 
-  def eval_cad(cad)
-    cad.is_a?(String) ? eval('%~' + cad.gsub('~', '\~') + '~') : cad
-  end
-
   def gen_form(h={})
     clm = class_mant
 
@@ -2337,11 +2343,14 @@ class ApplicationController < ActionController::Base
     @fact.campos.each{|c, v|
       cs = c.to_s
       #next if v[:tab].nil? or v[:tab] != h[:tab]
-      next if v[tab_dlg].nil? or v[tab_dlg] != h[tab_dlg]
+      next if v[tab_dlg].nil? or v[tab_dlg] != h[tab_dlg] or !v[:visible]
 
-      ro = eval_cad(v[:ro])
-      manti = eval_cad(v[:manti]).to_i
-      decim = eval_cad(v[:decim]).to_i
+      #ro = eval_cad(v[:ro])
+      #manti = eval_cad(v[:manti]).to_i
+      #decim = eval_cad(v[:decim]).to_i
+      ro = v[:ro]
+      manti = v[:manti]
+      decim = v[:decim]
       if v[:size]
         size = v[:size].to_s
       elsif v[:type] == :integer or v[:type] == :decimal
@@ -2350,13 +2359,17 @@ class ApplicationController < ActionController::Base
         size = manti.to_s
       end
       manti = manti.to_s
+
+=begin
       rows = eval_cad(v[:rows])
       sel = eval_cad(v[:sel])
+
       if v[:code]
         code = eval_cad(v[:code])
         code_pref = eval_cad(code[:prefijo])
         code_rell = eval_cad(code[:relleno])
       end
+=end
 
       plus = ''
       if ro == :all or ro == params[:action].to_sym or v[:rol] == :origen
@@ -2411,7 +2424,7 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
       elsif v[:type] == :text
         sal << '<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">'
-        sal << '<textarea class="nim-textarea mdl-textfield__input" type="text" id="' + cs + '" cols=' + size + ' rows=' + rows.to_s + ' onchange="validar($(this))"' + plus + '>'
+        sal << '<textarea class="nim-textarea mdl-textfield__input" type="text" id="' + cs + '" cols=' + size + ' rows=' + v[:rows].to_s + ' onchange="validar($(this))"' + plus + '>'
         sal << '</textarea>'
         sal << '<label class="mdl-textfield__label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
@@ -2425,14 +2438,15 @@ class ApplicationController < ActionController::Base
       elsif v[:code]
         #sal << '<div class="nim-group">'
         sal << "<div class='#{div_class}'>"
-        sal << '<input class="nim-input" id="' + cs + '" maxlength=' + size + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" required style="max-width: ' + size + 'em"' + plus + '/>'
+        #sal << '<input class="nim-input" id="' + cs + '" maxlength=' + size + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" required style="max-width: ' + size + 'em"' + plus + '/>'
+        sal << '<input class="nim-input" id="' + cs + '" maxlength=' + size + ' onchange="vali_code($(this),' + manti + ',\'' + v[:code][:prefijo] + '\',\'' + v[:code][:relleno] + '\')" required style="max-width: ' + size + 'em"' + plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
-      elsif sel
+      elsif v[:sel]
         #sal << '<div class="nim-group">'
         sal << "<div class='#{div_class}'>"
         sal << '<select class="nim-select" id="' + cs + '" required onchange="validar($(this))"' + plus + '>'
-        sel.each{|k, tex|
+        v[:sel].each{|k, tex|
           sal << '<option value="' + k.to_s + '">' + nt(tex) + '</option>'
         }
         sal << '</select>'
@@ -2522,7 +2536,7 @@ class ApplicationController < ActionController::Base
     end
 
     @fact.campos.each{|c, v|
-      next unless v[:form] and !v[:img]
+      next unless v[:form] and v[:visible] and !v[:img]
 
       if block_given?
         plus = yield(c)
@@ -2532,12 +2546,14 @@ class ApplicationController < ActionController::Base
 
       next if plus == 'stop'
 
+=begin
       manti = eval_cad(v[:manti]).to_i
       decim = eval_cad(v[:decim]).to_i
       signo = eval_cad(v[:signo])
       mask = eval_cad(v[:mask])
       date_opts = eval_cad(v[:date_opts])
       ro = eval_cad(v[:ro])
+=end
 
       cs = c.to_s
       if cs.ends_with?('_id')
@@ -2551,20 +2567,20 @@ class ApplicationController < ActionController::Base
         #sal << '","' + v[:ref].constantize.table_name + '");'
         mt = v[:ref].split('::')
         sal << '","' + (mt.size == 1 ? v[:ref].constantize.table_name : mt[0].downcase + '/' + mt[1].downcase.pluralize) + '");'
-      elsif mask
-        sal << '$("#' + cs + '").mask("' + mask + '",{placeholder: " "});'
+      elsif v[:mask]
+        sal << '$("#' + cs + '").mask("' + v[:mask] + '",{placeholder: " "});'
         #sal << 'mask({elem: "#' + cs + '", mask:"' + mask + '"'
         #sal << ', may:' + may.to_s if may
         #sal << '});'
       elsif v[:type] == :date
         #sal << 'date_pick("#' + cs + '",' + (date_opts == {} ? '{showOn: "button"}' : date_opts.to_json) + ');'
-        sal << 'date_pick("#' + cs + '",' + date_opts.to_json + ');'
-        sal << "$('##{cs}').datepicker('disable');" if ro == :all or ro == params[:action].to_sym
+        sal << 'date_pick("#' + cs + '",' + v[:date_opts].to_json + ');'
+        sal << "$('##{cs}').datepicker('disable');" if v[:ro] == :all or v[:ro] == params[:action].to_sym
       elsif v[:type] == :time
         sal << '$("#' + cs + '").entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true);' : 'false);')
       elsif v[:type] == :integer or v[:type] == :decimal
-        #sal << 'numero("#' + cs + '",' + manti + ',' + decim.to_s + ',' + signo.to_s + ');'
-        sal << "numero('##{cs}',#{manti},#{decim},#{signo});"
+        #sal << "numero('##{cs}',#{manti},#{decim},#{signo});"
+        sal << "numero('##{cs}',#{v[:manti]},#{v[:decim]},#{v[:signo]});"
       end
     }
 
