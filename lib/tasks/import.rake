@@ -72,11 +72,11 @@ namespace :nimbus do
             name_a[1].capitalize.constantize
             mod = ('H' + name_a[1].capitalize).constantize
           else
-            mod = (name_a[0].capitalize '::' + name_a[1].capitalize).constantize
+            mod = (name_a[0].capitalize + '::' + name_a[1].capitalize).constantize
           end
         else
-          (name_a[0].capitalize '::' + name_a[2].capitalize).constantize
-          mod = (name_a[0].capitalize '::H' + name_a[2].capitalize).constantize
+          (name_a[0].capitalize + '::' + name_a[2].capitalize).constantize
+          mod = (name_a[0].capitalize + '::H' + name_a[2].capitalize).constantize
         end
 
         tab = mod.table_name
