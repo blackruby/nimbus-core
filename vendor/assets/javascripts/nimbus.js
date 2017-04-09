@@ -26,6 +26,7 @@ jQuery.fn.entrydate = function() {
 
   function calculaKey(keyCode) {
     if (keyCode >= 48 && keyCode <= 90) return(String.fromCharCode(keyCode));
+    if (keyCode >= 96 && keyCode <= 105) return(String.fromCharCode(keyCode - 48)); // Números del teclado numérico
 
     switch(keyCode) {
       case 8: return('Backspace');
@@ -87,7 +88,7 @@ jQuery.fn.entrydate = function() {
     var valido = true;
 
     // Controlar que la tecla pulsada es numérica y que no se ha sobrepasado la longitud máxima
-    if (key < '0' || key > '9' || cur > 9) {
+    if (key < '0' || key > '9' || key == undefined || cur > 9) {
       e.preventDefault();
       return;
     }
