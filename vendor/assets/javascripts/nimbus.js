@@ -17,7 +17,7 @@ jQuery.fn.entrydate = function() {
 
     if (dia < 1 || dia > 31) return(null);
 
-    if (dia == 31 && [4,6,9,11].includes(mes)) return(null);
+    if (dia == 31 && [4,6,9,11].indexOf(mes) >= 0) return(null);
 
     if (mes == 2 && dia > 28 + (ano % 4 == 0 ? 1 : 0)) return(null); // Estoy considerando años bisiestos a los mútiplos de cuatro. Estoy ignorando el caso múltiplo de 100
 
@@ -129,7 +129,11 @@ jQuery.fn.entrydate = function() {
     var el = $(this);
     var v = el.val();
 
-    el.datepicker("hide");
+    /*
+    setTimeout(function() {
+      if (!el.is(":focus")) el.datepicker("hide");
+    }, 600);
+    */
 
     if (v == '') return;
 
