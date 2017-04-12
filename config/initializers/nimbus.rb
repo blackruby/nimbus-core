@@ -506,7 +506,6 @@ module MantMod
       @menu_r ||= []
       @menu_l ||= []
       @tags ||= []
-      #@col_model = []
       @columnas = []
       @campos_X = []
 
@@ -672,7 +671,6 @@ module MantMod
         end
 
         unless @columnas.include?(campo)
-          #@col_model << v[:grid]
           @columnas << campo
         end
 
@@ -835,10 +833,6 @@ module MantMod
 =end
       end
     end
-
-    #def col_model
-    #  @col_model
-    #end
 
     def col_model_html(cm)
       cm.to_json.gsub('"~', '').gsub('~"', '')

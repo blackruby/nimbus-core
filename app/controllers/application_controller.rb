@@ -682,8 +682,8 @@ class ApplicationController < ActionController::Base
     if clm.mant? # No es un proc, y por lo tanto preparamos los datos del grid
       @view[:url_cell] = @view[:url_base] + '/validar_cell'
 
-      #cm = clm.col_model.deep_dup
-      cm = clm.columnas.map{|c| clm.campos[c.to_sym][:grid]}.deep_dup
+      #cm = clm.columnas.map{|c| clm.campos[c.to_sym][:grid]}.deep_dup
+      cm = clm.columnas.select{|c| clm.propiedad(c, :visible, binding)}.map{|c| clm.campos[c.to_sym][:grid]}.deep_dup
       cm.each {|h|
         h[:label] = nt(h[:label])
         if h[:edittype] == 'select'
