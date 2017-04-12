@@ -914,7 +914,7 @@ class ApplicationController < ActionController::Base
       @e = Empresa.find_by id: eid
     end
 
-    if eid == 0
+    if jid == 0
       @j = @fact.ejercicio if @fact.respond_to?('ejercicio')
     else
       @j = Ejercicio.find_by id: jid

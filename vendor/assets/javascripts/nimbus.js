@@ -1,7 +1,11 @@
 jQuery.fn.entrydate = function() {
   var ov, lastv, month, year;
 
+  $(this).attr("blurEnEspera", 0);
+
   function checkDate(val) {
+    if (val == '') return('');
+
     var dia = parseInt(val.substr(0, 2));
     if (isNaN(dia)) return(null);
     var mes = parseInt(val.substr(3, 2));
@@ -27,14 +31,18 @@ jQuery.fn.entrydate = function() {
   function calculaKey(keyCode) {
     if (keyCode >= 48 && keyCode <= 90) return(String.fromCharCode(keyCode));
     if (keyCode >= 96 && keyCode <= 105) return(String.fromCharCode(keyCode - 48)); // Números del teclado numérico
+    if (keyCode == 107 || keyCode == 187) return("+");
+    if (keyCode == 109 || keyCode == 189) return("-");
 
     switch(keyCode) {
       case 8: return('Backspace');
+      case 9: return('Tab');
+      case 13: return('Enter');
       case 32: return(' ');
       case 37: return('ArrowLeft');
       case 38: return('ArrowUp');
       case 39: return('ArrowRight');
-      case 40: return('ArrowRight');
+      case 40: return('ArrowDown');
       case 46: return('Delete');
     }
   }
@@ -42,9 +50,10 @@ jQuery.fn.entrydate = function() {
   $(this).on("focus", function(e) {
     var hoy = new Date;
     month = hoy.getMonth() + 1;
-    year = hoy.getYear() - 100;
+    year = hoy.getYear() + 1900;
 
     ov = lastv = $(this).val();
+    $(this).data('ov', ov);
 
   }).on("input", function(e) {
     var v = checkDate($(this).val());
@@ -65,6 +74,19 @@ jQuery.fn.entrydate = function() {
     }
 
     switch(key) {
+      case 'Enter':
+        // Selección de fecha desde el día activo en el calendario
+        if ($("#ui-datepicker-div").css("display") != "none") {
+          e.stopImmediatePropagation();
+          var cel = $('.ui-datepicker-days-cell-over');
+          if (cel) {
+            var d = parseInt(cel.text());
+            var m = cel.data("month") + 1;
+            var y = cel.data("year");
+            if (!isNaN(d) && !isNaN(m) && !isNaN(y)) $(this).val((d < 10 ? '0' : '') + d + '-' + (m < 10 ? '0' : '') + m + '-' + y).trigger("blur").focusNextInputField();
+          }
+        }
+        return;
       case 'Delete':
         e.preventDefault();
         return;
@@ -79,6 +101,15 @@ jQuery.fn.entrydate = function() {
         if ((e.ctrlKey || e.shiftKey) && key == 'ArrowRight') return;  // Esto sería una selección de texto... Dejar la acción por defecto.
         e.preventDefault();
         $(this).caret(cur + (cur == 1 || cur == 4 ? 2 : 1));
+        return;
+      case 'ArrowUp':
+      case 'ArrowDown':
+      case '+':
+      case '-':
+        if (!e.ctrlKey && !e.shiftKey && !e.altKey) {
+          e.preventDefault();
+          $(this).datepicker(key == "ArrowUp" || key == "-" ? "hide": "show");
+        }
         return;
     }
 
@@ -117,7 +148,16 @@ jQuery.fn.entrydate = function() {
 
     if (valido) {
       val = val.substr(0, cur) + key + val.substr(cur + 1);
-      if (val.length == 2)  val = val + '-' + (month < 10 ? '0' : '') + month + '-' + year;
+      if (val.length == 2) {
+        var m = month;
+
+        if (month == 2 && val > 28 + (year % 4 == 0 ? 1 : 0))
+          m++;
+        else if (val == 31 && [4,6,9,11].indexOf(month) >= 0)
+          m++;
+
+        val = val + '-' + (m < 10 ? '0' : '') + m + '-' + year;
+      }
 
       $(this).val(val);
       lastv = val;
@@ -129,17 +169,16 @@ jQuery.fn.entrydate = function() {
     var el = $(this);
     var v = el.val();
 
-    /*
-    setTimeout(function() {
-      if (!el.is(":focus")) el.datepicker("hide");
-    }, 600);
-    */
+    el.attr("blurEnEspera", parseInt(el.attr("blurEnEspera")) + 1);
 
-    if (v == '') return;
+    setTimeout(function() {
+      el.attr("blurEnEspera", parseInt(el.attr("blurEnEspera")) - 1);
+      if (el.attr("blurEnEspera") == 0 && !el.is(":focus")) el.datepicker("hide");
+    }, 200);
 
     v = checkDate(v);
 
-    if (v) {
+    if (v != null) {
       if (v != ov) el.val(v).trigger("change");
     } else {
       el.addClass('nim-color-2');
@@ -731,7 +770,10 @@ function date_pick(e, opt) {
 }
 */
 function date_pick(e, opt) {
-  $(e).datepicker($.extend(true, {onSelect: function(){$(this).trigger("change").focusNextInputField();}}, opt)).entrydate();
+  $(e).entrydate().datepicker($.extend(true, {onSelect: function(){
+    if ($(this).data('ov') != $(this).val()) $(this).trigger("change");
+    $(this).focusNextInputField();
+  }}, opt));
 }
 
 function dateToNumber(d) {
