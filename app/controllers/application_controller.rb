@@ -607,7 +607,7 @@ class ApplicationController < ActionController::Base
 
     add_where(w, grid[:wh]) if grid[:wh]
 
-    @v = Vista.new
+    @v = Vista.create
     @v.data = {}
     @dat = @v.data
     @dat[:eid] = eid
@@ -618,8 +618,6 @@ class ApplicationController < ActionController::Base
     lj = [grid[:ljoin]]
     lj << ljoin + '(t_emej)' unless ljoin.empty?
     @dat[:cad_join] = ljoin_parse(clm, lj)[:cad]
-    @v.save
-    @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
 
     @view = {grid: grid}
     @view[:eid] = eid
@@ -683,7 +681,8 @@ class ApplicationController < ActionController::Base
       @view[:url_cell] = @view[:url_base] + '/validar_cell'
 
       #cm = clm.columnas.map{|c| clm.campos[c.to_sym][:grid]}.deep_dup
-      cm = clm.columnas.select{|c| clm.propiedad(c, :visible, binding)}.map{|c| clm.campos[c.to_sym][:grid]}.deep_dup
+      @dat[:columnas] = []  # Aquí construimos un array con las columnas visibles para usarlo en el método "list"
+      cm = clm.columnas.select{|c| clm.propiedad(c, :visible, binding)}.map{|c| @dat[:columnas] << c; clm.campos[c.to_sym][:grid]}.deep_dup
       cm.each {|h|
         h[:label] = nt(h[:label])
         if h[:edittype] == 'select'
@@ -694,6 +693,9 @@ class ApplicationController < ActionController::Base
       }
       @view[:col_model] = eval_cad(clm.col_model_html(cm))
     end
+
+    @v.save
+    @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
 
     pag_render('grid')
   end
@@ -797,7 +799,8 @@ class ApplicationController < ActionController::Base
 
     # Mirar si algún campo es de otra tabla para incluirla en la lista de eager-load
     # Componer también la cadena select (con los campos sql)
-    clm.columnas.each{|c|
+    #clm.columnas.each{|c|
+    @dat[:columnas].each{|c|
       #forma_eager(eager, class_mant.campos[c.to_sym][:grid][:index])
       if c.ends_with?('_id')
         eager << c[0..-4]
@@ -855,7 +858,8 @@ class ApplicationController < ActionController::Base
     res = {page: page, total: tot_pages, records: tot_records, rows: []}
     sql.each {|s|
       h = {:id => s.id, :cell => []}
-      clm.columnas.each {|c|
+      #clm.columnas.each {|c|
+      @dat[:columnas].each {|c|
         begin
           #h[:cell] << forma_campo(:grid, s, c).to_s
           h[:cell] << forma_campo(:grid, s, c, s[c]).to_s
