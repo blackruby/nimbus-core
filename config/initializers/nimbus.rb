@@ -915,11 +915,11 @@ module MantMod
     return nil if val.nil? and v[:nil]
 
     if v[:ref]
-      if val.is_a? String
-        return(nil) if val.strip.empty?
+      if val.is_a?(String) && val.strip.empty?
+        return nil
+      else
         return val.to_i
       end
-      return val
     end
 
     case v[:type]
@@ -928,14 +928,14 @@ module MantMod
       when :decimal
         return val.to_d
       when :date
-        return val.to_date
+        return(val.to_date) if val
       when :time
-        return val.to_time
+        return(val.to_time) if val
       when :string
         return val.to_s
-      else
-        return val
     end
+
+    return val
   end
 
   def method_missing(m, *args, &block)
