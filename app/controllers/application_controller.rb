@@ -308,6 +308,22 @@ class ApplicationController < ActionController::Base
     @ajax << "$('##{c}').parent().#{collapse ? 'parent().' : ''}css('display', 'none');"
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'visible_element(elemento)'}
+  # Hace que el elemento del DOM <i>elemento</i> sea visible
+  ##
+
+  def visible_element(c)
+    @ajax << "$('##{c}').css('display', 'block');"
+  end
+
+  ##nim-doc {sec: 'Métodos de usuario', met: 'invisible_element(elemento)'}
+  # Hace que el elemento del DOM <i>elemento</i> desaparezca de pantalla.
+  ##
+
+  def invisible_element(c)
+    @ajax << "$('##{c}').css('display', 'none');"
+  end
+
   ##nim-doc {sec: 'Métodos de usuario', met: 'foco(cmp)'}
   # Cede el foco al campo <i>cmp</i>
   ##
@@ -2394,11 +2410,11 @@ class ApplicationController < ActionController::Base
       if v[:hr]
         case v[:hr].class.to_s
           when 'String'
-            sal << "<div class='nim-hr-div'><label class='nim-hr-label'>#{nt(v[:hr])}</label><hr></div>"
+            sal << "<div id='hr-#{c}' class='nim-hr-div'><label class='nim-hr-label'>#{nt(v[:hr])}</label><hr></div>"
           when 'Hash'
-            sal << "<div class='#{v[:hr][:class_div] ? v[:hr][:class_div] : 'nim-hr-div'}'><label class='#{v[:hr][:class_label] ? v[:hr][:class_label] : 'nim-hr-label'}'>#{nt(v[:hr][:label])}</label><hr></div>"
+            sal << "<div id='hr-#{c}' class='#{v[:hr][:class_div] ? v[:hr][:class_div] : 'nim-hr-div'}'><label class='#{v[:hr][:class_label] ? v[:hr][:class_label] : 'nim-hr-label'}'>#{nt(v[:hr][:label])}</label><hr></div>"
           else
-            sal << '<hr>'
+            sal << "<hr id='hr-#{c}'>"
         end
       end
 
