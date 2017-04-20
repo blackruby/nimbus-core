@@ -1918,7 +1918,7 @@ class ApplicationController < ActionController::Base
     @ajax << "$('##{cmp} .ui-jqgrid-bdiv').scrollTop(1000000);" if pos == -1
 
     @fact[cmp].add_row(pos, data)
-    @fant[cmp].add_row(pos, data)
+    @fant[cmp].add_row(pos, data) if @fant
   end
 
   def grid_local_ins
@@ -1945,7 +1945,7 @@ class ApplicationController < ActionController::Base
     @ajax << "$('#g_#{cmp}').trigger('reloadGrid', [{current:true}]);"
 
     @fact[cmp].del_row(row)
-    @fant[cmp].del_row(row)
+    @fant[cmp].del_row(row) if @fant
   end
 
   def grid_local_del
