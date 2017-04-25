@@ -54,10 +54,13 @@ namespace :nimbus do
 
     tab_update = {}
     drop_cols = ''
+    ficheros_procesados = []
 
     ActiveRecord::Base.transaction do
       Dir.glob("/nimbus-import/#{Rails.app_class.to_s.split(':')[0].downcase}/*").each {|fic|
         next unless fic[-4..-1].downcase == ('.csv')
+
+        ficheros_procesados << fic.split('/')[-1][0..-5]
 
         head = nil
         File.foreach(fic) {|l| head = l.chomp; break}
@@ -159,6 +162,14 @@ namespace :nimbus do
       puts 'Eliminación de columnas auxiliares.'
 
       ActiveRecord::Base.connection.execute("#{drop_cols}") unless drop_cols.empty?
+
+      puts
+      puts 'Postprocesado de tablas.'
+      puts
+      Dir.glob("**/db/import/{#{ficheros_procesados.join(',')}}.rb").each {|f|
+        puts f
+        load(f)
+      }
     end
   end
 end
