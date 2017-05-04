@@ -1039,10 +1039,12 @@ class ApplicationController < ActionController::Base
       render file: '/public/404.html', status: 404, layout: false
       return
     end
-    fo = clmh.where('idid = ?', fh.idid).order(:created_at).first
+    #fo = clmh.where('idid = ?', fh.idid).order(:created_at).first
+    fo = clmh.where('idid = ? AND created_at < ?', fh.idid, fh.created_at).order(:created_at).last
     if fo.nil?
-      render file: '/public/404.html', status: 404, layout: false
-      return
+      #render file: '/public/404.html', status: 404, layout: false
+      #return
+      fo = fh
     end
     @fact = clm.new
     dif = ''
@@ -2243,6 +2245,7 @@ class ApplicationController < ActionController::Base
             #f.method(c+'=').call(@fact.method(c).call)
             f[c] = @fact[c]
           }
+          f.user_id = @fact.user_id
           f.save
         else
             @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
@@ -2436,7 +2439,7 @@ class ApplicationController < ActionController::Base
       prim = false
 
       if v[:type] == :boolean
-        sal << "<div class='#{div_class}'>"
+        sal << "<div class='#{div_class}' title='#{nt(v[:title])}'>"
         sal << '<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="' + cs + '">'
         sal << '<input id="' + cs + '" type="checkbox" class="mdl-checkbox__input" onchange="vali_check($(this))"' + plus + '/>'
         sal << '<span class="mdl-checkbox__label">' + nt(v[:label]) + '</span>'
