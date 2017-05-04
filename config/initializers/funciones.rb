@@ -18,6 +18,62 @@ class String
     return listaprovincias[self[0..1].to_i-1]
   end
 
+  # Validates NIF
+  def validate_nif(value)
+    letters = "TRWAGMYFPDXBNJZSQVHLCKE"
+    check = value.slice!(value.length - 1..value.length - 1).upcase
+    calculated_letter = letters[value.to_i % 23].chr
+    return check === calculated_letter
+  end
+  # Validates CIF
+  def validate_cif(value)
+    letter = value.slice!(0).chr.upcase
+    check = value.slice!(value.length - 1).chr.upcase
+
+    n1 = n2 = 0
+    for idx in 0..value.length - 1
+      number = value.slice!(0).chr.to_i
+      if (idx % 2) != 0
+        n1 += number
+      else
+        n2 += ((2*number) % 10) + ((2 * number) / 10)
+      end
+    end
+    calculated_number = (10 - ((n1 + n2) % 10)) % 10
+    calculated_letter = (64 + calculated_number).chr
+
+    if letter.match(/[QRPNS]/)
+
+      return check.to_s == calculated_letter.to_s
+    else
+
+      return check.to_i == calculated_number.to_i
+    end
+  end
+  # Validates NIE
+  def validate_nie(value)
+    value[0] = '0'
+    value.slice(0) if value.size > 9
+    validate_nif(value)
+  end
+#=begin
+  def dni?
+    return true if self.length == 0
+    return false unless self.length == 9
+    value = self.clone
+
+    case
+      when value.match(/[0-9]{8}[a-z]/i)
+        return validate_nif(value)
+      when value.match(/[a-wyz][0-9]{7}[0-9a-z]/i)
+        return validate_cif(value)
+      when value.match(/[x][0-9]{7,8}[a-z]/i)
+        return validate_nie(value)
+    end
+    return false
+  end
+#=end
+=begin
   def add_digits_from_int(n)
     digits = str_to_int_array(n.to_s)
     digits.inject(0) { |acum, n| acum + n }
@@ -61,6 +117,7 @@ class String
     control_digit == candidate_digit.to_s || control_digit ==
       candidate_letter
   end
+=end
 
   def iban?
     return true if self.length == 0
