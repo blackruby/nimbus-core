@@ -12,6 +12,10 @@ class CreateUsuarios < ActiveRecord::Migration
       t.references :empresa_def
       t.references :ejercicio_def
       t.text :pref
+      t.date :fecha_baja
+      t.integer :num_dias_validez_pass
+      t.string :ips
+      t.references :ldapservidor
     }
 
     create_table(:usuarios) {|t| col.call(t)}

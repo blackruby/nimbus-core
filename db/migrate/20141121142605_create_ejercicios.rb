@@ -9,6 +9,7 @@ class CreateEjercicios < ActiveRecord::Migration
         t.references :divisa
         t.date :fec_inicio
         t.date :fec_fin
+        t.text :param
     }
 
     create_table(:ejercicios) {|t| col.call(t)}

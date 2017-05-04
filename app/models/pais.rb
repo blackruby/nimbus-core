@@ -3,6 +3,8 @@ class Pais < ActiveRecord::Base
     codigo: {manti: 2, pk: true},
     nombre: {manti: 30},
     tipo: {manti: 8, sel: {N: 'nacional', C: 'cee', R: 'resto'}},
+    codigo_iso3: {manti: 3},
+    codigo_num: {manti: 3, mask: '999'},
     codigo_cr: {manti: 3},
   }
 

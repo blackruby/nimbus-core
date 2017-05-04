@@ -5,6 +5,8 @@ class CreatePaises < ActiveRecord::Migration
         t.string :nombre
         t.string :tipo
         t.string :codigo_cr
+        t.string :codigo_iso3
+        t.string :codigo_num
     }
 
     create_table(:paises) {|t| col.call(t)}

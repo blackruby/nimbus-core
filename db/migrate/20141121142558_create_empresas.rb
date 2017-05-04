@@ -11,11 +11,8 @@ class CreateEmpresas < ActiveRecord::Migration
         t.string :telefono
         t.string :fax
         t.string :email
-        t.integer :p_long
-        t.string :p_mod_fiscal
-        t.integer :p_dec_cantidad
-        t.integer :p_dec_precio_r
-        t.integer :p_dec_precio_v
+        t.string :web
+        t.text :param
     }
 
     create_table(:empresas) {|t| col.call(t)}
