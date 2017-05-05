@@ -1001,6 +1001,7 @@ function delDataGridLocal(cmp, id) {
 }
 
 function setDataGridLocal(cmp, data) {
+  var c;
   var g = $("#g_" + cmp);
   for (var i = 0; c=data[i]; i++)
     g.jqGrid("setCell", c[0], c[1], c[2]);
