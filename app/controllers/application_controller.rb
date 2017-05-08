@@ -218,6 +218,8 @@ class ApplicationController < ActionController::Base
       @ajax << "$('##{c}').attr('readonly', #{ed == :d ? 'true' : 'false'}).attr('tabindex', #{ed == :d ? '-1' : '0'});"
     elsif ty == :date
       @ajax << "$('##{c}').datepicker('#{ed == :d ? 'disable' : 'enable'}');"
+    elsif ty == :boolean
+      @ajax << "mdlCheck('#{c}',#{ed == :d ? 'false' : 'true'});"
     else
       @ajax << "$('##{c}').attr('disabled', #{ed == :d ? 'true' : 'false'});"
     end
