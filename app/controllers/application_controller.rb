@@ -198,7 +198,7 @@ class ApplicationController < ActionController::Base
     options.each{|k, v|
       @ajax << %Q(<option value="#{k}">#{nt(v)}</option>)
     }
-    @ajax << %q[');]
+    @ajax << %Q[').val("#{val}");]
 
     @fact[cmp] = val
   end
