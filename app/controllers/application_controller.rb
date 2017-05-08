@@ -219,7 +219,7 @@ class ApplicationController < ActionController::Base
     elsif ty == :date
       @ajax << "$('##{c}').datepicker('#{ed == :d ? 'disable' : 'enable'}');"
     elsif ty == :boolean
-      @ajax << "mdlCheck('#{c}',#{ed == :d ? 'false' : 'true'});"
+      @ajax << "mdlCheckStatus('#{c}','#{ed}');"
     else
       @ajax << "$('##{c}').attr('disabled', #{ed == :d ? 'true' : 'false'});"
     end

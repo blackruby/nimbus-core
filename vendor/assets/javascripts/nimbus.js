@@ -584,10 +584,18 @@ function vali_auto_comp(ui, c) {
   }
 }
 
+// Chequea o deschequea una checkbox de mdl
 function mdlCheck(cmps, valor) {
   var cmp = $("#" + cmps);
   valor ? cmp.parent().addClass("is-checked") : cmp.parent().removeClass("is-checked");
   cmp.prop("checked", valor);
+}
+
+// Habilita o deshabilita una checkbox de mdl
+function mdlCheckStatus(cmps, valor) {
+  var cmp = $("#" + cmps);
+  valor == 'd' ? cmp.parent().addClass("is-disabled") : cmp.parent().removeClass("is-disabled");
+  cmp.prop("disabled", (valor == 'd'));
 }
 
 function vali_check(c) {
