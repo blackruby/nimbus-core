@@ -778,7 +778,7 @@ function date_pick(e, opt) {
 }
 */
 function date_pick(e, opt) {
-  $(e).entrydate().datepicker($.extend(true, {onSelect: function(){
+  $(e).entrydate().datepicker($.extend(true, {showOn: 'none', onSelect: function(){
     if ($(this).data('ov') != $(this).val()) $(this).trigger("change");
     $(this).focusNextInputField();
   }}, opt));
