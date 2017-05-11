@@ -309,6 +309,10 @@ class GiController < ApplicationController
     else
       @titulo = tit
     end
+
+    if @formato.respond_to?(:before_envia_ficha)
+      eval(@formato.before_envia_ficha)
+    end
   end
 
   def mi_render
@@ -426,6 +430,14 @@ ini_campos(f, args)
           f.campos[:L1][:tab] = nil (para que no se muestre el campo en pantalla)
     args: Es un hash conteniendo todas las parejas clave/valor recibidas
           en la URL como argumentos.
+
+before_envia_ficha
+  Este método se dispara sólo cuando entramos en la ventana de límites.
+  Tiene por objeto devolver una cadena (¡ojo! tiene que ser UNA cadena)
+  con código a ejecutar en el before_envia_ficha del contralador que
+  recoge los límites. El código a usar es cualquiera que sea válido en
+  ese contexto. Es decir, no hay que poner el código directamente como
+  en cualquier método, sino encerrarlo en una cadena y devolverla.
 
 before_sql
   Se dispara justo antes de hacer la consulta SQL correspondiente. Si el
