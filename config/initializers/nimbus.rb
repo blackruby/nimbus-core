@@ -3,6 +3,12 @@
 I18n.config.enforce_available_locales = false
 I18n.default_locale = :es
 
+# A partir de Rails 5.1 la configuración por defecto será la que está comentada
+# La otra es para que el comportamiento sea como antes
+
+#Rails.application.config.active_record.time_zone_aware_types = [:datetime, :time]
+Rails.application.config.active_record.time_zone_aware_types = [:datetime, :time]
+
 
 # Nombre de la cookie de sesión (sobreescribe el de config/initializers/session_store.rb)
 Rails.application.config.session_store :cookie_store, key: '_' + Rails.app_class.to_s.split(':')[0].downcase + '_session'

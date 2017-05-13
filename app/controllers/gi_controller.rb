@@ -535,8 +535,10 @@ add_banda(opciones)
   pintar ninguna banda, pero sí gestionar las rupturas y por lo tanto dichas
   bandas (de ruptura) sí se pintarán.
 
-val_select(cmp)
-  Devuelve el valor del campo 'cmp'. El valor de 'cmp' puede ser o bien 'Sn'
+val_select(cmp, fila=@d)
+  Devuelve el valor del campo 'cmp' en la fila de datos 'fila',
+  si no se especifica 'fila' se usará la actual.
+  El valor de 'cmp' puede ser o bien 'Sn'
   refiriéndose al enésimo campo de la lista de Selects en el formato, o
   'modelo1.modelo2...campo' para referirse a un campo cualquiera de los usados
   en el formato. Ejemplos:
@@ -549,6 +551,9 @@ val_select(cmp)
 val_alias(alias, banda)
   Devuelve el valor del campo cuya celda tiene como alias 'alias' en la
   banda 'banda'. 'banda' es opcional, y si se omite vale por defecto ':det'
+
+set_cmp_ban(ban, ali, val)
+  Asigna el valor 'val' al campo de la casilla 'ali' de la banda 'ban'
 
 Variables disponibles para usar en los métodos de usuario
 ---------------------------------------------------------
@@ -644,10 +649,10 @@ class GI
     new_cad
   end
 
-  def val_select(ali)
+  def val_select(ali, d=@d)
     #i = (ali[0] == 'S' ? @ali_sel.index(ali.to_sym) : @vpluck.index(ali))
     i = (ali[0] == 'S' ? @ali_sel.index(ali.to_sym) : @ali_cmp[ali])
-    i ? @d[i] : nil
+    i ? d[i] : nil
   end
 
   def val_alias(ali, ban=@form[:det])
@@ -658,6 +663,15 @@ class GI
       }
     }
     nil
+  end
+
+  def set_cmp_ban(ban, ali, val)
+    ban = @form[ban] if ban.is_a? Symbol
+    ban.each {|fila|
+      fila.each {|cmp|
+        cmp[:campo] = val if cmp[:alias] == ali.to_s
+      }
+    }
   end
 
   def procesa_macros(cad, vpl=true)
