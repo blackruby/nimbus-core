@@ -7,7 +7,7 @@ I18n.default_locale = :es
 # La otra es para que el comportamiento sea como antes
 
 #Rails.application.config.active_record.time_zone_aware_types = [:datetime, :time]
-Rails.application.config.active_record.time_zone_aware_types = [:datetime, :time]
+Rails.application.config.active_record.time_zone_aware_types = [:datetime]
 
 
 # Nombre de la cookie de sesión (sobreescribe el de config/initializers/session_store.rb)
