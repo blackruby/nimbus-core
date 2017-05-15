@@ -1364,7 +1364,7 @@ class ApplicationController < ActionController::Base
     else
       case cp[:type]
         when :integer, :float, :decimal
-          number_with_precision(val, separator: ',', delimiter: '.', precision: eval_cad(cp[:decim]).to_i)
+          cp[:sel] ? val.to_s : number_with_precision(val, separator: ',', delimiter: '.', precision: eval_cad(cp[:decim]).to_i)
         when :date
           val.to_s(:sp)
         when :time
@@ -2603,7 +2603,7 @@ class ApplicationController < ActionController::Base
         sal << "$('##{cs}').datepicker('disable');" if v[:ro] == :all or v[:ro] == params[:action].to_sym
       elsif v[:type] == :time
         sal << '$("#' + cs + '").entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true);' : 'false);')
-      elsif v[:type] == :integer or v[:type] == :decimal
+      elsif (v[:type] == :integer or v[:type] == :decimal) and !v[:sel]
         #sal << "numero('##{cs}',#{manti},#{decim},#{signo});"
         sal << "numero('##{cs}',#{v[:manti]},#{v[:decim]},#{v[:signo]});"
       end
