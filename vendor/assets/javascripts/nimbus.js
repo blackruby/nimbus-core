@@ -53,7 +53,7 @@ jQuery.fn.entrydate = function() {
     year = hoy.getYear() + 1900;
 
     ov = lastv = $(this).val();
-    $(this).data('ov', ov);
+    $(this).data('ov', ov).select();
 
   }).on("input", function(e) {
     var v = checkDate($(this).val());
@@ -274,7 +274,7 @@ jQuery.fn.entrytime = function(segundos, nil) {
     $(this).val(vn+vt.substr(l, lt-l));
     $(this).caret(ncur);
   }).on("focus", function(e) {
-    ov = $(this).val();
+    ov = $(this).select().val();
   }).on("blur", function(e) {
     if ($(this).val() != ov) $(this).trigger("change");
   });
