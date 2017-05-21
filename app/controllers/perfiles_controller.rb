@@ -38,7 +38,7 @@ class PerfilesController < ApplicationController
           begin
             unless v.starts_with?('/gi/')
               ps = URI(v).path.split('/')
-              cl = ps.size == 3 ? ps[1].capitalize + '::' + ps[2].capitalize : ps[1].capitalize
+              cl = ps.size == 3 ? ps[1].capitalize + '::' + ps[2].camelize : ps[1].camelize
               (cl + 'Controller').constantize # Para forzar el "lazy load" del controlador asociado
               cl = (cl + 'Mod').constantize
               unless cl.menu_l.empty?

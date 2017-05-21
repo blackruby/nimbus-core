@@ -122,11 +122,9 @@ class GiController < ApplicationController
       @titulo = nt('gi')
       @tablas = {}
 
-      #nuevo_mod(Rails.app_class.to_s.split(':')[0].downcase, 'app/models/*')
       nuevo_mod(Rails.app_class.to_s.split(':')[0].downcase, 'app/models')
 
       Dir.glob('modulos/*').each {|mod|
-        #nuevo_mod(mod.split('/')[1].capitalize, mod + '/app/models/*')
         nuevo_mod(mod.split('/')[1], mod + '/app/models')
       }
     end
@@ -264,17 +262,49 @@ class GiController < ApplicationController
   end
 
   def before_edit
-    return('/public/401.html') unless @usu.admin or params[:modulo] == 'publico' or params[:modulo] == 'privado' or @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
+    if params[:controller] == 'gi'
+      @gi_modulo = params['modulo']
+      @gi_formato = params['formato']
 
-    @formato = GI.new(params[:modulo], params[:formato], @usu.codigo, nil)
+      if @gi_modulo != 'publico' and @gi_modulo != 'privado'
+        pref_html = '/'
+        if @gi_modulo == Rails.app_class.to_s.split(':')[0].downcase
+          pref = 'app/controllers'
+        else
+          pref = "modulos/#{@gi_modulo}/app"
+          if File.exists?("#{pref}/models/#{@gi_modulo}.rb")
+            pref << "/controllers/#{@gi_modulo}"
+            pref_html = "/#{@gi_modulo}/"
+          else
+            pref << "/controllers"
+          end
+        end
+        return({redirect: "#{pref_html}#{@gi_formato}"}) if File.exists?("#{pref}/#{@gi_formato}_controller.rb")
+      end
+
+
+      return('/public/401.html') unless @usu.admin or params[:modulo] == 'publico' or params[:modulo] == 'privado' or @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
+    else
+      ctr = params[:controller].split('/')
+      if ctr.size == 1
+        @gi_modulo = Rails.app_class.to_s.split(':')[0].downcase
+        @gi_formato = ctr[0]
+      else
+        @gi_modulo = ctr[0]
+        @gi_formato = ctr[1]
+      end
+    end
+
+    @formato = GI.new(@gi_modulo, @gi_formato, @usu.codigo, nil)
     @form = @formato.formato
+
     @form ? nil : {file: '/public/404.html', status: 404}
   end
 
   def before_envia_ficha
     @fact.form_type = 'pdf'
-    @fact.form_modulo = params[:modulo]
-    @fact.form_file = params[:formato]
+    @fact.form_modulo = @gi_modulo
+    @fact.form_file = @gi_formato
 
     @form[:lim].each {|c, v|
       @fact.add_campo(c, eval('{' + v + '}'))
@@ -887,13 +917,23 @@ class GI
 
   def cel(ali)
     ali = ali.to_sym
-    @alias[@ban][ali][:col] + (@ri_act - @bi + @alias[@ban][ali][:row]).to_s
+    # Si la fila del alias está por encima de @bi_din restar el número de filas que haya podido
+    # pintar una cabecera dinámica que se haya colado por medio
+    ajuste = @alias[@ban][ali][:row] < @bi_din ? @lincabdin : 0
+    @alias[@ban][ali][:col] + (@ri_act - @bi - ajuste + @alias[@ban][ali][:row]).to_s
+  end
+
+  def rango(ali, niv=@rupi)
+    ali = ali.to_sym
+    col = @alias[:det][ali][:col]
+    "#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1}"
   end
 
   def tot(ali, niv=@rupi)
-    ali = ali.to_sym
-    col = @alias[:det][ali][:col]
-    "=SUBTOTAL(9,#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1})"
+    #ali = ali.to_sym
+    #col = @alias[:det][ali][:col]
+    #"=SUBTOTAL(9,#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1})"
+    "=SUBTOTAL(9,#{rango(ali, niv)})"
   end
 
   def val_campo(c, f=@d)
@@ -926,7 +966,22 @@ class GI
   def _add_banda(ban, valores={}, sheet)
     @ri_act = @ris[sheet]
     merg = []
+    @lincabdin = 0
+    @bi_din = 0
     ban.each_with_index {|r, i|
+      if @form[:linxpag]
+        if @lis[sheet] == -1 || @lis[sheet] == @form[:linxpag] && (@pdf || !@form[:cab_din_pdf])  # El caso -1 es cuando ha habido ruptura con salto
+          sheet.add_page_break("A#{@ri_act}")
+          @lis[sheet] = 0
+          if ban != @form[:cab] and @form[:cab_din]
+            lincabdin = @ri_act
+            self.respond_to?(:cabecera) ? method(:cabecera).call : _add_banda(@form[:cab], {}, sheet)
+            @lincabdin = @ri_act - lincabdin
+            @bi_din = i
+          end
+        end
+        @lis[sheet] += 1
+      end
       @bi = i
       res = []
       r.each_with_index {|c, i|
@@ -937,17 +992,6 @@ class GI
       }
       sty = r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}
       typ = r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}
-      #sheet.add_row res, style: r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}, height: @form[:row_height]
-      if @form[:linxpag]
-        if @lis[sheet] == -1 || @lis[sheet] == @form[:linxpag] && (@pdf || !@form[:cab_din_pdf])  # El caso -1 es cuando ha habido ruptura con salto
-          sheet.add_page_break("A#{@ri_act}")
-          @lis[sheet] = 0
-          if ban != @form[:cab] and @form[:cab_din]
-            self.respond_to?(:cabecera) ? method(:cabecera).call : _add_banda(@form[:cab], {}, sheet)
-          end
-        end
-        @lis[sheet] += 1
-      end
       sheet.add_row res, style: sty, types: typ, height: @form[:row_height]
       @ris[sheet] += 1
       @ri_act += 1

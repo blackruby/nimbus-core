@@ -1015,6 +1015,15 @@ function setDataGridLocal(cmp, data) {
     g.jqGrid("setCell", c[0], c[1], c[2]);
 }
 
+function setSelectionGridLocal(cmp, data) {
+  var g = $("#g_" + cmp);
+  g.jqGrid("resetSelection");
+  if (data) {
+    if (!$.isArray(data)) data = [data];
+    for (var i in data) g.jqGrid("setSelection", data[i], false);
+  }
+}
+
 function creaGridLocal(opts, data) {
   var cmp = opts.cmp;
   $("#" + cmp).html("").append('<table id="g_' + cmp + '"></table>');

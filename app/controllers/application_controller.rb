@@ -120,7 +120,11 @@ class ApplicationController < ActionController::Base
 
   # Clase del modelo ampliado para este mantenimiento (con campos X etc.)
   def class_mant
-    (self.class.to_s[0..-11] + 'Mod').constantize
+    if self.class.superclass.to_s == 'GiController'
+      GiMod
+    else
+      (self.class.to_s[0..-11] + 'Mod').constantize
+    end
   end
 
   # Clase del modelo original
@@ -1101,7 +1105,11 @@ class ApplicationController < ActionController::Base
     ((!clm.mant? or @fact.id != 0) and self.respond_to?('before_edit')) ? r = before_edit : r = nil
     if r
       if r.is_a? Hash
-        render file: r[:file], status: r[:status], layout: false
+        if r[:redirect]
+          redirect_to r[:redirect]
+        else
+          render file: r[:file], status: r[:status], layout: false
+        end
       else
         render file: r, status: 401, layout: false
       end
@@ -1396,7 +1404,9 @@ class ApplicationController < ActionController::Base
       #@ajax << '$("#' + cmp_s + '").prop("checked",' + val.to_s + ');'
       @ajax << "mdlCheck('#{cmp_s}',#{val.to_s});"
     when :div
-      ;
+      if cp[:grid_sel]
+        @ajax << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
+      end
     else
       @ajax << '$("#' + cmp_s + '").val(' + forma_campo(:form, @fact, cmp_s, val).to_json + ')'
       @ajax << '.attr("dbid",' + val.to_s + ')' if cmp_s.ends_with?('_id') and val
@@ -1878,8 +1888,10 @@ class ApplicationController < ActionController::Base
         @fact[cmp] = HashForGrids.new(opts[:cols], data)
         @fant[cmp] = nil if @fant
       else
-        @fact[cmp] = nil
-        @fant[cmp] = nil if @fant
+        #@fact[cmp] = nil
+        #@fant[cmp] = nil if @fant
+        @fact.campos[cmp][:grid_sel] = true
+        @ajax << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
     end
   end
 
@@ -1982,7 +1994,11 @@ class ApplicationController < ActionController::Base
         #v = @fact.method(campo).call
         v = @fact[campo]
         if v
-          sel ? v << row : v.delete_at(v.index(row))
+          if v.is_a? Array
+            sel ? v << row : v.delete_at(v.index(row))
+          else
+            @fact[campo] = sel ? [v, row] : nil
+          end
         else
           #@fact.method(campo + '=').call([row]) if sel
           @fact[campo] = [row] if sel

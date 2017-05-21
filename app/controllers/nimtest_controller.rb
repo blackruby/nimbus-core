@@ -130,10 +130,11 @@ class NimtestController < ApplicationController
     q = Pais.where('nombre like ?', 'A%a')
 
     crea_grid cmp: :mig1, cols: cols, grid: {multiselect: true, height: 250}, data: q.map{|p| [p.id, p.codigo, p.nombre]}
+    @fact.mig1 = [3,8,12]
   end
 
   def fin_diag_1
-    mensaje "Id's seleccionados: #{@fact.mig1}"
+    mensaje "Id's seleccionados: #{@fact.mig1} #{@fact.mig1.class}"
   end
 
   # Métodos asociados a dialogo 2
@@ -208,6 +209,10 @@ class NimtestController < ApplicationController
     }
 
     mensaje txt
+  end
+
+  def on_campo_x
+    @fact.mig1 = 8
   end
 end
 
