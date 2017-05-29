@@ -20,8 +20,8 @@
         </thead>
         <% tab.each do |t| %>
           <tr>
-            <td class="modelo"><%= t %></td>
-            <td><%= nt(t) %></td>
+            <td class="modelo" modelo="<%= t[1] %>"><%= t[0] %></td>
+            <td><%= nt(t[0]) %></td>
           </tr>
         <% end %>
       </table>
@@ -31,7 +31,7 @@
 
 <script>
   $(".modelo").on("click", function() {
-    window.open('/gi/new/' + $(this).text(), '_self');
+    window.open('/gi/new/' + $(this).attr("modelo"), '_self');
   });
 
   $("#solapas").tabs();

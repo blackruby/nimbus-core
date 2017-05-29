@@ -12,15 +12,25 @@ end
 
 class GiController < ApplicationController
   def nuevo_mod(mod, path)
-    path = path + '/' + mod if File.directory?(path + '/' + mod)
+    if File.directory?(path + '/' + mod)
+      # Esto es el caso de módulos con module rails asociado
+      path = path + '/' + mod
+      modulo = "#{mod.capitalize}::"
+    else
+      modulo = ''
+    end
+
     Dir.glob(path + '/*').sort.each {|fic|
       ficb = Pathname(fic).basename.to_s
 
       next if File.directory?(fic)
       next if ficb == 'vista.rb'
+      next unless ficb.ends_with?('.rb')
+
+      ficb = ficb[0..-4].capitalize
 
       @tablas[mod] ||= []
-      @tablas[mod] << ficb[0..-4].capitalize
+      @tablas[mod] << [ficb, modulo + ficb]
     }
   end
 
