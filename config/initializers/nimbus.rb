@@ -41,9 +41,11 @@ module Nimbus
       end
     }
 
-    # Cálculo de las vistas en el caso de que sea un controlador
+    # Tratamientos especiales en el caso de que sea un controlador
 
     if f[iapp + 1] == 'controllers'
+      # Cálculo de las vistas
+
       ctr_name = f[-1][0..f[-1].index('_controller')-1]
       mod = f[-2] == 'controllers' ? '' : f[-2]
       ctr = ((mod == '' ? '' : mod.capitalize + '::') + ctr_name.capitalize + 'Controller').constantize
@@ -66,6 +68,31 @@ module Nimbus
 
       procesa_vistas(:ficha, rails_root, f, iapp, ctr_name, ctr, mod)
       procesa_vistas(:grid, rails_root, f, iapp, ctr_name, ctr, mod)
+
+      # Reordenamiento del hash de campos (@campos) para posicionar los tags 'post'
+      begin
+        ctr_mod = ((mod == '' ? '' : mod.capitalize + '::') + ctr_name.capitalize + 'Mod').constantize
+        cmpa = []
+        post = false
+        ctr_mod.campos.each {|k, v|
+          if v[:post]
+            post = true
+          else
+            cmpa << [k, v]
+          end
+        }
+
+        if post
+          ctr_mod.campos.each {|k, v|
+            if v[:post]
+              i = cmpa.index {|c| c[0] == v[:post].to_sym}
+              i ? cmpa.insert(i+1, [k, v]) : cmpa << [k, v]
+            end
+          }
+          ctr_mod.campos = cmpa.to_h
+        end
+      rescue
+      end
     end
   end
 
@@ -846,6 +873,10 @@ module MantMod
 
     def campos
       @campos
+    end
+
+    def campos=(c)
+      @campos = c
     end
 
     def columnas
