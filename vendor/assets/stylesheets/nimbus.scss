@@ -111,6 +111,15 @@ body {
   cursor: pointer;
 }
 
+.nim-label-upload {
+  font-size: 12px;
+  background-color: $color-1;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+}
+
 .nim-label-out {
   position:absolute;
   left:1px;

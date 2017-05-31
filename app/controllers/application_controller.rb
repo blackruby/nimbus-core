@@ -1407,6 +1407,8 @@ class ApplicationController < ActionController::Base
       if cp[:grid_sel]
         @ajax << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
       end
+    when :upload
+      # No hacer nada
     else
       @ajax << '$("#' + cmp_s + '").val(' + forma_campo(:form, @fact, cmp_s, val).to_json + ')'
       @ajax << '.attr("dbid",' + val.to_s + ')' if cmp_s.ends_with?('_id') and val
@@ -2102,8 +2104,13 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    @fact[campo] = raw_val(campo, valor)
-    valor = @fact[campo].dup rescue @fact[campo]
+    if cs[:type] == :upload
+      self.method("on_#{campo}").call(params[campo]) if self.respond_to?("on_#{campo}")
+      valor = nil
+    else
+      @fact[campo] = raw_val(campo, valor)
+      valor = @fact[campo].dup rescue @fact[campo]
+    end
 
     ## Validación
 
@@ -2131,10 +2138,10 @@ class ApplicationController < ActionController::Base
     @v.save
   end
 
-  #Función para ser llamada desde el botón aceptar de los 'procs'
   def fon_server
-    unless self.respond_to?(params[:fon])
-      render nothing: true
+    unless params[:fon] && self.respond_to?(params[:fon])
+      #render nothing: true
+      head :no_content
       return
     end
 
@@ -2171,7 +2178,8 @@ class ApplicationController < ActionController::Base
 
   def borrar
     if @dat[:prm] != 'p'
-      render nothing: true
+      #render nothing: true
+      head :no_content
       return
     end
 
@@ -2200,7 +2208,8 @@ class ApplicationController < ActionController::Base
 
   def grabar(ajx=true)
     if @dat[:prm] == 'c'
-      render nothing: true
+      #render nothing: true
+      head :no_content
       return
     end
 
@@ -2340,7 +2349,8 @@ class ApplicationController < ActionController::Base
     sql_exe("DELETE FROM vistas where id = #{params[:vista]}")
     # Borrar todas las imágenes temporales que queden
     `rm -f /tmp/nimImg-#{params[:vista]}-*`
-    render nothing: true
+    #render nothing: true
+    head :no_content
   end
 
   def bus_call
@@ -2421,7 +2431,7 @@ class ApplicationController < ActionController::Base
         end
       end
 
-      plus << " title='#{nt(v[:title])}'" if v[:title]
+      plus << " title='#{nt(v[:title])}'" if v[:title] and ![:boolean, :upload].include?(v[:type])
       plus << " #{v[:attr]}" if v[:attr]
 
       sal << '</div>' unless prim or v[:span] # Cerrar el div mdl-cell si procede
@@ -2452,7 +2462,9 @@ class ApplicationController < ActionController::Base
       div_class = v[:span] ? 'nim-group-span' : 'nim-group'
 
       #sal << '<div class="mdl-cell mdl-cell--' + v[:gcols].to_s + '-col">' if prim or !v[:span]
-      sal << "<div class='mdl-cell mdl-cell--#{v[:gcols]}-col #{v[:class]}'>" if prim or !v[:span]
+      if prim or !v[:span]
+        sal << (v[:gcols] == 0 ? '<div style="display: none">' : "<div class='mdl-cell mdl-cell--#{v[:gcols]}-col #{v[:class]}'>")
+      end
 
       prim = false
 
@@ -2528,6 +2540,16 @@ class ApplicationController < ActionController::Base
         sal << '></form>'
         sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
         sal << '</div>'
+      elsif v[:type] == :upload
+        if @fact.id != 0
+          sal << "<div title='#{nt(v[:title])}'>"
+          sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true, target: "#{cs}_iframe")
+          sal << "<input id='#{cs}_input' name='#{cs + (v[:multi] ? '[]' : '')}' #{v[:multi] ? 'multiple' : ''} type='file' class='nim-input-img'} onchange='$(this).parent().submit()' #{plus}/>"
+          sal << "<label id='#{cs}' class='nim-label-upload' for='#{cs}_input'>#{nt(v[:label])}</label><br>"
+          sal << '</form>'
+          sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
+          sal << '</div>'
+        end
       else
         clase = 'nim-input'
         case v[:rol]

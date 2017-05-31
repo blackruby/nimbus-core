@@ -36,7 +36,11 @@
                 <% if m[:id].starts_with?('tag_') %>
                   <%= m[:label].html_safe %>
                 <% else %>
-                  <li id="<%= m[:id] %>" class="mdl-menu__item" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>', '<%= m[:side] %>')"> <%= m[:label] %> </li>
+                  <% if m[:upload] %>
+                    <li id="<%= m[:id] %>" class="mdl-menu__item" onclick="<%= "$('##{m[:upload]}').trigger('click')".html_safe %>"> <%= m[:label] %> </li>
+                  <% else %>
+                    <li id="<%= m[:id] %>" class="mdl-menu__item" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>', '<%= m[:side] %>')"> <%= m[:label] %> </li>
+                  <% end %>
                 <% end %>
               <% } %>
             </ul>

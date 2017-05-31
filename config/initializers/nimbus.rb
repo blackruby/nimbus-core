@@ -806,6 +806,8 @@ module MantMod
           end
         when :div
           v[:nil] = true
+        when :upload
+          v[:nil] = true
       end
 
       v[:decim] ||= 0
