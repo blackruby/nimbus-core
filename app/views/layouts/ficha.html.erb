@@ -20,10 +20,12 @@
           <button title="Grabar (Alt-g)" class="cl-grabar mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_grabar()">
             <i class="material-icons">save</i>
           </button>
-          &nbsp; &nbsp;
-          <button title="Eliminar" class="cl-borrar mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_borrar()">
-            <i class="material-icons">delete</i>
-          </button>
+          <% if @es_un_mant %>
+            &nbsp; &nbsp;
+            <button title="Eliminar" class="cl-borrar mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_borrar()">
+              <i class="material-icons">delete</i>
+            </button>
+            <% end %>
           <% if @menu_r.size > 0 %>
             &nbsp; &nbsp;
             <button id="menu-r" class="mdl-button mdl-js-button mdl-button--icon">
@@ -59,12 +61,14 @@
   </header>
   <% end %>
 
-  <% if @head > 0 %>
+  <% if @head > 0 && (@es_un_mant || @menu_l.size > 0) %>
     <div class="mdl-layout__drawer">
       <nav class="mdl-navigation">
-        <a class="mdl-navigation__link" href="#" onclick="historico()">Histórico</a>
-        <% if @menu_l.size > 0 %>
+        <% if @es_un_mant %>
+          <a class="mdl-navigation__link" href="#" onclick="historico()">Histórico</a>
           <hr>
+        <% end %>
+        <% if @menu_l.size > 0 %>
           <% @menu_l.each_with_index {|m, i| %>
             <% m[:id] ||= '_ml_'+i.to_s %>
             <% if m[:id].starts_with?('tag_') %>
@@ -131,8 +135,12 @@
 </style>
 
 <script>
-  _pkCmps = "<%= @fact.class.superclass.pk.map{|k| '#' + k}.join(',')%>";
-  _factId = <%= @fact.id.to_json %>;
+  <% if @es_un_mant %>
+    _pkCmps = "<%= @fact.class.superclass.pk.map{|k| '#' + k}.join(',')%>";
+    _factId = <%= @fact.id.to_json %>;
+  <% else %>
+    _pkCmps = null;
+  <% end %>
 
   function redimWindow() {
     var f, fh, wh = $(window).height();

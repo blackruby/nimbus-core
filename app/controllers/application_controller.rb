@@ -1207,9 +1207,13 @@ class ApplicationController < ActionController::Base
       @v.save
     end
 
+    @es_un_mant = clm.mant? # Para poder usarlo en el layout ficha.html.erb (o en mi_render)
+
     r = false
     r = mi_render if self.respond_to?(:mi_render)
-    (clm.mant? ? pag_render('ficha') : pag_render('ficha', 'proc')) unless r
+
+    #(clm.mant? ? pag_render('ficha') : pag_render('ficha', 'proc')) unless r
+    pag_render('ficha') unless r
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'set_auto_comp_filter(cmp, wh)'}
@@ -2551,7 +2555,7 @@ class ApplicationController < ActionController::Base
         sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
         sal << '</div>'
       elsif v[:type] == :upload
-        if @fact.id != 0
+        if !clm.mant? or @fact.id != 0
           sal << "<div title='#{nt(v[:title])}'>"
           sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true, target: "#{cs}_iframe")
           sal << "<input id='#{cs}_input' name='#{cs + (v[:multi] ? '[]' : '')}' #{v[:multi] ? 'multiple' : ''} type='file' class='nim-input-img'} onchange='$(this).parent().submit()' #{plus}/>"
