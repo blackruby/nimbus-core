@@ -2133,7 +2133,17 @@ class ApplicationController < ActionController::Base
 
     @ajax << 'hayCambios=' + @fact.changed?.to_s + ';' if clm.mant?
 
-    render :js => @ajax
+    if cs[:type] == :upload
+      # Si el tipo es upload el render se realiza en el iframe asociado y por lo tanto
+      # para procesar @ajax hay que que hacerlo en el ámbito de su padre (la ficha)
+      render html: %Q(
+          <script>
+            $(window).load(function(){window.parent.eval(#{@ajax.to_json});})
+          </script>
+        ).html_safe, layout: 'basico'
+    else
+      render :js => @ajax
+    end
 
     @v.save
   end
