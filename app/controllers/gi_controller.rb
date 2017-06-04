@@ -611,6 +611,8 @@ Variables disponibles para usar en los métodos de usuario
             @ris[@sh] sería equivalente a @ri. Si hemos creado una hoja p.ej.:
             @dat[:mi_hoja] = nueva_hoja name: 'mi_hoja'
             sabríamos el índice de fila por el que vamos con @ris[@dat[:mi_hoja]]
+@lis[hoja]  Índice de fila (row) por el que vamos en la Excel en la hoja 'hoja'
+            por página física (se resetea en cada nueva página)
 @rupa       Ruptura con fila anterior actual
 @rup        Ruptura con fila siguiente actual
 @rup_ini[i] Índice de la primera fila de detalle correspondiente a la ruptura i.
@@ -1012,8 +1014,11 @@ class GI
 
   def add_banda(rupa: @rupa, rup: @rup, ban: :det, valores: {}, sheet: @sh)
     if ban == :_blank
-      _add_banda([[]], {}, sheet)
-      return
+      #_add_banda([[]], {}, sheet)
+      #return
+      banda = [[]]
+    else
+      banda = @form[ban]
     end
 
     (@nr - rupa...@nr).each {|i|
@@ -1026,7 +1031,8 @@ class GI
     if ban
       @rupi = 0
       @ban = ban
-      _add_banda(@form[ban], valores, sheet)
+      #_add_banda(@form[ban], valores, sheet)
+      _add_banda(banda, valores, sheet)
     end
 
     (@nr - 1).downto(@nr - rup).each {|i|

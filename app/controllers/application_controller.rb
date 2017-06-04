@@ -931,6 +931,8 @@ class ApplicationController < ActionController::Base
     @head = (params[:head] ? params[:head].to_i : 1)
     @menu_l = clm.menu_l
     @menu_r = clm.menu_r
+
+    @es_un_mant = clm.mant?
   end
 
   def set_empeje(eid=0, jid=0)
@@ -1206,8 +1208,6 @@ class ApplicationController < ActionController::Base
 
       @v.save
     end
-
-    @es_un_mant = clm.mant? # Para poder usarlo en el layout ficha.html.erb (o en mi_render)
 
     r = false
     r = mi_render if self.respond_to?(:mi_render)
