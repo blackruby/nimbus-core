@@ -987,9 +987,12 @@ class GI
           @lis[sheet] = 0
           if ban != @form[:cab] and @form[:cab_din]
             lincabdin = @ri_act
+            old_ban = @ban
+            @ban = :cab
             self.respond_to?(:cabecera) ? method(:cabecera).call : _add_banda(@form[:cab], {}, sheet)
             @lincabdin = @ri_act - lincabdin
             @bi_din = i
+            @ban = old_ban  # Reponemos @ban después de recursivarnos
           end
         end
         @lis[sheet] += 1
