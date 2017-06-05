@@ -551,7 +551,7 @@ class ApplicationController < ActionController::Base
 
   def get_empeje
     #emej = cookies[:emej].split(':')
-    emej = cookies[Nimbus::CookieEmEj].split(':')
+    emej = cookies[Nimbus::CookieEmEj] ? cookies[Nimbus::CookieEmEj].split(':') : ['null', 'null']
     eid = params[:eid]
     eid ||= (emej[0] == 'null' ? nil : emej[0])
     jid = params[:jid]

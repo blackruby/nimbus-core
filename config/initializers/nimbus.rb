@@ -17,6 +17,9 @@ module Nimbus
   # Constante global para activar/desactivar mensajes de debug
   Debug = false
 
+  # Lectura del hash de configuración
+  Config = File.exists?('config/nimbus-core.yml') ? YAML.load(File.read('config/nimbus-core.yml')) : {}
+
   # Nombre de la cookie de empresa/ejercicio
   CookieEmEj = ('_' + Rails.app_class.to_s.split(':')[0].downcase + '_emej').to_sym
 
