@@ -14,7 +14,7 @@ class PaisesMod < Pais
   }
 
   @menu_l = [
-    {label: 'Listado de Países', url: '/gi/run/nimbus-core/paises'},
+    {label: 'Listado de Países', url: '/gi/run/nimbus-core/l_paises'},
   ]
 
   #@hijos = []

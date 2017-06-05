@@ -4,8 +4,10 @@ class NimtestMod < Pais
     nombre: {tab: 'pre', gcols: 4, grid:{}},
     tipo: {tab: 'pre', gcols: 2, grid:{}},
     codigo_cr: {tab: 'pre', title: "Código para el Consejo regulador.\nNo es necesario rellenarlo.", gcols: 2, grid:{}},
+    upl: {tab: 'pre', title: 'Subir fichero', gcols: 0, label: 'Upload File', type: :upload},
+    upl2: {tab: 'pre', title: 'Subir múltiples ficheros', gcols: 2, label: 'Upload varios ficheros', type: :upload, multi: true},
     final: {tab: 'pre', gcols: 2},
-    bool: {tab: 'pre', gcols: 2, type: :boolean},
+    bool: {tab: 'pre', gcols: 2, type: :boolean, title: 'Campo booleano'},
     combo: {tab: 'pre', gcols: 2, type: :integer, sel: {1 => 'Opción A', 2 => 'Opción B'}},
     pxa: {tab: 'post', type: :div, gcols: 12},
     pxb: {tab: 'post', type: :div, gcols: 12},
@@ -41,6 +43,7 @@ class NimtestMod < Pais
     {label: 'Opción 1', accion: 'mi_funcion', side: :ambos},
     {id: 'tag_1', label: '<hr>'},
     {label: 'Diálogo 1', accion: 'diag_1', id: 'mr_1'},
+    {label: 'Upload file', upload: :upl},
   ]
 
   @titulo = 'Tests Nimbus'
@@ -130,10 +133,11 @@ class NimtestController < ApplicationController
     q = Pais.where('nombre like ?', 'A%a')
 
     crea_grid cmp: :mig1, cols: cols, grid: {multiselect: true, height: 250}, data: q.map{|p| [p.id, p.codigo, p.nombre]}
+    @fact.mig1 = [3,8,12]
   end
 
   def fin_diag_1
-    mensaje "Id's seleccionados: #{@fact.mig1}"
+    mensaje "Id's seleccionados: #{@fact.mig1} #{@fact.mig1.class}"
   end
 
   # Métodos asociados a dialogo 2
@@ -208,6 +212,32 @@ class NimtestController < ApplicationController
     }
 
     mensaje txt
+  end
+
+  def on_campo_x
+    @fact.mig1 = 8
+  end
+
+  def on_upl(f)
+    puts '*******************************************************************'
+    puts 'Fichero: ' + f.original_filename
+    puts 'Ruta temporal: ' + f.path
+    puts '*******************************************************************'
+    puts f.read
+    puts '***************** FIN DEL FICHERO *********************************'
+    puts
+  end
+
+  def on_upl2(files)
+    files.each {|f|
+      puts '*******************************************************************'
+      puts 'Fichero: ' + f.original_filename
+      puts 'Ruta temporal: ' + f.path
+      puts '*******************************************************************'
+      puts f.read
+      puts '***************** FIN DEL FICHERO *********************************'
+      puts
+    }
   end
 end
 

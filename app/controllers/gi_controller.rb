@@ -12,15 +12,25 @@ end
 
 class GiController < ApplicationController
   def nuevo_mod(mod, path)
-    path = path + '/' + mod if File.directory?(path + '/' + mod)
+    if File.directory?(path + '/' + mod)
+      # Esto es el caso de módulos con module rails asociado
+      path = path + '/' + mod
+      modulo = "#{mod.capitalize}::"
+    else
+      modulo = ''
+    end
+
     Dir.glob(path + '/*').sort.each {|fic|
       ficb = Pathname(fic).basename.to_s
 
       next if File.directory?(fic)
       next if ficb == 'vista.rb'
+      next unless ficb.ends_with?('.rb')
+
+      ficb = ficb[0..-4].capitalize
 
       @tablas[mod] ||= []
-      @tablas[mod] << ficb[0..-4].capitalize
+      @tablas[mod] << [ficb, modulo + ficb]
     }
   end
 
@@ -122,11 +132,9 @@ class GiController < ApplicationController
       @titulo = nt('gi')
       @tablas = {}
 
-      #nuevo_mod(Rails.app_class.to_s.split(':')[0].downcase, 'app/models/*')
       nuevo_mod(Rails.app_class.to_s.split(':')[0].downcase, 'app/models')
 
       Dir.glob('modulos/*').each {|mod|
-        #nuevo_mod(mod.split('/')[1].capitalize, mod + '/app/models/*')
         nuevo_mod(mod.split('/')[1], mod + '/app/models')
       }
     end
@@ -264,17 +272,49 @@ class GiController < ApplicationController
   end
 
   def before_edit
-    return('/public/401.html') unless @usu.admin or params[:modulo] == 'publico' or params[:modulo] == 'privado' or @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
+    if params[:controller] == 'gi'
+      @gi_modulo = params['modulo']
+      @gi_formato = params['formato']
 
-    @formato = GI.new(params[:modulo], params[:formato], @usu.codigo, nil)
+      if @gi_modulo != 'publico' and @gi_modulo != 'privado'
+        pref_html = '/'
+        if @gi_modulo == Rails.app_class.to_s.split(':')[0].downcase
+          pref = 'app/controllers'
+        else
+          pref = "modulos/#{@gi_modulo}/app"
+          if File.exists?("#{pref}/models/#{@gi_modulo}.rb")
+            pref << "/controllers/#{@gi_modulo}"
+            pref_html = "/#{@gi_modulo}/"
+          else
+            pref << "/controllers"
+          end
+        end
+        return({redirect: "#{pref_html}#{@gi_formato}"}) if File.exists?("#{pref}/#{@gi_formato}_controller.rb")
+      end
+
+
+      return('/public/401.html') unless @usu.admin or params[:modulo] == 'publico' or params[:modulo] == 'privado' or @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
+    else
+      ctr = params[:controller].split('/')
+      if ctr.size == 1
+        @gi_modulo = Rails.app_class.to_s.split(':')[0].downcase
+        @gi_formato = ctr[0]
+      else
+        @gi_modulo = ctr[0]
+        @gi_formato = ctr[1]
+      end
+    end
+
+    @formato = GI.new(@gi_modulo, @gi_formato, @usu.codigo, nil)
     @form = @formato.formato
+
     @form ? nil : {file: '/public/404.html', status: 404}
   end
 
   def before_envia_ficha
     @fact.form_type = 'pdf'
-    @fact.form_modulo = params[:modulo]
-    @fact.form_file = params[:formato]
+    @fact.form_modulo = @gi_modulo
+    @fact.form_file = @gi_formato
 
     @form[:lim].each {|c, v|
       @fact.add_campo(c, eval('{' + v + '}'))
@@ -308,6 +348,10 @@ class GiController < ApplicationController
       @titulo = @form[:descripcion].strip.empty? ? tit : @form[:descripcion]
     else
       @titulo = tit
+    end
+
+    if @formato.respond_to?(:before_envia_ficha)
+      eval(@formato.before_envia_ficha)
     end
   end
 
@@ -427,6 +471,14 @@ ini_campos(f, args)
     args: Es un hash conteniendo todas las parejas clave/valor recibidas
           en la URL como argumentos.
 
+before_envia_ficha
+  Este método se dispara sólo cuando entramos en la ventana de límites.
+  Tiene por objeto devolver una cadena (¡ojo! tiene que ser UNA cadena)
+  con código a ejecutar en el before_envia_ficha del contralador que
+  recoge los límites. El código a usar es cualquiera que sea válido en
+  ese contexto. Es decir, no hay que poner el código directamente como
+  en cualquier método, sino encerrarlo en una cadena y devolverla.
+
 before_sql
   Se dispara justo antes de hacer la consulta SQL correspondiente. Si el
   método le da valor a la variable @data, la SQL no se ejecutará y se usarán
@@ -523,8 +575,10 @@ add_banda(opciones)
   pintar ninguna banda, pero sí gestionar las rupturas y por lo tanto dichas
   bandas (de ruptura) sí se pintarán.
 
-val_select(cmp)
-  Devuelve el valor del campo 'cmp'. El valor de 'cmp' puede ser o bien 'Sn'
+val_select(cmp, fila=@d)
+  Devuelve el valor del campo 'cmp' en la fila de datos 'fila',
+  si no se especifica 'fila' se usará la actual.
+  El valor de 'cmp' puede ser o bien 'Sn'
   refiriéndose al enésimo campo de la lista de Selects en el formato, o
   'modelo1.modelo2...campo' para referirse a un campo cualquiera de los usados
   en el formato. Ejemplos:
@@ -537,6 +591,9 @@ val_select(cmp)
 val_alias(alias, banda)
   Devuelve el valor del campo cuya celda tiene como alias 'alias' en la
   banda 'banda'. 'banda' es opcional, y si se omite vale por defecto ':det'
+
+set_cmp_ban(ban, ali, val)
+  Asigna el valor 'val' al campo de la casilla 'ali' de la banda 'ban'
 
 Variables disponibles para usar en los métodos de usuario
 ---------------------------------------------------------
@@ -554,6 +611,8 @@ Variables disponibles para usar en los métodos de usuario
             @ris[@sh] sería equivalente a @ri. Si hemos creado una hoja p.ej.:
             @dat[:mi_hoja] = nueva_hoja name: 'mi_hoja'
             sabríamos el índice de fila por el que vamos con @ris[@dat[:mi_hoja]]
+@lis[hoja]  Índice de fila (row) por el que vamos en la Excel en la hoja 'hoja'
+            por página física (se resetea en cada nueva página)
 @rupa       Ruptura con fila anterior actual
 @rup        Ruptura con fila siguiente actual
 @rup_ini[i] Índice de la primera fila de detalle correspondiente a la ruptura i.
@@ -632,10 +691,10 @@ class GI
     new_cad
   end
 
-  def val_select(ali)
+  def val_select(ali, d=@d)
     #i = (ali[0] == 'S' ? @ali_sel.index(ali.to_sym) : @vpluck.index(ali))
     i = (ali[0] == 'S' ? @ali_sel.index(ali.to_sym) : @ali_cmp[ali])
-    i ? @d[i] : nil
+    i ? d[i] : nil
   end
 
   def val_alias(ali, ban=@form[:det])
@@ -646,6 +705,15 @@ class GI
       }
     }
     nil
+  end
+
+  def set_cmp_ban(ban, ali, val)
+    ban = @form[ban] if ban.is_a? Symbol
+    ban.each {|fila|
+      fila.each {|cmp|
+        cmp[:campo] = val if cmp[:alias] == ali.to_s
+      }
+    }
   end
 
   def procesa_macros(cad, vpl=true)
@@ -861,13 +929,23 @@ class GI
 
   def cel(ali)
     ali = ali.to_sym
-    @alias[@ban][ali][:col] + (@ri_act - @bi + @alias[@ban][ali][:row]).to_s
+    # Si la fila del alias está por encima de @bi_din restar el número de filas que haya podido
+    # pintar una cabecera dinámica que se haya colado por medio
+    ajuste = @alias[@ban][ali][:row] < @bi_din ? @lincabdin : 0
+    @alias[@ban][ali][:col] + (@ri_act - @bi - ajuste + @alias[@ban][ali][:row]).to_s
+  end
+
+  def rango(ali, niv=@rupi)
+    ali = ali.to_sym
+    col = @alias[:det][ali][:col]
+    "#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1}"
   end
 
   def tot(ali, niv=@rupi)
-    ali = ali.to_sym
-    col = @alias[:det][ali][:col]
-    "=SUBTOTAL(9,#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1})"
+    #ali = ali.to_sym
+    #col = @alias[:det][ali][:col]
+    #"=SUBTOTAL(9,#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1})"
+    "=SUBTOTAL(9,#{rango(ali, niv)})"
   end
 
   def val_campo(c, f=@d)
@@ -900,7 +978,25 @@ class GI
   def _add_banda(ban, valores={}, sheet)
     @ri_act = @ris[sheet]
     merg = []
+    @lincabdin = 0
+    @bi_din = 0
     ban.each_with_index {|r, i|
+      if @form[:linxpag]
+        if @lis[sheet] == -1 || @lis[sheet] == @form[:linxpag] && (@pdf || !@form[:cab_din_pdf])  # El caso -1 es cuando ha habido ruptura con salto
+          sheet.add_page_break("A#{@ri_act}")
+          @lis[sheet] = 0
+          if ban != @form[:cab] and @form[:cab_din]
+            lincabdin = @ri_act
+            old_ban = @ban
+            @ban = :cab
+            self.respond_to?(:cabecera) ? method(:cabecera).call : _add_banda(@form[:cab], {}, sheet)
+            @lincabdin = @ri_act - lincabdin
+            @bi_din = i
+            @ban = old_ban  # Reponemos @ban después de recursivarnos
+          end
+        end
+        @lis[sheet] += 1
+      end
       @bi = i
       res = []
       r.each_with_index {|c, i|
@@ -911,17 +1007,6 @@ class GI
       }
       sty = r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}
       typ = r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}
-      #sheet.add_row res, style: r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}, types: r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}, height: @form[:row_height]
-      if @form[:linxpag]
-        if @lis[sheet] == -1 || @lis[sheet] == @form[:linxpag] && (@pdf || !@form[:cab_din_pdf])  # El caso -1 es cuando ha habido ruptura con salto
-          sheet.add_page_break("A#{@ri_act}")
-          @lis[sheet] = 0
-          if ban != @form[:cab] and @form[:cab_din]
-            self.respond_to?(:cabecera) ? method(:cabecera).call : _add_banda(@form[:cab], {}, sheet)
-          end
-        end
-        @lis[sheet] += 1
-      end
       sheet.add_row res, style: sty, types: typ, height: @form[:row_height]
       @ris[sheet] += 1
       @ri_act += 1
@@ -932,8 +1017,11 @@ class GI
 
   def add_banda(rupa: @rupa, rup: @rup, ban: :det, valores: {}, sheet: @sh)
     if ban == :_blank
-      _add_banda([[]], {}, sheet)
-      return
+      #_add_banda([[]], {}, sheet)
+      #return
+      banda = [[]]
+    else
+      banda = @form[ban]
     end
 
     (@nr - rupa...@nr).each {|i|
@@ -946,7 +1034,8 @@ class GI
     if ban
       @rupi = 0
       @ban = ban
-      _add_banda(@form[ban], valores, sheet)
+      #_add_banda(@form[ban], valores, sheet)
+      _add_banda(banda, valores, sheet)
     end
 
     (@nr - 1).downto(@nr - rup).each {|i|

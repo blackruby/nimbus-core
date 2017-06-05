@@ -37,6 +37,14 @@ function CambiosPendientesDeGrabar() {
   return(hayCambios || jsHay);
 }
 
+function grabarConTecla(e) {
+  e.preventDefault();
+  var f = $(":focus");
+  f.blur();
+  mant_grabar();
+  f.focus();
+}
+
 window.onbeforeunload = function() {
   if (CambiosPendientesDeGrabar()) return('Hay cambios pendientes de grabar');
 };
@@ -75,32 +83,33 @@ $(window).load(function () {
 
   // Ctr-k Habilita los campos clave
   $(document).keydown(function(e) {
-    if (e.ctrlKey && e.which == 75) {
-      e.preventDefault();
-      //$("<%= @fact.class.superclass.pk.map{|k| '#' + k}.join(',')%>").attr("disabled", false);
-      $(_pkCmps).attr("disabled", false);
-    } else if (e.altKey) {
-      if (e.which == 70) { // Alt-f
-        if (parent != self && $.isFunction(parent.searchBar)) {e.preventDefault(); parent.searchBar();}
-      } else if (e.which == 86) { // Alt-v
-        if (parent != self && $.isFunction(parent.gridCollapse)) {e.preventDefault(); parent.gridCollapse();}
-      } else if (e.which == 78) { // Alt-n
-        if (parent != self && $.isFunction(parent.newFicha)) {e.preventDefault(); parent.newFicha();}
-      } else if (e.which == 66) { // Alt-b
-        if (parent != self && $.isFunction(parent.pkSearch)) {e.preventDefault(); parent.pkSearch();}
-      } else if (e.which == 65) { // Alt-a
-        if (parent != self && $.isFunction(parent.newFicha)) {
-          e.preventDefault();
-          $(":focus").blur();
-          mant_grabar(true);
-        }
-      } else if (e.which == 71) { // Alt-g
+    if (_pkCmps) {
+      // Es el caso de un mantenimiento
+      if (e.ctrlKey && e.which == 75) {
         e.preventDefault();
-        var f = $(":focus");
-        f.blur();
-        mant_grabar();
-        f.focus();
+        $(_pkCmps).attr("disabled", false);
+      } else if (e.altKey) {
+        if (e.which == 70) { // Alt-f
+          if (parent != self && $.isFunction(parent.searchBar)) {e.preventDefault(); parent.searchBar();}
+        } else if (e.which == 86) { // Alt-v
+          if (parent != self && $.isFunction(parent.gridCollapse)) {e.preventDefault(); parent.gridCollapse();}
+        } else if (e.which == 78) { // Alt-n
+          if (parent != self && $.isFunction(parent.newFicha)) {e.preventDefault(); parent.newFicha();}
+        } else if (e.which == 66) { // Alt-b
+          if (parent != self && $.isFunction(parent.pkSearch)) {e.preventDefault(); parent.pkSearch();}
+        } else if (e.which == 65) { // Alt-a
+          if (parent != self && $.isFunction(parent.newFicha)) {
+            e.preventDefault();
+            $(":focus").blur();
+            mant_grabar(true);
+          }
+        } else if (e.which == 71) { // Alt-g
+          grabarConTecla(e);
+        }
       }
+    } else {
+      // Es el caso de un proc
+      if (e.altKey && e.which == 71) grabarConTecla(e); // Alt-g
     }
   });
 

@@ -53,7 +53,7 @@ jQuery.fn.entrydate = function() {
     year = hoy.getYear() + 1900;
 
     ov = lastv = $(this).val();
-    $(this).data('ov', ov);
+    $(this).data('ov', ov).select();
 
   }).on("input", function(e) {
     var v = checkDate($(this).val());
@@ -274,7 +274,7 @@ jQuery.fn.entrytime = function(segundos, nil) {
     $(this).val(vn+vt.substr(l, lt-l));
     $(this).caret(ncur);
   }).on("focus", function(e) {
-    ov = $(this).val();
+    ov = $(this).select().val();
   }).on("blur", function(e) {
     if ($(this).val() != ov) $(this).trigger("change");
   });
@@ -584,10 +584,18 @@ function vali_auto_comp(ui, c) {
   }
 }
 
+// Chequea o deschequea una checkbox de mdl
 function mdlCheck(cmps, valor) {
   var cmp = $("#" + cmps);
   valor ? cmp.parent().addClass("is-checked") : cmp.parent().removeClass("is-checked");
   cmp.prop("checked", valor);
+}
+
+// Habilita o deshabilita una checkbox de mdl
+function mdlCheckStatus(cmps, valor) {
+  var cmp = $("#" + cmps);
+  valor == 'd' ? cmp.parent().addClass("is-disabled") : cmp.parent().removeClass("is-disabled");
+  cmp.prop("disabled", (valor == 'd'));
 }
 
 function vali_check(c) {
@@ -770,7 +778,7 @@ function date_pick(e, opt) {
 }
 */
 function date_pick(e, opt) {
-  $(e).entrydate().datepicker($.extend(true, {onSelect: function(){
+  $(e).entrydate().datepicker($.extend(true, {showOn: 'none', onSelect: function(){
     if ($(this).data('ov') != $(this).val()) $(this).trigger("change");
     $(this).focusNextInputField();
   }}, opt));
@@ -1005,6 +1013,15 @@ function setDataGridLocal(cmp, data) {
   var g = $("#g_" + cmp);
   for (var i = 0; c=data[i]; i++)
     g.jqGrid("setCell", c[0], c[1], c[2]);
+}
+
+function setSelectionGridLocal(cmp, data) {
+  var g = $("#g_" + cmp);
+  g.jqGrid("resetSelection");
+  if (data) {
+    if (!$.isArray(data)) data = [data];
+    for (var i in data) g.jqGrid("setSelection", data[i], false);
+  }
 }
 
 function creaGridLocal(opts, data) {

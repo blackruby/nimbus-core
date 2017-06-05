@@ -120,7 +120,11 @@ class ApplicationController < ActionController::Base
 
   # Clase del modelo ampliado para este mantenimiento (con campos X etc.)
   def class_mant
-    (self.class.to_s[0..-11] + 'Mod').constantize
+    if self.class.superclass.to_s == 'GiController'
+      GiMod
+    else
+      (self.class.to_s[0..-11] + 'Mod').constantize
+    end
   end
 
   # Clase del modelo original
@@ -198,7 +202,7 @@ class ApplicationController < ActionController::Base
     options.each{|k, v|
       @ajax << %Q(<option value="#{k}">#{nt(v)}</option>)
     }
-    @ajax << %q[');]
+    @ajax << %Q[').val("#{val}");]
 
     @fact[cmp] = val
   end
@@ -218,6 +222,8 @@ class ApplicationController < ActionController::Base
       @ajax << "$('##{c}').attr('readonly', #{ed == :d ? 'true' : 'false'}).attr('tabindex', #{ed == :d ? '-1' : '0'});"
     elsif ty == :date
       @ajax << "$('##{c}').datepicker('#{ed == :d ? 'disable' : 'enable'}');"
+    elsif ty == :boolean
+      @ajax << "mdlCheckStatus('#{c}','#{ed}');"
     else
       @ajax << "$('##{c}').attr('disabled', #{ed == :d ? 'true' : 'false'});"
     end
@@ -925,6 +931,8 @@ class ApplicationController < ActionController::Base
     @head = (params[:head] ? params[:head].to_i : 1)
     @menu_l = clm.menu_l
     @menu_r = clm.menu_r
+
+    @es_un_mant = clm.mant?
   end
 
   def set_empeje(eid=0, jid=0)
@@ -1099,7 +1107,11 @@ class ApplicationController < ActionController::Base
     ((!clm.mant? or @fact.id != 0) and self.respond_to?('before_edit')) ? r = before_edit : r = nil
     if r
       if r.is_a? Hash
-        render file: r[:file], status: r[:status], layout: false
+        if r[:redirect]
+          redirect_to r[:redirect]
+        else
+          render file: r[:file], status: r[:status], layout: false
+        end
       else
         render file: r, status: 401, layout: false
       end
@@ -1199,7 +1211,9 @@ class ApplicationController < ActionController::Base
 
     r = false
     r = mi_render if self.respond_to?(:mi_render)
-    (clm.mant? ? pag_render('ficha') : pag_render('ficha', 'proc')) unless r
+
+    #(clm.mant? ? pag_render('ficha') : pag_render('ficha', 'proc')) unless r
+    pag_render('ficha') unless r
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'set_auto_comp_filter(cmp, wh)'}
@@ -1362,7 +1376,7 @@ class ApplicationController < ActionController::Base
     else
       case cp[:type]
         when :integer, :float, :decimal
-          number_with_precision(val, separator: ',', delimiter: '.', precision: eval_cad(cp[:decim]).to_i)
+          cp[:sel] ? val.to_s : number_with_precision(val, separator: ',', delimiter: '.', precision: eval_cad(cp[:decim]).to_i)
         when :date
           val.to_s(:sp)
         when :time
@@ -1394,7 +1408,11 @@ class ApplicationController < ActionController::Base
       #@ajax << '$("#' + cmp_s + '").prop("checked",' + val.to_s + ');'
       @ajax << "mdlCheck('#{cmp_s}',#{val.to_s});"
     when :div
-      ;
+      if cp[:grid_sel]
+        @ajax << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
+      end
+    when :upload
+      # No hacer nada
     else
       @ajax << '$("#' + cmp_s + '").val(' + forma_campo(:form, @fact, cmp_s, val).to_json + ')'
       @ajax << '.attr("dbid",' + val.to_s + ')' if cmp_s.ends_with?('_id') and val
@@ -1876,8 +1894,10 @@ class ApplicationController < ActionController::Base
         @fact[cmp] = HashForGrids.new(opts[:cols], data)
         @fant[cmp] = nil if @fant
       else
-        @fact[cmp] = nil
-        @fant[cmp] = nil if @fant
+        #@fact[cmp] = nil
+        #@fant[cmp] = nil if @fant
+        @fact.campos[cmp][:grid_sel] = true
+        @ajax << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
     end
   end
 
@@ -1980,7 +2000,11 @@ class ApplicationController < ActionController::Base
         #v = @fact.method(campo).call
         v = @fact[campo]
         if v
-          sel ? v << row : v.delete_at(v.index(row))
+          if v.is_a? Array
+            sel ? v << row : v.delete_at(v.index(row))
+          else
+            @fact[campo] = sel ? [v, row] : nil
+          end
         else
           #@fact.method(campo + '=').call([row]) if sel
           @fact[campo] = [row] if sel
@@ -2084,8 +2108,13 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    @fact[campo] = raw_val(campo, valor)
-    valor = @fact[campo].dup rescue @fact[campo]
+    if cs[:type] == :upload
+      self.method("on_#{campo}").call(params[campo]) if self.respond_to?("on_#{campo}")
+      valor = nil
+    else
+      @fact[campo] = raw_val(campo, valor)
+      valor = @fact[campo].dup rescue @fact[campo]
+    end
 
     ## Validación
 
@@ -2108,15 +2137,25 @@ class ApplicationController < ActionController::Base
 
     @ajax << 'hayCambios=' + @fact.changed?.to_s + ';' if clm.mant?
 
-    render :js => @ajax
+    if cs[:type] == :upload
+      # Si el tipo es upload el render se realiza en el iframe asociado y por lo tanto
+      # para procesar @ajax hay que que hacerlo en el ámbito de su padre (la ficha)
+      render html: %Q(
+          <script>
+            $(window).load(function(){window.parent.eval(#{@ajax.to_json});})
+          </script>
+        ).html_safe, layout: 'basico'
+    else
+      render :js => @ajax
+    end
 
     @v.save
   end
 
-  #Función para ser llamada desde el botón aceptar de los 'procs'
   def fon_server
-    unless self.respond_to?(params[:fon])
-      render nothing: true
+    unless params[:fon] && self.respond_to?(params[:fon])
+      #render nothing: true
+      head :no_content
       return
     end
 
@@ -2153,7 +2192,8 @@ class ApplicationController < ActionController::Base
 
   def borrar
     if @dat[:prm] != 'p'
-      render nothing: true
+      #render nothing: true
+      head :no_content
       return
     end
 
@@ -2182,7 +2222,8 @@ class ApplicationController < ActionController::Base
 
   def grabar(ajx=true)
     if @dat[:prm] == 'c'
-      render nothing: true
+      #render nothing: true
+      head :no_content
       return
     end
 
@@ -2202,7 +2243,7 @@ class ApplicationController < ActionController::Base
 
         if v[:req]
           valor = @fact[c]
-          (valor.nil? or ([:string, :text].include?(v[:type]) and not c.ends_with?('_id') and valor.strip == '')) ? e = "Campo #{c} requerido" : e = nil
+          (valor.nil? or ([:string, :text].include?(v[:type]) and not c.ends_with?('_id') and valor.strip == '')) ? e = "Campo #{nt(v[:label])} requerido" : e = nil
         elsif v[:type] == :div
           e = nil
           valor = @fact[c]
@@ -2322,7 +2363,8 @@ class ApplicationController < ActionController::Base
     sql_exe("DELETE FROM vistas where id = #{params[:vista]}")
     # Borrar todas las imágenes temporales que queden
     `rm -f /tmp/nimImg-#{params[:vista]}-*`
-    render nothing: true
+    #render nothing: true
+    head :no_content
   end
 
   def bus_call
@@ -2403,7 +2445,7 @@ class ApplicationController < ActionController::Base
         end
       end
 
-      plus << " title='#{nt(v[:title])}'" if v[:title]
+      plus << " title='#{nt(v[:title])}'" if v[:title] and ![:boolean, :upload].include?(v[:type])
       plus << " #{v[:attr]}" if v[:attr]
 
       sal << '</div>' unless prim or v[:span] # Cerrar el div mdl-cell si procede
@@ -2434,7 +2476,9 @@ class ApplicationController < ActionController::Base
       div_class = v[:span] ? 'nim-group-span' : 'nim-group'
 
       #sal << '<div class="mdl-cell mdl-cell--' + v[:gcols].to_s + '-col">' if prim or !v[:span]
-      sal << "<div class='mdl-cell mdl-cell--#{v[:gcols]}-col #{v[:class]}'>" if prim or !v[:span]
+      if prim or !v[:span]
+        sal << (v[:gcols] == 0 ? '<div style="display: none">' : "<div class='mdl-cell mdl-cell--#{v[:gcols]}-col #{v[:class]}'>")
+      end
 
       prim = false
 
@@ -2510,6 +2554,16 @@ class ApplicationController < ActionController::Base
         sal << '></form>'
         sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
         sal << '</div>'
+      elsif v[:type] == :upload
+        if !clm.mant? or @fact.id != 0
+          sal << "<div title='#{nt(v[:title])}'>"
+          sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true, target: "#{cs}_iframe")
+          sal << "<input id='#{cs}_input' name='#{cs + (v[:multi] ? '[]' : '')}' #{v[:multi] ? 'multiple' : ''} type='file' class='nim-input-img'} onchange='$(this).parent().submit()' #{plus}/>"
+          sal << "<label id='#{cs}' class='nim-label-upload' for='#{cs}_input'>#{nt(v[:label])}</label><br>"
+          sal << '</form>'
+          sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
+          sal << '</div>'
+        end
       else
         clase = 'nim-input'
         case v[:rol]
@@ -2601,7 +2655,7 @@ class ApplicationController < ActionController::Base
         sal << "$('##{cs}').datepicker('disable');" if v[:ro] == :all or v[:ro] == params[:action].to_sym
       elsif v[:type] == :time
         sal << '$("#' + cs + '").entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true);' : 'false);')
-      elsif v[:type] == :integer or v[:type] == :decimal
+      elsif (v[:type] == :integer or v[:type] == :decimal) and !v[:sel]
         #sal << "numero('##{cs}',#{manti},#{decim},#{signo});"
         sal << "numero('##{cs}',#{v[:manti]},#{v[:decim]},#{v[:signo]});"
       end
