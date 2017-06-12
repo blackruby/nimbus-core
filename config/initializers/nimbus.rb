@@ -1043,8 +1043,6 @@ module Modelo
 
   module ClassMethods
     def ini_datos
-      self.send(:attr_accessor, :parent)
-
       @propiedades ||= {}
 
       if @auto_comp_data.nil?
@@ -1091,30 +1089,32 @@ module Modelo
       @pk.compact!
 
       # Definición de funciones para acceder a la empresa y al ejercicio en cualquier modelo
-      cad_emp = ''
-      cl = self
-      loop {
-        if cl.column_names.include?('empresa_id')
-          if cad_emp.empty?
-            self.instance_eval("def empresa_path;'';end")
+      unless self.respond_to?('empresa_path')
+        cad_emp = ''
+        cl = self
+        loop {
+          if cl.column_names.include?('empresa_id')
+            if cad_emp.empty?
+              self.instance_eval("def empresa_path;'';end")
+            else
+              cad_emp << 'empresa'
+            end
+            break
+          elsif cl.pk[0] and cl.pk[0].ends_with?('_id')
+            cad_emp << cl.pk[0][0..-4] + '.'
+            cl = cl.reflect_on_association(cl.pk[0][0..-4].to_sym).options[:class_name].constantize
           else
-            cad_emp << 'empresa'
+            cad_emp = ''
+            break
           end
-          break
-        elsif cl.pk[0] and cl.pk[0].ends_with?('_id')
-          cad_emp << cl.pk[0][0..-4] + '.'
-          cl = cl.reflect_on_association(cl.pk[0][0..-4].to_sym).options[:class_name].constantize
-        else
-          cad_emp = ''
-          break
+        }
+        unless cad_emp.empty?
+          self.instance_eval("def empresa_path;'#{cad_emp[0..-9]}';end")
+          self.class_eval("def empresa;#{cad_emp};end")
         end
-      }
-      unless cad_emp.empty?
-        self.instance_eval("def empresa_path;'#{cad_emp[0..-9]}';end")
-        self.class_eval("def empresa;#{cad_emp};end")
       end
 
-      if (self.to_s != 'Ejercicio')
+      unless self.to_s == 'Ejercicio' or self.respond_to?('ejercicio_path')
         cad_eje = ''
         cl = self
         loop {
@@ -1139,11 +1139,18 @@ module Modelo
         end
       end
 
-      after_initialize :_ini_campos
+      # El siguiente bloque sólo hay que hacerlo la primera vez que se invoca ini_datos
+      # lo sabemos porque no existe el método de instancia :parent
+      # ini_datos es llamado más veces cuando se añaden propiedades (add_propiedades)
+      unless self.instance_methods.include?(:parent)
+        self.send(:attr_accessor, :parent)
+        after_initialize :_ini_campos
+      end
     end
 
     def add_propiedades(cmps)
       @propiedades.deep_merge!(cmps)
+      ini_datos
     end
 
     def propiedades
