@@ -106,7 +106,7 @@ class BusController < ApplicationController
     end
 
     @v = Vista.new
-    @v.data = {mod: clm, view: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, join_emej: join_emej, order: '', wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1]}
+    @v.data = {mod: clm, view: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, join_emej: join_emej, order: '', who: flash[:wh].to_s, wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1]}
 
     # Calcular fichero de preferencias
     fic_pref = nil
@@ -391,8 +391,20 @@ class BusController < ApplicationController
   end
 
   def change_table_in_view(view)
-    @dat[:join_emej].gsub!(@dat[:view].table_name + '.', view.table_name + '.') if @dat[:join_emej]
-    @dat[:wh].gsub!(@dat[:view].table_name + '.', view.table_name + '.') if @dat[:wh]
+    tabla = view.table_name
+
+    @dat[:who].gsub!(@dat[:view].table_name + '.', tabla + '.')
+    @dat[:wh] = @dat[:who].dup
+
+    if view.respond_to?('ejercicio_path')
+      @dat[:join_emej] = view.ejercicio_path
+      w = "#{@dat[:join_emej].empty? ? tabla : 't_emej'}.ejercicio_id=#{@dat[:jid]}"
+      add_where(@dat[:wh], w) unless @dat[:wh].include?(w)
+    elsif view.respond_to?('empresa_path')
+      @dat[:join_emej] = view.empresa_path
+      w = "#{@dat[:join_emej].empty? ? tabla : 't_emej'}.empresa_id=#{@dat[:eid]}"
+      add_where(@dat[:wh], w) unless @dat[:wh].include?(w)
+    end
   end
 
   def bus_sel
