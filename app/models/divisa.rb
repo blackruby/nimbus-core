@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_divisas]
+
 class Divisa < ActiveRecord::Base
   @propiedades = {
     codigo: {pk: true, manti: 3, may: true},
@@ -21,3 +23,5 @@ class HDivisa < ActiveRecord::Base
 end
 
 Nimbus.load_adds __FILE__
+
+end

@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_usuarios]
+
 class UsuariosMod < Usuario
   @campos = {
     codigo: {tab: 'pre', gcols: 4, grid: {}},
@@ -284,3 +286,5 @@ class UsuariosController < ApplicationController
 end
 
 Nimbus.load_adds __FILE__
+
+end

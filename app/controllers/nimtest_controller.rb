@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_paises]
+
 class NimtestMod < Pais
   @campos = {
     codigo: {tab: 'pre', gcols: 2, grid:{cellattr: '~style_codigo~'}},
@@ -242,3 +244,5 @@ class NimtestController < ApplicationController
 end
 
 Nimbus.load_adds __FILE__
+
+end

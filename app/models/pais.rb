@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_paises]
+
 class Pais < ActiveRecord::Base
   @propiedades = {
     codigo: {manti: 2, pk: true},
@@ -27,3 +29,5 @@ class HPais < ActiveRecord::Base
 end
 
 Nimbus.load_adds __FILE__
+
+end

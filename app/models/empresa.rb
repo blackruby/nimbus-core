@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_empresas]
+
 class Empresa < ActiveRecord::Base
   @propiedades = {
     codigo: {pk: true, manti: 5},
@@ -33,3 +35,5 @@ class HEmpresa < ActiveRecord::Base
 end
 
 Nimbus.load_adds __FILE__
+
+end

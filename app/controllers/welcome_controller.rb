@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_usuarios]
+
 class WelcomeController < ApplicationController
   require 'bcrypt'
 
@@ -273,4 +275,6 @@ class WelcomeController < ApplicationController
     @dat[:auto_comp][:ej] = "empresa_id=#{params[:eid]}"
   end
 =end
+end
+
 end

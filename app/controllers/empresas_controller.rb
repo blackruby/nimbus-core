@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_empresas]
+
 class EmpresasMod < Empresa
   @campos = {
     codigo: {tab: 'pre', grid:{}},
@@ -72,3 +74,5 @@ class EmpresasController < ApplicationController
 end
 
 Nimbus.load_adds __FILE__
+
+end

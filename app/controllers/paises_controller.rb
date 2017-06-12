@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_paises]
+
 class PaisesMod < Pais
   @campos = {
     codigo: {tab: 'pre', gcols: 2, grid:{}},
@@ -31,3 +33,5 @@ class PaisesController < ApplicationController
 end
 
 Nimbus.load_adds __FILE__
+
+end

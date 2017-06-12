@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_ejercicios]
+
 class Ejercicio < ActiveRecord::Base
   @propiedades = {
     empresa_id: {pk: 1, req: true},
@@ -35,3 +37,5 @@ class HEjercicio < ActiveRecord::Base
 end
 
 Nimbus.load_adds __FILE__
+
+end

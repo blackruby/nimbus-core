@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_perfiles]
+
 class PerfilesMod < Perfil
   @campos = {
     codigo: {tab: 'pre', grid: {}, gcols: 4},
@@ -97,4 +99,6 @@ class PerfilesController < ApplicationController
       end
     }
   end
+end
+
 end

@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_divisas]
+
 class DivisasMod < Divisa
   @campos = {
     codigo: {tab: 'pre', grid:{}},
@@ -23,3 +25,5 @@ class DivisasController < ApplicationController
 end
 
 Nimbus.load_adds __FILE__
+
+end

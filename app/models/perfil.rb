@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_perfiles]
+
 class Perfil < ActiveRecord::Base
   @propiedades = {
     codigo: {manti: 30, pk: 1},
@@ -14,4 +16,6 @@ end
 
 class Perfil < ActiveRecord::Base
   include Modelo
+end
+
 end

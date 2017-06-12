@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_usuarios]
+
 class Usuario < ActiveRecord::Base
   @propiedades = {
     codigo: {pk: true, manti: 30},
@@ -153,3 +155,5 @@ class HUsuario < ActiveRecord::Base
 end
 
 Nimbus.load_adds __FILE__
+
+end

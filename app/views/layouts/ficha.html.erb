@@ -18,7 +18,7 @@
         <div class="mdl-layout-spacer"></div>
         <nav class="mdl-navigation">
           <button title="Grabar (Alt-g)" class="cl-grabar mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="mant_grabar()">
-            <i class="material-icons">save</i>
+            <i class="material-icons"><%= @es_un_mant ? 'save' : 'done' %></i>
           </button>
           <% if @es_un_mant %>
             &nbsp; &nbsp;

@@ -939,13 +939,13 @@ class ApplicationController < ActionController::Base
     if eid == 0
       @e = @fact.empresa if @fact.respond_to?('empresa')
     else
-      @e = Empresa.find_by id: eid
+      @e = eid ? Empresa.find_by(id: eid) : nil
     end
 
     if jid == 0
       @j = @fact.ejercicio if @fact.respond_to?('ejercicio')
     else
-      @j = Ejercicio.find_by id: jid
+      @j = jid ? Ejercicio.find_by(id: jid) : nil
     end
   end
 

@@ -1,3 +1,5 @@
+unless Nimbus::Config[:excluir_ejercicios]
+
 class EjerciciosMod < Ejercicio
   @campos = {
     codigo: {tab: 'pre', grid:{}},
@@ -27,3 +29,5 @@ class EjerciciosController < ApplicationController
 end
 
 Nimbus.load_adds __FILE__
+
+end
