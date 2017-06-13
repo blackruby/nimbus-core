@@ -147,7 +147,8 @@ class WelcomeController < ApplicationController
 
     log_acceso @usu.id, @usu.codigo, 'D'
 
-    render :nothing => true
+    #render :nothing => true
+    head :no_content
   end
 
   def gen_menu(hm)

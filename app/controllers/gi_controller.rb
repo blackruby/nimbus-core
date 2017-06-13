@@ -418,7 +418,8 @@ class GiController < ApplicationController
       when 'xlsx'
         send_data File.read("#{fns}.xlsx"), filename: "#{fnc}.xlsx"
       else
-        render nothing: true
+        #render nothing: true
+        head :no_content
     end
 
     FileUtils.rm "#{fns}.xlsx", force: true

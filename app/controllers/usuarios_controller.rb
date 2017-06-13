@@ -281,7 +281,8 @@ class UsuariosController < ApplicationController
   def pref_user
     @usu.pref[params[:pref]] = params[:data]
     @usu.update_column(:pref, @usu.pref)
-    render nothing: true
+    #render nothing: true
+    head :no_content
   end
 end
 

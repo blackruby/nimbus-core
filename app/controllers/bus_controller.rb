@@ -82,7 +82,8 @@ class BusController < ApplicationController
 
     @mod = flash[:mod] || params[:mod]
     if @mod.nil?
-      render nothing: true
+      #render nothing: true
+      head :no_content
       return
     end
 
@@ -155,14 +156,16 @@ class BusController < ApplicationController
 
   def list
     unless @v
-      render nothing: true
+      #render nothing: true
+      head :no_content
       return
     end
 
     cols = @dat[:cols]
 
     if :cols.empty?
-      render nothing: true
+      #render nothing: true
+      head :no_content
       return
     end
 
