@@ -1,4 +1,4 @@
-class CreatePerfiles < ActiveRecord::Migration
+class CreatePerfiles < ActiveRecord::Migration[5.0]
   unless Nimbus::Config[:excluir_perfiles]
     def change
       col = lambda {|t|

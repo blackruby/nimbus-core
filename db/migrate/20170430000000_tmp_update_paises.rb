@@ -1,4 +1,4 @@
-class TmpUpdatePaises < ActiveRecord::Migration
+class TmpUpdatePaises < ActiveRecord::Migration[5.0]
   unless Nimbus::Config[:excluir_paises]
     def change
       unless Pais.column_names.include?('codigo_iso3')

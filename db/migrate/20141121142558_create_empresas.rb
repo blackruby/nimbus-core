@@ -1,4 +1,4 @@
-class CreateEmpresas < ActiveRecord::Migration
+class CreateEmpresas < ActiveRecord::Migration[5.0]
   unless Nimbus::Config[:excluir_empresas]
     def change
       col = lambda {|t|

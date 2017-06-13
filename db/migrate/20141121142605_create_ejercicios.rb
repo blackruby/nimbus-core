@@ -1,4 +1,4 @@
-class CreateEjercicios < ActiveRecord::Migration
+class CreateEjercicios < ActiveRecord::Migration[5.0]
   unless Nimbus::Config[:excluir_ejercicios]
     def change
       col = lambda {|t|

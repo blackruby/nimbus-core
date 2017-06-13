@@ -1,4 +1,4 @@
-class CreateAccesos < ActiveRecord::Migration
+class CreateAccesos < ActiveRecord::Migration[5.0]
   unless Nimbus::Config[:excluir_accesos]
     def change
       col = lambda {|t|

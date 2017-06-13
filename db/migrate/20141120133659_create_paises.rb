@@ -1,4 +1,4 @@
-class CreatePaises < ActiveRecord::Migration
+class CreatePaises < ActiveRecord::Migration[5.0]
   unless Nimbus::Config[:excluir_paises]
     def change
       col = lambda {|t|

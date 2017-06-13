@@ -1,4 +1,4 @@
-class CreateContadores < ActiveRecord::Migration
+class CreateContadores < ActiveRecord::Migration[5.0]
   unless Nimbus::Config[:excluir_contadores]
     def change
       create_table :contadores do |t|

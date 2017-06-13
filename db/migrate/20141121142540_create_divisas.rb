@@ -1,4 +1,4 @@
-class CreateDivisas < ActiveRecord::Migration
+class CreateDivisas < ActiveRecord::Migration[5.0]
   unless Nimbus::Config[:excluir_divisas]
     def change
       col = lambda {|t|

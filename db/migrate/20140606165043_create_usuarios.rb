@@ -1,4 +1,4 @@
-class CreateUsuarios < ActiveRecord::Migration
+class CreateUsuarios < ActiveRecord::Migration[5.0]
   unless Nimbus::Config[:excluir_usuarios]
     def change
       col = lambda {|t|

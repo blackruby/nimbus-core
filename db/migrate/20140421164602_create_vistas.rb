@@ -1,4 +1,4 @@
-class CreateVistas < ActiveRecord::Migration
+class CreateVistas < ActiveRecord::Migration[5.0]
   def change
     create_table :vistas do |t|
 
