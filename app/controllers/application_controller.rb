@@ -2464,6 +2464,7 @@ class ApplicationController < ActionController::Base
       end
 
       sal << '<div class="mdl-grid">' if prim || !v[:span] && (v[:hr] || v[:br])
+      sal << '<br>' if v[:span] and v[:inline] and v[:br]
 =begin
       if prim or v[:hr] or v[:br]
         sal << '</div>' unless prim # Cerrar el div mdl-grid si procede
@@ -2474,6 +2475,7 @@ class ApplicationController < ActionController::Base
 =end
 
       div_class = v[:span] ? 'nim-group-span' : 'nim-group'
+      div_class << '-inline' if v[:inline]
 
       #sal << '<div class="mdl-cell mdl-cell--' + v[:gcols].to_s + '-col">' if prim or !v[:span]
       if prim or !v[:span]
@@ -2523,6 +2525,7 @@ class ApplicationController < ActionController::Base
         #sal << '<div class="nim-group">'
         sal << "<div class='#{div_class}'>"
         sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em"'
+        sal << ' menu="N"' if v.include?(:menu) and !v[:menu]
         sal << ' dialogo="' + h[:dlg] + '"' if h[:dlg]
         sal << " go='go_#{cs}'" if self.respond_to?('go_' + cs)
         sal << " new='new_#{cs}'" if self.respond_to?('new_' + cs)

@@ -105,6 +105,16 @@ body {
   margin-top: 22px;
 }
 
+.nim-group-inline {
+  @extend .nim-group;
+  display: inline-block;
+}
+
+.nim-group-span-inline {
+  @extend .nim-group-span;
+  display: inline-block;
+}
+
 .nim-label-img {
   font-size: 12px;
   color: $color-1;

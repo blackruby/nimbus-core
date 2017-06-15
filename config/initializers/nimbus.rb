@@ -32,6 +32,10 @@ module Nimbus
   # Cálculo de los módulos 'puros' disponibles
   Modulos = Dir.glob('modulos/*').select{|m| m != 'modulos/idiomas' and m != 'modulos/nimbus-core'} + ['.']
 
+  def self.mes_sel
+    I18n.t('date.month_names')[1..-1].map.with_index {|m,i| [i+1, m.capitalize]}.to_h
+  end
+
   def self.load_adds(fi)
     f = fi.split('/')
     iapp = f.index('app')

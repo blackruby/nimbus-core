@@ -1215,6 +1215,8 @@ $(window).load(function() {
   }).on("click", function() {
     $(".nim-context-menu").css("display", "none");
   }).on("focus", ".auto_comp", function (e) {
+    if ($(this).attr("menu") == "N") return;
+
     $(this).parent().append(
       '<button id="_auto_comp_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" style="position: absolute;top: -4px;right: -4px" tabindex=-1>'+
       //'<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
