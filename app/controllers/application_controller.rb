@@ -410,19 +410,21 @@ class ApplicationController < ActionController::Base
     @ajax << "statusBotones(#{h.to_json});"
   end
 
-  ##nim-doc {sec: 'Métodos de usuario', met: 'envia_fichero(file:, file_cli: nil, rm: true)'}
+  ##nim-doc {sec: 'Métodos de usuario', met: 'envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment')'}
   # Método para hacer download del fichero <i>file</i><br>
   # <i>file_cli</i> es el nombre que se propondrá para la descarga<br>
   # <i>rm</i> puede valer true o false en función de si queremos que el fichero se borre tras la descarga.<br>
+  # <i>disposition</i> puede valer 'attachment' (por defecto) o 'inline' para que el fichero se descargue y se abra.
   # Notar que los argumentos son con nombre. Ejemplo de uso:<br>
   # <pre>envia_fichero file: '/tmp/zombi.pdf', file_cli: 'datos.pdf', rm: false</pre>
   # Si no se especifica <i>file_cli</i> se usará <i>file</i>. Y si no se especifica <i>rm</i> se asume true
   ##
 
-  def envia_fichero(file:, file_cli: nil, rm: true)
+  def envia_fichero(file:, file_cli: nil, rm: true, disposition: ‘attachment’)
     flash[:file] = file
     flash[:file_cli] = file_cli
     flash[:rm] = rm
+  flash[:disposition] = disposition
     @ajax << "window.open('/nim_download');"
   end
 
@@ -434,7 +436,7 @@ class ApplicationController < ActionController::Base
       return
     end
 
-    send_data File.read(file_name), filename: flash[:file_cli] || file_name.split('/')[-1]
+    send_data File.read(file_name), filename: flash[:file_cli] || file_name.split('/')[-1], disposition: flash[:disposition]
     FileUtils.rm_f(file_name) if flash[:rm]
   end
 
