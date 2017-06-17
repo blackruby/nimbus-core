@@ -404,6 +404,9 @@ class ApplicationController < ActionController::Base
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'status_botones(hash)'}
   # Control del estado de los botones del mantenimiento
+  # Nombres de los botones (claves del hash): editar, crear, grabar, borrar
+  # Los valores de cada clave (botón) pueden ser: true (habilitar), false (deshabilitar), nil (eliminar el botón)
+  # Ej.: status_botones borrar: nil, editar: true, grabar: false
   ##
 
   def status_botones(h={})

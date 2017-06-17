@@ -712,15 +712,14 @@ function bus(a) {
 // Función para controlar el estado de los botones de control (Grabar, Borrar...)
 
 function statusBotones(b) {
-  var cl;
+  var context;
 
   $.each(b, function(k, v) {
-    cl = $(".cl-" + k);
-    if (cl.size() > 0) {
-      cl.attr("disabled", !v);
-    } else {
-      $(".cl-" + k, parent.document).attr("disabled", !v);
-    }
+    context = $(".cl-" + k).size > 0 ? '' + document : parent.document;
+    if (v == null)
+      $(".cl-" + k, context).remove();
+    else
+      $(".cl-" + k, context).attr("disabled", !v);
   });
 }
 
