@@ -2293,6 +2293,7 @@ class ApplicationController < ActionController::Base
           }
           f.user_id = @fact.user_id
           f.save
+          @fact.id = f.id
         else
             @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
         end
