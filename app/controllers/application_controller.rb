@@ -1386,6 +1386,8 @@ class ApplicationController < ActionController::Base
           val.to_s(:sp)
         when :time
           val.strftime('%H:%M' + (cp[:seg] ? ':%S' : ''))
+        when :datetime
+          val.strftime('%d-%m-%Y %H:%M' + (cp[:seg] ? ':%S' : ''))
         else
           if cp[:rol] == :origen
             nt(val)
