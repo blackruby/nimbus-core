@@ -427,7 +427,7 @@ class ApplicationController < ActionController::Base
     flash[:file] = file
     flash[:file_cli] = file_cli
     flash[:rm] = rm
-  flash[:disposition] = disposition
+    flash[:disposition] = disposition
     @ajax << "window.open('/nim_download');"
   end
 
