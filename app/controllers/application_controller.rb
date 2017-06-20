@@ -423,7 +423,7 @@ class ApplicationController < ActionController::Base
   # Si no se especifica <i>file_cli</i> se usará <i>file</i>. Y si no se especifica <i>rm</i> se asume true
   ##
 
-  def envia_fichero(file:, file_cli: nil, rm: true, disposition: ‘attachment’)
+  def envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment')
     flash[:file] = file
     flash[:file_cli] = file_cli
     flash[:rm] = rm
