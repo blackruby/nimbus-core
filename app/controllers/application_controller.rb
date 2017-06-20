@@ -439,7 +439,7 @@ class ApplicationController < ActionController::Base
       return
     end
 
-    send_data File.read(file_name), filename: flash[:file_cli] || file_name.split('/')[-1], disposition: flash[:disposition]
+    send_data File.read(file_name), filename: flash[:file_cli] || file_name.split('/')[-1], disposition: flash[:disposition] || 'attachment'
     FileUtils.rm_f(file_name) if flash[:rm]
   end
 
