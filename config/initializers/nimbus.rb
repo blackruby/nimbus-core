@@ -126,6 +126,14 @@ module Nimbus
       end
     }
   end
+
+  # Método para obtener la hora actual pero en UTC (no convertida sino transliterada)
+  # Si la hora del sistema fuera 19:10CEST esta función devolvería 19:10UTC
+  # Lo recomendable es usarla siempre para no tener líos con los time zones
+  def self.now
+    t = Time.now
+    Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
+  end
 end
 
 #Cambiar inflections por defecto a español
