@@ -4,15 +4,16 @@ class EmpresasMod < Empresa
   @campos = {
     codigo: {tab: 'pre', grid:{}},
     nombre: {tab: 'pre', grid:{}},
+    nombre_comercial: {tab: 'pre', grid:{}},
     cif: {tab: 'pre', grid:{}},
-    direccion: {tab: 'pre'},
-    cod_postal: {tab: 'pre'},
-    poblacion: {tab: 'pre'},
-    provincia: {tab: 'pre'},
+    direccion: {tab: 'pre', rol: :map},
+    cod_postal: {tab: 'pre', map: :direccion},
+    poblacion: {tab: 'pre', map: :direccion},
+    provincia: {tab: 'pre', map: :direccion},
     telefono: {tab: 'pre', grid: {}},
     fax: {tab: 'pre'},
-    email: {tab: 'pre'},
-    web: {tab: 'pre'},
+    email: {tab: 'pre', rol: :email},
+    web: {tab: 'pre', rol: :url},
   }
 
   @grid = {

@@ -4,6 +4,7 @@ class Empresa < ActiveRecord::Base
   @propiedades = {
     codigo: {pk: true, manti: 5},
     nombre: {manti: 60},
+    nombre_comercial: {manti: 60},
     cif: {manti: 10},
     direccion: {manti: 70},
     cod_postal: {manti: 15},

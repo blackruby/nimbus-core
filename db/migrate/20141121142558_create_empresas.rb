@@ -4,6 +4,7 @@ class CreateEmpresas < ActiveRecord::Migration[5.0]
       col = lambda {|t|
           t.string :codigo
           t.string :nombre
+          t.string :nombre_comercial
           t.string :cif
           t.string :direccion
           t.string :cod_postal
