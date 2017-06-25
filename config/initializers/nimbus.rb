@@ -299,7 +299,7 @@ class ActiveRecord::Base
     clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
     h = clmh.new
     h.created_by_id = user_id
-    h.created_at = Time.now
+    h.created_at = Nimbus.now
     h.idid = id
     self.class.column_names.each {|c|
       next if c == 'id'
@@ -383,7 +383,7 @@ class ActiveRecord::Base
           modh = ('H' + mod.to_s).constantize
           tabh_name = modh.table_name
           campos << 'idid' << 'created_by_id' << 'created_at'
-          valores << 'id' << self.user_id.to_i << "'#{Time.now.to_json[1..-2]}'"
+          valores << 'id' << self.user_id.to_i << "'#{Nimbus.now.to_json[1..-2]}'"
           sql_exe("INSERT INTO #{tabh_name} (#{campos.join(',')}) SELECT #{valores.join(',')} FROM #{tab_name} WHERE id IN (#{reg.map{|r| r['id']}.join(',')})")
         rescue NameError
           # No existe histórico y por lo tanto no hacer nada
@@ -984,7 +984,10 @@ module MantMod
       when :date
         return(val.to_date) if val
       when :time
-        return(val.to_time) if val
+        if val
+          t = val.is_a?(String) ? val.to_time : val
+          return(Time.utc(2000, 1, 1, t.hour, t.min, t.sec))
+        end
       when :string
         return val.to_s
     end

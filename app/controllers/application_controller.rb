@@ -533,7 +533,8 @@ class ApplicationController < ActionController::Base
     res = {page: page, total: tot_pages, records: tot_records, rows: []}
     sql.each {|s|
       h = {:id => s.id, :cell => []}
-      h[:cell] <<  s.created_at.to_time.to_s[0..-7]
+      #h[:cell] <<  s.created_at.to_time.to_s[0..-7]
+      h[:cell] <<  s.created_at.strftime('%d-%m-%Y %H:%M:%S')
       h[:cell] << s.created_by.try(:codigo)
       res[:rows] << h
     }
@@ -1378,14 +1379,18 @@ class ApplicationController < ActionController::Base
 
     if val.nil?
       return ''
+    elsif cp[:sel] and tipo == :axlsx
+      (val.class == String) ? cp[:sel][val.to_sym] || cp[:sel][val] : cp[:sel][val]
     else
-      case cp[:type]
-        when :integer, :float, :decimal
-          cp[:sel] ? val.to_s : number_with_precision(val, separator: ',', delimiter: '.', precision: eval_cad(cp[:decim]).to_i)
+      case cp[:type].to_sym
+        when :integer
+          (cp[:sel] or tipo == :axlsx) ? val.to_s : number_with_precision(val, separator: ',', delimiter: '.', precision: 0)
+        when :float, :decimal
+          (cp[:sel] or tipo == :axlsx) ? val.to_s : number_with_precision(val, separator: ',', delimiter: '.', precision: (cp[:decim].is_a?(String) ? eval_cad(cp[:decim]).to_i : cp[:decim] || 2))
         when :date
-          val.to_s(:sp)
+          tipo == :axlsx ? val : val.to_s(:sp)
         when :time
-          val.strftime('%H:%M' + (cp[:seg] ? ':%S' : ''))
+          tipo == :axlsx ? val.strftime('01/01/2000 %H:%M:%S') : val.strftime('%H:%M' + (cp[:seg] ? ':%S' : ''))
         when :datetime
           val.strftime('%d-%m-%Y %H:%M' + (cp[:seg] ? ':%S' : ''))
         else
@@ -2026,6 +2031,51 @@ class ApplicationController < ActionController::Base
     self.method(fun).call(params[:row]) if self.respond_to?(fun)
   end
 
+  # Método para calcular dos arrays: uno de estilos y otro de tipos
+  # Para usar en exportaciones a excel
+  # Es llamado en la exportación de grids embebidos (un poco más abajo)
+  # y desde el controlador de 'bus'
+
+  def array_estilos_tipos_axlsx(cols, wb)
+    lsty = {
+      d: wb.styles.add_style({format_code: 'dd-mm-yyyy'}),
+      t: wb.styles.add_style({format_code: 'HH:MM:SS'}),
+      dt: wb.styles.add_style({format_code: 'dd-mm-yyyy HH:MM:SS'}),
+      i: wb.styles.add_style({format_code: '#,##0'})
+    }
+    sty = []
+    typ = []
+    cols.each {|c|
+      case c[:type].to_sym
+        when :string
+          typ << :string
+          sty << nil
+        when :date
+          typ << :date
+          sty << lsty[:d]
+        when :time
+          typ << :time
+          sty << lsty[:t]
+        when :datetime
+          typ << :time
+          sty << lsty[:dt]
+        when :integer
+          typ << nil
+          sty << lsty[:i]
+        when :decimal
+          typ << nil
+          dec = c[:decim] || 2
+          lsty[dec] = wb.styles.add_style({format_code: "#,##0.#{'0'*dec}"}) unless lsty[dec]
+          sty << lsty[dec]
+        else
+          typ << nil
+          sty << nil
+      end
+    }
+
+    [sty, typ]
+  end
+
   def grid_local_export
     return unless @v
 
@@ -2038,9 +2088,13 @@ class ApplicationController < ActionController::Base
     wb = xls.workbook
     sh = wb.add_worksheet(:name => "Hoja1")
 
+    sty, typ = array_estilos_tipos_axlsx(cols, wb)
+
+    # Primera fila (Cabecera)
     sh.add_row(cols.map {|v| v[:label] || v[:name]})
 
-    data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| cols[i][:ref] ? forma_campo_id(cols[i][:ref], d) : d})}
+    #data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| cols[i][:ref] ? forma_campo_id(cols[i][:ref], d) : d})}
+    data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| _forma_campo(:axlsx, cols[i], cols[i][:name], d)}, types: typ, style: sty)}
 
     # Fijar la fila de cabecera para repetir en cada página
     wb.add_defined_name("Hoja1!$1:$1", :local_sheet_id => sh.index, :name => '_xlnm.Print_Titles')

@@ -242,12 +242,15 @@ class BusController < ApplicationController
         begin
           # Para acceder a los atributos de "s" es mejor usar el hash "attributes" que acceder a pelo (s[atributo]) porque el atributo "id" cuando
           # la tabla que se procesa es una vista no es accesible "a pelo"
+=begin
           case v[:type]
             when 'datetime'
               h[:cell] << s.attributes[v[:alias]].to_time.strftime('%d-%m-%Y %H:%M:%S')
             else
               h[:cell] << s.attributes[v[:alias]].to_s
           end
+=end
+          h[:cell] << _forma_campo(:grid, v, '', s.attributes[v[:alias]])
         rescue
           h[:cell] << ''
         end
@@ -449,11 +452,14 @@ class BusController < ApplicationController
     wb = xls.workbook
     sh = wb.add_worksheet(:name => "Hoja1")
 
+    sty, typ = array_estilos_tipos_axlsx(cols.map{|k, v| v}, wb)
+
+    # Primera fila (Cabecera)
     sh.add_row(cols.map {|k, v| v[:label]})
 
-    #@dat[:mod].select(@dat[:cad_sel]).joins(@dat[:cad_join]).where(@dat[:cad_where]).order(@dat[:cad_order]).each {|s|
     @dat[:view].select(@dat[:cad_sel]).joins(@dat[:cad_join]).where(@dat[:cad_where]).order(@dat[:cad_order]).each {|s|
-      sh.add_row(cols.map {|k, v| v[:type] == 'string' ? ' ' + s[v[:alias]].to_s : s[v[:alias]]})
+      #sh.add_row(cols.map {|k, v| v[:type] == 'string' ? ' ' + s[v[:alias]].to_s : s[v[:alias]]})
+      sh.add_row(cols.map {|k, v| _forma_campo(:axlsx, v, '', s[v[:alias]])}, types: typ, style: sty)
     }
 
     # Fijar la fila de cabecera para repetir en cada página

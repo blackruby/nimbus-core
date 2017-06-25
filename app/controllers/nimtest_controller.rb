@@ -81,7 +81,7 @@ class NimtestController < ApplicationController
       {name: 'bool', type: :boolean, width: 30},
       {name: 'fecha', type: :date, width: 80},
       {name: 'Sel', sel: {a: 'Uno', b: 'Dos'}, width: 40},
-      {name: 'Time', type: :time, width: 40},
+      {name: 'Time', type: :datetime, width: 40, seg: true},
       {name: 'Text', type: :text, width: 200},
     ]
     pl = @fact.nombre[0]
@@ -89,7 +89,7 @@ class NimtestController < ApplicationController
 
     cols2 = cols.deep_dup
     crea_grid cmp: :pxa, modo: :ed, export: 'paises', cols: cols, ins: :pos, sel: :cel, bsearch: true, bcollapse: true, search: true, grid: {rowattr: '~style_row_pxa~', caption: "Países que empiezan por #{pl}", height: 300},
-              data: q.map{|p| [p.id, p.codigo, p.nombre, 3, p.nombre[-4..-1], (p.id.odd? ? 12345.67 : -9876.54), true, Date.today, 'a', nil, texto]}
+              data: q.map{|p| [p.id, p.codigo, p.nombre, 3, p.nombre[-4..-1], (p.id.odd? ? 12345.67 : -9876.54), true, Date.today, 'a', Nimbus.now, texto]}
     crea_grid cmp: :pxb, modo: :ed, cols: cols2, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, nil, p.nombre[-4..-1], 0, false, Date.today, 'b']}
 
     @ajax << 'creaMiBoton_pxa();'
