@@ -134,6 +134,19 @@ module Nimbus
     t = Time.now
     Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
   end
+
+  # Método para adecuar un valor a algo razonable. Su uso de momento está restringido
+  # a valores de tipo time (datetime, etc.) convirtiendo el valor de la zona horaria
+  # que sea a la de por defecto, pero sin alterar los datos (hora, min, sec)
+  # En los demás casos devuelve el valor inalterado. Esto es importante en la genaración
+  # de xlsx para que no haga conversiones no deseadas en las horas.
+  def self.nimval(val)
+    if val.is_a?(Time)
+      Time.new(val.year, val.month, val.day, val.hour, val.min, val.sec)
+    else
+      val
+    end
+  end
 end
 
 #Cambiar inflections por defecto a español

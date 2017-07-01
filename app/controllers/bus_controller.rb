@@ -459,7 +459,7 @@ class BusController < ApplicationController
 
     @dat[:view].select(@dat[:cad_sel]).joins(@dat[:cad_join]).where(@dat[:cad_where]).order(@dat[:cad_order]).each {|s|
       #sh.add_row(cols.map {|k, v| v[:type] == 'string' ? ' ' + s[v[:alias]].to_s : s[v[:alias]]})
-      sh.add_row(cols.map {|k, v| _forma_campo(:axlsx, v, '', s[v[:alias]])}, types: typ, style: sty)
+      sh.add_row(cols.map {|k, v| forma_campo_axlsx(v, '', s[v[:alias]])}, types: typ, style: sty)
     }
 
     # Fijar la fila de cabecera para repetir en cada página

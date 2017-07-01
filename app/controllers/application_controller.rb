@@ -1347,50 +1347,49 @@ class ApplicationController < ActionController::Base
   end
 
   def forma_campo_id(ref, id, tipo = :form)
+    return('') if id.nil? or id == 0 or id == ''
+
     mod = ref.constantize
     ret = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + id.to_s)[0]
     ret ? ret.auto_comp_value(tipo) : nil
   end
 
-  def _forma_campo(tipo, cp, cmp, val)
+  def forma_campo_axlsx(cp, cmp, val)
     if cmp.ends_with?('_id')
-      #id = ficha[cmp]
+      forma_campo_id(cp[:ref], val, :form)
+    elsif cp[:sel]
+      (val.class == String) ? cp[:sel][val.to_sym] || cp[:sel][val] : cp[:sel][val]
+    else
+      Nimbus.nimval(val)
+    end
+  end
+
+  def _forma_campo(tipo, cp, cmp, val)
+=begin
+    if cmp.ends_with?('_id')
       if val and val != 0 and val != ''
-        #mod = cp[:ref].constantize
-        #ret = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + val.to_s)[0]
-        #ret = ret ? ret.auto_comp_value(tipo) : nil
         ret = forma_campo_id(cp[:ref], val, tipo)
       else
         ret = ''
       end
       return ret
     end
-
-=begin
-    if val == {}
-      begin
-        #val = eval('ficha.' + cmp)
-        val = ficha[cmp]
-      rescue
-        val = nil
-      end
-    end
 =end
 
     if val.nil?
-      return ''
-    elsif cp[:sel] and tipo == :axlsx
-      (val.class == String) ? cp[:sel][val.to_sym] || cp[:sel][val] : cp[:sel][val]
+      ''
+    elsif cmp.ends_with?('_id')
+      forma_campo_id(cp[:ref], val, tipo)
     else
       case cp[:type].to_sym
         when :integer
-          (cp[:sel] or tipo == :axlsx) ? val.to_s : number_with_precision(val, separator: ',', delimiter: '.', precision: 0)
+          (cp[:sel]) ? val.to_s : number_with_precision(val, separator: ',', delimiter: '.', precision: 0)
         when :float, :decimal
-          (cp[:sel] or tipo == :axlsx) ? val.to_s : number_with_precision(val, separator: ',', delimiter: '.', precision: (cp[:decim].is_a?(String) ? eval_cad(cp[:decim]).to_i : cp[:decim] || 2))
+          (cp[:sel]) ? val.to_s : number_with_precision(val, separator: ',', delimiter: '.', precision: (cp[:decim].is_a?(String) ? eval_cad(cp[:decim]).to_i : cp[:decim] || 2))
         when :date
-          tipo == :axlsx ? val : val.to_s(:sp)
+          val.to_s(:sp)
         when :time
-          tipo == :axlsx ? val.strftime('01/01/2000 %H:%M:%S') : val.strftime('%H:%M' + (cp[:seg] ? ':%S' : ''))
+          val.strftime('%H:%M' + (cp[:seg] ? ':%S' : ''))
         when :datetime
           val.strftime('%d-%m-%Y %H:%M' + (cp[:seg] ? ':%S' : ''))
         else
@@ -2094,7 +2093,7 @@ class ApplicationController < ActionController::Base
     sh.add_row(cols.map {|v| v[:label] || v[:name]})
 
     #data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| cols[i][:ref] ? forma_campo_id(cols[i][:ref], d) : d})}
-    data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| _forma_campo(:axlsx, cols[i], cols[i][:name], d)}, types: typ, style: sty)}
+    data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| forma_campo_axlsx(cols[i], cols[i][:name], d)}, types: typ, style: sty)}
 
     # Fijar la fila de cabecera para repetir en cada página
     wb.add_defined_name("Hoja1!$1:$1", :local_sheet_id => sh.index, :name => '_xlnm.Print_Titles')

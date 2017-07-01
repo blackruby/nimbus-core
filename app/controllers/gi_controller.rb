@@ -1001,7 +1001,8 @@ class GI
       @bi = i
       res = []
       r.each_with_index {|c, i|
-        res << (valores[c[:alias].to_s.to_sym] || val_campo(c[:campo]))
+        #res << (valores[c[:alias].to_s.to_sym] || val_campo(c[:campo]))
+        res << Nimbus.nimval(valores[c[:alias].to_s.to_sym] || val_campo(c[:campo]))
         if c[:colspan].to_i > 0 or c[:rowspan].to_i > 0
           merg << "#{('A'.ord + i).chr}#{@ri_act}:#{('A'.ord + i + c[:colspan].to_i).chr}#{@ri_act + c[:rowspan].to_i}"
         end
