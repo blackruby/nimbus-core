@@ -459,14 +459,19 @@ class BusController < ApplicationController
 
     @dat[:view].select(@dat[:cad_sel]).joins(@dat[:cad_join]).where(@dat[:cad_where]).order(@dat[:cad_order]).each {|s|
       #sh.add_row(cols.map {|k, v| v[:type] == 'string' ? ' ' + s[v[:alias]].to_s : s[v[:alias]]})
-      sh.add_row(cols.map {|k, v| forma_campo_axlsx(v, '', s[v[:alias]])}, types: typ, style: sty)
+      #sh.add_row(cols.map {|k, v| forma_campo_axlsx(v, '', s[v[:alias]])}, types: typ, style: sty)
+      sh.add_row(cols.map {|k, v| Nimbus.nimval(s[v[:alias]])}, types: typ, style: sty)
     }
 
     # Fijar la fila de cabecera para repetir en cada página
     wb.add_defined_name("Hoja1!$1:$1", :local_sheet_id => sh.index, :name => '_xlnm.Print_Titles')
 
     xls.serialize("/tmp/nim#{@v.id}.xlsx")
-    `libreoffice --headless --convert-to pdf --outdir /tmp /tmp/nim#{@v.id}.xlsx` if params[:tipo] == 'pdf'
+    #`libreoffice --headless --convert-to pdf --outdir /tmp /tmp/nim#{@v.id}.xlsx` if params[:tipo] == 'pdf'
+    if params[:tipo] == 'pdf'
+      `libreoffice -env:UserInstallation=file:///tmp/nim#{@v.id}_lo_dir --headless --convert-to pdf --outdir /tmp /tmp/nim#{@v.id}.xlsx`
+      FileUtils.rm_rf "/tmp/nim#{@v.id}_lo_dir"
+    end
     @dat[:file_type] = params[:tipo]
     @ajax << "window.location.href='/bus/send';"
     flash[:vista] = @v.id
