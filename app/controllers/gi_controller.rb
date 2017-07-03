@@ -695,7 +695,7 @@ class GI
   def val_select(ali, d=@d)
     #i = (ali[0] == 'S' ? @ali_sel.index(ali.to_sym) : @vpluck.index(ali))
     i = (ali[0] == 'S' ? @ali_sel.index(ali.to_sym) : @ali_cmp[ali])
-    i ? d[i] : nil
+    (i and d) ? d[i] : nil
   end
 
   def val_alias(ali, ban=@form[:det])
