@@ -46,6 +46,7 @@ class NimtestMod < Pais
     {id: 'tag_1', label: '<hr>'},
     {label: 'Diálogo 1', accion: 'diag_1', id: 'mr_1'},
     {label: 'Upload file', upload: :upl},
+    {label: 'Proceso en segundo plano', accion: :proc2plano},
   ]
 
   @titulo = 'Tests Nimbus'
@@ -239,6 +240,31 @@ class NimtestController < ApplicationController
       puts f.read
       puts '***************** FIN DEL FICHERO *********************************'
       puts
+    }
+  end
+
+  def proc2plano
+    exe_p2p(tit: 'Hola', label: 'Primera fase', pbar: :fix, width: 400, cancel: true) {
+      #Código de la primera fase
+      sleep 3
+
+      p2p label: 'Segunda fase.<br>Duración ~ 12sg.', pbar: 20
+      sleep 4
+      p2p pbar:27
+      sleep 4
+      p2p pbar:33
+      sleep 4
+
+      p2p label: 'Tercera fase', pbar: 40
+      sleep 5
+
+      p2p label: 'Cuarta fase', pbar: 60
+      sleep 5
+
+      p2p label: 'Quinta fase', pbar: 80
+      sleep 5
+
+      p2p label: 'Hecho', pbar: 100
     }
   end
 end

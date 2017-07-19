@@ -484,7 +484,62 @@ class ApplicationController < ActionController::Base
     @ajax << %Q($('##{cmp}').html('<iframe src="#{src}" style="height: #{height}px"></iframe>');)
   end
 
-  # Funciones para el manejo del histórico de un modelo
+  # Métodos para ejecutar procesos en segundo plano con seguimiento
+
+  def p2p(label: nil, pbar: nil, js: nil)
+    @dat[:p2p][:label] = label if label
+    @dat[:p2p][:pbar] = pbar if pbar
+    @dat[:p2p][:js] = js if js
+    @v.save
+  end
+
+  def p2p_req
+    @ajax << "$('#p2p-d',#{@dat[:p2p][:mant]?'parent.document':'document'}).html(#{@dat[:p2p][:label].html_safe.to_json});" if @dat[:p2p][:label]
+    @ajax << "$('#p2p-p',#{@dat[:p2p][:mant]?'parent.document':'document'})[0].MaterialProgress.setProgress(#{@dat[:p2p][:pbar]});" if @dat[:p2p][:tpb] == :fix and @dat[:p2p][:pbar]
+    @ajax << @dat[:p2p][:js] if @dat[:p2p][:js]
+    begin
+      Process.waitpid(@dat[:p2p][:pid], Process::WNOHANG)
+    rescue
+      @ajax << 'p2pStatus=0;'
+    end
+  end
+
+  def exe_p2p(tit: 'En proceso', label: nil, pbar: :inf, cancel: false, width: nil)
+    @v.save # Por si hay cambios en @fact, etc. que se graben antes del fork y así padre e hijo tienen la misma información
+
+    # Cerrar las conexiones con la base de datos para que el hijo no herede descriptores
+    config = ActiveRecord::Base.remove_connection
+
+    mant = class_mant.mant?
+    mant = false
+
+    # Crear el proceeso hijo
+    h = fork {
+      # Cierro todos los sockets que haya abiertos para que no interfieran
+      # en las lecturas que de ellos haga el parent (básicamente los requests http)
+      ObjectSpace.each_object(IO) {|io| io.close if io.class == TCPSocket and !io.closed?}
+      # Restablecer la conexión con la base de datos
+      ActiveRecord::Base.establish_connection(config)
+
+      @dat[:p2p] = {pid: Process.pid, label: label, tpb: pbar, mant: mant}
+      @v.save
+
+      yield
+    }
+
+    # Código específico del padre...
+
+    # Restablecer la conexión con la base de datos
+    ActiveRecord::Base.establish_connection(config)
+    # No hacer seguimiento del status del hijo (para que no quede zombi al terminar)
+    Process.detach(h)
+
+    # Código javascript para sacar el cuadro de diálogo de progreso del hijo
+    @ajax << "p2p(#{tit.to_json}, #{label.to_s.to_json}, #{pbar.to_json}, #{cancel.to_json}, #{width.to_json}, #{mant.to_json});"
+  end
+
+  # Métodos para el manejo del histórico de un modelo
+
   def histo
     begin
       modulo = params[:modulo] ? params[:modulo].capitalize + '::' : ''

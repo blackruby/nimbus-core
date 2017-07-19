@@ -715,7 +715,7 @@ function statusBotones(b) {
   var context;
 
   $.each(b, function(k, v) {
-    context = $(".cl-" + k).size > 0 ? '' + document : parent.document;
+    context = $(".cl-" + k).size > 0 ? document : parent.document;
     if (v == null)
       $(".cl-" + k, context).remove();
     else
@@ -1202,6 +1202,57 @@ function addRolButton(el, label, icon, fon) {
     '</button>'
   );
   $('#_nim_rol_button_').on('click', fon);
+}
+
+function p2p_req(mant) {
+  if (p2pStatus) {
+    setTimeout(function () {
+      callFonServer('p2p_req', {p2ps: p2pStatus}, function() {p2p_req(mant)});
+    }, 3000);
+  } else {
+    var context = mant ? parent.document : document;
+    $("#p2p-p", context).removeClass('mdl-progress__indeterminate');
+    var dlg = $("#p2p-d", context).parent().parent();
+    dlg.find('.ui-dialog-buttonpane').css('display', 'block');
+    dlg.find('.ui-dialog-buttonpane button span').text('Finalizar');
+  }
+}
+
+function p2p(tit, label, pb, cancel, width, mant) {
+  p2pStatus = 1;  // Variable global indicando el estado del proceso (1=activo, 0=finalizado)
+
+  var htm = '<div>';
+  htm += '<div id="p2p-d" style="margin-bottom: 15px">' + label + '</div>';
+  if (pb != undefined) {
+    htm += '<div id="p2p-p" class="mdl-progress mdl-js-progress';
+    if (pb == 'inf') {htm += ' mdl-progress__indeterminate';}
+    htm += '"></div>';
+  }
+  htm += '</div>';
+
+  $(htm, (mant ? parent.document : document)).dialog({
+    resizable: false, modal: true, width: "auto", title: tit,
+    closeOnEscape: false,
+    width: width || 'auto',
+    open: function () {
+      var dlg = $(this).parent();
+      dlg.find('.ui-dialog-titlebar-close').css('display', 'none');
+      if (!cancel) dlg.find('.ui-dialog-buttonpane').css('display', 'none');
+      p2p_req(mant);
+    },
+    close: function () {
+      $(this).remove();
+    },
+    buttons: {
+      "Cancelar": function () {
+        if (p2pStatus) {
+          // El proceso aún está en curso. Notificar al server
+        }
+        $(this).dialog("close");
+      }
+    }
+  });
+  mant ? parent.componentHandler.upgradeDom() : componentHandler.upgradeDom();
 }
 
 $(window).load(function() {
