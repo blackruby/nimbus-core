@@ -1442,7 +1442,7 @@ class ApplicationController < ActionController::Base
         when :float, :decimal
           (cp[:sel]) ? val.to_s : number_with_precision(val, separator: ',', delimiter: '.', precision: (cp[:decim].is_a?(String) ? eval_cad(cp[:decim]).to_i : cp[:decim] || 2))
         when :date
-          val.to_s(:sp)
+          tipo == :lgrid ? val : val.to_s(:sp)
         when :time
           val.strftime('%H:%M' + (cp[:seg] ? ':%S' : ''))
         when :datetime
@@ -1907,11 +1907,11 @@ class ApplicationController < ActionController::Base
           c[:sortfunc] ||= '~sortNumero~'
           c[:align] ||= 'right'
         when :date
-          #c[:sorttype] ||= 'date'
-          #c[:formatter] ||= 'date'
+          c[:sorttype] ||= 'date'
+          c[:formatter] ||= 'date'
           c[:editoptions][:dataInit] ||= '~function(e){date_pick(e)}~'
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
-          c[:sortfunc] ||= '~sortDate~'
+          #c[:sortfunc] ||= '~sortDate~'
         when :time
           c[:editoptions][:dataInit] ||= '~function(e){$(e).entrytime(' + (c[:seg] ? 'true,' : 'false,') + (c[:nil] ? 'true' : 'false') + ')}~'
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
@@ -1945,7 +1945,7 @@ class ApplicationController < ActionController::Base
       data.each {|r|
         h = {id: r[0]}
         opts[:cols].each_with_index {|c, i|
-          h[c[:name]] = _forma_campo(:form, c, c[:name], r[i+1])
+          h[c[:name]] = _forma_campo(:lgrid, c, c[:name], r[i+1])
           h['_' + c[:name]] = r[i+1] if c[:name].ends_with?('_id')
         }
         data_grid << h

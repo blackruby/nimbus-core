@@ -88,9 +88,14 @@ class NimtestController < ApplicationController
     pl = @fact.nombre[0]
     q = Pais.where('nombre like ?', "#{pl}%")
 
+    crea_grid cmp: :pxa, modo: :ed, export: 'paises', cols: cols,  sel: :cel, bsearch: true, bcollapse: true, search: true, grid: {rowattr: '~style_row_pxa~', caption: "Países que empiezan por #{pl}", height: 300},
+              data: q.map {|p|
+                d = rand(28) + 1
+                m = rand(12) + 1
+                [p.id, p.codigo, p.nombre, 3, p.nombre[-4..-1], (p.id.odd? ? 12345.67 : -9876.54), true, Date.new(2017, m, d), 'a', Nimbus.now, texto]
+              }
+
     cols2 = cols.deep_dup
-    crea_grid cmp: :pxa, modo: :ed, export: 'paises', cols: cols, ins: :pos, sel: :cel, bsearch: true, bcollapse: true, search: true, grid: {rowattr: '~style_row_pxa~', caption: "Países que empiezan por #{pl}", height: 300},
-              data: q.map{|p| [p.id, p.codigo, p.nombre, 3, p.nombre[-4..-1], (p.id.odd? ? 12345.67 : -9876.54), true, Date.today, 'a', Nimbus.now, texto]}
     crea_grid cmp: :pxb, modo: :ed, cols: cols2, grid: {caption: "Países que empiezan por #{pl}", height: 300}, data: q.map{|p| [p.id, p.codigo, p.nombre, nil, p.nombre[-4..-1], 0, false, Date.today, 'b']}
 
     @ajax << 'creaMiBoton_pxa();'
