@@ -56,7 +56,7 @@ namespace :nimbus do
         controller.puts("class #{namesp}#{modcp}Mod < #{namesp}#{modc}")
         controller.puts('  @campos = {')
 
-        mig.puts("class Create#{moduloc}#{modcp} < ActiveRecord::Migration")
+        mig.puts("class Create#{moduloc}#{modcp} < ActiveRecord::Migration[5.0]")
         mig.puts('=begin') unless prop[:mig]
         mig.puts('  def change')
         mig.puts('    col = lambda {|t|')
