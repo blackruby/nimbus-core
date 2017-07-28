@@ -2356,10 +2356,7 @@ class ApplicationController < ActionController::Base
 
         cmps_img << cs if v[:img] && @fact[c]
 
-        if v[:req]
-          valor = @fact[c]
-          (valor.nil? or ([:string, :text].include?(v[:type]) and not c.ends_with?('_id') and valor.strip == '')) ? e = "Campo #{nt(v[:label])} requerido" : e = nil
-        elsif v[:type] == :div
+        if v[:type] == :div
           e = nil
           valor = @fact[c]
           if valor.is_a? HashForGrids
@@ -2372,7 +2369,13 @@ class ApplicationController < ActionController::Base
             }
           end
         else
-          e = valida_campo(c, :duro)
+          if v[:req]
+            valor = @fact[c]
+            (valor.nil? or ([:string, :text].include?(v[:type]) and not c.ends_with?('_id') and valor.strip == '')) ? e = "Campo #{nt(v[:label])} requerido" : e = nil
+          else
+            e = nil
+          end
+          e = valida_campo(c, :duro) unless e
         end
 
         if e != nil
