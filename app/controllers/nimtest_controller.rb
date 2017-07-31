@@ -248,19 +248,22 @@ class NimtestController < ApplicationController
     }
   end
 
+  def final
+    mensaje 'FIN'
+  end
+
   def proc2plano
     lbl = 'Primera fase'
-    exe_p2p(tit: 'Hola', label: lbl, pbar: :fix, width: 400, cancel: true) {
+    exe_p2p(tit: 'Hola', label: lbl, pbar: :fix, width: 400, cancel: true, fin: {label: 'Adios', met: :final}) { begin
       #Código de la primera fase
       sleep 3
-
       p2p label: lbl << '<br>Segunda fase.<br>Duración ~ 12sg.', pbar: 20
       sleep 4
       p2p pbar:27
       sleep 4
       p2p pbar:33
       sleep 4
-
+=begin
       p2p label: 'Tercera fase', pbar: 40
       sleep 5
 
@@ -271,7 +274,11 @@ class NimtestController < ApplicationController
       sleep 5
 
       p2p label: 'Hecho', pbar: 100
-    }
+=end
+    rescue P2PCancel
+      p2p label: lbl + '<br>Cancelado.'
+      sleep 2
+    end}
   end
 end
 

@@ -1204,21 +1204,7 @@ function addRolButton(el, label, icon, fon) {
   $('#_nim_rol_button_').on('click', fon);
 }
 
-function p2p_req(mant) {
-  if (p2pStatus) {
-    setTimeout(function () {
-      callFonServer('p2p_req', {p2ps: p2pStatus}, function() {p2p_req(mant)});
-    }, 3000);
-  } else {
-    var context = mant ? parent.document : document;
-    $("#p2p-p", context).removeClass('mdl-progress__indeterminate');
-    var dlg = $("#p2p-d", context).parent().parent();
-    dlg.find('.ui-dialog-buttonpane').css('display', 'block');
-    dlg.find('.ui-dialog-buttonpane button span').text('Finalizar');
-  }
-}
-
-function p2p(tit, label, pb, cancel, width, mant) {
+function p2p(tit, label, pb, cancel, width, mant, fin) {
   p2pStatus = 1;  // Variable global indicando el estado del proceso (1=activo, 0=finalizado)
 
   var htm = '<div>';
@@ -1230,25 +1216,58 @@ function p2p(tit, label, pb, cancel, width, mant) {
   }
   htm += '</div>';
 
+  var vi;
+
   $(htm, (mant ? parent.document : document)).dialog({
     resizable: false, modal: true, width: "auto", title: tit,
     closeOnEscape: false,
     width: width || 'auto',
     open: function () {
-      var dlg = $(this).parent();
-      dlg.find('.ui-dialog-titlebar-close').css('display', 'none');
-      if (!cancel) dlg.find('.ui-dialog-buttonpane').css('display', 'none');
-      p2p_req(mant);
+      var dlg = $(this);
+      var dlgd = dlg.parent();
+      dlgd.find('.ui-dialog-titlebar-close').css('display', 'none');
+      if (!cancel) dlgd.find('.ui-dialog-buttonpane').css('display', 'none');
+      vi = setInterval(function() {
+        callFonServer('p2p_req', {p2ps: p2pStatus}, function() {
+          if (p2pStatus == 0) {
+            clearInterval(vi);
+            if (fin.label) {
+              var context = mant ? parent.document : document;
+              $("#p2p-p", context).removeClass('mdl-progress__indeterminate');
+              dlgd.find('.ui-dialog-buttonpane').css('display', 'block');
+              dlgd.find('.ui-dialog-buttonpane button span').text(fin.label);
+            } else {
+              if (fin.met) callFonServer(fin.met);
+              dlg.dialog("close");
+            }
+          }
+        });
+      }, 3000);
     },
     close: function () {
       $(this).remove();
     },
     buttons: {
       "Cancelar": function () {
-        if (p2pStatus) {
+        if (p2pStatus == 1) {
+          p2pStatus = 0;
+          fin.met = null;
           // El proceso aún está en curso. Notificar al server
+          clearInterval(vi);
+          var dlg = $(this).parent();
+          var bt = dlg.find('.ui-dialog-buttonpane button');
+          var btt= bt.find('span');
+          bt.attr('disabled', true);
+          btt.css('color', '#aaaaaa');
+          callFonServer('p2p_req', {p2ps: 0}, function() {
+            bt.attr('disabled', false);
+            btt.css('color', 'black').text('Finalizar');
+            dlg.find('.ui-dialog-buttonpane').prepend('<i class="material-icons" style="color: #FF4081; vertical-align: bottom">report_problem</i>Cancelado');
+          });
+        } else {
+          if (fin.met) callFonServer(fin.met);
+          $(this).dialog("close");
         }
-        $(this).dialog("close");
       }
     }
   });

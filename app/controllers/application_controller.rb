@@ -413,7 +413,7 @@ class ApplicationController < ActionController::Base
     @ajax << "statusBotones(#{h.to_json});"
   end
 
-  ##nim-doc {sec: 'Métodos de usuario', met: 'envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment')'}
+  ##nim-doc {sec: 'Métodos de usuario', met: "envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment')"}
   # Método para hacer download del fichero <i>file</i><br>
   # <i>file_cli</i> es el nombre que se propondrá para la descarga<br>
   # <i>rm</i> puede valer true o false en función de si queremos que el fichero se borre tras la descarga.<br>
@@ -486,6 +486,10 @@ class ApplicationController < ActionController::Base
 
   # Métodos para ejecutar procesos en segundo plano con seguimiento
 
+  class P2PCancel < SystemExit
+    # Clase para generar la excepción que detenga un proceso en segundo plano (p2p) al recibir un kill
+  end
+
   def p2p(label: nil, pbar: nil, js: nil)
     @dat[:p2p][:label] = label if label
     @dat[:p2p][:pbar] = pbar if pbar
@@ -494,24 +498,46 @@ class ApplicationController < ActionController::Base
   end
 
   def p2p_req
+    if params[:p2ps] == '1'  # Proceso en curso
+      begin
+        Process.waitpid(@dat[:p2p][:pid], Process::WNOHANG)
+      rescue
+        @ajax << 'p2pStatus=0;'
+      end
+    else  # Proceso cancelado
+      Process.kill("TERM", @dat[:p2p][:pid])
+      Process.waitpid(@dat[:p2p][:pid])
+      @v.reload
+      @dat = @v.data
+    end
+
     @ajax << "$('#p2p-d',#{@dat[:p2p][:mant]?'parent.document':'document'}).html(#{@dat[:p2p][:label].html_safe.to_json});" if @dat[:p2p][:label]
     @ajax << "$('#p2p-p',#{@dat[:p2p][:mant]?'parent.document':'document'})[0].MaterialProgress.setProgress(#{@dat[:p2p][:pbar]});" if @dat[:p2p][:tpb] == :fix and @dat[:p2p][:pbar]
     @ajax << @dat[:p2p][:js] if @dat[:p2p][:js]
-    begin
-      Process.waitpid(@dat[:p2p][:pid], Process::WNOHANG)
-    rescue
-      @ajax << 'p2pStatus=0;'
-    end
   end
 
-  def exe_p2p(tit: 'En proceso', label: nil, pbar: :inf, cancel: false, width: nil)
+  def exe_p2p(tit: 'En proceso', label: nil, pbar: :inf, cancel: false, width: nil, fin: {label: 'Finalizar', met: nil})
     @v.save # Por si hay cambios en @fact, etc. que se graben antes del fork y así padre e hijo tienen la misma información
+
+    # Poner en orden el argumento 'fin'
+    case fin
+      when String
+        fin = {label: fin, met: nil}
+      when Symbol
+        fin = {label: nil, met: fin}
+      when NilClass
+        fin = {label: nil, met: nil}
+      when Hash
+        fin[:label] = 'Finalizar' unless fin.include?(:label)
+        fin[:met] = nil unless fin.include?(:met)
+      else
+        raise ArgumentError, 'El argumento <fin> de exe_p2p tiene que ser String, Symbol, Nil o Hash'
+    end
 
     # Cerrar las conexiones con la base de datos para que el hijo no herede descriptores
     config = ActiveRecord::Base.remove_connection
 
     mant = class_mant.mant?
-    mant = false
 
     # Crear el proceeso hijo
     h = fork {
@@ -524,6 +550,10 @@ class ApplicationController < ActionController::Base
       @dat[:p2p] = {pid: Process.pid, label: label, tpb: pbar, mant: mant}
       @v.save
 
+      Signal.trap('TERM') do
+        raise P2PCancel, 'Cancelado'
+      end
+
       yield
     }
 
@@ -535,7 +565,7 @@ class ApplicationController < ActionController::Base
     Process.detach(h)
 
     # Código javascript para sacar el cuadro de diálogo de progreso del hijo
-    @ajax << "p2p(#{tit.to_json}, #{label.to_s.to_json}, #{pbar.to_json}, #{cancel.to_json}, #{width.to_json}, #{mant.to_json});"
+    @ajax << "p2p(#{tit.to_json}, #{label.to_s.to_json}, #{pbar.to_json}, #{cancel.to_json}, #{width.to_json}, #{mant.to_json}, #{fin.to_json});"
   end
 
   # Métodos para el manejo del histórico de un modelo
