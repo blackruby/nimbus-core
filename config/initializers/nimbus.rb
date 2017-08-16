@@ -993,7 +993,7 @@ module MantMod
       when :integer
         return val.to_i
       when :decimal
-        return val.to_d
+        return val.to_f
       when :date
         return(val.to_date) if val
       when :time
