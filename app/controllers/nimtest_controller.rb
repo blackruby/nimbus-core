@@ -254,31 +254,35 @@ class NimtestController < ApplicationController
 
   def proc2plano
     lbl = 'Primera fase'
-    exe_p2p(tit: 'Hola', label: lbl, pbar: :fix, width: 400, cancel: true, fin: {label: 'Adios', met: :final}) { begin
-      #Código de la primera fase
-      sleep 3
-      p2p label: lbl << '<br>Segunda fase.<br>Duración ~ 12sg.', pbar: 20
-      sleep 4
-      p2p pbar:27
-      sleep 4
-      p2p pbar:33
-      sleep 4
-=begin
-      p2p label: 'Tercera fase', pbar: 40
-      sleep 5
+    exe_p2p(tit: 'Hola', label: lbl, pbar: :fix, width: 400, cancel: true, fin: {label: 'Adios', met: :final}) {
+      begin
+        #Código de la primera fase
+        sleep 3
+        p2p label: lbl << '<br>Segunda fase.<br>Duración ~ 12sg.', pbar: 20
+        #a = 5/0
+        sleep 4
+        p2p pbar: 27
+        sleep 4
+        p2p pbar: 33
+        sleep 4
 
-      p2p label: 'Cuarta fase', pbar: 60
-      sleep 5
+        p2p label: 'Tercera fase', pbar: 40
+        sleep 5
 
-      p2p label: 'Quinta fase', pbar: 80
-      sleep 5
+        p2p label: 'Cuarta fase', pbar: 60
+        sleep 5
 
-      p2p label: 'Hecho', pbar: 100
-=end
-    rescue P2PCancel
-      p2p label: lbl + '<br>Cancelado.'
-      sleep 2
-    end}
+        p2p label: 'Quinta fase', pbar: 80
+        sleep 5
+
+        p2p label: 'Hecho', pbar: 100
+      rescue P2PCancel
+        p2p label: lbl + '<br>Cancelado.'
+        sleep 2
+      rescue ZeroDivisionError
+        p2p label: 'División por cero', st: :err
+      end
+    }
   end
 end
 

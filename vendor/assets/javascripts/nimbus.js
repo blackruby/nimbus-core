@@ -1205,7 +1205,7 @@ function addRolButton(el, label, icon, fon) {
 }
 
 function p2p(tit, label, pb, cancel, width, mant, fin) {
-  p2pStatus = 1;  // Variable global indicando el estado del proceso (1=activo, 0=finalizado)
+  p2pStatus = 1;  // Variable global indicando el estado del proceso (1=activo, 0=finalizado, 2=Error)
 
   var htm = '<div>';
   htm += '<div id="p2p-d" style="margin-bottom: 15px">' + label + '</div>';
@@ -1229,8 +1229,12 @@ function p2p(tit, label, pb, cancel, width, mant, fin) {
       if (!cancel) dlgd.find('.ui-dialog-buttonpane').css('display', 'none');
       vi = setInterval(function() {
         callFonServer('p2p_req', {p2ps: p2pStatus}, function() {
-          if (p2pStatus == 0) {
+          if (p2pStatus != 1) {
             clearInterval(vi);
+            if (p2pStatus == 2) {
+              fin.label = 'Finalizar';
+              dlgd.find('.ui-dialog-buttonpane').prepend('<i class="material-icons" style="color: #FF4081; vertical-align: bottom">report_problem</i>Error');
+            }
             if (fin.label) {
               var context = mant ? parent.document : document;
               $("#p2p-p", context).removeClass('mdl-progress__indeterminate');
@@ -1265,7 +1269,7 @@ function p2p(tit, label, pb, cancel, width, mant, fin) {
             dlg.find('.ui-dialog-buttonpane').prepend('<i class="material-icons" style="color: #FF4081; vertical-align: bottom">report_problem</i>Cancelado');
           });
         } else {
-          if (fin.met) callFonServer(fin.met);
+          if (fin.met && p2pStatus == 0) callFonServer(fin.met);
           $(this).dialog("close");
         }
       }

@@ -490,10 +490,19 @@ class ApplicationController < ActionController::Base
     # Clase para generar la excepción que detenga un proceso en segundo plano (p2p) al recibir un kill
   end
 
-  def p2p(label: nil, pbar: nil, js: nil)
+  ##nim-doc {sec: 'Métodos de usuario', met: 'p2p(label: nil, pbar: nil, js: nil, st: :run)'}
+  # <i>st</i> indica el status del proceso. Los posibles valores son:<ul>
+  # <li>:run: El proceso está en marcha</li>
+  # <li>:fin: El proceso ha finalizado (esto es de cara al cliente. El server puede continuar)</li>
+  # <li>:err: Ha ocurrido un error en el proceso. No se llamará al método 'fin' si existiera</li>
+  # </ul>
+  ##
+
+  def p2p(label: nil, pbar: nil, js: nil, st: :run)
     @dat[:p2p][:label] = label if label
     @dat[:p2p][:pbar] = pbar if pbar
     @dat[:p2p][:js] = js if js
+    @dat[:p2p][:st] = st
     @v.save
   end
 
@@ -502,11 +511,17 @@ class ApplicationController < ActionController::Base
       begin
         Process.waitpid(@dat[:p2p][:pid], Process::WNOHANG)
       rescue
-        @ajax << 'p2pStatus=0;'
+        @dat[:p2p][:st] = :fin unless @dat[:p2p][:st] == :err
       end
+      p2ps = [:fin, :run, :err].index(@dat[:p2p][:st])
+      @ajax << "p2pStatus=#{p2ps};" if p2ps != 1
     else  # Proceso cancelado
-      Process.kill("TERM", @dat[:p2p][:pid])
-      Process.waitpid(@dat[:p2p][:pid])
+      begin
+        Process.kill("TERM", @dat[:p2p][:pid])
+        Process.waitpid(@dat[:p2p][:pid])
+      rescue
+      end
+
       @v.reload
       @dat = @v.data
     end
@@ -547,14 +562,19 @@ class ApplicationController < ActionController::Base
       # Restablecer la conexión con la base de datos
       ActiveRecord::Base.establish_connection(config)
 
-      @dat[:p2p] = {pid: Process.pid, label: label, tpb: pbar, mant: mant}
+      @dat[:p2p] = {pid: Process.pid, label: label, tpb: pbar, mant: mant, st: :run}
       @v.save
 
       Signal.trap('TERM') do
         raise P2PCancel, 'Cancelado'
       end
 
-      yield
+      begin
+        yield
+      rescue Exception => e
+        p2p st: :err
+        pinta_exception(e)
+      end
     }
 
     # Código específico del padre...
@@ -2330,7 +2350,7 @@ class ApplicationController < ActionController::Base
   def pinta_exception(e, msg=nil)
     logger.fatal '######## ERROR #############'
     logger.fatal e.message
-    logger.fatal e.backtrace[0..10]
+    (0..10).each{|i| logger.fatal e.backtrace[i]}
     logger.fatal '############################'
     mensaje(msg) if msg
   end
