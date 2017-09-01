@@ -1032,7 +1032,7 @@ class ApplicationController < ActionController::Base
       @tabs << v[:tab] if v[:tab] and !@tabs.include?(v[:tab]) and v[:tab] != 'pre' and v[:tab] != 'post'
     }
     clm.hijos.each{|h|
-      @tabs << h[:tab] if h[:tab] and !@tabs.include?(h[:tab]) and h[:tab] != 'pre' and h[:tab] != 'post'
+      @tabs << h[:tab] if h[:tab] and !@tabs.include?(h[:tab]) and h[:tab] != 'pre' and h[:tab] != 'post' and !@fact.campos.include?(h[:tab].to_sym)
     }
     @tabs.each {|t|
       f = "ontab_#{t}"
@@ -2702,7 +2702,14 @@ class ApplicationController < ActionController::Base
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
       elsif v[:type] == :div
-        sal << "<div id='#{cs}' style='overflow: auto'></div>"
+        sal << "<div id='#{cs}' style='overflow: auto'>"
+        clm.hijos.each_with_index {|h, i|
+          if h[:tab].to_s == cs
+            sal << "<iframe id='hijo_#{i}' height='#{h[:height] ? h[:height] : 'auto'}'></iframe>"
+            break
+          end
+        }
+        sal << '</div>'
       elsif v[:img]
         if v[:img][:fon_id]
           plus << ' disabled' unless plus.include?(' disabled')
