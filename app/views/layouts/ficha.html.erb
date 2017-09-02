@@ -143,10 +143,10 @@
   <% end %>
 
   function redimWindow() {
-    var f, fh, wh = $(window).height();
+    var f, wh = $(window).height();
     <% @hijos.each_with_index{|h, i| %>
       <% unless h[:height] %>
-        f=$("#hijo_<%= i %>");fh=wh-f.offset().top;f.height(fh);
+        f=$("#hijo_<%= i %>");f.height(wh-f.offset().top);
       <% end %>
     <% } %>
   }
