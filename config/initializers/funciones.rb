@@ -40,6 +40,7 @@ class String
       end
     end
     calculated_number = (10 - ((n1 + n2) % 10)) % 10
+    calculated_number = 10 if calculated_number == 0
     calculated_letter = (64 + calculated_number).chr
 
     if letter.match(/[QRPNS]/)
