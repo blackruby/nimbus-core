@@ -1,9 +1,8 @@
-<style>
-  #d-lienzo svg {
-    background-color: #ffff00;
-    width: 1000px;
-  }
-</style>
+<div id="d-botones">
+  <button title="Esto es un botón" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" onclick="miBoton()">
+    <i class="material-icons">save</i>
+  </button>
+</div>
 
 <div id="d-lienzo">
   <!--
@@ -46,16 +45,21 @@
   }
 
   function pintaDepositos(dep) {
-    $("#d-lienzo svg").remove();
+    $("#lienzo").remove();
+    $("#d-botones").css("display", "block");
 
-    var h = '<svg id="lienzo">';
+    var h = '';
     for (var i in dep) h += nuevoDeposito(dep[i]);
-    h += '</svg>';
 
-    $("#d-lienzo").append(h);
+    $("#d-lienzo").append('<svg id="lienzo" width="1500" height="1000">' + h + '</svg>');
 
     depActivo.ll = lienzo.getBoundingClientRect().left;
     depActivo.lt = lienzo.getBoundingClientRect().top;
+    depActivo.dl = $("#d-lienzo");
+  }
+
+  function miBoton() {
+    alert('¡HOLA!');
   }
 
   function funOpMenu(op) {
@@ -63,13 +67,15 @@
     callFonServer('op_menu', {op: op, id: depMenu.attr('id')});
   }
 
+  // Gestión de eventos
+
   $("#d-lienzo").on('mousedown', 'g', function(e) {
     depActivo.dep = $(this)[0];
-    depActivo.x = depActivo.dep.getBoundingClientRect().left - depActivo.ll - e.clientX;
-    depActivo.y = depActivo.dep.getBoundingClientRect().top - depActivo.lt - e.clientY;
+    depActivo.dep.style.cursor = 'move';
+    depActivo.x = depActivo.dep.getBoundingClientRect().left - depActivo.ll - e.clientX + depActivo.dl.scrollLeft();
+    depActivo.y = depActivo.dep.getBoundingClientRect().top - depActivo.lt - e.clientY + depActivo.dl.scrollTop();
   }).on('mousemove', 'svg', function(e) {
     if (depActivo.dep) {
-      depActivo.dep.style.cursor = 'move';
       depActivo.dep.setAttribute("transform", "translate(" + (depActivo.x + e.clientX) + "," + (depActivo.y + e.clientY) +")");
     }
   }).on('mouseup', 'svg', function(e) {
@@ -83,3 +89,33 @@
     $("#menu-dep").css("display", "block").position({my: "left top", at: "top+100", of: depMenu});
   });
 </script>
+
+<style>
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+  }
+
+  #d-botones {
+    display: none;
+    margin: 7px;
+  }
+
+  #d-lienzo {
+    height: 80vh;
+    overflow: auto;
+  }
+
+  #d-lienzo svg {
+    background-color: #ffff00;
+  }
+</style>
