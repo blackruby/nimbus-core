@@ -67,6 +67,11 @@
     callFonServer('op_menu', {op: op, id: depMenu.attr('id')});
   }
 
+  function alturaDiv() {
+    var dl = $("#d-lienzo");
+    dl.height($(window).height() - dl.offset().top - 5);
+  }
+
   // Gestión de eventos
 
   $("#d-lienzo").on('mousedown', 'g', function(e) {
@@ -88,6 +93,9 @@
     depMenu = $(this);
     $("#menu-dep").css("display", "block").position({my: "left top", at: "top+100", of: depMenu});
   });
+
+  alturaDiv();
+  $(window).resize(alturaDiv);
 </script>
 
 <style>
@@ -111,7 +119,6 @@
   }
 
   #d-lienzo {
-    height: 80vh;
     overflow: auto;
   }
 
