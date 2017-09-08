@@ -111,6 +111,7 @@ module Nimbus
       # parámetros de tipo integer, sym y booleanos (necesitan doble eval)
       ParamsDobleEval.each {|p|
         v[p] = eval(nim_eval(v[p], cntxt)) if v[p].is_a?(String)
+        v[p] = 0 if v[p].nil? and (p == :manti or p == :decim)
       }
 
       # parámetros de tipo string
@@ -590,6 +591,7 @@ module MantMod
       if @mant
         @titulo ||= self.table_name
 
+=begin
         self.superclass.column_names.each{|c|
           cs = c.to_sym
           unless c == 'id' or @campos.include?(cs)
@@ -598,6 +600,7 @@ module MantMod
             @campos[cs][:type] = self.superclass.columns_hash[c].type
           end
         }
+=end
 
         @grid ||= {}
         @grid[:ew] ||= :w

@@ -2583,8 +2583,8 @@ class ApplicationController < ActionController::Base
       #manti = eval_cad(v[:manti]).to_i
       #decim = eval_cad(v[:decim]).to_i
       ro = v[:ro]
-      manti = v[:manti].to_i
-      decim = v[:decim].to_i
+      manti = v[:manti]
+      decim = v[:decim]
       if v[:size]
         size = v[:size].to_s
       elsif v[:type] == :integer or v[:type] == :decimal
