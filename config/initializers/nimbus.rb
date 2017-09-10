@@ -813,7 +813,7 @@ module MantMod
             end
           end
         when :date
-          v[:manti] ||= 8
+          v[:manti] ||= 10
           v[:date_opts] ||= {}
           if hay_grid
             v[:grid][:align] ||= 'center'
@@ -826,6 +826,11 @@ module MantMod
           v[:manti] ||= 8
           if hay_grid
             v[:grid][:editoptions][:dataInit] ||= '~function(e){$(e).entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true' : 'false') + ')}~'
+            v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
+          end
+        when :datetime
+          v[:manti] ||= 19
+          if hay_grid
             v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
           end
         when :text
