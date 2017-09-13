@@ -696,14 +696,16 @@ class ApplicationController < ActionController::Base
     if @usu.admin
       prm = 'p'
     else
-      #prm = params[:mod] ? params[:prm] : @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid ? eid.to_i : 0]
-      prm = @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid ? eid.to_i : 0]
+      #prm = @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid ? eid.to_i : 0]
+      prm = @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid.to_i]
       case prm
         when nil
           render file: '/public/401.html', status: 401, layout: false
           return
         when 'c'
-          status_botones crear: false
+          #status_botones crear: false
+          # ¡Ojo! Aquí no se puede usar status_botones ya que al ser el "index" el context se puede equivocar cuando sea un mantenimiento hijo ya que éste también tendrá un parent.document
+          @ajax << '$(".cl-crear").remove();'
       end
     end
 
@@ -1244,17 +1246,21 @@ class ApplicationController < ActionController::Base
 
     set_parent
 
+    emp_perm = nil
+
     if clm.mant?
       if @fact.id != 0
         if @fact.respond_to?('empresa')
           @dat[:eid] = @fact.empresa.id
         elsif clm.superclass.to_s == 'Empresa'
           @dat[:eid] = @fact.id
+        else
+          emp_perm = get_empeje[0].to_i
         end
 
         if @fact.respond_to?('ejercicio')
           @dat[:jid] = @fact.ejercicio.id
-        elsif clm.superclass.to_s == 'Empresa'
+        elsif clm.superclass.to_s == 'Ejercicio'
           @dat[:jid] = @fact.id
         end
 
@@ -1285,11 +1291,13 @@ class ApplicationController < ActionController::Base
       set_empeje(eid, jid)
     end
 
+    emp_perm ||= (@dat[:eid] || 0)
+
     # Control de permisos
     @dat[:prm] = 'p'
     unless @usu.admin or params[:controller] == 'gi' or (clm.mant? and @fact.id == 0)
-      #@dat[:prm] = params[:padre] ? params[:prm] : @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
-      @dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
+      #@dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
+      @dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][emp_perm]
       case @dat[:prm]
         when nil
           render file: '/public/401.html', status: 401, layout: false
