@@ -1291,7 +1291,7 @@ class ApplicationController < ActionController::Base
       set_empeje(eid, jid)
     end
 
-    emp_perm ||= (@dat[:eid] || 0)
+    emp_perm ||= @dat[:eid].to_i
 
     # Control de permisos
     @dat[:prm] = 'p'
