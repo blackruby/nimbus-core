@@ -36,17 +36,25 @@ module Nimbus
     I18n.t('date.month_names')[1..-1].map.with_index {|m,i| [i+1, m.capitalize]}.to_h
   end
 
+  def self.procesar_add
+    @procesar_add
+  end
+
   def self.load_adds(fi)
     f = fi.split('/')
     iapp = f.index('app')
     fic = '/' + f[iapp..-1].join('/')[0..-4] + '_add.rb'
     rails_root = Rails.root.to_s
+    # Poner a true la variable @procesar_add para que los ficheros "_add" puedan satisfacer el "if" de procesamiento
+    # y sólo se procesen cuando son cargados desde aquí y no automáticamente por rails (en modo production)
+    @procesar_add = true
     Modulos.each {|m|
       p = rails_root + '/' + m + fic
       if File.exists? p
         Rails.env == 'development' ? require_dependency(p) : load(p)
       end
     }
+    @procesar_add = nil
 
     # Tratamientos especiales en el caso de que sea un controlador
 
@@ -128,12 +136,19 @@ module Nimbus
     }
   end
 
+  # Método para transliterar la hora recibida como argumento a UTC (no convertida sino transliterada)
+  # Si la hora recibida fuera 19:10CEST esta función devolvería 19:10UTC
+  def self.time(t)
+    Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
+  end
+
   # Método para obtener la hora actual pero en UTC (no convertida sino transliterada)
   # Si la hora del sistema fuera 19:10CEST esta función devolvería 19:10UTC
   # Lo recomendable es usarla siempre para no tener líos con los time zones
   def self.now
-    t = Time.now
-    Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
+    #t = Time.now
+    #Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
+    self.time(Time.now)
   end
 
   # Método para adecuar un valor a algo razonable. Su uso de momento está restringido
@@ -142,7 +157,7 @@ module Nimbus
   # En los demás casos devuelve el valor inalterado. Esto es importante en la genaración
   # de xlsx para que no haga conversiones no deseadas en las horas.
   def self.nimval(val)
-    if val.is_a?(Time)
+    if val.is_a?(Time) or val.is_a?(DateTime)
       Time.new(val.year, val.month, val.day, val.hour, val.min, val.sec)
     else
       val
@@ -1008,6 +1023,10 @@ module MantMod
         if val
           t = val.is_a?(String) ? val.to_time : val
           return(Time.utc(2000, 1, 1, t.hour, t.min, t.sec))
+        end
+      when :datetime
+        if val && val.is_a?(String)
+          return Nimbus.time(val.to_time)
         end
       when :string
         return val.to_s
