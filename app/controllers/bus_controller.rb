@@ -88,9 +88,17 @@ class BusController < ApplicationController
     end
 
     clm = @mod.constantize
+    modelo_bus = clm.modelo_bus
+    if modelo_bus
+      @mod = modelo_bus
+      @views = ([modelo_bus] + clm.db_views.to_a).uniq
+      clm = modelo_bus.constantize
+    else
+      @views = [@mod] + clm.db_views.to_a
+    end
+
     tabla = clm.table_name
     @tabla = nt tabla
-    @views = [@mod] + clm.db_views.to_a
 
     ctr = flash[:ctr] || params[:ctr] || '_'
 

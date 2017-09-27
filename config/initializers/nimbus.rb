@@ -1260,6 +1260,10 @@ module Modelo
       res = nim_eval((@campos ? @campos : @propiedades)[cmp][prop], cntxt)
       Nimbus::ParamsDobleEval.include?(prop) && res.is_a?(String) ? eval(res) : res
     end
+
+    def modelo_bus
+      @modelo_bus
+    end
   end
 
   ### Métodos de instancia
