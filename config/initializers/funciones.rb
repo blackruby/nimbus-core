@@ -41,10 +41,10 @@ class String
     end
     calculated_number = (10 - ((n1 + n2) % 10)) % 10
     calculated_number = 10 if calculated_number == 0
+    check = '10' if check == '0'
     calculated_letter = (64 + calculated_number).chr
 
     if letter.match(/[QRPNS]/)
-
       return check.to_s == calculated_letter.to_s
     else
 
