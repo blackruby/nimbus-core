@@ -98,6 +98,8 @@ $(window).load(function () {
           if (parent != self && $.isFunction(parent.newFicha)) {e.preventDefault(); parent.newFicha();}
         } else if (e.which == 66) { // Alt-b
           if (parent != self && $.isFunction(parent.pkSearch)) {e.preventDefault(); parent.pkSearch();}
+        } else if (e.which == 68) { // Alt-d
+          if (parent != self && $.isFunction(parent.ospGrid)) {e.preventDefault(); parent.ospGrid();}
         } else if (e.which == 65) { // Alt-a
           if (parent != self && $.isFunction(parent.newFicha)) {
             e.preventDefault();

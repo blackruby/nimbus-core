@@ -230,7 +230,8 @@ class GiController < ApplicationController
     begin
       case params[:modulo]
         when ''
-          render text: 'n'
+          #render text: 'n'
+          render plain: 'n'
           return
         when 'privado'
           path = "formatos/_usuarios/#{@usu.codigo}/"
@@ -244,10 +245,12 @@ class GiController < ApplicationController
 
       FileUtils.mkdir_p(path)
       File.write(path + params[:formato] + '.yml', eval(params[:data]).to_yaml)
-      render text: 's'
+      #render text: 's'
+      render plain: 's'
     rescue Exception => e
       pinta_exception(e)
-      render text: 'n'
+      #render text: 'n'
+      render plain: 'n'
     end
   end
 

@@ -125,6 +125,10 @@ function mantBorrarGrid() {
   $("#ficha")[0].contentWindow.mant_borrar();
 }
 
+function ospGrid() {
+  $("#ficha")[0].contentWindow.callFonServer('osp');
+}
+
 function pkSearch() {
   $(".mdl-navigation").css('display', 'none');
   if ($(window).width() <= 600) $(".grid-title").css('display', 'none');

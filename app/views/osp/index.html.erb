@@ -1,0 +1,42 @@
+<div id="d-botones" class="nim-bgcolor-1">
+  <% unless @dir.empty? %>
+  <button title="Volver a carpeta anterior" class="osp-but-l mdl-button mdl-js-button mdl-js-ripple-effect" onclick="ospAbrirBack()">
+    <i class="material-icons c-boton">arrow_back</i>
+  </button>
+  <% end %>
+  <label><%= @titulo.to_s.html_safe %></label>
+  <button title="" class="osp-but-r mdl-button mdl-js-button mdl-js-ripple-effect" onclick="ospCrearFolder()">
+    <i class="material-icons">folder</i>
+  </button>
+  <button title="" class="osp-but-r mdl-button mdl-js-buttyn mdl-js-ripple-effect" onclick="searchBar()">
+    <i class="material-icons">file_upload</i>
+  </button>
+</div>
+
+<div id="d-files">
+</div>
+
+<div id="d-pie">
+  <%= @dir.html_safe %>
+</div>
+
+<div id="menu" class="nim-context-menu">
+  <ul class="nim-context-menu-ul">
+    <li id="li-abr" class="nim-context-menu-li" onClick="ospAbrir()"><i class="material-icons c-bajo">folder_open</i>Abrir</li>
+    <li class="nim-context-menu-li" onClick="ospDescargar()"><i class="material-icons c-bajo">file_download</i>Descargar</li>
+    <li class="nim-context-menu-li" onClick="ospBorrar()"><i class="material-icons c-bajo">delete</i>Eliminar</li>
+    <li id="li-mov" class="nim-context-menu-li"><i class="material-icons c-bajo">folder</i>Mover a...<i class="material-icons c-bajo">chevron_right</i></li>
+    <li id="li-add" class="nim-context-menu-li"><i class="material-icons c-bajo">picture_as_pdf</i>Añadir a...<i class="material-icons c-bajo">chevron_right</i></li>
+  </ul>
+</div>
+
+<div id="menu2" class="nim-context-menu">
+  <ul id="menu2-ul" class="nim-context-menu-ul">
+  </ul>
+</div>
+
+<script>
+  nimFiles = <%= @files.to_json.html_safe %>;
+  _vista = <%= @v.id %>
+  _controlador = 'osp'
+</script>

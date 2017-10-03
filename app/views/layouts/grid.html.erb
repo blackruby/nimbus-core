@@ -41,6 +41,12 @@
       <button title="Eliminar" class="cl-borrar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" disabled onclick="mantBorrarGrid()">
         <i class="material-icons">delete</i>
       </button>
+      <% if Nimbus::Config[:osp] %>
+        &nbsp; &nbsp; &nbsp; &nbsp;
+        <button title="Documentos asociados (Alt-d)" id="b-osp" disabled onclick="ospGrid()" class="cl-osp nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
+          <i class="material-icons">attach_file</i>
+        </button>
+      <% end %>
       &nbsp; &nbsp; &nbsp; &nbsp;
       <button title="Muestra/Oculta rejilla de datos (Alt-v)" id="b-collapse" onclick="gridCollapse()" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
         <i class="material-icons">swap_vert</i>
@@ -54,6 +60,9 @@
         <li class="cl-crear nim-phone mdl-menu__item" onclick="newFicha()"> <i class="material-icons">add</i> Nueva </li>
         <li class="cl-grabar nim-phone mdl-menu__item" disabled onclick="liFon(this, mantGrabarGrid)"> <i class="material-icons">save</i> Grabar </li>
         <li class="cl-borrar nim-phone mdl-menu__item" disabled onclick="liFon(this, mantBorrarGrid)"> <i class="material-icons">delete</i> Eliminar </li>
+        <% if Nimbus::Config[:osp] %>
+          <li class="cl-osp nim-phone mdl-menu__item" disabled onclick="liFon(this, ospGrid)"> <i class="material-icons">attach_file</i> Documentos </li>
+        <% end %>
         <% if @view[:menu_r].size > 0 %>
           <hr class="nim-phone">
           <%  @view[:menu_r].each_with_index {|m, i| %>

@@ -46,6 +46,8 @@ Rails.application.routes.draw do
   get 'application/auto' => 'application#auto'
   get 'nim_download' => 'application#nim_download'
   get 'nim_send_file' => 'application#nim_send_file'
+  get 'osp' => 'osp#index'
+  post 'osp/fon_server' => 'osp#fon_server'
   post 'application/destroy_vista' => 'application#destroy_vista'
 
   post 'noticias' => 'application#noticias'

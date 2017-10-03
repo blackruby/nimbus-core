@@ -588,6 +588,17 @@ class ApplicationController < ActionController::Base
     @ajax << "p2p(#{tit.to_json}, #{label.to_s.to_json}, #{pbar.to_json}, #{cancel.to_json}, #{width.to_json}, #{mant.to_json}, #{fin.to_json});"
   end
 
+  # Método para invocar al explorador de documentos asociados (oficina sin papeles: osp)
+  def osp
+    if @fact && @fact.id && (@dat[:prm] == 'p' || @dat[:prm] == 'c')
+      flash[:tit] = class_modelo.find(@fact.id).auto_comp_value(:form)
+      flash[:ruta] = "data/#{class_modelo}/#{@fact.id}/osp"
+      flash[:prm] = @dat[:prm]
+
+      @ajax << 'window.open("/osp", "_blank", "width=700, height=500, left=" + (window.screenLeft + (window.outerWidth - 700)/2) + ", top=" + (window.screenTop + (window.outerHeight - 500)/2));'
+    end
+  end
+
   # Métodos para el manejo del histórico de un modelo
 
   def histo
@@ -1139,7 +1150,8 @@ class ApplicationController < ActionController::Base
     @ajax << '_vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
 
     #Activar botones necesarios (Grabar/Borrar)
-    @ajax << 'statusBotones({grabar: true, borrar: false});'
+    #@ajax << 'statusBotones({grabar: true, borrar: false});'
+    status_botones grabar: true, borrar: false, osp: false
 
     #before_envia_ficha if self.respond_to?('before_envia_ficha')
     call_nimbus_hook :before_envia_ficha
@@ -1268,7 +1280,8 @@ class ApplicationController < ActionController::Base
         set_empeje
 
         #Activar botones necesarios (Grabar/Borrar)
-        @ajax << 'statusBotones({grabar: true, borrar: true});'
+        #@ajax << 'statusBotones({grabar: true, borrar: true});'
+        status_botones grabar: true, borrar: true, osp: true
       else
 =begin
         @dat[:eid] = params[:eid]
@@ -1746,7 +1759,8 @@ class ApplicationController < ActionController::Base
 
     @fact = clm.find_by id: params[:id]
     if @fact.nil?
-      render text: nt('errors.messages.record_inex')
+      #render text: nt('errors.messages.record_inex')
+      render plain: nt('errors.messages.record_inex')
       return
     end
 
@@ -1773,9 +1787,11 @@ class ApplicationController < ActionController::Base
           @fact.save
         end
       end
-      render text: ''
+      #render text: ''
+      render plain: ''
     else
-      render text: err
+      #render text: err
+      render plain: err
     end
   end
 
@@ -2496,7 +2512,8 @@ class ApplicationController < ActionController::Base
             sincro_hijos if @fant[:id].nil?
 
             #Activar botones necesarios (Grabar/Borrar)
-            @ajax << 'statusBotones({borrar: true});'
+            #@ajax << 'statusBotones({borrar: true});'
+            status_botones borrar: true, osp: true
           end
         end
 
@@ -2508,8 +2525,11 @@ class ApplicationController < ActionController::Base
 
         @ajax << 'hayCambios=false;'
       else
-        @ajax << '$("#' + last_c + '").focus();' if last_c
-        mensaje tit: 'Errores en el registro', msg: err
+        # Si la cadena de error vale '@' No se pinta nada (y además no se ha grabado el registro). Es un convenio para vali_save
+        unless err == '@'
+          @ajax << '$("#' + last_c + '").focus();' if last_c
+          mensaje tit: 'Errores en el registro', msg: err
+        end
       end
     rescue ActiveRecord::RecordNotUnique
       mensaje 'Grabación cancelada. Ya existe la clave'
@@ -2530,7 +2550,8 @@ class ApplicationController < ActionController::Base
     @fact.save
     sincro_hijos unless id
     grid_reload
-    @ajax << 'statusBotones({borrar: true});'
+    #@ajax << 'statusBotones({borrar: true});'
+    status_botones borrar: true, osp: true
     @ajax << 'hayCambios=false;'
   end
 
