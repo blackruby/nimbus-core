@@ -418,17 +418,26 @@ class ApplicationController < ActionController::Base
   # <i>file_cli</i> es el nombre que se propondrá para la descarga<br>
   # <i>rm</i> puede valer true o false en función de si queremos que el fichero se borre tras la descarga.<br>
   # <i>disposition</i> puede valer 'attachment' (por defecto) o 'inline' para que el fichero se descargue y se abra.
+  # <i>popup</i> Si vale true la ventana donde se muestra el fichero será flotante (solo válido para disposition: 'inline')
   # Notar que los argumentos son con nombre. Ejemplo de uso:<br>
   # <pre>envia_fichero file: '/tmp/zombi.pdf', file_cli: 'datos.pdf', rm: false</pre>
   # Si no se especifica <i>file_cli</i> se usará <i>file</i>. Y si no se especifica <i>rm</i> se asume true
   ##
 
-  def envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment')
+  def envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment', popup: false)
     flash[:file] = file
     flash[:file_cli] = file_cli
     flash[:rm] = rm
     flash[:disposition] = disposition
-    @ajax << "window.open('/nim_download');"
+    if disposition == 'attachment'
+      @ajax << "window.location.href='/nim_download';"
+    else
+      if popup
+        @ajax << 'window.open("/nim_download", "_blank", "width=700, height=750, left=" + (window.screenLeft + (window.outerWidth - 700)/2) + ", top=10");'
+      else
+        @ajax << "window.open('/nim_download');"
+      end
+    end
   end
 
   def nim_download
@@ -590,10 +599,12 @@ class ApplicationController < ActionController::Base
 
   # Método para invocar al explorador de documentos asociados (oficina sin papeles: osp)
   def osp
-    if @fact && @fact.id && (@dat[:prm] == 'p' || @dat[:prm] == 'c')
+    if @fact && @fact.id
       flash[:tit] = class_modelo.find(@fact.id).auto_comp_value(:form)
       flash[:ruta] = "data/#{class_modelo}/#{@fact.id}/osp"
       flash[:prm] = @dat[:prm]
+
+      FileUtils.mkpath(flash[:ruta])
 
       @ajax << 'window.open("/osp", "_blank", "width=700, height=500, left=" + (window.screenLeft + (window.outerWidth - 700)/2) + ", top=" + (window.screenTop + (window.outerHeight - 500)/2));'
     end

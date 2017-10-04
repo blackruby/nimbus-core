@@ -1,32 +1,41 @@
 <div id="d-botones" class="nim-bgcolor-1">
   <% unless @dir.empty? %>
-  <button title="Volver a carpeta anterior" class="osp-but-l mdl-button mdl-js-button mdl-js-ripple-effect" onclick="ospAbrirBack()">
-    <i class="material-icons c-boton">arrow_back</i>
-  </button>
+    <label title="Volver a carpeta anterior" class="osp-but osp-but-l" onclick="ospAbrirBack()">
+      <i class="material-icons c-boton">arrow_back</i>
+    </label>
   <% end %>
-  <label><%= @titulo.to_s.html_safe %></label>
-  <button title="" class="osp-but-r mdl-button mdl-js-button mdl-js-ripple-effect" onclick="ospCrearFolder()">
-    <i class="material-icons">folder</i>
-  </button>
-  <button title="" class="osp-but-r mdl-button mdl-js-buttyn mdl-js-ripple-effect" onclick="searchBar()">
-    <i class="material-icons">file_upload</i>
-  </button>
+  <label id="l-tit"><%= @titulo.to_s.html_safe %></label>
+  <% unless @prm == 'c' %>
+    <label title="Crear nueva carpeta" class="osp-but osp-but-r" onclick="ospCrearFolder()">
+      <i class="material-icons">folder</i>
+    </label>
+    <%= form_tag("/osp/fon_server?fon=osp_upload&vista=#{@v.id}", method: "post", multipart: true, target: 'osp-iframe') do %>
+      <input id="osp-upload" name="osp[]" multiple type="file" class="nim-input-img" onchange="$(this).parent().submit()"/>
+      <label title="Subir archivos..." for="osp-upload" class="osp-but osp-but-r">
+        <i class="material-icons">file_upload</i>
+      </label>
+    <% end %>
+  <% end %>
 </div>
+<iframe name="osp-iframe" style="display: none"></iframe>
 
 <div id="d-files">
 </div>
 
-<div id="d-pie">
-  <%= @dir.html_safe %>
-</div>
+<div id="d-pie"><label id="l-dir"><%= @dir.html_safe %></label></div>
 
 <div id="menu" class="nim-context-menu">
   <ul class="nim-context-menu-ul">
     <li id="li-abr" class="nim-context-menu-li" onClick="ospAbrir()"><i class="material-icons c-bajo">folder_open</i>Abrir</li>
     <li class="nim-context-menu-li" onClick="ospDescargar()"><i class="material-icons c-bajo">file_download</i>Descargar</li>
-    <li class="nim-context-menu-li" onClick="ospBorrar()"><i class="material-icons c-bajo">delete</i>Eliminar</li>
-    <li id="li-mov" class="nim-context-menu-li"><i class="material-icons c-bajo">folder</i>Mover a...<i class="material-icons c-bajo">chevron_right</i></li>
-    <li id="li-add" class="nim-context-menu-li"><i class="material-icons c-bajo">picture_as_pdf</i>Añadir a...<i class="material-icons c-bajo">chevron_right</i></li>
+    <% if @prm == 'p' %>
+      <li class="nim-context-menu-li" onClick="ospBorrar()"><i class="material-icons c-bajo">delete</i>Eliminar</li>
+    <% end %>
+    <% unless @prm == 'c' %>
+      <li id="li-ren" class="nim-context-menu-li" onClick="ospRename()"><i class="material-icons c-bajo">edit</i>Renombrar</li>
+      <li id="li-mov" class="nim-context-menu-li"><i class="material-icons c-bajo">folder</i>Mover a...<i class="material-icons c-bajo">chevron_right</i></li>
+      <li id="li-add" class="nim-context-menu-li"><i class="material-icons c-bajo">picture_as_pdf</i>Añadir a...<i class="material-icons c-bajo">chevron_right</i></li>
+    <% end %>
   </ul>
 </div>
 
@@ -35,8 +44,19 @@
   </ul>
 </div>
 
+<div id="d-borrar" title="Borrado" style="display: none">
+  <p>
+    <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+    Los archivos y carpetas seleccionados serán eliminados.<br>¿Desea continuar?
+  </p>
+</div>
+
+<div id="d-nombre" title="Nuevo nombre" style="display: none">
+  <input id="inp-nombre" />
+</div>
+
 <script>
   nimFiles = <%= @files.to_json.html_safe %>;
-  _vista = <%= @v.id %>
-  _controlador = 'osp'
+  _vista = <%= @v.id %>;
+  _controlador = 'osp';
 </script>

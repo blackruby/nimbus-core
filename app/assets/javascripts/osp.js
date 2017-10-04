@@ -115,19 +115,15 @@ z M42.5,24h-19v-2h19V24z M23.5,20v-2h19v2H23.5z"/>\
     nimFileSel = $(this).find("label");
     nimFileSel.addClass('nim-bgcolor-1').css("color", "white");
 
-    $("#li-abr").css("display", (nimFiles[nimFileSel.text()].type == 'folder' ? "block" : "none"));
-
     // Rellenar el array de elementos (ficheros) seleccionados
     nimFilesSel = [];
     $(".c-file .nim-bgcolor-1").each(function() {nimFilesSel.push($(this).text());});
-    console.log(nimFilesSel);
 
     // Rellenar el array de carpetas disponibles para poder mover dentro de ellas la selección
     nimFoldersFree = [];
+    if ($("#l-dir").text() != '') nimFoldersFree.push("..(Nivel anterior)")
     for (var f in nimFolders) if ($.inArray(nimFolders[f], nimFilesSel) == -1) nimFoldersFree.push(nimFolders[f]);
     $("#li-mov").css("display", (nimFoldersFree.length > 0 ? "block" : "none"));
-    console.log(nimFolders);
-    console.log(nimFoldersFree);
 
     // Rellenar el array de pdfs disponibles para poder añadirles la selección
     if (nimFilesSel.length == 1 && nimFiles[nimFilesSel[0]].type == 'pdf') {
@@ -136,6 +132,9 @@ z M42.5,24h-19v-2h19V24z M23.5,20v-2h19v2H23.5z"/>\
       $("#li-add").css("display", (nimPdfsFree.length > 0 ? "block" : "none"));
     } else
       $("#li-add").css("display", "none");
+
+    $("#li-abr").css("display", (nimFiles[nimFileSel.text()].type == 'folder' ? "block" : "none"));
+    $("#li-ren").css("display", (nimFilesSel.length == 1 ? "block" : "none"));
 
     $("#menu").css("display", "block").position({my: "top", at: "bottom", of: nimFileSel});
   });
@@ -159,16 +158,90 @@ z M42.5,24h-19v-2h19V24z M23.5,20v-2h19v2H23.5z"/>\
     $("#menu2-ul").html(htm);
     $("#menu2").css("display", "block").position({my: "left top", at: "right+3 top", of: this});
   });
+
+  $("#inp-nombre").on("input", function() {
+    var c;
+    var v = $(this).val();
+    var cur = $(this).caret().begin;
+
+    var vb = "";
+    for (var i = 0; c = v[i]; i++) if (c == '/' || i == 0 && c == '.') cur--; else vb += c;
+
+    $(this).css("color", vb in nimFiles ? "red" : "black");
+    $(this).val(vb);
+    $(this).caret(cur);
+
+    $("#b-nombre").button(vb == '' || vb in nimFiles ? "disable" : "enable")
+  }).on("keydown", function(e) {
+    if (e.keyCode == 13 && $("#b-nombre").attr("disabled") != "disabled") ospNewRename();
+  });
+
+  $("#d-borrar").dialog({
+    autoOpen: false,
+    resizable: false,
+    modal: true,
+    width: 'auto',
+    buttons: {
+      "Sí": function() {
+        $(this).dialog("close");
+        callFonServer('osp_borrar', {files: nimFilesSel});
+      },
+      No: function() {
+        $(this).dialog("close");
+      }
+    }
+  });
+
+  $("#d-nombre").dialog({
+    autoOpen: false,
+    resizable: false,
+    modal: true,
+    width: 'auto',
+    buttons: [{
+      id: 'b-nombre',
+      text: "Aceptar",
+      click: ospNewRename
+    }]
+  });
 });
 
 function ospAbrir() {
-  callFonServer('abrir', {fol: nimFileSel.text()});
+  callFonServer('osp_abrir', {fol: nimFileSel.text()});
 }
 
 function ospAbrirBack() {
-  callFonServer('abrir', {fol: '..'});
+  callFonServer('osp_abrir', {fol: '..'});
 }
 
 function ospMover(f) {
-  alert(f);
+  callFonServer('osp_mover', {org: nimFilesSel, dest: f})
+}
+
+function ospBorrar() {
+  $("#d-borrar").dialog('open');
+}
+
+function ospNewRename() {
+  if (ospNombreOp == 'new')
+    callFonServer('osp_new', {fol: $("#inp-nombre").val()});
+  else
+    callFonServer('osp_rename', {org: nimFileSel.text(), dest: $("#inp-nombre").val()});
+}
+
+function ospCrearFolder() {
+  ospNombreOp = 'new';
+  $("#b-nombre").button("disable");
+  $("#inp-nombre").val('');
+  $("#d-nombre").dialog('open');
+}
+
+function ospRename() {
+  ospNombreOp = 'mv';
+  $("#b-nombre").button("disable");
+  $("#inp-nombre").val(nimFileSel.text());
+  $("#d-nombre").dialog('open');
+}
+
+function ospDescargar() {
+  callFonServer('osp_descargar', {files: nimFilesSel})
 }
