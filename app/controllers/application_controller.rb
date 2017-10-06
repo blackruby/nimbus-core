@@ -301,7 +301,14 @@ class ApplicationController < ActionController::Base
   ##
 
   def visible(c)
-    @ajax << "$('##{c}').parent().css('display', 'block').parent().css('display', 'block');"
+=begin
+    if @fact.campos[c.to_sym][:type] == :boolean
+      @ajax << "$('##{c}').parent().parent().css('display', 'block').parent().css('display', 'block');"
+    else
+      @ajax << "$('##{c}').parent().css('display', 'block').parent().css('display', 'block');"
+    end
+=end
+    @ajax << "$('##{c}').closest('div').css('display', 'block').parent().css('display', 'block');"
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'invisible(cmp, collapse)'}
@@ -311,7 +318,14 @@ class ApplicationController < ActionController::Base
   ##
 
   def invisible(c, collapse=false)
-    @ajax << "$('##{c}').parent().#{collapse ? 'parent().' : ''}css('display', 'none');"
+=begin
+    if @fact.campos[c.to_sym][:type] == :boolean
+      @ajax << "$('##{c}').parent().parent().#{collapse ? 'parent().' : ''}css('display', 'none');"
+    else
+      @ajax << "$('##{c}').parent().#{collapse ? 'parent().' : ''}css('display', 'none');"
+    end
+=end
+    @ajax << "$('##{c}').closest('div').#{collapse ? 'parent().' : ''}css('display', 'none');"
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'visible_element(elemento)'}
