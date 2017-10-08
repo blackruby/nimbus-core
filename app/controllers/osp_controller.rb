@@ -27,6 +27,14 @@ class OspController < ApplicationController
               h[:type] = :xls
             when 'jpg', 'jpeg', 'svg', 'gif', 'png'
               h[:type] = :pic
+            when 'txt'
+              h[:type] = :txt
+            when 'doc', 'docx', 'odt'
+              h[:type] = :doc
+            when 'ppt', 'pptx', 'odf'
+              h[:type] = :ppt
+            when 'zip', 'gzip', 'tar', 'tgz', 'bz2', 'gz'
+              h[:type] = :zip
             else
               h[:type] = :file
           end
