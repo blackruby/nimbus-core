@@ -14,15 +14,22 @@ class OspController < ApplicationController
       name = f.split('/')[-1]
       h = @files[name] = {}
       if File.directory?(f)
-        h[:type] = 'folder'
+        h[:type] = :folder
       else
         ty = name.split('.')
         if ty.size == 1
-          h[:type] = 'file'
+          h[:type] = :file
         else
-          ext = ty[-1][0..2]
-          #h[:type] = %w(pdf xls txt zip doc ppt).include?(ext) ? ext : 'file'
-          h[:type] = %w(pdf xls).include?(ext) ? ext : 'file'
+          case ty[-1].downcase
+            when 'pdf'
+              h[:type] = :pdf
+            when 'xls', 'xlsx', 'csv', 'ods'
+              h[:type] = :xls
+            when 'jpg', 'jpeg', 'svg', 'gif', 'png'
+              h[:type] = :pic
+            else
+              h[:type] = :file
+          end
         end
       end
     }
@@ -75,10 +82,81 @@ class OspController < ApplicationController
     @ajax << 'location.reload();'
   end
 
+  def osp_add
+    return unless params[:org] && !params[:org].include?('/') && params[:dest] && !params[:dest].include?('/') && @dat && @dat[:ruta] && @dat[:prm] != 'c'
+
+    conf = Nimbus::Config[:osp].is_a?(Hash) ? Nimbus::Config[:osp] : {}
+    begin
+      f1 = "#{@dat[:ruta]}/#{@dat[:dir]}/#{params[:dest]}".gsub(' ', '\ ')
+      fo = "#{@dat[:ruta]}/#{@dat[:dir]}/#{params[:org]}"
+      f2 = fo.gsub(' ', '\ ')
+      fd = "/tmp/#{@v.id}"
+      `pdfunite #{f1} #{f2} #{fd} && mv #{fd} #{f1}`
+      if conf[:pdf_add_rm]
+        FileUtils.rm_f(fo) if conf[:pdf_add_rm]
+        osp_flash_to_dat
+        @ajax << 'location.reload();'
+      else
+        mensaje 'Añadido'
+      end
+    rescue Exception => e
+      pinta_exception(e, 'Error al añadir')
+      return
+    end
+  end
+
+  def osp_new_version(f)
+    n = 1
+    fa = f.split('.')
+    s = fa.size == 1 ? 0 : -2
+    nn = fa[s]
+    nf = ''
+    loop do
+      fa[s] = "#{nn} (#{n})"
+      nf = fa.join('.')
+      break unless File.exists?(nf)
+      n += 1
+    end
+    nf
+  end
+
   def osp_upload
     return unless params[:osp] && @dat && @dat[:ruta] && @dat[:prm] != 'c'
 
-    params[:osp].each {|f| FileUtils.cp(f.path, "#{@dat[:ruta]}/#{@dat[:dir]}/#{f.original_filename}")}
+    conf = Nimbus::Config[:osp].is_a?(Hash) ? Nimbus::Config[:osp] : {}
+
+    params[:osp].each {|f|
+      d = "#{@dat[:ruta]}/#{@dat[:dir]}/#{f.original_filename}"
+      da = f.original_filename.split('.')
+      dx = File.exists?(d)
+
+      cpdf = conf.dig(:upload, :pdf) || :version
+
+      if da[-1].downcase == 'pdf' && dx && cpdf != :version
+        fo = d.gsub(' ', '\ ')
+        fd = "/tmp/#{@v.id}"
+        if cpdf == :pre
+          f1 = f.path
+          f2 = fo
+        else
+          f1 = fo
+          f2 = f.path
+        end
+
+        `pdfunite #{f1} #{f2} #{fd} && mv -f #{fd} #{fo}`
+      else
+        if dx
+          case conf.dig(:upload, :version) || :new
+            when :new
+              d = osp_new_version(d)
+            when :old
+              FileUtils.mv(d, osp_new_version(d))
+          end
+        end
+
+        FileUtils.cp(f.path, d)
+      end
+    }
 
     osp_flash_to_dat
 
@@ -142,7 +220,7 @@ class OspController < ApplicationController
 
     file = "#{@dat[:ruta]}/#{@dat[:dir]}/#{files[0]}"
     if files.size == 1 and !File.directory?(file)
-      envia_fichero(file: file, rm: false, disposition: files[0].split('.')[-1] == 'pdf' ? 'inline' : 'attachment', popup: true)
+      envia_fichero(file: file, rm: false, disposition: %w(pdf jpg jpeg gif png svg txt).include?(files[0].split('.')[-1].downcase) ? 'inline' : 'attachment', popup: true)
     else
       file = "/tmp/nim#{@v.id}.zip"
       dir = "#{@dat[:ruta]}/#{@dat[:dir]}".gsub(' ', '\ ')

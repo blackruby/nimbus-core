@@ -81,6 +81,16 @@ C38.936,49.261,39.041,49.7,39.041,50.238z"/>\
 M13.5,18h8v2h-8V18z M13.5,22h8v2h-8V22z M13.5,26h8v2h-8V26z M21.5,32h-8v-2h8V32z M42.5,32h-19v-2h19V32z M42.5,28h-19v-2h19V28\
 z M42.5,24h-19v-2h19V24z M23.5,20v-2h19v2H23.5z"/>\
 </g>\
+\
+<g id="s-pic">\
+<rect x="1" y="7" style="fill:#C3E1ED;stroke:#E7ECED;stroke-width:2;stroke-miterlimit:10;" width="56" height="44"/>\
+<circle style="fill:#ED8A19;" cx="16" cy="17.569" r="6.569"/>\
+<polygon style="fill:#1A9172;" points="56,36.111 55,35 43,24 32.5,35.5 37.983,40.983 42,45 56,45 "/>\
+<polygon style="fill:#1A9172;" points="2,49 26,49 21.983,44.983 11.017,34.017 2,41.956 "/>\
+<rect x="2" y="45" style="fill:#6B5B4B;" width="54" height="5"/>\
+<polygon style="fill:#25AE88;" points="37.983,40.983 27.017,30.017 10,45 42,45 "/>\
+</g>\
+\
 </defs>\
 </svg>\
 ');
@@ -101,11 +111,16 @@ z M42.5,24h-19v-2h19V24z M23.5,20v-2h19v2H23.5z"/>\
   }
 
   $(".c-file").click(function(e) {
-    var f = $(this).find("label");
-    if (f.hasClass('nim-bgcolor-1'))
-      f.removeClass('nim-bgcolor-1').css("color", "black");
-    else
+    f = $(this).find("label");
+    if (e.ctrlKey)
+      if (f.hasClass('nim-bgcolor-1'))
+        f.removeClass('nim-bgcolor-1').css("color", "black");
+      else
+        f.addClass('nim-bgcolor-1').css("color", "white");
+    else {
+      $(".c-file label").removeClass('nim-bgcolor-1').css("color", "black");
       f.addClass('nim-bgcolor-1').css("color", "white");
+    }
   }).dblclick(function(e) {
     nimFileSel = $(this).find("label");
     if (nimFiles[nimFileSel.text()].type == 'folder') ospAbrir();
@@ -113,6 +128,7 @@ z M42.5,24h-19v-2h19V24z M23.5,20v-2h19v2H23.5z"/>\
     e.preventDefault();
 
     nimFileSel = $(this).find("label");
+    if (!nimFileSel.hasClass('nim-bgcolor-1') && !e.ctrlKey) $(".c-file label").removeClass('nim-bgcolor-1').css("color", "black");
     nimFileSel.addClass('nim-bgcolor-1').css("color", "white");
 
     // Rellenar el array de elementos (ficheros) seleccionados
@@ -153,7 +169,7 @@ z M42.5,24h-19v-2h19V24z M23.5,20v-2h19v2H23.5z"/>\
     e.stopPropagation();
     var htm = '';
     for (var f in nimPdfsFree) {
-      htm += '<li class="nim-context-menu-li" onClick="ospAdd()">' + nimPdfsFree[f] + '</li>';
+      htm += '<li class="nim-context-menu-li" onClick="ospAdd($(this).text())">' + nimPdfsFree[f] + '</li>';
     }
     $("#menu2-ul").html(htm);
     $("#menu2").css("display", "block").position({my: "left top", at: "right+3 top", of: this});
@@ -215,6 +231,10 @@ function ospAbrirBack() {
 
 function ospMover(f) {
   callFonServer('osp_mover', {org: nimFilesSel, dest: f})
+}
+
+function ospAdd(f) {
+  callFonServer('osp_add', {org: nimFilesSel[0], dest: f})
 }
 
 function ospBorrar() {

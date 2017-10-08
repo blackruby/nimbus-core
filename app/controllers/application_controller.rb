@@ -613,7 +613,7 @@ class ApplicationController < ActionController::Base
 
   # Método para invocar al explorador de documentos asociados (oficina sin papeles: osp)
   def osp
-    if @fact && @fact.id
+    if Nimbus::Config[:osp] && @fact && @fact.id
       flash[:tit] = class_modelo.find(@fact.id).auto_comp_value(:form)
       flash[:ruta] = "data/#{class_modelo}/#{@fact.id}/osp"
       flash[:prm] = @dat[:prm]
