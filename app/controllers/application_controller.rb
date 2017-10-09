@@ -2417,7 +2417,7 @@ class ApplicationController < ActionController::Base
     @g = @dat[:persistencia]
     err = vali_borra if self.respond_to?('vali_borra')
     if err
-      mensaje err
+      mensaje(err) unless err == '@'
     else
       class_mant.view? ? class_modelo.destroy(@fact.id) : @fact.destroy
 
