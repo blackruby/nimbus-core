@@ -1,0 +1,39 @@
+---
+# Este fichero tiene que estar situado en la carpeta "config" de la
+# gestión correspondiente (no aquí, ni en ningún otro módulo)
+#
+#
+# osp (Oficina sin papeles)
+# Posibles valores:
+# true Habilita la oficina sin papeles con todos los valores por defecto
+# hash de valores: Se indicarán los valores de las diferentes opciones
+:osp:
+  # Indica si al añadir un pdf a otro se debe de borrar o no
+  # el fichero después de añadido (por defecto vale false)
+  :pdf_add_rm: true
+  :upload:
+    # Indica como versionar los ficheros subidos cuando hay coincidencia de nombre.
+    # Posibles valores:
+    # :new Se añadirá nº de versión al fichero subido (valor por defecto)
+    # :old Se añadirá nº de versión al fichero ya existente
+    # :none No se versiona. El fichero subido reemplazará al existente
+    :version: :new
+    # Indica que hacer al subir un pdf cuyo nombre ya existe
+    # Posibles valores:
+    # :pre El fichero se añadirá por delante al ya existente
+    # :post El fichero se añadirá por detrás al ya existente
+    # :version No se hará un tratamiento especial y se seguirán los dictados
+    # del tag :version (es el valor por defecto) 
+    :pdf: :version
+#
+#
+#:excluir_usuarios: true
+#:excluir_paises: true
+#:excluir_divisas: true
+#:excluir_empresas: true
+#:excluir_ejercicios: true
+#:excluir_contadores: true
+#:excluir_perfiles: true
+#:excluir_accesos: true
+#:excluir_historicos: true
+#:excluir_gi: true
