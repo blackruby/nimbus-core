@@ -638,11 +638,15 @@ function vali_code(c, tam, pref, rell) {
 
 function mant_grabar(nueva) {
   var res;
+  /**
   if (parent == self) {
     if ($("button.cl-grabar").attr('disabled') == 'disabled') return;
   } else {
     if ($("button.cl-grabar", parent.document).attr('disabled') == 'disabled') return;
   }
+   **/
+  var context = $(".cl-grabar").size > 0 ? document : parent.document;
+  if ($("button.cl-grabar", context).attr('disabled') == 'disabled') return;
 
   // Para forzar la salida de edición de cualquier celda en cualquier grid editable que haya
   $(".ui-jqgrid-btable").jqGrid('editCell', 0, 0, false);
@@ -655,10 +659,12 @@ function mant_grabar(nueva) {
 
   if (nueva) res = $.extend(true, {_new: true}, res);
 
+  $("body", context).append('<div id="nim-body-modal" style="position: fixed; top: 0px; bottom: 0px; left: 0px; right: 0px; background-color: #d3d3d3; opacity: 0.5; z-index: 100000"></div>');
   $.ajax({
     url: '/' + _controlador + '/grabar',
     type: "POST",
-    data: $.extend(true, {vista: _vista}, res)
+    data: $.extend(true, {vista: _vista}, res),
+    success: function() {$("#nim-body-modal", context).remove();}
   });
 }
 
