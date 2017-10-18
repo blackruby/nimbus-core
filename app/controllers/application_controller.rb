@@ -868,6 +868,8 @@ class ApplicationController < ActionController::Base
     @v.save
     @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
 
+    after_index if self.respond_to?('after_index')
+
     pag_render('grid')
   end
 
