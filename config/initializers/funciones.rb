@@ -169,4 +169,18 @@ class String
 		}
 		false
 	end
+
+  # Método que devuelve una array con todos los valores incluidos en la cadena self (con la notación: a,b,c-d,e...)
+	def expande_rango
+    res = []
+		self.tr(' ', '').split(',').each {|r|
+			if r.include?('-')
+				rs = r.split('-')
+				(rs[0].to_i..rs[1].to_i).each{|i| res << i}
+			else
+				res << r.to_i
+			end
+		}
+		res
+	end
 end

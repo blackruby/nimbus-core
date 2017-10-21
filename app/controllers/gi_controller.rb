@@ -383,7 +383,13 @@ class GiController < ApplicationController
 
     lim = {}
     @fact.campos.each {|c, v|
-      lim[c] = v[:cmph] ? @fact[c.to_s[0..-4]].try(v[:cmph]) : @fact[c]
+      if v[:cmph]
+        lim[c] = @fact[c.to_s[0..-4]].try(v[:cmph])
+      elsif v[:rango]
+        lim[c] = @fact[c].expande_rango
+      else
+        lim[c] = @fact[c]
+      end
     }
 
     lim[:eid], lim[:jid] = get_empeje

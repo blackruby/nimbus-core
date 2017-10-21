@@ -195,7 +195,7 @@ function generaLim(ali, node, prop, cond) {
         break;
     }
   } else {
-    prop += ", type: :" + node.type;
+    if (cond != 'rg') prop += ", type: :" + node.type;
     switch(cond) {
       case 'eq':
         label = node.name;
@@ -208,6 +208,11 @@ function generaLim(ali, node, prop, cond) {
       case 'le':
         label = 'Hasta ' + node.name;
         wh = $("#asist_lim_ref").val() + ' <= ' + ':' + ali;
+        break;
+      case 'rg':
+        prop += ', rango: true'
+        label = node.name;
+        wh = $("#asist_lim_ref").val() + ' in (:' + ali + ')';
         break;
     }
   }
