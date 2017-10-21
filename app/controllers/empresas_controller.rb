@@ -2,18 +2,19 @@ unless Nimbus::Config[:excluir_empresas]
 
 class EmpresasMod < Empresa
   @campos = {
-    codigo: {tab: 'pre', grid:{}},
-    nombre: {tab: 'pre', grid:{}},
-    nombre_comercial: {tab: 'pre', grid:{}},
-    cif: {tab: 'pre', grid:{}},
-    direccion: {tab: 'pre', rol: :map},
-    cod_postal: {tab: 'pre', map: :direccion},
-    poblacion: {tab: 'pre', map: :direccion},
-    provincia: {tab: 'pre', map: :direccion},
-    telefono: {tab: 'pre', grid: {}},
-    fax: {tab: 'pre'},
-    email: {tab: 'pre', rol: :email},
-    web: {tab: 'pre', rol: :url},
+    codigo: {tab: 'pre', gcols: 3, grid:{}},
+    nombre: {tab: 'pre', grid:{}, span: true},
+    nombre_comercial: {tab: 'pre', grid:{}, span: true},
+    cif: {tab: 'pre', grid:{}, span: true},
+    direccion: {tab: 'pre', gcols: 4, rol: :map},
+    cod_postal: {tab: 'pre', map: :direccion, span: true},
+    poblacion: {tab: 'pre', map: :direccion, span: true},
+    provincia: {tab: 'pre', map: :direccion, span: true},
+    telefono: {tab: 'pre', gcols: 3, grid: {}},
+    fax: {tab: 'pre', span: true},
+    email: {tab: 'pre', rol: :email, span: true},
+    web: {tab: 'pre', rol: :url, span: true},
+    logo: {tab: 'pre', gcols: 2, img: {height: 200}},
   }
 
   @grid = {
