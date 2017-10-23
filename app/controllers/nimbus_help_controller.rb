@@ -8,6 +8,7 @@ class NimbusHelpController < ApplicationController
     @cap = {}
 
     procesa_file('Controladores', 'app/controllers/application_controller.rb')
+    procesa_file('GI', 'app/controllers/gi_controller.rb')
   end
 
   def procesa_file(cap, fi)
@@ -24,7 +25,7 @@ class NimbusHelpController < ApplicationController
       else
         next unless met
 
-        l.starts_with?('##') ? met = nil : met << "#{l[1..-1]}\n"
+        l.starts_with?('##') ? met = nil : met << "#{l[(l[0] == '#' ? 1 : 0)..-1]}\n"
       end
     }
   end
