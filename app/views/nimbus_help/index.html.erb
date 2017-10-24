@@ -29,14 +29,14 @@
 
 <div id="indice">
   <ul>
-    <% @cap.each_with_index {|h, i| %>
-      <li><a href="#c<%= i %>"><%= h[0] %>
+    <% @cap.each_with_index {|c, i| %>
+      <li><a href="#c<%= i %>"><%= c[0] %>
         <ul>
-          <% h[1].each_with_index {|h, i| %>
-            <li><a href="#s<%= i %>"><%= h[0] %>
+          <% c[1].each_with_index {|s, j| %>
+            <li><a href="#c<%= i %>s<%= j %>"><%= s[0] %>
               <ul>
-                <% h[1].each_with_index {|m, i| %>
-                  <li><a href="#m<%= i %>"><%= m[0][0..m[0].index('(').to_i-1] %></a></li>
+                <% s[1].each_with_index {|m, k| %>
+                  <li><a href="#c<%= i %>s<%= j %>m<%= k %>"><%= m[0][0..m[0].index('(').to_i-1] %></a></li>
                 <% } %>
               </ul>
             </a></li>
@@ -48,13 +48,13 @@
 </div>
 
 <div id="contenido">
-  <% @cap.each_with_index {|h, i| %>
-    <div id=c<%= i %> class="capitulo"><h2><%= h[0] %></h2></div>
-    <% h[1].each_with_index {|h, i| %>
-      <div id=s<%= i %> class="seccion"><h3><%= h[0] %></h3></div>
-      <% h[1].each_with_index {|m, i| %>
+  <% @cap.each_with_index {|c, i| %>
+    <div id=c<%= i %> class="capitulo"><h2><%= c[0] %></h2></div>
+    <% c[1].each_with_index {|s, j| %>
+      <div id=c<%= i %>s<%= j %> class="seccion"><h3><%= s[0] %></h3></div>
+      <% s[1].each_with_index {|m, k| %>
         <h4 class="metodo"><%= m[0] %></h4>
-        <p id=m<%= i %>><%= m[1].html_safe %></p>
+        <p id=c<%= i %>s<%= j %>m<%= k %>><%= m[1].html_safe %></p>
       <% } %>
     <% } %>
   <% } %>

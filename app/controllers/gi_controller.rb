@@ -383,7 +383,14 @@ class GiController < ApplicationController
 
     lim = {}
     @fact.campos.each {|c, v|
-      lim[c] = v[:cmph] ? @fact[c.to_s[0..-4]].try(v[:cmph]) : @fact[c]
+      if v[:cmph]
+        lim[c] = @fact[c.to_s[0..-4]].try(v[:cmph])
+      elsif v[:rango]
+        lim[c] = @fact[c].expande_rango
+        lim[(c.to_s + '_rango').to_sym] = @fact[c]
+      else
+        lim[c] = @fact[c]
+      end
     }
 
     lim[:eid], lim[:jid] = get_empeje
@@ -430,8 +437,8 @@ class GiController < ApplicationController
 end
 
 =begin
-Clase GI
-
+##nim-doc {sec: 'Acceso externo', met: 'URLs'}
+<pre>
 URLS asociadas
 --------------
 
@@ -450,7 +457,11 @@ alias que es ':form_type' para indicar el formato de salida (:pdf, :xlsx, :xls)
 Existe un argumento especial llamado 'go' que si tiene valor hará que el listado
 salga directamente sin pasar por la pantalla de límites. Ej.:
 /gi/run/conta/mayor?L1=00001&L2=99999&go=1
+</pre>
+##
 
+##nim-doc {sec: 'Acceso externo', met: 'Nomenclatura de módulos'}
+<pre>
 Nomenclaturas de 'modulo'
 -------------------------
 
@@ -458,7 +469,11 @@ privado: se refiere a "formatos/_usuarios/usuario"
 publico: "formatos/_publico"
 gestion: "formatos" (sustituir gestión por el nombre apropiado: cope, consejo, etc.)
 modulo: "modulos/modulo/formatos"
+</pre>
+##
 
+##nim-doc {sec: 'Programación', met: 'Hooks'}
+<pre>
 Métodos disponibles para definirlos en el fuente asociado al formato
 --------------------------------------------------------------------
 
@@ -531,7 +546,11 @@ pie
 
 final
   Se dispara al final del listado, después de pintar la banda 'pie'
+</pre>
+##
 
+##nim-doc {sec: 'Programación', met: 'Métodos'}
+<pre>
 Métodos disponibles para usar dentro de los métodos anteriores
 --------------------------------------------------------------
 
@@ -598,7 +617,11 @@ val_alias(alias, banda)
 
 set_cmp_ban(ban, ali, val)
   Asigna el valor 'val' al campo de la casilla 'ali' de la banda 'ban'
+</pre>
+##
 
+##nim-doc {sec: 'Programación', met: 'Variables'}
+<pre>
 Variables disponibles para usar en los métodos de usuario
 ---------------------------------------------------------
 
@@ -625,7 +648,11 @@ Variables disponibles para usar en los métodos de usuario
             @fx[:F1] nos daría el valor de la fórmula 'F1'
 @lim        Es un hash con el valor de los campos usados para límites.
             @lim[:L1] nos daría el valor del campo asociado al límite 'L1'
+</pre>
+##
 
+##nim-doc {sec: 'Programación', met: 'Gráficos estadísticos'}
+<pre>
 Ejemplos de gráficos estadísticos que se podrían añadir
 -------------------------------------------------------
 
@@ -653,6 +680,13 @@ end
 @sh.add_chart(Axlsx::ScatterChart, start_at: "D51", end_at: "M70", title: 'Scatter') do |chart|
   chart.add_series xData: @sh["B2:B6"], yData: @sh["C2:C6"], title: @sh["A1"], color: "FF0000"
 end
+
+Para los gráficos que necesitan un array de colores hay definidos varios arrays con colores razonables:
+GI::Colors Es un array con 9 colores
+GI::Colors20 Es un array con 20 colores
+GI::Colors20d Es un array con 20 colores más suaves
+</pre>
+##
 =end
 
 class GI

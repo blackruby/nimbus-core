@@ -81,7 +81,7 @@ namespace :nimbus do
 
           ty = cmp[:type].to_s
           ty = 'string' if ty == ''
-          mig.puts("        t.#{ty} :#{cmpn}")
+          mig.puts("        t.#{ty} :#{cmpn}#{ty == 'references' ? ', index: false' : ''}")
 
           if ty == 'references'
             if cmp[:ref].nil?
@@ -202,7 +202,7 @@ namespace :nimbus do
           mig.puts("    create_table(:#{tableh}) {|t|")
           mig.puts('      col.call(t)')
           mig.puts('      t.integer :idid')
-          mig.puts('      t.references :created_by')
+          mig.puts('      t.references :created_by, index: false')
           mig.puts('      t.timestamp :created_at')
           mig.puts('    }')
         end
