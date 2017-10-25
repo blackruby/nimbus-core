@@ -868,6 +868,8 @@ class ApplicationController < ActionController::Base
 
     @v.save
     @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
+    # Añadir distintivo de color de la empresa si procede
+    @ajax << %Q($("body").append('<div class="#{@e.param[:estilo]}" style="background-color: #{@e.param[:color]}"></div>');) if @e && @e.param[:estilo] && @e.param[:estilo] != 'nil' && !params[:mod]
 
     after_index if self.respond_to?('after_index')
 

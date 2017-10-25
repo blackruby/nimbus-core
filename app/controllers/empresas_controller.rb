@@ -14,7 +14,9 @@ class EmpresasMod < Empresa
     fax: {tab: 'pre', span: true},
     email: {tab: 'pre', rol: :email, span: true},
     web: {tab: 'pre', rol: :url, span: true},
-    logo: {tab: 'pre', gcols: 2, img: {height: 200}},
+    logo: {tab: 'pre', gcols: 2, img: {height: 68}},
+    estilo: {tab: 'pre', nil: true, sel: {nil: 'nim_color_emp_nil', nim_color_emp_banda: 'nim_color_emp_banda', nim_color_emp_tl: 'nim_color_emp_tl', nim_color_emp_c: 'nim_color_emp_c'}, span: true, param: true},
+    color: {tab: 'pre', manti: 20, attr: 'type="color"', span: true, param: true},
   }
 
   @grid = {
@@ -26,8 +28,21 @@ class EmpresasMod < Empresa
 
   @hijos = [{url: 'ejercicios', tab: 'post'}]
 
-  #def ini_campos_ctrl
-  #end
+  before_save :graba_param
+
+  def ini_campos_ctrl
+    self.campos.each {|c, v|
+      self[c] = self.param[c] if v[:param]
+    }
+    self.estilo = :nil unless self.estilo
+    self.color = '#000000' if self.color.to_s.empty?
+  end
+
+  def graba_param
+    self.campos.each {|c, v|
+      self.param[c] = self[c] if v[:param]
+    }
+  end
 end
 
 class EmpresasMod < Empresa

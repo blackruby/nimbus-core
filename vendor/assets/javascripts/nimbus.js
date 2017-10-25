@@ -689,7 +689,7 @@ function parentGridShow() {
 
 function mant_borrar() {
   if (nimGrabacionEnCurso) return;
-  
+
   $("#dialog-borrar").dialog("open");
 }
 
