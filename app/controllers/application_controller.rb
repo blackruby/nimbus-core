@@ -2610,16 +2610,21 @@ class ApplicationController < ActionController::Base
     flash[:jid] = @dat[:jid]
     flash[:wh] = @dat[:auto_comp][cmp] if @dat[:auto_comp] and @dat[:auto_comp][cmp]
     flash[:pref] = v[:bus] if v[:bus]
+    msel = v[:ref].constantize.auto_comp_mselect
+    flash[:msel] = msel if msel != ['*']
 
     @ajax << 'var w = window.open("/bus", "_blank", "width=700, height=500"); w._autoCompField = bus_input_selected;'
   end
 
   def bus_call_pk
-    flash[:mod] = class_modelo.to_s
+    clmod = class_modelo
+    flash[:mod] = clmod.to_s
     flash[:ctr] = params[:controller]
     flash[:eid] = @dat[:eid]
     flash[:jid] = @dat[:jid]
     flash[:wh] = @dat[:auto_comp][:_pk_input] if @dat[:auto_comp] and @dat[:auto_comp][:_pk_input]
+    msel = clmod.auto_comp_mselect
+    flash[:msel] = msel if msel != ['*']
 
     @ajax << 'var w = window.open("/bus", "_blank", "width=700, height=500"); w._autoCompField = "mant";'
   end

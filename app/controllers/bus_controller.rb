@@ -115,7 +115,7 @@ class BusController < ApplicationController
     end
 
     @v = Vista.new
-    @v.data = {mod: clm, view: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, join_emej: join_emej, order: '', who: flash[:wh].to_s, wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1]}
+    @v.data = {mod: clm, view: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, msel: flash[:msel], join_emej: join_emej, order: '', who: flash[:wh].to_s, wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1]}
 
     # Calcular fichero de preferencias
     fic_pref = nil
@@ -271,10 +271,9 @@ class BusController < ApplicationController
   end
 
   def genera_grid(kh, kv)
-    #mp = mselect_parse(@dat[:mod], @dat[:cols].map{|k, v| v[:label]})
-    mp = mselect_parse(@dat[:view], @dat[:cols].map{|k, v| v[:label]})
+    #mp = mselect_parse(@dat[:view], @dat[:cols].map{|k, v| v[:label]})
+    mp = mselect_parse(@dat[:view], @dat[:cols].map{|k, v| v[:label]} + @dat[:msel].to_a)
     @dat[:cad_sel] = mp[:cad_sel]
-    #jemej = @dat[:join_emej].to_s.empty? ? '' : ljoin_parse(@dat[:mod], @dat[:join_emej] + '(t_emej)')[:cad]
     jemej = @dat[:join_emej].to_s.empty? ? '' : ljoin_parse(@dat[:view], @dat[:join_emej] + '(t_emej)')[:cad]
     @dat[:cad_join] = mp[:cad_join] + ' ' + jemej
 
