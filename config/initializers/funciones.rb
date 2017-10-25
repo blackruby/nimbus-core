@@ -47,13 +47,12 @@ class String
     if letter.match(/[QRPNS]/)
       return check.to_s == calculated_letter.to_s
     else
-
       return check.to_i == calculated_number.to_i
     end
   end
   # Validates NIE
   def validate_nie(value)
-    value[0] = '0' if value[0] == 'X'
+    value[0] = '0'
     value[0] = '1' if value[0] == 'Y'
     value[0] = '2' if value[0] == 'Z'
     value.slice(0) if value.size > 9
@@ -68,9 +67,9 @@ class String
     case
       when value.match(/[0-9]{8}[a-z]/i)
         return validate_nif(value)
-      when value.match(/[a-w][0-9]{7}[0-9a-z]/i)
+      when value.match(/[a-jn-w][0-9]{7}[0-9a-z]/i)
         return validate_cif(value)
-      when value.match(/[xyz][0-9]{7,8}[a-z]/i)
+      when value.match(/[klmxyz][0-9]{7,8}[a-z]/i)
         return validate_nie(value)
     end
     return false
