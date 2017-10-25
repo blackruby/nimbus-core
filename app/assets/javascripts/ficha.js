@@ -84,6 +84,8 @@ $(window).load(function () {
 
   // Ctr-k Habilita los campos clave
   $(document).keydown(function(e) {
+    if (nimGrabacionEnCurso) return;
+
     if (_pkCmps) {
       // Es el caso de un mantenimiento
       if (e.ctrlKey && e.which == 75) {

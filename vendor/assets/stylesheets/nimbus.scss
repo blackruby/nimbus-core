@@ -10,6 +10,7 @@ $color-nim-context-menu-li: #EEEEEE;
 .nim-bgcolor-1 {background-color: $color-1}
 .nim-color-2 {color: $color-2}
 .nim-bgcolor-2 {background-color: $color-2}
+.nim-bgcolor-2-2 {background-color: $color-2-2}
 
 .c-herencia {background-color: #d3d3d3}
 .c-permitido {background-color: greenyellow}
@@ -248,4 +249,48 @@ body {
   border-style: solid;
   border-width: 1px;
   border-color: transparent $color-nim-label transparent transparent;
+}
+
+.nim-body-modal {
+  position: fixed;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  background-color: #d3d3d3;
+  opacity: 0.5;
+  z-index: 100000;
+}
+
+.nim_color_emp_tl {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 200px;
+  height: 200px;
+  z-index: 1000;
+  border-bottom-right-radius: 80%;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.nim_color_emp_c {
+  position: fixed;
+  top: 30%;
+  left: 30%;
+  width: 40%;
+  height: 40%;
+  z-index: 1000;
+  border-radius: 50%;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.nim_color_emp_banda {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 8px;
+  z-index: 1000;
 }

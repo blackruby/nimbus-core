@@ -556,6 +556,8 @@ function callFonServer(fon_s, data, fon_ret, sync) {
 }
 
 function send_validar(c, v, data) {
+  if (nimGrabacionEnCurso) return;
+
   $.ajax({
     url: '/' + _controlador + '/validar',
     type: "POST",
@@ -636,6 +638,7 @@ function vali_code(c, tam, pref, rell) {
   send_validar(c, c.val());
 }
 
+nimGrabacionEnCurso = false;
 function mant_grabar(nueva) {
   var res;
   /**
@@ -659,12 +662,16 @@ function mant_grabar(nueva) {
 
   if (nueva) res = $.extend(true, {_new: true}, res);
 
-  $("body", context).append('<div id="nim-body-modal" style="position: fixed; top: 0px; bottom: 0px; left: 0px; right: 0px; background-color: #d3d3d3; opacity: 0.5; z-index: 100000"></div>');
+  $("body", context).append('<div class="nim-body-modal"></div>');
+  nimGrabacionEnCurso = true;
   $.ajax({
     url: '/' + _controlador + '/grabar',
     type: "POST",
     data: $.extend(true, {vista: _vista}, res),
-    success: function() {$("#nim-body-modal", context).remove();}
+    success: function() {
+      $(".nim-body-modal", context).remove();
+      nimGrabacionEnCurso = false;
+    }
   });
 }
 
@@ -681,10 +688,14 @@ function parentGridShow() {
 }
 
 function mant_borrar() {
+  if (nimGrabacionEnCurso) return;
+  
   $("#dialog-borrar").dialog("open");
 }
 
 function mant_borrar_ok() {
+  if (nimGrabacionEnCurso) return;
+
   $.ajax({
     url: '/' + _controlador + '/borrar',
     type: "POST",
