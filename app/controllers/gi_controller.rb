@@ -976,7 +976,8 @@ class GI
   def rango(ali, niv=@rupi)
     ali = ali.to_sym
     col = @alias[:det][ali][:col]
-    "#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1}"
+    #"#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1}"
+    "#{col}#{@rup_ini[niv]}:#{col}#{@ri_act}"
   end
 
   def tot(ali, niv=@rupi)

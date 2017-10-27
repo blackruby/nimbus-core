@@ -196,6 +196,7 @@ function generaLim(ali, node, prop, cond) {
     }
   } else {
     if (cond != 'rg') prop += ", type: :" + node.type;
+    if (node.type == 'date' || node.type == 'datetime' || node.type == 'time') prop += ', req: true';
     switch(cond) {
       case 'eq':
         label = node.name;
