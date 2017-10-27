@@ -183,3 +183,11 @@ class String
 		res
 	end
 end
+
+def fecha_texto(fecha, formato = :default)
+  if fecha.nil?
+    ''
+  else
+    I18n.l(fecha, format: formato)
+  end
+end
