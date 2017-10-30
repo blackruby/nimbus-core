@@ -981,10 +981,8 @@ class GI
   end
 
   def tot(ali, niv=@rupi)
-    #ali = ali.to_sym
-    #col = @alias[:det][ali][:col]
-    #"=SUBTOTAL(9,#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1})"
-    "=SUBTOTAL(9,#{rango(ali, niv)})"
+    #"=SUBTOTAL(9,#{rango(ali, niv)})"
+    "SUBTOTAL(9,#{rango(ali, niv)})"
   end
 
   def val_campo(c, f=@d)
