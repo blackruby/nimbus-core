@@ -585,6 +585,7 @@ module MantMod
       @tags ||= []
       @columnas = []
       @campos_X = []
+      @nivel ||= :e # Variable para controlar el nivel (e: empresa, j: ejercicio, g: global) en el caso de procesos (en mantenimientos se ignora porque es automático)
 
 =begin
       @dialogos.each {|d|
@@ -974,6 +975,10 @@ module MantMod
 
     def tags
       @tags
+    end
+
+    def nivel
+      @nivel.to_sym
     end
   end
 
