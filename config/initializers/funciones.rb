@@ -52,9 +52,14 @@ class String
   end
   # Validates NIE
   def validate_nie(value)
-    value[0] = '0'
-    value[0] = '1' if value[0] == 'Y'
-    value[0] = '2' if value[0] == 'Z'
+    case value[0]
+      when 'Y'
+        value[0] = '1'
+      when 'Z'
+        value[0] = '2'
+      else
+        value[0] = '0'
+    end
     value.slice(0) if value.size > 9
     validate_nif(value)
   end
