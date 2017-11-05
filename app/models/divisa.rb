@@ -19,7 +19,7 @@ class Divisa < ActiveRecord::Base
 end
 
 class HDivisa < ActiveRecord::Base
-  belongs_to :created_by, :class_name => 'Usuario'
+  include Historico
 end
 
 Nimbus.load_adds __FILE__

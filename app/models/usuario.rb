@@ -150,7 +150,7 @@ class Usuario < ActiveRecord::Base
 end
 
 class HUsuario < ActiveRecord::Base
-  belongs_to :created_by, :class_name => 'Usuario'
+  include Historico
   serialize :pref
 end
 

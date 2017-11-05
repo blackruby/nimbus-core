@@ -32,7 +32,7 @@ class Empresa < ActiveRecord::Base
 end
 
 class HEmpresa < ActiveRecord::Base
-  belongs_to :created_by, :class_name => 'Usuario'
+  include Historico
 end
 
 Nimbus.load_adds __FILE__

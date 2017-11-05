@@ -33,7 +33,7 @@ class Ejercicio < ActiveRecord::Base
 end
 
 class HEjercicio < ActiveRecord::Base
-  belongs_to :created_by, :class_name => 'Usuario'
+  include Historico
 end
 
 Nimbus.load_adds __FILE__
