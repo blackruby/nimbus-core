@@ -237,6 +237,15 @@ function asistLim() {
   var node = $("#asist_lim_ref").data("cmp");
   if (node) {
     if (node.manti && !(node.pk && $("#asist_lim_pk").is(":checked"))) prop += ", manti: " + node.manti;
+    /*
+    if (node.decim) {
+      var ia = node.decim.toString().indexOf('#{');
+      if (ia == -1)
+        prop += ", decim: " + node.decim;
+      else
+        prop += ", decim: " + node.decim.slice(ia + 2, node.decim.lastIndexOf('}'));
+    }
+    */
     if (node.decim) prop += ", decim: " + node.decim;
 
     var cond = $("#asist_lim_cond").val();
@@ -353,17 +362,19 @@ function delHaving() {
 }
 
 function llenaEstilos() {
-  est = "";
+  var est = "";
   $("#t_estilos input").each(function(){
-    v = $(this).val();
+    var v = $(this).val();
     if (v.trim() != "") est += '<option value="' + (v == "def" ? "" : v) + '">' + v + '</option>';
   });
-  v = $("#estilo").val();
+  var v = $("#estilo").val();
   $("#estilo").html(est);
   $("#estilo").val(v);
 }
 
 function addEstilo(name, val) {
+  var elem;
+
   if (name == undefined) name = "";
   if (val == undefined) val = "";
 
@@ -381,23 +392,50 @@ function delEstilo() {
   llenaEstilos();
 }
 
-function checkEstilo(e) {
-  a = true;
-  $("#t_estilos input").each(function() {
-    if ($(this).val() == e) {
-      a = false;
-      return false;
+function checkEstilo(esti, decim) {
+  if (esti == "dyn") {
+    var mnd = 0;
+    var estiV = ":def_d, {format_code: '#,##0.'+'0'*" + decim + "}";
+
+    $("#t_estilos textarea").each(function() {
+      var e = $(this).parent().prev().find("input").val();
+      if ($(this).val() == estiV) {
+        esti = e;
+        return false;
+      }
+      if (e.substr(0, 4) == "dyn_") {
+        var nd = parseInt(e.slice(4));
+        if (!isNaN(nd) && nd > mnd) mnd = nd;
+      }
+    });
+    if (esti == "dyn") {
+      esti = "dyn_" + (mnd + 1);
+      addEstilo(esti, estiV);
+      llenaEstilos();
     }
-  });
-  if (a) {
-    n = e.slice(3);
-    c = "0000000000".slice(10-n);
-    addEstilo("dec" + n, ":def_d, {format_code: '#,##0." + c + "'}");
-    llenaEstilos();
+  } else {
+    var a = true;
+
+    $("#t_estilos input").each(function() {
+      if ($(this).val() == esti) {
+        a = false;
+        return false;
+      }
+    });
+    if (a) {
+      var n = esti.slice(3);
+      var c = "0000000000".slice(10-n);
+      addEstilo("dec" + n, ":def_d, {format_code: '#,##0." + c + "'}");
+      llenaEstilos();
+    }
   }
+
+  return(esti);
 }
 
 function fullCampo(node) {
+  var label;
+
   node = node || $("#tree_campos").tree('getSelectedNode');
   if (node) {
     label = node.name;
@@ -468,8 +506,8 @@ function genCol(ew) {
 }
 
 function genCadRow() {
-  cad = '<tr>';
-  for (i = 0; i < nCol; i++) {
+  var cad = '<tr>';
+  for (var i = 0; i < nCol; i++) {
     cad += genCell();
   }
   cad += '</tr>';
@@ -478,7 +516,7 @@ function genCadRow() {
 }
 
 function genRow(ns) {
-  cad = genCadRow();
+  var cad = genCadRow();
   (ns == 'n') ? $(celda.parent()).before(cad) : $(celda.parent()).after(cad);
   bBandaStatus();
   iniPropCell();
@@ -1068,7 +1106,7 @@ $(window).load(function () {
           prop.alias = name;
           // Estilo
           var esti = event.node.estilo;
-          if (event.node.type == 'decimal') checkEstilo(esti);
+          if (event.node.type == 'decimal') esti = checkEstilo(esti, event.node.decim);
           $("#estilo").val(esti);
           prop.estilo = esti;
           // Tipo
@@ -1129,7 +1167,7 @@ $(window).load(function () {
     }
   });
 
-  // A partir de aquí es ya inicialización (igual iría mejor en onload)
+  // A partir de aquí es ya inicialización
 
   $(window).resize(redimWindow);
   redimWindow();

@@ -1065,7 +1065,7 @@ class ApplicationController < ActionController::Base
 
   def var_for_views(clm)
     #@titulo = clm.titulo
-    set_titulo(clm.titulo, @e&.codigo, @j&.codigo)
+    set_titulo(@titulo || clm.titulo, @e&.codigo, @j&.codigo)
     @tabs = []
     @on_tabs = []
     @hijos = clm.hijos
@@ -1333,7 +1333,7 @@ class ApplicationController < ActionController::Base
       @dat[:eid] = eid
       @dat[:jid] = jid
 
-      case clm.nivel
+      case @nivel || clm.nivel
         when :e
           unless eid
             render file: '/public/no_emp', layout: false

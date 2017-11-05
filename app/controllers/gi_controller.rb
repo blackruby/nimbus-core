@@ -11,6 +11,21 @@ class GiMod
 end
 
 class GiController < ApplicationController
+  # Método para contantizar un modelo y, si es un histórico, constantizar antes el modelo original para que se carguen las clases correctamente
+  def h_constantize(mod)
+    begin
+      mod.constantize
+    rescue
+      im = mod.index('::')
+      if im
+        (mod[0..im+1] + mod[im+3..-1]).constantize
+      else
+        mod[1..-1].constantize
+      end
+      mod.constantize
+    end
+  end
+
   def nuevo_mod(mod, path)
     if File.directory?(path + '/' + mod)
       # Esto es el caso de módulos con module rails asociado
@@ -110,6 +125,7 @@ class GiController < ApplicationController
       @assets_javascripts = %w(gi_edita)
 
       @modelo = params[:modelo]
+=begin
       begin
         @modelo.constantize # Solo para provocar una excepción si no existe el modelo
       rescue
@@ -121,6 +137,16 @@ class GiController < ApplicationController
           return
         end
       end
+=end
+
+      # Comprobar si existe el modelo constantizándolo
+      begin
+        h_constantize(@modelo)
+      rescue
+        render file: '/public/404.html', status: 404, layout: false
+        return
+      end
+
       @modulo = 'privado'
       @formato = ''
       @form = {}
@@ -161,6 +187,7 @@ class GiController < ApplicationController
   end
 
   def campos
+=begin
     begin
       cl = params[:node].constantize
     rescue
@@ -168,6 +195,8 @@ class GiController < ApplicationController
       params[:node][1..-1].constantize
       cl = params[:node].constantize
     end
+=end
+    cl = h_constantize(params[:node])
 
     data = []
     cl.column_names.each {|c|
@@ -203,8 +232,13 @@ class GiController < ApplicationController
             d[:estilo] = 'int'
           when :decimal
             d[:ali] = 'd'
-            d[:decim] = decim
-            d[:estilo] = 'dec' + decim.to_s
+            if decim.is_a?(String)
+              d[:decim] = decim[decim.index('#{').to_i+2...decim.rindex('}').to_i]
+              d[:estilo] = 'dyn'
+            else
+              d[:decim] = decim
+              d[:estilo] = 'dec' + decim.to_s
+            end
           else
             d[:ali] = 'i'
         end
@@ -311,6 +345,20 @@ class GiController < ApplicationController
     @formato = GI.new(@gi_modulo, @gi_formato, @usu.codigo, nil)
     @form = @formato.formato
 
+    @titulo = @form[:descripcion] if @form[:descripcion] && !@form[:descripcion].strip.empty?
+    if @form[:modelo]
+      cl = h_constantize(@form[:modelo])
+      if cl.respond_to?('ejercicio_path')
+        @nivel = :j
+      elsif cl.respond_to?('empresa_path')
+        @nivel = :e
+      end
+      @titulo ||= 'Listado de ' + nt(cl.table_name)
+    else
+      @titulo ||= 'Listado'
+    end
+    @nivel ||= :g
+
     @form ? nil : {file: '/public/404.html', status: 404}
   end
 
@@ -335,6 +383,7 @@ class GiController < ApplicationController
       end
     end
 
+=begin
     if @form[:modelo]
       begin
         cl = @form[:modelo].constantize
@@ -347,11 +396,9 @@ class GiController < ApplicationController
       tit = 'Listado'
     end
 
-    if @form[:descripcion]
-      @titulo = @form[:descripcion].strip.empty? ? tit : @form[:descripcion]
-    else
-      @titulo = tit
-    end
+    tit = @form[:descripcion] if @form[:descripcion] && !@form[:descripcion].strip.empty?
+    set_titulo(tit, @e&.codigo, @j&.codigo)
+=end
 
     if @formato.respond_to?(:before_envia_ficha)
       eval(@formato.before_envia_ficha)
