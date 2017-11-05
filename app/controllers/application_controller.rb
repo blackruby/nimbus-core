@@ -801,39 +801,33 @@ class ApplicationController < ActionController::Base
     @view[:url_base] = '/' + params[:controller] + '/'
     @view[:url_list] = @view[:url_base] + 'list'
     @view[:url_new] = @view[:url_base] + 'new'
-    #@view[:arg_edit] = '?head=0' + (@usu.admin ? '' : "&prm=#{prm}")
     @view[:arg_edit] = '?head=0'
     arg_list_new = @view[:arg_edit].clone
 
     if params[:mod] != nil
-      #arg_list_new << '&mod=' + params[:mod] + '&id=' + params[:id] + '&padre=' + params[:padre]
-      #@view[:arg_edit] << '&padre=' + params[:padre]
       padre = params[:padre] ? "&padre=#{params[:padre]}" : ''
       arg_list_new << '&mod=' + params[:mod] + '&id=' + params[:id] + padre
       @view[:arg_edit] << padre
     end
 
-    @titulo = ''
+    #@titulo = ''
 
     arg_ej = ''
     arg_ej << '&eid=' + eid if eid
     arg_ej << '&jid=' + jid if jid
 
     if clm.respond_to?('ejercicio_path')
-      #cj_ce = Ejercicio.where('ejercicios.id=?', jid).ljoin(:empresa).pluck('ta.codigo', 'ejercicios.codigo')
-      #@titulo << cj_ce[0][0] + '/' + cj_ce[0][1]
       @j = Ejercicio.find_by id: jid
       @e = @j.empresa
-      @titulo << @e.codigo + '/' + @j.codigo
+      #@titulo << @e.codigo + '/' + @j.codigo
     elsif clm.to_s != 'EjerciciosMod' and clm.respond_to?('empresa_path')
-      #@titulo << Empresa.where('id=?', eid).pluck(:codigo)[0]
       @e = Empresa.find_by id: eid
-      @titulo << @e.codigo
+      #@titulo << @e.codigo
     end
 
-    #@view[:arg_auto] = params[:mod] ? '&wh=' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id] : arg_ej
     @view[:arg_auto] = @v ? "&vista=#{@v.id}&cmp=_pk_input" : arg_ej
-    @titulo << ' ' + clm.titulo
+    #@titulo << ' ' + clm.titulo
+    set_titulo(clm.titulo, @e&.codigo, @j&.codigo) unless @titulo
 
     @view[:url_list] << arg_list_new + arg_ej + (@v ? "&vista=#{@v.id}" : '')
     @view[:url_new] << arg_list_new + arg_ej
@@ -1065,8 +1059,13 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def set_titulo(tit, ecod, jcod)
+    @titulo = "#{ecod}#{jcod ? '/' : ''}#{jcod} #{tit}"
+  end
+
   def var_for_views(clm)
-    @titulo = clm.titulo
+    #@titulo = clm.titulo
+    set_titulo(clm.titulo, @e&.codigo, @j&.codigo)
     @tabs = []
     @on_tabs = []
     @hijos = clm.hijos
@@ -1134,7 +1133,7 @@ class ApplicationController < ActionController::Base
 
     set_parent
 
-    var_for_views(clm)
+    #var_for_views(clm)
 
     eid, jid = get_empeje
 
@@ -1173,7 +1172,10 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    set_empeje(eid, jid)
+    #set_empeje(eid, jid)
+    set_empeje
+
+    var_for_views(clm)
 
     @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
@@ -1273,8 +1275,7 @@ class ApplicationController < ActionController::Base
       return
     end
 
-    var_for_views(clm)
-    #ini_campos if self.respond_to?('ini_campos')
+    #var_for_views(clm)
     call_nimbus_hook :ini_campos
 
     @v = Vista.new
@@ -1296,6 +1297,7 @@ class ApplicationController < ActionController::Base
           @dat[:eid] = @fact.empresa.id
         elsif clm.superclass.to_s == 'Empresa'
           @dat[:eid] = @fact.id
+          @e = @fact
         else
           emp_perm = get_empeje[0].to_i
         end
@@ -1331,7 +1333,20 @@ class ApplicationController < ActionController::Base
       @dat[:eid] = eid
       @dat[:jid] = jid
 
-      set_empeje(eid, jid)
+      case clm.nivel
+        when :e
+          unless eid
+            render file: '/public/no_emp', layout: false
+            return
+          end
+          set_empeje(eid, nil)
+        when :j
+          unless jid
+            render file: '/public/no_eje', layout: false
+            return
+          end
+          set_empeje(eid, jid)
+      end
     end
 
     emp_perm ||= @dat[:eid].to_i
@@ -1360,6 +1375,8 @@ class ApplicationController < ActionController::Base
     unless clm.mant? and @fact.id == 0
       @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
     end
+
+    var_for_views(clm)
 
     #before_envia_ficha if self.respond_to?(:before_envia_ficha)
     call_nimbus_hook :before_envia_ficha
