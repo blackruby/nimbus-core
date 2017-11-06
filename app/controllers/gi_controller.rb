@@ -383,13 +383,18 @@ class GiController < ApplicationController
 
     lim = {}
     @fact.campos.each {|c, v|
+      cs = c.to_s
       if v[:cmph]
-        lim[c] = @fact[c.to_s[0..-4]].try(v[:cmph])
+        lim[c] = @fact[cs[0..-4]].try(v[:cmph])
       elsif v[:rango]
         lim[c] = @fact[c].expande_rango
-        lim[(c.to_s + '_rango').to_sym] = @fact[c]
+        lim[("#{cs}_rango").to_sym] = @fact[c]
       else
         lim[c] = @fact[c]
+      end
+
+      if cs.ends_with?('_id')
+        lim[("#{cs}_value").to_sym] = @fact[c] ? forma_campo_id(v[:ref], @fact[c], :gi) : ''
       end
     }
 
@@ -1192,67 +1197,6 @@ class GI
       @form[:formulas].each {|k, v|
         @fx[k] = eval(v)
       }
-
-=begin
-
-      # Añadir bandas de cabecera de ruptura
-      if nr
-        if di == 0
-          add = true
-        else
-          add = false
-          dat_a = @data[di-1]
-        end
-
-        @form[:rup].each_with_index {|r, i|
-          @ban = "rc#{i}"
-          @rupi = i + 1
-          if add
-            add_banda(r[:cab])
-            @rup[i+1] = @ri
-          else
-            if val_campo(r[:campo], dat) != val_campo(r[:campo], dat_a)
-              add_banda(r[:cab])
-              @rup[i+1] = @ri
-              add = true
-            end
-          end
-        }
-      end
-
-      # Añadir banda de detalle
-      @ban = :det
-      @rupi = 0
-      if self.respond_to?(:detalle)
-        method(:detalle).call
-      else
-        add_banda(@form[:det]) unless eval(@form[:detalle_cond])
-      end
-
-      # Añadir bandas de pie de ruptura
-      if nr
-        if di == ds
-          ir = 0
-        else
-          ir = nr
-          dat_s = @data[di+1]
-          @form[:rup].each_with_index {|r, i|
-            if val_campo(r[:campo], dat) != val_campo(r[:campo], dat_s)
-              ir = i
-              break
-            end
-          }
-        end
-
-        (nr - 1).downto(ir).each {|i|
-          @ban = "rp#{i}"
-          @rupi = i + 1
-          add_banda(@form[:rup][i][:pie])
-          @sh.add_page_break("A#{@ri - 1}") if @form[:rup][i][:salto]
-        }
-      end
-    }
-=end
 
       # Calcular rupa
       if di == 0
