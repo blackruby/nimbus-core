@@ -1172,8 +1172,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    #set_empeje(eid, jid)
-    set_empeje
+    set_empeje(eid, jid)
 
     var_for_views(clm)
 
