@@ -200,7 +200,7 @@ class GiController < ApplicationController
 
     data = []
     cl.column_names.each {|c|
-      d = {}
+      d = {table: cl.table_name, type: cl.columns_hash[c].type}
       if c.ends_with?('_id')
         d[:label] = c[0..-4]
         d[:load_on_demand] = true
@@ -208,9 +208,7 @@ class GiController < ApplicationController
       else
         cs = c.to_sym
         d[:label] = c
-        d[:table] = cl.table_name
         d[:pk] = cl.respond_to?(:pk) ? (c == cl.pk[-1]) : false
-        d[:type] = cl.columns_hash[c].type
         d[:manti] = cl.propiedades[cs][:manti] if cl.propiedades[cs] and cl.propiedades[cs][:manti]
         decim = (cl.propiedades[cs] and cl.propiedades[cs][:decim]) ? cl.propiedades[cs][:decim] : 2
 
@@ -905,6 +903,23 @@ class GI
     @lim = lim
     @fx = {}
 
+    # Procesar los wheres asociados a límites para borrarlos o adecuar su contenido
+    # en función del parámetro 'sinil' asociado al límite
+    @form[:lim].each {|l, v|
+      va = v.gsub(',', '').split
+      sinil = va.index('sinil:')
+      if sinil && @lim[l].nil? && @form[:where][l]
+        vs = va[sinil + 1]
+        case vs
+          when ':b'
+            @form[:where].delete(l)
+          when ':n', ':nn'
+            unless @form[:where][l].include?('<') || @form[:where][l].include?('>')
+              @form[:where][l] = @form[:where][l].split('=')[0] + " IS #{vs == ':nn' ? 'NOT ' : ''}NULL"
+            end
+        end
+      end
+    }
     before_sql if self.respond_to?(:before_sql)
 
     @nr = @form[:rup] ? @form[:rup].size : 0 # Por si before_sql altera el número de rupturas

@@ -173,13 +173,12 @@ function genCoal(ali, ty, lim) {
 function generaLim(ali, node, prop, cond) {
   var label, wh;
 
-  if (node.id) {
-
-  } else if (node.pk && $("#asist_lim_pk").is(":checked")) {
+  if (node.pk && $("#asist_lim_pk").is(":checked")) {
     ali += '_id';
     var ref = node.parent.id;
     if (!ref) ref = modelo;
     prop += ", ref: '" + ref + "', cmph: '" + node.name + "'";
+    prop += ", sinil: :b";
     switch(cond) {
       case 'eq':
         label = node.name;
@@ -195,8 +194,16 @@ function generaLim(ali, node, prop, cond) {
         break;
     }
   } else {
+    if (node.id) {
+      prop += ", ref: '" + node.id + "'";
+      prop += ", sinil: :b";
+      ali += '_id';
+    }
+
     if (cond != 'rg') prop += ", type: :" + node.type;
+
     if (node.type == 'date' || node.type == 'datetime' || node.type == 'time') prop += ', req: true';
+
     switch(cond) {
       case 'eq':
         label = node.name;
@@ -439,6 +446,7 @@ function fullCampo(node) {
   node = node || $("#tree_campos").tree('getSelectedNode');
   if (node) {
     label = node.name;
+    if (node.id) label += '_id';
     node = node.parent;
     while (node.name != undefined) {
       label = node.name + '.' + label;
