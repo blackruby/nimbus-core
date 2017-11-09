@@ -131,7 +131,7 @@
 
 <script>
   varView = <%= raw @view.to_json %>
-  <%= @ajax.html_safe %>
+  <%= (@ajax + @ajax_post).html_safe %>
 </script>
 
 </body>

@@ -175,7 +175,7 @@
   <% } %>
 
   <%= gen_js %>
-  <%= @ajax.html_safe %>
+  <%= (@ajax + @ajax_post).html_safe %>
   nimOnTabs = <%= @on_tabs.to_json.html_safe %>;
 </script>
 

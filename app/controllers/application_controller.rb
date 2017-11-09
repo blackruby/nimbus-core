@@ -349,7 +349,7 @@ class ApplicationController < ActionController::Base
   ##
 
   def foco(c)
-    @ajax << '$("#' + c.to_s + '").focus();'
+    @ajax_post << '$("#' + c.to_s + '").focus();'
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'abre_dialogo(dlg)'}
@@ -357,7 +357,7 @@ class ApplicationController < ActionController::Base
   ##
 
   def abre_dialogo(diag)
-    @ajax << "$('##{diag}').dialog('open');"
+    @ajax_post << "$('##{diag}').dialog('open');"
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'cierra_dialogo(dlg)'}
@@ -714,10 +714,19 @@ class ApplicationController < ActionController::Base
     return [eid, jid]
   end
 
+  def ini_ajax
+    @ajax = ''
+    @ajax_post = ''
+  end
+
+  def render_ajax
+    render js: @ajax + @ajax_post
+  end
+
   # Método llamado cuando en la url solo se especifica el nombre de la tabla
   # En general la idea es que la vista asociada sea un grid
   def index
-    @ajax = ''
+    ini_ajax
 
     self.respond_to?('before_index') ? r = before_index : r = true
     unless r
@@ -1110,7 +1119,7 @@ class ApplicationController < ActionController::Base
   end
 
   def new
-    @ajax = ''
+    ini_ajax
 
     self.respond_to?('before_new') ? r = before_new : r = true
     unless r
@@ -1227,7 +1236,7 @@ class ApplicationController < ActionController::Base
 
     @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
-    @ajax = ''
+    ini_ajax
     envia_ficha
     @ajax << '$(":input").attr("disabled", true);'
     @ajax << dif
@@ -1258,7 +1267,7 @@ class ApplicationController < ActionController::Base
       @fact = clm.new
     end
 
-    @ajax = ''
+    ini_ajax
 
     ((!clm.mant? or @fact.id != 0) and self.respond_to?('before_edit')) ? r = before_edit : r = nil
     if r
@@ -1592,7 +1601,7 @@ class ApplicationController < ActionController::Base
       @ajax << "mdlCheck('#{cmp_s}',#{val.to_s});"
     when :div
       if cp[:grid_sel]
-        @ajax << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
+        @ajax_post << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
       end
     when :upload
       # No hacer nada
@@ -1697,7 +1706,7 @@ class ApplicationController < ActionController::Base
         }
       }
     end
-    @ajax << "setDataGridLocal('#{cmp}',#{celdas.to_json});" unless celdas.empty?
+    @ajax_post << "setDataGridLocal('#{cmp}',#{celdas.to_json});" unless celdas.empty?
   end
 
   def envia_ficha
@@ -2072,7 +2081,7 @@ class ApplicationController < ActionController::Base
       }
     end
 
-    @ajax << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data_grid.to_json});"
+    @ajax_post << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data_grid.to_json});"
 
     @fact.campos[cmp][:grid_emb] = {opts: opts, data: data} if opts[:export]
     case modo
@@ -2083,7 +2092,7 @@ class ApplicationController < ActionController::Base
         #@fact[cmp] = nil
         #@fant[cmp] = nil if @fant
         @fact.campos[cmp][:grid_sel] = true
-        @ajax << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
+        @ajax_post << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
     end
   end
 
@@ -2303,7 +2312,7 @@ class ApplicationController < ActionController::Base
     @g = @dat[:persistencia]
     fact_clone
 
-    @ajax = ''
+    ini_ajax
 
     campo = params[:campo]
     cs = @fact.campos[campo.to_sym]
@@ -2381,7 +2390,7 @@ class ApplicationController < ActionController::Base
           </script>
         ).html_safe, layout: 'basico'
     else
-      render :js => @ajax
+      render_ajax
     end
 
     @v.save
@@ -2394,7 +2403,7 @@ class ApplicationController < ActionController::Base
       return
     end
 
-    @ajax = ''
+    ini_ajax
     if params[:vista]
       @g = @dat[:persistencia]
       if @dat[:fact]
@@ -2405,7 +2414,7 @@ class ApplicationController < ActionController::Base
     method(params[:fon]).call
     sincro_ficha :ajax => true if @fact
     begin
-      render js: @ajax
+      render_ajax
     rescue
     end
 =begin
@@ -2432,7 +2441,7 @@ class ApplicationController < ActionController::Base
       return
     end
 
-    @ajax = ''
+    ini_ajax
 
     get_fact_from_marshal
     @g = @dat[:persistencia]
@@ -2449,7 +2458,7 @@ class ApplicationController < ActionController::Base
       @ajax << "window.location.replace('/' + _controlador + '/0/edit?head=#{@dat[:head]}');"
     end
 
-    render js: @ajax
+    render_ajax
     @v.save
   end
 
@@ -2467,7 +2476,7 @@ class ApplicationController < ActionController::Base
     @g = @dat[:persistencia]
     fact_clone
     err = ''
-    @ajax = ''
+    ini_ajax
     last_c = nil
     begin
       cmps_img = [] # Crear un vector con los campos de imagen modificados
@@ -2587,7 +2596,8 @@ class ApplicationController < ActionController::Base
 
     @v.save
 
-    render :js => @ajax if ajx
+    #render :js => @ajax if ajx
+    render_ajax if ajx
   end
 
   # Método para hacer una grabación de @fact manual y con las acciones oportunas

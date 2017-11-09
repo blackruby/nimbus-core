@@ -138,10 +138,10 @@ class NimtestController < ApplicationController
       {name: 'código', width: 70},
       {name: 'nombre'},
     ]
-    q = Pais.where('nombre like ?', 'A%a')
+    q = Pais.where('nombre like ?', 'A%')
 
     crea_grid cmp: :mig1, cols: cols, grid: {multiselect: true, height: 250}, data: q.map{|p| [p.id, p.codigo, p.nombre]}
-    @fact.mig1 = [3,8,12]
+    @fact.mig1 = [3,8,14]
   end
 
   def fin_diag_1

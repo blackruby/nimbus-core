@@ -117,7 +117,7 @@
   <% } %>
 
   <%= gen_js  %>
-  <%= @ajax.html_safe %>
+  <%= (@ajax + @ajax2).html_safe %>
 
   function abreDialogo(d) {$("#" + d).dialog("open");}
 
