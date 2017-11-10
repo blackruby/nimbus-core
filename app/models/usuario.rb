@@ -36,10 +36,14 @@ class Usuario < ActiveRecord::Base
   end
 
   def self.load_menu
-    hmenu = YAML.load(File.read('modulos/nimbus-core/menu.yml'))
+    hmenu = {}
+    hmenu.deep_merge!(YAML.load(File.read('menu_pre.yml'))) if File.exists?('menu_pre.yml')
+    #hmenu = YAML.load(File.read('modulos/nimbus-core/menu.yml'))
+    hmenu.deep_merge!(YAML.load(File.read('modulos/nimbus-core/menu.yml')))
     Dir.glob('modulos/*/menu.yml').each {|m|
       next if m == 'modulos/nimbus-core/menu.yml'
-      hmenu.merge!(YAML.load(File.read(m)))
+      #hmenu.merge!(YAML.load(File.read(m)))
+      hmenu.deep_merge!(YAML.load(File.read(m)))
     }
     hmenu.deep_merge!(YAML.load(File.read('menu.yml'))) if File.exists?('menu.yml')
 
