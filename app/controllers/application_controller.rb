@@ -2733,8 +2733,20 @@ class ApplicationController < ActionController::Base
       end
 =end
 
-      div_class = v[:span] ? 'nim-group-span' : 'nim-group'
-      div_class << '-inline' if v[:inline]
+      #div_class = v[:span] ? 'nim-group-span' : 'nim-group'
+      #div_class << '-inline' if v[:inline]
+      div_attr = 'class="nim-group'
+      div_attr << '-span' if v[:span]
+      div_attr << '-inline' if v[:inline]
+      div_attr << '"'
+      if v[:pw] || v[:ml]
+        div_attr << ' style="'
+        div_attr << "width: #{v[:pw]}%;" if v[:pw]
+        # El margen izquierdo (ml) lo imitamos con el borde izquierdo en blanco
+        # porque si usamos margin-left el div ocuparía más y los % (pw) no cuadrarían (el último elemento del inline se bajaría de fila)
+        div_attr << "border-left-style: solid;border-left-color: white;border-left-width: #{v[:ml]}px" if v[:ml]
+        div_attr << '"'
+      end
 
       #sal << '<div class="mdl-cell mdl-cell--' + v[:gcols].to_s + '-col">' if prim or !v[:span]
       if prim or !v[:span]
@@ -2744,7 +2756,8 @@ class ApplicationController < ActionController::Base
       prim = false
 
       if v[:type] == :boolean
-        sal << "<div class='#{div_class}' title='#{nt(v[:title])}'>"
+        #sal << "<div class='#{div_class}' title='#{nt(v[:title])}'>"
+        sal << "<div #{div_attr} title='#{nt(v[:title])}'>"
         sal << '<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="' + cs + '">'
         sal << '<input id="' + cs + '" type="checkbox" class="mdl-checkbox__input" onchange="vali_check($(this))"' + plus + '/>'
         sal << '<span class="mdl-checkbox__label">' + nt(v[:label]) + '</span>'
@@ -2765,14 +2778,14 @@ class ApplicationController < ActionController::Base
 =end
       elsif v[:code]
         #sal << '<div class="nim-group">'
-        sal << "<div class='#{div_class}'>"
+        sal << "<div #{div_attr}>"
         #sal << '<input class="nim-input" id="' + cs + '" maxlength=' + size + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" required style="max-width: ' + size + 'em"' + plus + '/>'
         sal << '<input class="nim-input" id="' + cs + '" maxlength=' + size + ' onchange="vali_code($(this),' + manti + ',\'' + v[:code][:prefijo] + '\',\'' + v[:code][:relleno] + '\')" required style="max-width: ' + size + 'em"' + plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
       elsif v[:sel]
         #sal << '<div class="nim-group">'
-        sal << "<div class='#{div_class}'>"
+        sal << "<div #{div_attr}>"
         sal << '<select class="nim-select" id="' + cs + '" required onchange="validar($(this))"' + plus + '>'
         v[:sel].each{|k, tex|
           sal << '<option value="' + k.to_s + '">' + nt(tex) + '</option>'
@@ -2782,7 +2795,7 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
       elsif cs.ends_with?('_id')
         #sal << '<div class="nim-group">'
-        sal << "<div class='#{div_class}'>"
+        sal << "<div #{div_attr}>"
         sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em"'
         sal << ' menu="N"' if v.include?(:menu) and !v[:menu]
         sal << ' dialogo="' + h[:dlg] + '"' if h[:dlg]
@@ -2850,11 +2863,9 @@ class ApplicationController < ActionController::Base
         clase << " nim-map-#{v[:map]}" if v[:map]
         clase << ' nim-may' if v[:may]
 
-        #sal << '<div class="nim-group">'
-        sal << "<div class='#{div_class}'>"
-        #sal << '<input class="nim-input nim_input_email' + (v[:may] ? ' nim-may' : '') + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
+        sal << "<div #{div_attr}>"
         sal << '<input class="' + clase + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
-        sal << ' maxlength=' + size if v[:type] == :string
+        sal << " maxlength=#{size}" if v[:type] == :string
         sal << plus + '/>'
         sal << '<label class="nim-label" for="' + cs + '">' + nt(v[:label]) + '</label>'
         sal << '</div>'
