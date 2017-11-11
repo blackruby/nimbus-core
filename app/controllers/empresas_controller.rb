@@ -7,9 +7,10 @@ class EmpresasMod < Empresa
     nombre_comercial: {tab: 'pre', grid:{}, span: true},
     cif: {tab: 'pre', grid:{}, span: true},
     direccion: {tab: 'pre', gcols: 4, rol: :map},
-    cod_postal: {tab: 'pre', map: :direccion, span: true},
-    poblacion: {tab: 'pre', map: :direccion, span: true},
+    cod_postal: {tab: 'pre', label: 'c_postal', map: :direccion, span: true, inline: true, pw: 20},
+    poblacion: {tab: 'pre', map: :direccion, span: true, inline: true, pw: 80, ml: 5},
     provincia: {tab: 'pre', map: :direccion, span: true},
+    pais_id: {tab: 'pre', span: true},
     telefono: {tab: 'pre', gcols: 3, grid: {}},
     fax: {tab: 'pre', span: true},
     email: {tab: 'pre', rol: :email, span: true},
@@ -24,6 +25,7 @@ class EmpresasMod < Empresa
     ew: :w,
     height: 200,
     scroll: true,
+    cellEdit: false,
   }
 
   @hijos = [{url: 'ejercicios', tab: 'post'}]

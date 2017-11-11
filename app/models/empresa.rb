@@ -8,14 +8,17 @@ class Empresa < ActiveRecord::Base
     cif: {manti: 10},
     direccion: {manti: 70},
     cod_postal: {manti: 15},
-    poblacion: {manti: 35},
+    poblacion: {manti: 50},
     provincia: {manti: 20},
+    pais: {},
     telefono: {manti: 30},
     fax: {manti: 30},
     email: {manti: 70},
     web: {manti: 70},
     param: {},
   }
+
+  belongs_to :pais, :class_name => 'Pais'
 
   serialize :param
 

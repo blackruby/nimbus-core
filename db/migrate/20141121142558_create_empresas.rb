@@ -10,6 +10,7 @@ class CreateEmpresas < ActiveRecord::Migration[5.0]
           t.string :cod_postal
           t.string :poblacion
           t.string :provincia
+          t.references :pais
           t.string :telefono
           t.string :fax
           t.string :email
