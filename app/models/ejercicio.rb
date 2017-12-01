@@ -26,6 +26,10 @@ class Ejercicio < ActiveRecord::Base
   def ini_campos
     self.param ||= {} if self.respond_to? :param
   end
+
+  def auto_comp_value(tipo)
+    self.codigo.to_s + ' ' + self.descripcion
+  end
 end
 
 class Ejercicio < ActiveRecord::Base

@@ -2386,7 +2386,7 @@ class ApplicationController < ActionController::Base
       # para procesar @ajax hay que que hacerlo en el ámbito de su padre (la ficha)
       render html: %Q(
           <script>
-            $(window).load(function(){window.parent.eval(#{@ajax.to_json});})
+            $(window).load(function(){window.parent.eval(#{(@ajax + @ajax_post).to_json});})
           </script>
         ).html_safe, layout: 'basico'
     else
