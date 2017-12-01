@@ -54,7 +54,7 @@ class UsuariosController < ApplicationController
 
   def grid_conf(grid)
     #grid[:wh] = "id in (#{@usu.id},#{@usu.pref[:permisos][:usu]})".gsub('[', '').gsub(']', '') unless @usu.admin
-    grid[:wh] = "id in (#{@usu.id}#{@usu.pref[:permisos][:usu].empty? ? '' : ','}#{@usu.pref[:permisos][:usu].join(',')})" unless @usu.admin
+    grid[:wh] = "usuarios.id in (#{@usu.id}#{@usu.pref[:permisos][:usu].empty? ? '' : ','}#{@usu.pref[:permisos][:usu].join(',')})" unless @usu.admin
   end
 
   def before_new
@@ -223,7 +223,7 @@ class UsuariosController < ApplicationController
     end
 
     unless @fact.admin
-      @fact.pref[:permisos][:emp] = params[:emp] ? params[:emp].map {|k, v| [k.to_i, v[0], v[1].to_i]} : []
+      @fact.pref[:permisos][:emp] = params[:emp] ? params[:emp].to_unsafe_h.map {|k, v| [k.to_i, v[0], v[1].to_i]} : []
       @fact.pref[:permisos][:prf] = params[:prf] ? params[:prf].map {|p| p.to_i} : []
       @fact.pref[:permisos][:usu] = params[:usu] ? params[:usu].map {|u| u.to_i} : []
       Usuario.calcula_permisos(@fact)
