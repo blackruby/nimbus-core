@@ -44,7 +44,7 @@ class String
     check = '10' if check == '0'
     calculated_letter = (64 + calculated_number).chr
 
-    if letter.match(/[QRPNS]/)
+    if letter.match(/[QRPNSW]/)
       return check.to_s == calculated_letter.to_s
     else
       return check.to_i == calculated_number.to_i
