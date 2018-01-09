@@ -2451,6 +2451,18 @@ class ApplicationController < ActionController::Base
     else
       class_mant.view? ? class_modelo.destroy(@fact.id) : @fact.destroy
 
+      # Tratamiento de histórico (insertar una ficha con todo nil salvo el usuario y la fecha de borrado)
+      cl = class_modelo.to_s
+      cls = cl.split('::')
+      clmh = cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]
+      if Object.const_defined?(clmh)
+        h = clmh.constantize.new
+        h.created_by_id = @usu.id
+        h.created_at = Nimbus.now
+        h.idid = @fact.id
+        h.save
+      end
+
       # Borrar los datos asociados
       `rm -rf data/#{class_modelo}/#{@fact.id}`
 
