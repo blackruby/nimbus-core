@@ -19,12 +19,13 @@ namespace :nimbus do
         else
           @wh << ' AND ' unless @wh.empty?
           @wh << "#{tab}.#{k}="
-          @wh << "CAST(" if mod.columns_hash[k].type == :integer || mod.columns_hash[k].type == :decimal || mod.columns_hash[k].type == :time || mod.columns_hash[k].type == :boolean
+          @wh << "CAST(" if mod.columns_hash[k].type == :integer || mod.columns_hash[k].type == :decimal || mod.columns_hash[k].type == :time || mod.columns_hash[k].type == :boolean || mod.columns_hash[k].type == :date
           @wh << "split_part(#{@col},'~',#{@nk})"
           @wh << " AS INTEGER)" if mod.columns_hash[k].type == :integer
           @wh << " AS NUMERIC)" if mod.columns_hash[k].type == :decimal
           @wh << " AS TIME)" if mod.columns_hash[k].type == :time
           @wh << " AS BOOLEAN)" if mod.columns_hash[k].type == :boolean
+          @wh << " AS DATE)" if mod.columns_hash[k].type == :date
           @nk += 1
         end
       }
