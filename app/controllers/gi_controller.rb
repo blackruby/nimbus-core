@@ -578,7 +578,11 @@ cabecera
   Si existe, sustituirá al pintado de la banda de cabecera (:cab) siendo
   responsabilidad del programador el añadir dicha banda (add_banda :cab).
   Se considerará cabecera (en el sentido de las filas que se repetirán
-  como título en cada página) a todo lo que pinte este método.
+  como título en cada página) a todo lo que pinte este método. Tener en cuenta
+  que si se pintan en este método otras bandas que no sean :cab (bandas de usuario)
+  hay que forzar las rupturas a cero por si la cabecera es dinámica (para que
+  no salten rupturas dentro de la propia cabecera). O sea, poner siempre:
+  add_banda ban: :la_que_sea, rupa: 0, rup: 0
 
 detalle
   Si existe este método, sustituirá al pintado estándar de la banda de detalle.
@@ -667,6 +671,8 @@ val_alias(alias, banda)
 
 set_cmp_ban(ban, ali, val)
   Asigna el valor 'val' al campo de la casilla 'ali' de la banda 'ban'
+  'ban' puede ser o bien un símbolo indicando el nombre de la banda
+  o directamente el array que representa la banda.
 </pre>
 ##
 
@@ -1121,6 +1127,9 @@ class GI
   end
 
   def add_banda(rupa: @rupa, rup: @rup, ban: :det, valores: {}, sheet: @sh)
+    # Si la banda es la cabecera pongo las rupturas a cero por si se dispara con cabeceras dinámicas
+    rupa = rup = 0 if ban == :cab
+
     if ban == :_blank
       #_add_banda([[]], {}, sheet)
       #return
