@@ -549,8 +549,8 @@ class ApplicationController < ActionController::Base
       @dat = @v.data
     end
 
-    @ajax << "$('#p2p-d',#{@dat[:p2p][:mant]?'parent.document':'document'}).html(#{@dat[:p2p][:label].html_safe.to_json});" if @dat[:p2p][:label]
-    @ajax << "$('#p2p-p',#{@dat[:p2p][:mant]?'parent.document':'document'})[0].MaterialProgress.setProgress(#{@dat[:p2p][:pbar]});" if @dat[:p2p][:tpb] == :fix and @dat[:p2p][:pbar]
+    @ajax << "$('#p2p-d',#{@dat[:p2p][:mant] ? 'parent.document' : 'document'}).html(#{@dat[:p2p][:label].html_safe.to_json});" if @dat[:p2p][:label]
+    @ajax << "$('#p2p-p',#{@dat[:p2p][:mant] ? 'parent.document' : 'document'})[0].MaterialProgress.setProgress(#{@dat[:p2p][:pbar]});" if @dat[:p2p][:tpb] == :fix and @dat[:p2p][:pbar]
     @ajax << @dat[:p2p][:js] if @dat[:p2p][:js]
   end
 
