@@ -531,11 +531,13 @@ class ApplicationController < ActionController::Base
 
   def p2p_req
     if params[:p2ps] == '1'  # Proceso en curso
+=begin
       begin
         Process.waitpid(@dat[:p2p][:pid], Process::WNOHANG)
       rescue
         @dat[:p2p][:st] = :fin unless @dat[:p2p][:st] == :err
       end
+=end
       p2ps = [:fin, :run, :err].index(@dat[:p2p][:st])
       @ajax << "p2pStatus=#{p2ps};" if p2ps != 1
     else  # Proceso cancelado
@@ -573,7 +575,9 @@ class ApplicationController < ActionController::Base
     end
 
     # Cerrar las conexiones con la base de datos para que el hijo no herede descriptores
-    config = ActiveRecord::Base.remove_connection
+    # Parece que no es necesario...
+    #config = ActiveRecord::Base.remove_connection
+    config = ActiveRecord::Base.connection_config
 
     mant = class_mant.mant?
 
@@ -582,7 +586,7 @@ class ApplicationController < ActionController::Base
       # Cierro todos los sockets que haya abiertos para que no interfieran
       # en las lecturas que de ellos haga el parent (básicamente los requests http)
       ObjectSpace.each_object(IO) {|io| io.close if io.class == TCPSocket and !io.closed?}
-      # Restablecer la conexión con la base de datos
+      # Establecer conexión con la base de datos
       ActiveRecord::Base.establish_connection(config)
 
       @dat[:p2p] = {pid: Process.pid, label: label, tpb: pbar, mant: mant, st: :run}
@@ -594,6 +598,7 @@ class ApplicationController < ActionController::Base
 
       begin
         yield
+        p2p st: :fin
       rescue Exception => e
         p2p st: :err
         pinta_exception(e)
@@ -603,7 +608,9 @@ class ApplicationController < ActionController::Base
     # Código específico del padre...
 
     # Restablecer la conexión con la base de datos
-    ActiveRecord::Base.establish_connection(config)
+    # Restablecer sólo en el caso de que antes del fork se haya cerrado (remove_connection)
+    #ActiveRecord::Base.establish_connection(config)
+    
     # No hacer seguimiento del status del hijo (para que no quede zombi al terminar)
     Process.detach(h)
 
