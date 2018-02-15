@@ -1046,16 +1046,14 @@ class GI
     @alias[@ban][ali][:col] + (@ri_act - @bi - ajuste + @alias[@ban][ali][:row]).to_s
   end
 
-  def rango(ali, niv=@rupi)
+  def rango(ali, niv = @rupi, offset = -1)
     ali = ali.to_sym
     col = @alias[:det][ali][:col]
-    #"#{col}#{@rup_ini[niv]}:#{col}#{@ri_act - 1}"
-    "#{col}#{@rup_ini[niv]}:#{col}#{@ri_act}"
+    "#{col}#{@rup_ini[niv]}:#{col}#{@ri_act + offset}"
   end
 
-  def tot(ali, niv=@rupi)
-    #"=SUBTOTAL(9,#{rango(ali, niv)})"
-    "SUBTOTAL(9,#{rango(ali, niv)})"
+  def tot(ali, niv = @rupi, offset = -1)
+    "SUBTOTAL(9,#{rango(ali, niv, offset)})"
   end
 
   def val_campo(c, f=@d)
