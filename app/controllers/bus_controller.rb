@@ -115,7 +115,7 @@ class BusController < ApplicationController
     end
 
     @v = Vista.new
-    @v.data = {mod: clm, view: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, msel: flash[:msel], join_emej: join_emej, order: '', who: flash[:wh].to_s, wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1]}
+    @v.data = {mod: clm, view: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, msel: flash[:msel], join_emej: join_emej, order: '', who: flash[:wh].to_s, wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1], rows: 50}
 
     # Calcular fichero de preferencias
     fic_pref = nil
@@ -232,39 +232,36 @@ class BusController < ApplicationController
 
     @dat[:cad_where] = w
     @dat[:cad_order] = ord
+    lim = @dat[:rows] = params[:rows] == '10000' ? 0 : params[:rows].to_i
 
-    tot_records = @dat[:cad_sel].empty? ? 0 : clm.select(:id).joins(@dat[:cad_join]).where(w).size
-    lim = params[:rows].to_i
-    tot_pages = tot_records / lim
-    tot_pages += 1 if tot_records % lim != 0
-    page = params[:page].to_i
-    page = tot_pages if page > tot_pages
-    page = 1 if page <=0
+    if lim > 0
+      tot_records = @dat[:cad_sel].empty? ? 0 : clm.select(:id).joins(@dat[:cad_join]).where(w).size
+      tot_pages = tot_records / lim
+      tot_pages += 1 if tot_records % lim != 0
+      page = params[:page].to_i
+      page = tot_pages if page > tot_pages
+      page = 1 if page <=0
 
-    sql = @dat[:cad_sel].empty? ? [] : clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
+      sql = @dat[:cad_sel].empty? ? [] : clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
 
-    res = {page: page, total: tot_pages, records: tot_records, rows: []}
-    sql.each {|s|
-      h = {:id => s.id, :cell => []}
-      cols.each {|k, v|
-        begin
-          # Para acceder a los atributos de "s" es mejor usar el hash "attributes" que acceder a pelo (s[atributo]) porque el atributo "id" cuando
-          # la tabla que se procesa es una vista no es accesible "a pelo"
-=begin
-          case v[:type]
-            when 'datetime'
-              h[:cell] << s.attributes[v[:alias]].to_time.strftime('%d-%m-%Y %H:%M:%S')
-            else
-              h[:cell] << s.attributes[v[:alias]].to_s
+      res = {page: page, total: tot_pages, records: tot_records, rows: []}
+      sql.each {|s|
+        h = {:id => s.id, :cell => []}
+        cols.each {|k, v|
+          begin
+            # Para acceder a los atributos de "s" es mejor usar el hash "attributes" que acceder a pelo (s[atributo]) porque el atributo "id" cuando
+            # la tabla que se procesa es una vista no es accesible "a pelo"
+            h[:cell] << _forma_campo(:grid, v, '', s.attributes[v[:alias]])
+          rescue
+            h[:cell] << ''
           end
-=end
-          h[:cell] << _forma_campo(:grid, v, '', s.attributes[v[:alias]])
-        rescue
-          h[:cell] << ''
-        end
+        }
+        res[:rows] << h
       }
-      res[:rows] << h
-    }
+    else
+      res = {page: 0, total: 0, records: 0, rows: []}
+    end
+
     render :json => res
 
     @v.save
@@ -328,7 +325,7 @@ class BusController < ApplicationController
       sortorder = ''
     end
 
-    @ajax << "generaGrid(#{col_mod.to_json.gsub('"~', '').gsub('~"', '')}, '#{sortname}', '#{sortorder}', #{postdata.to_json}, #{kh}, #{kv});"
+    @ajax << "generaGrid(#{col_mod.to_json.gsub('"~', '').gsub('~"', '')}, #{@dat[:rows]}, '#{sortname}', '#{sortorder}', #{postdata.to_json}, #{kh}, #{kv});"
   end
 
   def nueva_col
@@ -397,7 +394,7 @@ class BusController < ApplicationController
 
     arg = eval(params[:dat])
 
-    h = {view: @dat[:view].to_s, cols: arg[:cols], filters: @dat[:filters], order: @dat[:order]}
+    h = {view: @dat[:view].to_s, cols: arg[:cols], filters: @dat[:filters], order: @dat[:order], rows: @dat[:rows]}
     path = "bus/_usuarios/#{@usu.codigo}/#{@dat[:mod]}"
     FileUtils.mkdir_p(path)
     File.write("#{path}/#{params[:fic]}.yml", h.to_yaml)

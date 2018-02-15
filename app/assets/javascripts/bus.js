@@ -46,7 +46,7 @@ function selCampo(event, modo) {
   callFonServer("nueva_col", {dat: JSON.stringify({col: name, modo: modo, type: event.node.type, dec: dec, cols: gridCols()})});
 }
 
-function generaGrid(colMod, sortname, sortorder, postdata, keepScrollH, keepScrollV) {
+function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, keepScrollV) {
   $('#d-grid').html('');
   $("#d-grid").append("<table id='grid'></table>");
   grid = $("#grid");
@@ -61,7 +61,7 @@ function generaGrid(colMod, sortname, sortorder, postdata, keepScrollH, keepScro
     url: '/bus/list?vista=' + _vista,
     datatype: "json",
     mtype: 'POST',
-    rowNum: 100,
+    rowNum: rows,
     search: !$.isEmptyObject(postdata), // Para indicar que hay búsqueda activa o no
 
     gridview: true,
@@ -69,7 +69,7 @@ function generaGrid(colMod, sortname, sortorder, postdata, keepScrollH, keepScro
     toppager: true,
     scroll: false,
 
-    rowList: [100, 500, 1000],
+    rowList: [0, 50, 100, 200, 500, 1000],
     altRows: true,	// filas tipo cebra
     sortable: true,	// Si las columnas se pueden reordenar (cambiar de sitio)
     viewrecords: true,	// Muestra información del total de registros en la toolbar
