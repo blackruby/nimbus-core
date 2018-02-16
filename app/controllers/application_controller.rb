@@ -623,7 +623,11 @@ class ApplicationController < ActionController::Base
     if Nimbus::Config[:osp] && @fact && @fact.id
       cms = class_modelo.to_s
       flash[:tit] = "#{nt(cms)}: #{forma_campo_id(cms, @fact.id, :osp)}"
-      flash[:ruta] = "data/#{cms}/#{@fact.id}/osp"
+      if @fact.respond_to?(:osp_ruta)
+        flash[:ruta] = "data/#{@fact.osp_ruta}"
+      else
+        flash[:ruta] = "data/#{cms}/#{@fact.id}/osp"
+      end
       flash[:prm] = @dat[:prm]
 
       FileUtils.mkpath(flash[:ruta])
