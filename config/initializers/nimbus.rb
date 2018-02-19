@@ -325,6 +325,7 @@ class ActiveRecord::Base
     return unless hubo_cambios?
     cl = self.class.to_s.ends_with?('Mod') ? self.class.superclass.to_s : self.class.to_s
     cls = cl.split('::')
+=begin
     clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
     h = clmh.new
     h.created_by_id = user_id
@@ -335,6 +336,25 @@ class ActiveRecord::Base
       h.method(c+'=').call(self.method(c).call)
     }
     h.save
+=end
+    begin
+      clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
+      h = clmh.create(self.attributes.merge({id: nil, idid: self.id, created_by_id: self.user_id, created_at: Nimbus.now}))
+    rescue
+      # El "único" posible error sería que no existiera control de históricos para el modelo (y fallara el constantize)
+    end
+  end
+
+  def control_histo_b
+    return unless self.id
+    cl = self.class.to_s.ends_with?('Mod') ? self.class.superclass.to_s : self.class.to_s
+    cls = cl.split('::')
+    begin
+      clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
+      h = clmh.create(clmh.where('idid = ?', self.id).order(:created_at).last.attributes.merge({id: nil, idid: -self.id, created_by_id: self.user_id, created_at: Nimbus.now}))
+    rescue
+      # El "único" posible error sería que no existiera control de históricos para el modelo (y fallara el constantize)
+    end
   end
 
   # Método para poder hacer LEFT JOIN. Sintaxis: ljoin('assoc[(alias)][.<idem>]', [<idem>...])
@@ -1208,6 +1228,9 @@ module Modelo
       unless self.instance_methods.include?(:parent)
         self.send(:attr_accessor, :parent)
         after_initialize :_ini_campos
+        # Tratamiento automático de históricos. Así no es necesario registrar callbacks en la definición del modelo
+        after_save :control_histo
+        after_destroy :control_histo_b
       end
     end
 
@@ -1384,6 +1407,15 @@ module Historico
 
     def propiedades
       @propiedades
+    end
+
+    def db_views
+      # Contiene un array de modelos que son views en la DB asociadas a este modelo (para usar en búsquedas)
+      @db_views
+    end
+
+    def modelo_bus
+      @modelo_bus
     end
   end
 
