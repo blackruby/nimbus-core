@@ -7,7 +7,6 @@ class Divisa < ActiveRecord::Base
     decimales: {manti: 1},
   }
 
-  after_save :control_histo
   #after_initialize :ini_campos
 
   #def ini_campos

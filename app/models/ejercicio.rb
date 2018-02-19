@@ -20,7 +20,6 @@ class Ejercicio < ActiveRecord::Base
 
   serialize :param
 
-  after_save :control_histo
   after_initialize :ini_campos
 
   def ini_campos

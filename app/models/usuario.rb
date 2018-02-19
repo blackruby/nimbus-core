@@ -25,7 +25,6 @@ class Usuario < ActiveRecord::Base
   belongs_to :ejercicio_def, :class_name => 'Ejercicio'
   belongs_to :ldapservidor, :class_name => 'Pais'
 
-  after_save :control_histo
   after_initialize :ini_campos
 
   def ini_campos
