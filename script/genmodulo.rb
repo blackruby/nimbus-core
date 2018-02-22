@@ -1,5 +1,5 @@
 if ARGV.size != 1
-  puts 'Sintaxis: ruby genmodulo.rb <modulo>' if ARGV.size != 1
+  print "\nSintaxis: ruby #{$0} <modulo>\n\n"
   exit
 end
 
