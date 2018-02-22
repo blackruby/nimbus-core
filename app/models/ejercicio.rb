@@ -35,7 +35,7 @@ class Ejercicio < ActiveRecord::Base
   include Modelo
 end
 
-class HEjercicio < ActiveRecord::Base
+class HEjercicio < Ejercicio
   include Historico
 end
 

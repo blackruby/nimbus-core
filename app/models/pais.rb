@@ -23,7 +23,7 @@ class Pais < ActiveRecord::Base
   include Modelo
 end
 
-class HPais < ActiveRecord::Base
+class HPais < Pais
   include Historico
 end
 

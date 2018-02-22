@@ -33,7 +33,7 @@ class Empresa < ActiveRecord::Base
   include Modelo
 end
 
-class HEmpresa < ActiveRecord::Base
+class HEmpresa < Empresa
   include Historico
 end
 

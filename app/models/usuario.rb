@@ -152,9 +152,8 @@ class Usuario < ActiveRecord::Base
   include Modelo
 end
 
-class HUsuario < ActiveRecord::Base
+class HUsuario < Usuario
   include Historico
-  serialize :pref
 end
 
 Nimbus.load_adds __FILE__

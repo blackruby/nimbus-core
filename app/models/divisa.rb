@@ -17,7 +17,7 @@ class Divisa < ActiveRecord::Base
   include Modelo
 end
 
-class HDivisa < ActiveRecord::Base
+class HDivisa < Divisa
   include Historico
 end
 
