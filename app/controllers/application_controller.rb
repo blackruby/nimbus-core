@@ -694,6 +694,25 @@ class ApplicationController < ActionController::Base
     render :json => res
   end
 
+  def histo_borrados
+    mod = class_modelo.to_s
+    flash[:tit] = "Registros borrados de #{nt(mod)}"
+    moda = mod.split('::')
+    moda[-1] = 'H' + moda[-1]
+    flash[:mod] = moda.join('::')
+    flash[:ctr] = params[:controller].sub('::', '/')
+    flash[:eid] = @dat[:eid]
+    flash[:jid] = @dat[:jid]
+    flash[:wh] = 'idid < 0'
+    flash[:tipo] = 'hb'
+
+    open_url("/bus")
+  end
+
+  def histo_borrados_sel
+    open_url("/histo/#{params[:ctr]}/#{-params[:mod].constantize.find(params[:id]).idid}");
+  end
+
   def sincro_hijos
     id_hijos = params[:hijos] ? eval('{' + params[:hijos] + '}') : {}
     class_mant.hijos.each_with_index {|h, i|
@@ -2836,7 +2855,7 @@ class ApplicationController < ActionController::Base
           end
         }
         sal << '</div>'
-      elsif v[:img]
+      elsif v[:img] && @v   # Si no hay @v es la edición de una ficha histórica (edith)
         if v[:img][:fon_id]
           plus << ' disabled' unless plus.include?(' disabled')
           img_id = method(v[:img][:fon_id]).call

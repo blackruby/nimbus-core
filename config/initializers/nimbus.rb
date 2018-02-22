@@ -1395,14 +1395,27 @@ module Historico
     def ini_datos
       belongs_to :created_by, :class_name => 'Usuario'
 
-      #clp = self.to_s[1..-1].constantize
-      clpa = self.to_s.split('::')
-      clp = clpa.size == 1 ? clpa[0][1..-1].constantize : (clpa[0] + '::' + clpa[1][1..-1]).constantize
-      clp.reflect_on_all_associations(:belongs_to).each{|a| belongs_to a.name, class_name: a.options[:class_name]}
-      @propiedades = clp.propiedades
+      if self.superclass == ActiveRecord::Base
+        # Es el caso antiguo (se mantiene por compatibilidad)
+        # En este caso heredamos todas las asociociones belongs_to
+        # y heredamos los métodos de acceso a empresa y ejercicio.
+        clpa = self.to_s.split('::')
+        clp = clpa.size == 1 ? clpa[0][1..-1].constantize : (clpa[0] + '::' + clpa[1][1..-1]).constantize
+        @propiedades = clp.propiedades
+        clp.reflect_on_all_associations(:belongs_to).each{|a| belongs_to a.name, class_name: a.options[:class_name]}
 
-      self.instance_eval("def empresa_path;'#{clp.empresa_path}';end") if clp.respond_to?(:empresa_path)
-      self.instance_eval("def ejercicio_path;'#{clp.ejercicio_path}';end") if clp.respond_to?(:ejercicio_path)
+        self.instance_eval("def empresa_path;'#{clp.empresa_path}';end") if clp.respond_to?(:empresa_path)
+        self.instance_eval("def ejercicio_path;'#{clp.ejercicio_path}';end") if clp.respond_to?(:ejercicio_path)
+      else
+        # Caso nuevo (el modelo histórico hereda del modelo base)
+        # En este caso solo hay que cambiar el nombre de la tabla (las asociaciones, etc. se heredan)
+        # y asignar el hash de propiedades del padre
+        t = self.table_name.split('_')
+        self.table_name = (t.size == 1 ? "h_#{t[0]}" : "#{t[0]}_h_#{t[1]}")
+
+        @propiedades = self.superclass.propiedades
+        @pk = self.superclass.pk
+      end
     end
 
     def propiedades
