@@ -325,6 +325,7 @@ class ActiveRecord::Base
     return unless hubo_cambios?
     cl = self.class.to_s.ends_with?('Mod') ? self.class.superclass.to_s : self.class.to_s
     cls = cl.split('::')
+=begin
     clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
     h = clmh.new
     h.created_by_id = user_id
@@ -335,6 +336,25 @@ class ActiveRecord::Base
       h.method(c+'=').call(self.method(c).call)
     }
     h.save
+=end
+    begin
+      clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
+      h = clmh.create(self.attributes.merge({id: nil, idid: self.id, created_by_id: self.user_id, created_at: Nimbus.now}))
+    rescue
+      # El "único" posible error sería que no existiera control de históricos para el modelo (y fallara el constantize)
+    end
+  end
+
+  def control_histo_b
+    return unless self.id
+    cl = self.class.to_s.ends_with?('Mod') ? self.class.superclass.to_s : self.class.to_s
+    cls = cl.split('::')
+    begin
+      clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
+      h = clmh.create(clmh.where('idid = ?', self.id).order(:created_at).last.attributes.merge({id: nil, idid: -self.id, created_by_id: self.user_id, created_at: Nimbus.now}))
+    rescue
+      # El "único" posible error sería que no existiera control de históricos para el modelo (y fallara el constantize)
+    end
   end
 
   # Método para poder hacer LEFT JOIN. Sintaxis: ljoin('assoc[(alias)][.<idem>]', [<idem>...])
@@ -1208,6 +1228,9 @@ module Modelo
       unless self.instance_methods.include?(:parent)
         self.send(:attr_accessor, :parent)
         after_initialize :_ini_campos
+        # Tratamiento automático de históricos. Así no es necesario registrar callbacks en la definición del modelo
+        after_save :control_histo
+        after_destroy :control_histo_b
       end
     end
 
@@ -1372,18 +1395,40 @@ module Historico
     def ini_datos
       belongs_to :created_by, :class_name => 'Usuario'
 
-      #clp = self.to_s[1..-1].constantize
-      clpa = self.to_s.split('::')
-      clp = clpa.size == 1 ? clpa[0][1..-1].constantize : (clpa[0] + '::' + clpa[1][1..-1]).constantize
-      clp.reflect_on_all_associations(:belongs_to).each{|a| belongs_to a.name, class_name: a.options[:class_name]}
-      @propiedades = clp.propiedades
+      if self.superclass == ActiveRecord::Base
+        # Es el caso antiguo (se mantiene por compatibilidad)
+        # En este caso heredamos todas las asociociones belongs_to
+        # y heredamos los métodos de acceso a empresa y ejercicio.
+        clpa = self.to_s.split('::')
+        clp = clpa.size == 1 ? clpa[0][1..-1].constantize : (clpa[0] + '::' + clpa[1][1..-1]).constantize
+        @propiedades = clp.propiedades
+        clp.reflect_on_all_associations(:belongs_to).each{|a| belongs_to a.name, class_name: a.options[:class_name]}
 
-      self.instance_eval("def empresa_path;'#{clp.empresa_path}';end") if clp.respond_to?(:empresa_path)
-      self.instance_eval("def ejercicio_path;'#{clp.ejercicio_path}';end") if clp.respond_to?(:ejercicio_path)
+        self.instance_eval("def empresa_path;'#{clp.empresa_path}';end") if clp.respond_to?(:empresa_path)
+        self.instance_eval("def ejercicio_path;'#{clp.ejercicio_path}';end") if clp.respond_to?(:ejercicio_path)
+      else
+        # Caso nuevo (el modelo histórico hereda del modelo base)
+        # En este caso solo hay que cambiar el nombre de la tabla (las asociaciones, etc. se heredan)
+        # y asignar el hash de propiedades del padre
+        t = self.table_name.split('_')
+        self.table_name = (t.size == 1 ? "h_#{t[0]}" : "#{t[0]}_h_#{t[1]}")
+
+        @propiedades = self.superclass.propiedades
+        @pk = self.superclass.pk
+      end
     end
 
     def propiedades
       @propiedades
+    end
+
+    def db_views
+      # Contiene un array de modelos que son views en la DB asociadas a este modelo (para usar en búsquedas)
+      @db_views
+    end
+
+    def modelo_bus
+      @modelo_bus
     end
   end
 

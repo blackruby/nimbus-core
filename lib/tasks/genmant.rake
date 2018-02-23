@@ -221,8 +221,9 @@ namespace :nimbus do
           modelo.puts(modelo_asoc.read)
         end
         modelo.puts
-        modelo.puts('  after_save :control_histo') if prop[:histo]
-        #modelo.puts('  #after_initialize :ini_campos')
+        # Ya no es necesario el callback, se hace automático en nimbus.rb
+        #modelo.puts('  after_save :control_histo') if prop[:histo]
+        modelo.puts('  #after_initialize :ini_campos')
         modelo.puts
         modelo.puts('  #def ini_campos')
         modelo.puts('  #end')
@@ -250,8 +251,9 @@ namespace :nimbus do
         controller.puts('  }')
         controller.puts
         controller.puts('  #@hijos = []')
-        controller.puts
-        controller.puts('  #after_initialize :ini_campos_ctrl')
+        # Ya no es necesario el call_back, si existe ini_campos_ctrl se llamará automáticamente.
+        #controller.puts
+        #controller.puts('  #after_initialize :ini_campos_ctrl')
         controller.puts
         controller.puts('  #def ini_campos_ctrl')
         controller.puts('  #end')

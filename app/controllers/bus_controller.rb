@@ -78,7 +78,7 @@ class BusController < ApplicationController
     @assets_stylesheets = %w(bus)
     @assets_javascripts = %w(bus)
 
-    @titulo = nt('bus')
+    #@titulo = nt('bus')
 
     @mod = flash[:mod] || params[:mod]
     if @mod.nil?
@@ -98,7 +98,7 @@ class BusController < ApplicationController
     end
 
     tabla = clm.table_name
-    @tabla = nt tabla
+    @titulo = flash[:tit] || "Búsqueda de #{nt(tabla)}"
 
     ctr = flash[:ctr] || params[:ctr] || '_'
 
@@ -114,8 +114,18 @@ class BusController < ApplicationController
       add_where(w, "#{join_emej.empty? ? tabla : 't_emej'}.empresa_id=#{ej[0]}")
     end
 
+    # la clave 'tipo' del flash indica algún tipo de acción especial.
+    # De momento se contempla 'hb' para histórico de borrados.
+    if flash[:tipo] == 'hb'
+      cols = {'c01'=> {label: 'created_by.nombre', w: 200, type: :string}, 'c02' => {label: 'created_at', w: 130, type: :datetime}}
+      last_col = 'c02'
+    else
+      cols = {}
+      last_col = 'c00'
+    end
+
     @v = Vista.new
-    @v.data = {mod: clm, view: clm, ctr: ctr, cols: {}, last_col: 'c00', types:{}, msel: flash[:msel], join_emej: join_emej, order: '', who: flash[:wh].to_s, wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1], rows: 50}
+    @dat = @v.data = {mod: clm, view: clm, ctr: ctr, cols: cols, last_col: last_col, types:{}, msel: flash[:msel], join_emej: join_emej, order: '', who: flash[:wh].to_s, wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1], rows: 50}
 
     # Calcular fichero de preferencias
     fic_pref = nil
@@ -153,13 +163,22 @@ class BusController < ApplicationController
     }
 
     fic_pref ||= @sel.first[1][0] unless @sel.empty?
+    # Si el tipo de la búsqueda es 'hb' (histórico de borrados) y no hay fichero de preferencias darle
+    # el valor '*' que significa que luego en el callback al cargar el árbol de campos (método bus_sel)
+    # se fuerce a cargar el grid con las columnas predefinidas para este tipo de búsqueda.
+    fic_pref ||= '*' if flash[:tipo] == 'hb'
+
+    ctr = flash[:ctr] || params[:ctr]
 
     @v.save
 
     @ajax = "_vista=#{@v.id};"
-    @ajax << (params[:ctr] ? "_controlador_edit='#{params[:ctr]}';" : "_controlador_edit='#{@mod.include?('::') ? clm.table_name.sub('_', '/') : clm.table_name}';")
+    @ajax << (ctr ? "_controlador_edit='#{ctr}';" : "_controlador_edit='#{@mod.include?('::') ? clm.table_name.sub('_', '/') : clm.table_name}';")
     @ajax << "fic_pref=#{fic_pref.to_json};"
     @ajax << "view='#{clm}';"
+    # Si el tipo de búsqueda es histórico de borrados (hb) dar valor adecuado a _autoCompField
+    # para que al hacer doble click sobre un registro se haga la acción oportuna.
+    @ajax << '_autoCompField="*hb"' if flash[:tipo] == 'hb'
   end
 
   def list
@@ -419,6 +438,13 @@ class BusController < ApplicationController
 
   def bus_sel
     return unless @v
+
+    if params[:fic] == '*'
+      # Es el caso en que sólo se pide forzar la carga inicial del grid
+      # no hay fichero que cargar, sólo refrescar.
+      genera_grid(false, false)
+      return
+    end
 
     h = YAML.load(File.read(params[:fic]))
     h[:view] = h[:view] ? h[:view].constantize : @dat[:mod]

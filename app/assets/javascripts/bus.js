@@ -131,6 +131,10 @@ function gridSelect(id) {
       //if (_controlador_edit != 'no') window.open("/" + _controlador_edit + "/" + id + "/edit");
       if (_controlador_edit != 'no') window.open("/" + _controlador_edit + "?id_edit=" + id);
       break;
+    case '*hb':
+      // histórico de borrados
+      callFonServer("histo_borrados_sel", {mod: modelo, ctr: _controlador_edit, id: id});
+      break;
     default:
       callFonServer("bus_value", {id: id}, null, true);
 

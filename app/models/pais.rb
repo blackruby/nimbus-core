@@ -10,7 +10,6 @@ class Pais < ActiveRecord::Base
     codigo_cr: {manti: 3},
   }
 
-  after_save :control_histo
   after_initialize :ini_campos
 
   @auto_comp_data = {campos: ['codigo', 'nombre', 'codigo_cr']}
@@ -24,7 +23,7 @@ class Pais < ActiveRecord::Base
   include Modelo
 end
 
-class HPais < ActiveRecord::Base
+class HPais < Pais
   include Historico
 end
 
