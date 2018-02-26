@@ -408,7 +408,6 @@ class ActiveRecord::Base
   # Método para duplicar un registro incluyendo sus hijos
 
   def dup_in_db(campos={}, *hijos)
-    uid = defined?(session) ? session[:uid] : 'nada'
     nueva_ficha = self.dup
     campos.each {|k, v| nueva_ficha[k] = v}
     cl = self.class.to_s.ends_with?('Mod') ? self.class.superclass.to_s : self.class.to_s
@@ -585,7 +584,9 @@ module MantMod
   
   module ClassMethods
     def ini_datos
-      @mant = self < ActiveRecord::Base ? true : false
+      #@mant = self < ActiveRecord::Base ? true : false
+      @mant = (self < ActiveRecord::Base)
+=begin
       if @mant
         if self.superclass.modelo_base
           @view = true
@@ -595,6 +596,13 @@ module MantMod
         end
       else
         @view = false
+      end
+=end
+      # No se da la opción (como antes) de cambiar table_name directamente en el modelo asociado al controlador
+      # Así podemos aprovechar el nuevo método save personalizado en modelos para gravar vistas.
+      if @mant
+        @view = self.superclass.view?
+        self.table_name = self.superclass.table_name if @view
       end
 
       @campos ||= {}
@@ -702,8 +710,8 @@ module MantMod
     def ini_campo(c, v, context)
       campo = c.to_s
       if @mant
-        mo = self.superclass.modelo_base ? self.superclass.modelo_base : self.superclass
-        #cmo = self.superclass.modelo_base ? self.superclass.modelo_base.columns_hash[campo] : self.superclass.columns_hash[campo]
+        #mo = self.superclass.modelo_base ? self.superclass.modelo_base : self.superclass
+        mo = self.modelo_base
         cmo = mo.columns_hash[campo]
         cm = self.columns_hash[campo]
         cm_p = self.superclass.propiedades[c]
@@ -1000,6 +1008,10 @@ module MantMod
     def nivel
       @nivel.to_sym
     end
+
+    def modelo_base
+      self.superclass.modelo_base
+    end
   end
 
   ### Métodos de instancia
@@ -1254,10 +1266,11 @@ module Modelo
       @pk = self.superclass.pk.deep_dup
       @auto_comp_data = self.superclass.auto_comp_data.deep_dup
       @auto_comp_mselect = self.superclass.auto_comp_mselect.deep_dup
+      @view = true
     end
 
     def modelo_base
-      @modelo_base
+      @modelo_base || self
     end
 
     def pk
@@ -1291,6 +1304,10 @@ module Modelo
 
     def modelo_bus
       @modelo_bus
+    end
+
+    def view?
+      @view
     end
   end
 
@@ -1415,6 +1432,9 @@ module Historico
 
         @propiedades = self.superclass.propiedades
         @pk = self.superclass.pk
+
+        # Desactivar los callbacks al grabar registros (save), para que no se disparen a al grabar la ficha del histórico
+        self.reset_callbacks(:save)
       end
     end
 

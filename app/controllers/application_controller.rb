@@ -129,8 +129,9 @@ class ApplicationController < ActionController::Base
 
   # Clase del modelo original
   def class_modelo
-    cm = class_mant.superclass
-    cm.modelo_base || cm
+    #cm = class_mant.superclass
+    #cm.modelo_base || cm
+    class_mant.modelo_base
   end
 
   def noticias
