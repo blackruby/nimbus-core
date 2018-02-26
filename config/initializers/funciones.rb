@@ -64,6 +64,7 @@ class String
     validate_nif(value)
   end
 #=begin
+
   def dni?
     return true if self.length == 0
     return false unless self.length == 9
@@ -79,6 +80,7 @@ class String
     end
     return false
   end
+
 #=end
 =begin
   def add_digits_from_int(n)
@@ -187,6 +189,32 @@ class String
 		}
 		res
 	end
+
+  def ccc2iban
+    if self.gsub(/[\s-]+/,'').length == 20
+      codigo = self.gsub(/[\s-]+/,'')[0, 5].to_i
+      resto = codigo.modulo(97)
+
+      codigo = (resto.to_s + self.gsub(/[\s-]+/,'')[5, 5]).to_i
+      resto = codigo.modulo(97)
+
+      codigo = (resto.to_s + self.gsub(/[\s-]+/,'')[10, 5]).to_i
+      resto = codigo.modulo(97)
+
+      codigo = (resto.to_s + self.gsub(/[\s-]+/,'')[15, 5]).to_i
+      resto = codigo.modulo(97)
+
+      codigo = resto.to_s + '142800'
+      resto = codigo.to_i.modulo(97)
+
+      pp '************************'
+      pp self[0, 24]
+      pp self
+      return 'ES' + format('%02d', 98 - resto) + '-' + self[0, 24]
+    end
+    return self
+  end
+
 end
 
 def fecha_texto(fecha, formato = :default)
@@ -195,4 +223,5 @@ def fecha_texto(fecha, formato = :default)
   else
     I18n.l(fecha, format: formato)
   end
+
 end
