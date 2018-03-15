@@ -323,9 +323,9 @@ class ActiveRecord::Base
 
   def control_histo
     return unless hubo_cambios?
+=begin
     cl = self.class.to_s.ends_with?('Mod') ? self.class.superclass.to_s : self.class.to_s
     cls = cl.split('::')
-=begin
     clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
     h = clmh.new
     h.created_by_id = user_id
@@ -336,17 +336,23 @@ class ActiveRecord::Base
       h.method(c+'=').call(self.method(c).call)
     }
     h.save
-=end
+
     begin
       clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
       h = clmh.create(self.attributes.merge({id: nil, idid: self.id, created_by_id: self.user_id, created_at: Nimbus.now}))
     rescue
       # El "único" posible error sería que no existiera control de históricos para el modelo (y fallara el constantize)
     end
+=end
+    clh = self.class.modelo_histo
+    if clh
+      clh.create(self.attributes.merge({id: nil, idid: self.id, created_by_id: self.user_id, created_at: Nimbus.now}))
+    end
   end
 
   def control_histo_b
     return unless self.id
+=begin
     cl = self.class.to_s.ends_with?('Mod') ? self.class.superclass.to_s : self.class.to_s
     cls = cl.split('::')
     begin
@@ -355,6 +361,16 @@ class ActiveRecord::Base
     rescue
       # El "único" posible error sería que no existiera control de históricos para el modelo (y fallara el constantize)
     end
+=end
+      clh = self.class.modelo_histo
+      if clh
+        begin
+          clh.create(clh.where('idid = ?', self.id).order(:created_at).last.attributes.merge({id: nil, idid: -self.id, created_by_id: self.user_id, created_at: Nimbus.now}))
+        rescue
+          # Posible error si no hubiera histórico para este registro
+          # no hacer nada
+        end
+      end
   end
 
   # Método para poder hacer LEFT JOIN. Sintaxis: ljoin('assoc[(alias)][.<idem>]', [<idem>...])
@@ -405,8 +421,8 @@ class ActiveRecord::Base
     select(r[:cad_sel]).joins(r[:cad_join])
   end
 
+=begin
   # Método para duplicar un registro incluyendo sus hijos
-
   def dup_in_db(campos={}, *hijos)
     nueva_ficha = self.dup
     campos.each {|k, v| nueva_ficha[k] = v}
@@ -439,6 +455,61 @@ class ActiveRecord::Base
       }
     }
     return nueva_ficha.id
+  end
+=end
+
+  # Método para duplicar un registro incluyendo los hijos especificados
+  # La duplicación se hace directamente en la base de datos por lo que
+  # no se dispara ningún callback en los hijos. En el modelo principal sí.
+  def dup_in_db(campos={}, *hijos)
+    nueva_ficha = self.dup
+    campos.each {|k, v| nueva_ficha[k] = v}
+    ActiveRecord::Base.connection.transaction {
+      nueva_ficha.save
+      hijos.flatten.each {|mod|
+        pk = mod.pk[0]
+        campos = []
+        valores = []
+        mod.column_names.each {|c|
+          next if c == 'id'
+          campos << c
+          valores << (c == pk ? nueva_ficha.id : c)
+        }
+        tab_name = mod.table_name
+        reg = sql_exe("INSERT INTO #{tab_name} (#{campos.join(',')}) SELECT #{valores.join(',')} FROM #{tab_name} WHERE #{pk} = #{self.id}")
+
+        # Insertar los registros en el histórico (si hay histórico)
+        modh = mod.modelo_histo
+        if modh
+          tabh_name = modh.table_name
+          campos << 'idid' << 'created_by_id' << 'created_at'
+          valores << 'id' << self.user_id.to_i << "'#{Nimbus.now.to_json[1..-2]}'"
+          sql_exe("INSERT INTO #{tabh_name} (#{campos.join(',')}) SELECT #{valores.join(',')} FROM #{tab_name} WHERE #{pk} = #{self.id}")
+        end
+      }
+    }
+    return nueva_ficha.id
+  end
+
+  # Método para duplicar un registro incluyendo los hijos recursivamente
+  # (nietos, bisnietos, etc.) según los has_many declarados en el modelo.
+  # La duplicación se hace en rails por lo que todos los call_backs
+  # serán llamados.
+  def dup_with_has_many(campos={})
+    id = nil
+    ActiveRecord::Base.connection.transaction {id = _dup_with_has_many(self, campos)}
+    id
+  end
+
+  private def _dup_with_has_many(ficha, campos={})
+    nueva_ficha = ficha.dup
+    campos.each {|k, v| nueva_ficha[k] = v}
+    nueva_ficha.save
+    ficha.class.reflect_on_all_associations(:has_many).each do |hijo|
+      cl = hijo.options[:class_name].constantize
+      cl.where("#{cl.pk[0]} = #{ficha.id}").each {|f| _dup_with_has_many(f, {cl.pk[0] => nueva_ficha.id})}
+    end
+    nueva_ficha.id
   end
 end
 
@@ -599,7 +670,7 @@ module MantMod
       end
 =end
       # No se da la opción (como antes) de cambiar table_name directamente en el modelo asociado al controlador
-      # Así podemos aprovechar el nuevo método save personalizado en modelos para gravar vistas.
+      # Así podemos aprovechar el nuevo método save personalizado en modelos para grabar vistas.
       if @mant
         @view = self.superclass.view?
         self.table_name = self.superclass.table_name if @view
@@ -1267,10 +1338,38 @@ module Modelo
       @auto_comp_data = self.superclass.auto_comp_data.deep_dup
       @auto_comp_mselect = self.superclass.auto_comp_mselect.deep_dup
       @view = true
+      # Sobrecargar el método "save" para poder grabar en el modelo base
+      self.class_eval(%q(
+        def save
+          cl = self.class.modelo_base
+          if (self.id)
+            f = cl.find(self.id)
+          else
+            f = cl.new
+          end
+          cl.column_names.each {|c| f[c] = self[c]}
+          f.user_id = self.user_id
+          f.save
+          self.id = f.id
+        end
+
+        def destroy
+          self.class.modelo_base.destroy(self.id) if (self.id)
+        end
+      ))
     end
 
     def modelo_base
       @modelo_base || self
+    end
+
+    def modelo_histo
+      begin
+        cls = modelo_base.to_s.split('::')
+        (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
+      rescue
+        nil
+      end
     end
 
     def pk
@@ -1396,6 +1495,25 @@ module Modelo
   def campos
     propiedades
   end
+
+=begin
+  def save
+    if self.class.view?
+      cl = self.class.modelo_base
+      if (self.id)
+        f = cl.find(self.id)
+      else
+        f = cl.new
+      end
+      cl.column_names.each {|c| f[c] = self[c]}
+      f.user_id = self.user_id
+      f.save
+      f.id
+    else
+      super
+    end
+  end
+=end
 end
 
 # Módulo para hacer mixin en los modelos de históricos
@@ -1433,7 +1551,7 @@ module Historico
         @propiedades = self.superclass.propiedades
         @pk = self.superclass.pk
 
-        # Desactivar los callbacks al grabar registros (save), para que no se disparen a al grabar la ficha del histórico
+        # Desactivar los callbacks al grabar registros (save), para que no se disparen al grabar la ficha del histórico
         self.reset_callbacks(:save)
       end
     end

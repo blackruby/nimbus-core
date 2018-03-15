@@ -653,7 +653,7 @@ class ApplicationController < ActionController::Base
     @titulo = 'Histo: ' + modelo.table_name + '/' + params[:id]
     @url_list = '/histo_list?modelo=' + modeloh.to_s + '&id=' + params[:id]
     @url_edit = '/'
-    @url_edit << (params[:modulo] ? params[:modulo] + '/': '')
+    @url_edit << (params[:modulo] ? params[:modulo] + '/' : '')
     @url_edit << params[:tabla]
     #render 'shared/histo'
     render html: '', layout: 'histo'
@@ -1862,6 +1862,7 @@ class ApplicationController < ActionController::Base
       if params[:nocallback]
         @fact.update_column(campo, valor)
       else
+=begin
         if clm.view?
           clmod = class_modelo
           f = clmod.find(@fact.id)
@@ -1872,6 +1873,8 @@ class ApplicationController < ActionController::Base
         else
           @fact.save
         end
+=end
+        @fact.save
       end
       #render text: ''
       render plain: ''
@@ -2480,19 +2483,8 @@ class ApplicationController < ActionController::Base
     if err
       mensaje(err) unless err == '@'
     else
-      class_mant.view? ? class_modelo.destroy(@fact.id) : @fact.destroy
-
-      # Tratamiento de histórico (insertar una ficha con todo nil salvo el usuario y la fecha de borrado)
-      cl = class_modelo.to_s
-      cls = cl.split('::')
-      clmh = cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]
-      if Object.const_defined?(clmh)
-        h = clmh.constantize.new
-        h.created_by_id = @usu.id
-        h.created_at = Nimbus.now
-        h.idid = @fact.id
-        h.save
-      end
+      #class_mant.view? ? class_modelo.destroy(@fact.id) : @fact.destroy
+      @fact.destroy
 
       # Borrar los datos asociados
       `rm -rf data/#{class_modelo}/#{@fact.id}`
@@ -2564,7 +2556,7 @@ class ApplicationController < ActionController::Base
 
       if err == ''
         call_nimbus_hook :before_save
-
+=begin
         if clm.view?
           clmod = class_modelo
           if (@fact.id)
@@ -2582,6 +2574,8 @@ class ApplicationController < ActionController::Base
         else
             @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
         end
+=end
+        @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
 
         # Tratar campos imagen
         cmps_img.each {|c|
