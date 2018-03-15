@@ -23,6 +23,7 @@ $color-nim-context-menu-li: #EEEEEE;
 body {
   font-family: Roboto, Helvetica, Arial, sans-serif;
   /*font-size: 0.72em;*/
+  user-select: none;
 }
 
 .ficha {
