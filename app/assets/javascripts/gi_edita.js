@@ -1242,7 +1242,7 @@ $(window).load(function () {
     addEstilo("tit", ":def, {bg_color: 'AAAAAA', fg_color: 'FFFFFF', b: true, alignment: {vertical: :center}}");
     addEstilo("tit_c", ":def_c, :tit");
     addEstilo("tit_d", ":def_d, :tit");
-    addEstilo("borde", ":def, {border: {style: :thin, color: 'FF0000FF', edges: [:right]}}");
+    addEstilo("borde", ":def, {border: {style: :thin, color: 'AAAAAA', edges: [:left, :right, :top, :bottom]}}");
   }
   llenaEstilos();
 
