@@ -2168,6 +2168,8 @@ class ApplicationController < ActionController::Base
 
     @ajax << "$('##{cmp} .ui-jqgrid-bdiv').scrollTop(1000000);" if pos == -1
 
+    @ajax << 'hayCambios=true;'
+
     @fact[cmp].add_row(pos, data)
     @fant[cmp].add_row(pos, data) if @fant
   end
@@ -2194,6 +2196,8 @@ class ApplicationController < ActionController::Base
     # Las dos líneas que siguen son para apañar un bug de jqGrid al borrar la ultima línea de datos
     #@ajax << "$('#g_#{cmp}').jqGrid('resetSelection');"
     @ajax << "$('#g_#{cmp}').trigger('reloadGrid', [{current:true}]);"
+
+    @ajax << 'hayCambios=true;'
 
     @fact[cmp].del_row(row)
     @fant[cmp].del_row(row) if @fant
