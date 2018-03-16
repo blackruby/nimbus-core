@@ -183,7 +183,8 @@ $(window).load(function () {
 
   grid.jqGrid('gridResize', {handles: "s", minHeight: 80});
   grid.jqGrid('bindKeys');
-  grid.jqGrid('filterToolbar', {stringResult: true, searchOperators: true}); vgrid[0].toggleToolbar();
+  grid.jqGrid('filterToolbar', {stringResult: true, searchOperators: true});
+  if (!varView.grid.filtros) vgrid[0].toggleToolbar();
 
   /*
    grid.jqGrid('navGrid', toolgrid, {edit: false, add: false, del: true}, {}, {}, {}, {multipleSearch: true, multipleGroup: true, showQuery: true});
