@@ -1243,6 +1243,7 @@ $(window).load(function () {
     addEstilo("tit_c", ":def_c, :tit");
     addEstilo("tit_d", ":def_d, :tit");
     addEstilo("borde", ":def, {border: {style: :thin, color: 'AAAAAA', edges: [:left, :right, :top, :bottom]}}");
+    addEstilo("text", ":def, {alignment: {horizontal: :justify, vertical: :top, wrap_text: true}}");
   }
   llenaEstilos();
 
