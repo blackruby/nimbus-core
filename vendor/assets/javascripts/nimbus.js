@@ -60,6 +60,9 @@ jQuery.fn.entrydate = function() {
     $(this).val(v ? v : lastv);
 
   }).on("keydown", function(e) {
+    if (nimRO) {
+      if (e.keyCode == 9) return; else return false;
+    }
     //var key = e.key;  // Esto sería válido para versiones modernas de javascript
     var key = calculaKey(e.keyCode);  // Apaño para versiones de javascript que no rellenan 'key'
     var cur = $(this).caret().begin;
@@ -648,8 +651,9 @@ function mant_grabar(nueva) {
     if ($("button.cl-grabar", parent.document).attr('disabled') == 'disabled') return;
   }
    **/
-  var context = $(".cl-grabar").size > 0 ? document : parent.document;
-  if ($("button.cl-grabar", context).attr('disabled') == 'disabled') return;
+  var context = $(".cl-grabar").length > 0 ? document : parent.document;
+  var bg = $("button.cl-grabar", context);
+  if (bg.length == 0 || bg.attr('disabled') == 'disabled') return;
 
   // Para forzar la salida de edición de cualquier celda en cualquier grid editable que haya
   $(".ui-jqgrid-btable").jqGrid('editCell', 0, 0, false);
@@ -732,11 +736,13 @@ function statusBotones(b) {
   var context;
 
   $.each(b, function(k, v) {
-    context = $(".cl-" + k).size > 0 ? document : parent.document;
+    context = $(".cl-" + k).length > 0 ? document : parent.document;
     if (v == null)
       $(".cl-" + k, context).remove();
+      //$(".cl-" + k, context).css("display", "none");
     else
       $(".cl-" + k, context).attr("disabled", !v);
+      //$(".cl-" + k, context).css("display", "inline-block").attr("disabled", !v);
   });
 }
 
@@ -1055,7 +1061,7 @@ function creaGridLocal(opts, data) {
   switch(opts.modo) {
     case 'ed':
       grid_a = {
-        cellEdit: true,
+        cellEdit: !nimRO,
         afterSaveCell: function(row, col, val) {
           if (col.match('_id$')) {
             if (g.attr("last_autocomp_id") == "") {
@@ -1124,14 +1130,14 @@ function creaGridLocal(opts, data) {
     case 'ed':
       g.jqGrid('bindKeys');
       ht = '<div class="nim-titulo">' + caption + '&nbsp;&nbsp;&nbsp;&nbsp;';
-      if (opts.ins) {
+      if (opts.ins && !nimRO) {
         ht += creaMdlButton('b_ib_' + cmp, 30, 2, 22, 'vertical_align_bottom', 'Insertar fila al final');
         if (opts.ins == 'pos') {
           ht += '&nbsp;&nbsp;';
           ht += creaMdlButton('b_it_' + cmp, 30, 2, 22, 'vertical_align_center', 'Insertar fila');
         }
       }
-      if (opts.del) {
+      if (opts.del && !nimRO) {
         ht += '&nbsp;&nbsp;';
         ht += creaMdlButton('b_d_' + cmp, 30, 2, 22, 'delete', 'Borrar fila');
       }
@@ -1295,6 +1301,23 @@ function p2p(tit, label, pb, cancel, width, mant, fin) {
   mant ? parent.componentHandler.upgradeDom() : componentHandler.upgradeDom();
 }
 
+var nimRO = false;
+function soloLectura() {
+  nimRO = true;
+  $(document).on("keydown", function (e) {
+    if (e.keyCode != 9) return false;
+  });
+  $('input[type="checkbox"]').attr("disabled", true);
+  $('select').attr("disabled", true);
+}
+
+function setMenuR(st) {
+  var context = (parent == self ? document : parent.document);
+  
+  $(".menu-r-user", context).attr("disabled", true);
+  if (!st) $(".menu-r-user" + (nimRO ? ":not(.dis-ro)" : ""), context).attr("disabled", false);
+}
+
 $(window).load(function() {
   var _auto_comp_menu_;
 
@@ -1318,7 +1341,7 @@ $(window).load(function() {
         '<div id="_auto_comp_menu_" class="nim-context-menu">'+
         '<ul class="nim-context-menu-ul">'+
         '<li class="nim-context-menu-li" onClick="autoCompIrAFicha()">Ir a...</li>'+
-        '<li class="nim-context-menu-li nim-context-menu-ed" onclick="autoCompBuscar()">Buscar</li>'+
+        (nimRO ? '' : '<li class="nim-context-menu-li nim-context-menu-ed" onclick="autoCompBuscar()">Buscar</li>')+
         '<li class="nim-context-menu-li nim-context-menu-ed" onClick="autoCompNuevaFicha()">Nueva alta</li>'+
         '</ul>'+
         '</div>'
@@ -1399,11 +1422,29 @@ $(window).load(function() {
   $(window).unload(function() {
     if (typeof(_vista) == "undefined") return;
 
+    var vista = [];
+    var nimlock = [];
+
+    function addItem(win, doc) {
+      if (typeof(win._vista) != 'undefined') vista.push(win._vista);
+      if (typeof(win._nimlock) != 'undefined') nimlock.push(win._nimlock);
+
+      var ficha = doc.getElementById('ficha');
+      if (ficha) addItem(ficha.contentWindow, ficha.contentDocument);
+
+      var hijo;
+      for(var i = 0; hijo = doc.getElementById('hijo_' + i); i++) {
+        addItem(hijo.contentWindow, hijo.contentDocument);
+      }
+    }
+
+    addItem(window, document);
+
     $.ajax({
       url: '/application/destroy_vista',
       type: "POST",
       async: false,
-      data: {vista: _vista}
+      data: {vista: vista, nimlock: nimlock}
     });
   });
 });

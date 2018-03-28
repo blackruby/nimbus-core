@@ -771,8 +771,13 @@ module MantMod
       diag.each {|d|
         if d[:menu]
           h = {label: d[:menu], accion: d[:id], tipo: 'dlg'}
-          h[:id] = d[:menu_id] if d[:menu_id]
+          if d[:menu_id]
+            h[:id] = d[:menu_id]
+          elsif d[:id]
+            h[:id] = "m_#{d[:id]}"
+          end
           h[:side] = d[:js] if d[:js]
+          h[:dis_ro] = d[:dis_ro]
           @menu_r << h
         end
       }
@@ -1082,6 +1087,10 @@ module MantMod
 
     def modelo_base
       self.superclass.modelo_base
+    end
+
+    def nim_lock
+      @nim_lock
     end
   end
 

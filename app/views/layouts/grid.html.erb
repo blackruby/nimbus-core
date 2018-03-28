@@ -71,9 +71,9 @@
               <%= m[:label].html_safe %>
             <% else %>
               <% if m[:upload] %>
-                <li id="<%= m[:id] %>" class="mdl-menu__item" onclick="<%= "$('##{m[:upload]}',frames['ficha'].contentDocument).trigger('click')".html_safe %>"> <%= m[:label] %> </li>
+                <li id="<%= m[:id] %>" class="mdl-menu__item menu-r-user<%= m[:dis_ro] ? ' dis-ro' : '' %>" onclick="<%= "$('##{m[:upload]}',frames['ficha'].contentDocument).trigger('click')".html_safe %>"> <%= m[:label] %> </li>
               <% else %>
-                <li id="<%= m[:id] %>" class="mdl-menu__item" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>', '<%= m[:side] %>')"> <%= m[:label] %> </li>
+                <li id="<%= m[:id] %>" class="mdl-menu__item menu-r-user<%= m[:dis_ro] ? ' dis-ro' : '' %>" onclick="liFon(this, '<%= m[:accion] %>', '<%= m[:tipo] %>', '<%= m[:side] %>')"> <%= m[:label] %> </li>
               <% end %>
             <% end %>
           <% } %>

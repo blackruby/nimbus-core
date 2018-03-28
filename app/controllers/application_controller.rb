@@ -123,7 +123,11 @@ class ApplicationController < ActionController::Base
     if self.class.superclass.to_s == 'GiController'
       GiMod
     else
-      (self.class.to_s[0..-11] + 'Mod').constantize
+      begin
+        (self.class.to_s[0..-11] + 'Mod').constantize
+      rescue
+        nil
+      end
     end
   end
 
@@ -153,6 +157,7 @@ class ApplicationController < ActionController::Base
     h[:tit] ||= nt('aviso')
     h[:bot] ||= []
     h[:close] = true if h[:close].nil?
+    h[:context] ||= 'self' 
 
 =begin
     @ajax << '$("#dialog-nim-alert").html(' + h[:msg].to_json + ')'
@@ -169,7 +174,8 @@ class ApplicationController < ActionController::Base
     @ajax << '})'
     @ajax << '.dialog("open");'
 =end
-    @ajax << "$('<div></div>').html(#{h[:msg].to_json}).dialog({"
+    @ajax << '$(window).load(function(){' if h[:onload]
+    @ajax << "$('<div></div>', #{h[:context]}).html(#{h[:msg].to_json}).dialog({"
     @ajax << 'resizable: false, modal: true, width: "auto",'
     @ajax << 'close: function(){$(this).remove();},'
     @ajax << "title: #{h[:tit].to_json},"
@@ -185,6 +191,7 @@ class ApplicationController < ActionController::Base
       @ajax << '},'
     }
     @ajax << '}});'
+    @ajax << '});' if h[:onload]
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'select_options(cmp, val, options)'}
@@ -270,7 +277,7 @@ class ApplicationController < ActionController::Base
   ##
 
   def enable_menu(m)
-    @ajax << "if (parent != self) $('##{m}', parent.document).attr('disabled', false);"
+    @ajax << "if (parent == self) $('##{m}').attr('disabled', false); else $('##{m}', parent.document).attr('disabled', false);"
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'disable_menu(id)'}
@@ -278,7 +285,7 @@ class ApplicationController < ActionController::Base
   ##
 
   def disable_menu(m)
-    @ajax << "if (parent != self) $('##{m}', parent.document).attr('disabled', true);"
+    @ajax << "if (parent == self) $('##{m}').attr('disabled', true); else $('##{m}', parent.document).attr('disabled', true);"
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'enable_tab(tab)'}
@@ -714,19 +721,25 @@ class ApplicationController < ActionController::Base
     open_url("/histo/#{params[:ctr]}/#{-params[:mod].constantize.find(params[:id]).idid}");
   end
 
-  def sincro_hijos
+  def sincro_hijos(posponer = false, lock = false)
+    hijos = class_mant.hijos
+    return if hijos.empty?
+
     id_hijos = params[:hijos] ? eval('{' + params[:hijos] + '}') : {}
-    class_mant.hijos.each_with_index {|h, i|
-      @ajax << '$(function(){$("#hijo_' + i.to_s + '").attr("src", "/' + h[:url]
+    @ajax << '$(window).load(function(){' if posponer
+    hijos.each_with_index {|h, i|
+      @ajax << '$("#hijo_' + i.to_s + '").attr("src", "/' + h[:url]
       @ajax << '?mod=' + class_modelo.to_s
       @ajax << '&id=' + @fact.id.to_s
       @ajax << '&padre=' + @v.id.to_s
       @ajax << '&eid=' + @dat[:eid].to_s if @dat[:eid]
       @ajax << '&jid=' + @dat[:jid].to_s if @dat[:jid]
       @ajax << "&id_edit=#{id_hijos[h[:url].to_sym]}" if id_hijos[h[:url].to_sym]
-      #@ajax << '&prm=' + @dat[:prm]
-      @ajax << '");});'
+      # Si posponer es true (caso de la primera carga desde "edit") pasar el permiso vigente (por si hay bloqueo)
+      @ajax << '&lock=1' if posponer && lock
+      @ajax << '");'
     }
+    @ajax << '});' if posponer
   end
 
   def sincro_parent
@@ -770,20 +783,23 @@ class ApplicationController < ActionController::Base
 
     eid, jid = get_empeje
 
+    # Tener en cuenta de que puede llegar el parámetro prm en modo consulta ('c') en el caso de que venga de un padre con bloqueo (nimlock)
     if @usu.admin
-      prm = 'p'
+      #prm = 'p'
+      prm = params[:lock] ? 'c' : 'p'
     else
-      #prm = @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid ? eid.to_i : 0]
       prm = @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid.to_i]
-      case prm
-        when nil
-          render file: '/public/401.html', status: 401, layout: false
-          return
-        when 'c'
-          #status_botones crear: false
-          # ¡Ojo! Aquí no se puede usar status_botones ya que al ser el "index" el context se puede equivocar cuando sea un mantenimiento hijo ya que éste también tendrá un parent.document
-          @ajax << '$(".cl-crear").remove();'
-      end
+      prm = 'c' if prm && params[:lock]
+    end
+
+    case prm
+      when nil
+        render file: '/public/401.html', status: 401, layout: false
+        return
+      when 'c'
+        #status_botones crear: false
+        # ¡Ojo! Aquí no se puede usar status_botones ya que al ser el "index" el context se puede equivocar cuando sea un mantenimiento hijo ya que éste también tendrá un parent.document
+        @ajax << '$(".cl-crear").remove();'
     end
 
     w = ''
@@ -811,6 +827,12 @@ class ApplicationController < ActionController::Base
       end
     end
 
+    @v = Vista.create
+    @v.data = {}
+    @dat = @v.data
+    @dat[:eid] = eid
+    @dat[:jid] = jid
+
     grid = clm.grid.deep_dup
     grid_conf(grid) if self.respond_to?(:grid_conf)
 
@@ -819,11 +841,6 @@ class ApplicationController < ActionController::Base
 
     add_where(w, grid[:wh]) if grid[:wh]
 
-    @v = Vista.create
-    @v.data = {}
-    @dat = @v.data
-    @dat[:eid] = eid
-    @dat[:jid] = jid
     @dat[:auto_comp] = {_pk_input: w} unless w.empty?
     @dat[:wgrid] = w.dup
     add_where(@dat[:wgrid], wemej)
@@ -842,6 +859,7 @@ class ApplicationController < ActionController::Base
     @view[:url_list] = @view[:url_base] + 'list'
     @view[:url_new] = @view[:url_base] + 'new'
     @view[:arg_edit] = '?head=0'
+    @view[:arg_edit] << '&lock=1' if params[:lock]
     arg_list_new = @view[:arg_edit].clone
 
     if params[:mod] != nil
@@ -1223,6 +1241,7 @@ class ApplicationController < ActionController::Base
     #Activar botones necesarios (Grabar/Borrar)
     #@ajax << 'statusBotones({grabar: true, borrar: false});'
     status_botones grabar: true, borrar: false, osp: false
+    @ajax << 'setMenuR(false);'
 
     #before_envia_ficha if self.respond_to?('before_envia_ficha')
     call_nimbus_hook :before_envia_ficha
@@ -1395,16 +1414,36 @@ class ApplicationController < ActionController::Base
     unless @usu.admin or params[:controller] == 'gi' or (clm.mant? and @fact.id == 0)
       #@dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
       @dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][emp_perm]
-      case @dat[:prm]
-        when nil
-          render file: '/public/401.html', status: 401, layout: false
-          return
-        when 'b'
-          status_botones borrar: false
-        when 'c'
-          disable_all
+      if @dat[:prm].nil?
+        render file: '/public/401.html', status: 401, layout: false
+        return
       end
     end
+
+    @dat[:prm] = 'c' if params[:lock]
+
+    blq = nil
+    if @fact.id != 0 && clm.nim_lock && @dat[:prm] != 'c'
+      begin
+        add_nim_lock
+      rescue ActiveRecord::RecordNotUnique
+        # El registro está siendo editado por otro usuario
+        blq = Bloqueo.find_by controlador: params[:controller], ctrlid: @fact.id
+        mensaje onload: true, tit: 'Registro bloqueado', msg: "El registro está siendo editado por:<br><br>Usuario: #{blq.created_by.nombre}<br>Fecha: #{fecha_texto(blq.created_at, :long)}<br><br>Se activará el modo 'sólo lectura'."
+        @dat[:prm] = 'c'
+      end
+    end
+
+    case @dat[:prm]
+      when 'b'
+        status_botones borrar: false
+      when 'c'
+        status_botones grabar: false, borrar: false
+        @ajax << 'soloLectura();'
+    end
+
+    # Activar/Desactivar las opciones necesarias en menu_r
+    @ajax << "setMenuR(#{@fact.id == 0});"
 
     @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
@@ -1422,7 +1461,7 @@ class ApplicationController < ActionController::Base
 
     unless clm.mant? and @fact.id == 0
       envia_ficha
-      sincro_hijos if clm.mant?
+      sincro_hijos(true, blq ? true : false) if clm.mant?
 
       @v.save
     end
@@ -1561,7 +1600,7 @@ class ApplicationController < ActionController::Base
   def forma_campo_id(ref, id, tipo = :form)
     return('') if id.nil? or id == 0 or id == ''
 
-    mod = ref.constantize
+    mod = ref.is_a?(String) ? ref.constantize : ref
     ret = mod.mselect(mod.auto_comp_mselect).where(mod.table_name + '.id=' + id.to_s)[0]
     ret ? ret.auto_comp_value(tipo) : nil
   end
@@ -2605,7 +2644,12 @@ class ApplicationController < ActionController::Base
           if @dat[:grabar_y_alta] or params[:_new] # Entrar en una ficha nueva después de grabar
             @ajax << "parent.newFicha(#{@fact.id});"
           else
-            sincro_hijos if @fant[:id].nil?
+            if @fant[:id].nil?
+              # Bloquear el registro si procede
+              add_nim_lock if clm.nim_lock
+    
+              sincro_hijos
+            end
 
             #Activar botones necesarios (Grabar/Borrar)
             #@ajax << 'statusBotones({borrar: true});'
@@ -2652,13 +2696,25 @@ class ApplicationController < ActionController::Base
     @ajax << 'hayCambios=false;'
   end
 
+  def add_nim_lock
+    b = Bloqueo.create controlador: params[:controller], ctrlid: @fact.id, empre_id: @dat[:eid], clave: forma_campo_id(class_modelo, @fact.id, :lock), created_by_id: @usu.id, created_at: Nimbus.now
+    @ajax << "_nimlock=#{b.id};"
+  end
+
   # Método para destruir una vista cuando se abandona la página
 
   def destroy_vista
-    sql_exe("DELETE FROM vistas where id = #{params[:vista]}")
+    #sql_exe("DELETE FROM vistas where id = #{params[:vista]}")
+    Vista.where('id in (?)', params[:vista]).delete_all
+
     # Borrar todas las imágenes temporales que queden
     `rm -f /tmp/nimImg-#{params[:vista]}-*`
-    #render nothing: true
+
+    # Eliminar bloqueos si procede
+    if params[:nimlock]
+      Bloqueo.where('id in (?)', params[:nimlock]).delete_all
+    end
+
     head :no_content
   end
 

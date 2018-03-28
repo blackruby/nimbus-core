@@ -8,4 +8,5 @@ General:
   gi: /gi
   giv: /giv
   tag_accesos: <hr>
+  bloqueos: /bloqueos
   ctraccess: /bus?mod=Acceso&ctr=no
