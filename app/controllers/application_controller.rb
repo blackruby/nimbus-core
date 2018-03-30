@@ -1423,7 +1423,7 @@ class ApplicationController < ActionController::Base
     @dat[:prm] = 'c' if params[:lock]
 
     blq = nil
-    if @fact.id != 0 && clm.nim_lock && @dat[:prm] != 'c'
+    if clm.mant? && @fact.id != 0 && clm.nim_lock && @dat[:prm] != 'c'
       begin
         add_nim_lock
       rescue ActiveRecord::RecordNotUnique
@@ -1443,7 +1443,7 @@ class ApplicationController < ActionController::Base
     end
 
     # Activar/Desactivar las opciones necesarias en menu_r
-    @ajax << "setMenuR(#{@fact.id == 0});"
+    @ajax << "setMenuR(#{clm.mant? ? (@fact.id == 0) : true});"
 
     @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
