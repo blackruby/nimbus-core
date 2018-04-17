@@ -2259,7 +2259,6 @@ class ApplicationController < ActionController::Base
 
   def grid_local_select
     campo = params[:cmp]
-    row = params[:row].to_i
     sel = (params[:sel] == 'true')
 
     if params[:multi]
@@ -2270,6 +2269,7 @@ class ApplicationController < ActionController::Base
         #@fact.method(campo + '=').call(params[:row].map{|c| c.to_i})
         @fact[campo] = params[:row].map{|c| c.to_i}
       else
+        row = params[:row].to_i
         v = @fact[campo]
         if v
           if v.is_a? Array
@@ -2283,8 +2283,7 @@ class ApplicationController < ActionController::Base
         end
       end
     else
-      #@fact.method(campo + '=').call(params[:row].to_i)
-      @fact[campo] = sel ? row : nil
+      @fact[campo] = sel ? params[:row].to_i : nil
     end
 
     fun = "sel_#{campo}"
