@@ -2211,6 +2211,17 @@ class ApplicationController < ActionController::Base
 
     @fact[cmp].add_row(pos, data)
     @fant[cmp].add_row(pos, data) if @fant
+
+    # Poner en edición la primera columna editable de la fila recién añadida
+    fce = 0
+    @fact[cmp][:cols].each_with_index {|c, i|
+      if c[:editable]
+        fce = i
+        break
+      end
+    }
+    
+    @ajax << "$('#g_#{cmp}').jqGrid('editCell',#{pos == -1 ? @fact[cmp][:data].size : pos + 1},#{fce},true);"
   end
 
   def grid_local_ins
