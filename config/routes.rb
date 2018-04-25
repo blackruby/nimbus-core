@@ -35,7 +35,7 @@ Rails.application.routes.draw do
     get 'gi/new/:modelo' => 'gi#new'
     get 'gi/edit/:modulo/:formato' => 'gi#edita'
     get 'gi/run/:modulo/:formato' => 'gi#edit'
-    get 'gi/abrir' => 'gi#abrir'
+    get 'gi/abrir/:id' => 'gi#abrir'
     get 'gi/campos' => 'gi#campos'
     post 'gi/graba_fic' => 'gi#graba_fic'
     post 'gi/validar' => 'gi#validar'
