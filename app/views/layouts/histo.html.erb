@@ -18,15 +18,15 @@
     <span class="mdl-layout-title grid-title"> <%= @titulo %> </span>
     <div class="mdl-layout-spacer"></div>
     <nav class="mdl-navigation">
-      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="searchBar()">
-        <i class="material-icons">visibility</i>
+      <button title="Mostrar/Ocultar filtros (Alt-f)" class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="searchBar()">
+        <i class="material-icons">filter_list</i>
       </button>
       &nbsp; &nbsp;
-      <button class="nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="editInForm()">
+      <button title="Edita el registro seleccionado" class="cl-editar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored only-grid" onclick="editInForm()">
         <i class="material-icons">edit</i>
       </button>
       &nbsp; &nbsp; &nbsp; &nbsp;
-      <button id="b-collapse" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
+      <button title="Muestra/Oculta rejilla de datos (Alt-v)" id="b-collapse" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
         <i class="material-icons">swap_vert</i>
       </button>
     </nav>

@@ -1559,6 +1559,8 @@ module Historico
 
         @propiedades = self.superclass.propiedades
         @pk = self.superclass.pk
+        @auto_comp_data = self.superclass.auto_comp_data
+        @auto_comp_mselect = self.superclass.auto_comp_mselect
 
         # Desactivar los callbacks al grabar registros (save), para que no se disparen al grabar la ficha del histórico
         self.reset_callbacks(:save)

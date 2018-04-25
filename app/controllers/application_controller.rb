@@ -657,7 +657,13 @@ class ApplicationController < ActionController::Base
       return
     end
 
-    @titulo = 'Histo: ' + modelo.table_name + '/' + params[:id]
+    #@titulo = 'Histo: ' + modelo.table_name + '/' + params[:id]
+    begin
+      clave = params[:idb] ? forma_campo_id(modeloh, params[:idb]) : forma_campo_id(modelo, params[:id])
+    rescue
+      clave = nil
+    end
+    @titulo = 'Histo: ' + modelo.table_name + ' ' + (clave ? clave : "id: #{params[:id]}")
     @url_list = '/histo_list?modelo=' + modeloh.to_s + '&id=' + params[:id]
     @url_edit = '/'
     @url_edit << (params[:modulo] ? params[:modulo] + '/' : '')
@@ -668,7 +674,6 @@ class ApplicationController < ActionController::Base
 
   def histo_list
     mod = params[:modelo].constantize
-    mod_tab = mod.table_name
 
     w = 'idid=' + params[:id]
     tot_records = mod.where(w).size
@@ -678,7 +683,6 @@ class ApplicationController < ActionController::Base
     page = params[:page].to_i
     page = tot_pages if page > tot_pages
     page = 1 if page <=0
-
 
     ord = ''
     sort_elem = params[:sidx].split(',')  #Partimos por ',' así tenemos un vector de campos por los que ordenar
@@ -718,7 +722,7 @@ class ApplicationController < ActionController::Base
   end
 
   def histo_borrados_sel
-    open_url("/histo/#{params[:ctr]}/#{-params[:mod].constantize.find(params[:id]).idid}");
+    open_url("/histo/#{params[:ctr]}/#{-params[:mod].constantize.find(params[:id]).idid}?idb=#{params[:id]}");
   end
 
   def sincro_hijos(posponer = false, lock = false)
