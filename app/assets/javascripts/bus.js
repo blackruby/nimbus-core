@@ -136,7 +136,7 @@ function gridSelect(id) {
       callFonServer("histo_borrados_sel", {mod: modelo, ctr: _controlador_edit, id: id});
       break;
     default:
-      callFonServer("bus_value", {id: id}, null, true);
+      callFonServer("bus_value", {id: id, type: _autoCompField.data("type")}, null, true);
 
       _autoCompField.attr("dbid", id);
       if (_autoCompField.data("fon_auto")) // función asociada propia

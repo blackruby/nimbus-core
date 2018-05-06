@@ -403,7 +403,8 @@ class BusController < ApplicationController
 
     #mod =  @dat[:mod]
     mod =  @dat[:view]
-    val =  mod.mselect(mod.auto_comp_mselect).where("#{mod.table_name}.id = #{params[:id]}")[0].auto_comp_value(:form)
+    ty = params[:type] ? params[:type].to_sym : :form
+    val =  mod.mselect(mod.auto_comp_mselect).where("#{mod.table_name}.id = #{params[:id]}")[0].auto_comp_value(ty)
     @ajax << "_autoCompField.val('#{val}');"
     @ajax << 'window.close();'
   end
