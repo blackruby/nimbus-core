@@ -50,7 +50,9 @@ class Usuario < ActiveRecord::Base
   end
 
   def self.asigna_permiso(ctrl, st, emp, dest)
-    ctrl = URI(ctrl).path[1..-1]
+    #ctrl = URI(ctrl).path[1..-1]
+    ctrl = URI(ctrl).path
+    ctrl = ctrl[1..-1] if ctrl[0] == '/'
 
     if dest[ctrl]
       emp.each_with_index {|e, i|
