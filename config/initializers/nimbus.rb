@@ -724,11 +724,11 @@ module MantMod
         @grid[:gcols][2] ||= 4
         @grid[:visible] = true if @grid[:visible].nil?
         @grid[:height] ||= 250
-        @grid[:rowNum] ||= 50
         @grid[:cellEdit] = true if @grid[:cellEdit].nil?
         @grid[:shrinkToFit] = true if @grid[:shrinkToFit].nil?
         @grid[:multiSort] = false if @grid[:multiSort].nil?
         @grid[:scroll] = false if @grid[:scroll].nil?
+        @grid[:rowNum] ||= (@grid[:scroll] ? 100 : 50)
         @grid[:sortorder] ||= 'asc'
         if @grid[:sortname].nil?
           @campos.each {|c, v|

@@ -1081,8 +1081,12 @@ class ApplicationController < ActionController::Base
     tot_pages = tot_records / lim
     tot_pages += 1 if tot_records % lim != 0
     page = params[:page].to_i
-    page = tot_pages if page > tot_pages
     page = 1 if page <=0
+    #page = tot_pages if page > tot_pages
+    if page > tot_pages
+      render json: {page: tot_pages, total: tot_pages, records: tot_records, rows: []}
+      return
+    end
 
     #sql = clm.eager_load(eager).where(w).where(params[:wh]).order(ord).offset((page-1)*lim).limit(lim)
     sql = clm.eager_load(eager).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
@@ -2122,9 +2126,10 @@ class ApplicationController < ActionController::Base
           c[:editoptions][:dataInit] ||= '~function(e){$(e).entrytime(' + (c[:seg] ? 'true,' : 'false,') + (c[:nil] ? 'true' : 'false') + ')}~'
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
         when :references
-          #c[:controller] = c[:ref].constantize.table_name
           mt = c[:ref].split('::')
           c[:controller] = (mt.size == 1 ? c[:ref].constantize.table_name : mt[0].downcase + '/' + mt[1].downcase.pluralize)
+          #sal << " go='go_#{cs}'" if self.respond_to?('go_' + cs)
+          #sal << " new='new_#{cs}'" if self.respond_to?('new_' + cs)
           c[:editoptions] = {dataInit:  "~function(e){autoCompGridLocal(e,'#{c[:ref]}','#{c[:controller]}','#{cmp}','#{c[:name]}');}~"}
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
         when :text
