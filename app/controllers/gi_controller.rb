@@ -187,24 +187,23 @@ class GiController < ApplicationController
   end
 
   def campos
-=begin
-    begin
-      cl = params[:node].constantize
-    rescue
-      # Se supone que sería un histórico y está sin cargar su clase
-      params[:node][1..-1].constantize
-      cl = params[:node].constantize
-    end
-=end
     cl = h_constantize(params[:node])
+
+    emp = params[:emp].to_i
 
     data = []
     cl.column_names.each {|c|
       d = {table: cl.table_name, type: cl.columns_hash[c].type}
       if c.ends_with?('_id')
+        d[:id] = cl.reflect_on_association(c[0..-4].to_sym).options[:class_name]
+        # Controlar permisos. Si no se tiene permiso para el controlador asociado al modelo
+        # correspondiente al campo "id" ==> Excluir dicho id para no poder acceder a esa tabla.
+        unless @usu.admin
+          ctrl = cl.reflect_on_association(c[0..-4].to_sym).class_name.constantize.ctrl_for_perms
+          next unless @usu.pref[:permisos][:ctr][ctrl] && @usu.pref[:permisos][:ctr][ctrl][emp]
+        end
         d[:label] = c[0..-4]
         d[:load_on_demand] = true
-        d[:id] = cl.reflect_on_association(c[0..-4].to_sym).options[:class_name]
       else
         cs = c.to_sym
         d[:label] = c

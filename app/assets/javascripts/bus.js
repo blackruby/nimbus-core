@@ -295,8 +295,8 @@ $(window).load(function() {
 
   $("#tree-campos").tree({
     selectable: false,
-    //dataUrl: '/gi/campos?node=' + modelo
-    dataUrl: '/gi/campos?node=' + view
+    //dataUrl: '/gi/campos?node=' + view
+    dataUrl: '/gi/campos?node=' + view + '&emp=' + empresa
   });
 
   $('#tree-campos')

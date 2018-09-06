@@ -1417,6 +1417,22 @@ module Modelo
     def view?
       @view
     end
+
+    # El siguiente método sirve para devolver el nombre del controlador "asociado" a un modelo.
+    # Esto es para poder controlar si un modelo tiene permiso de acceso (fundamentalmente para las búsquedas)
+    # La idea es comprobar si su controlador asociado tiene permiso (total, sólo lectura o sin borrado)
+    # El controlador asociado se infiere a partir del nombre de la tabla del modelo base
+    # salvo que se defina en la clase del modelo una variable (@ctrl_for_perms) con otro controlador.
+    # La notación del nombre del controlador, si pertenece a un módulo sería, por ejemplo, 'conta/asientos'
+
+    def ctrl_for_perms
+      if @ctrl_for_perms
+        @ctrl_for_perms
+      else
+        mb = modelo_base
+        mb.name.include?('::') ? mb.table_name : mb.table_name.sub('_', '/')
+      end 
+    end
   end
 
   ### Métodos de instancia

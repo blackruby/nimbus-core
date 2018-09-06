@@ -87,7 +87,19 @@ class BusController < ApplicationController
       return
     end
 
+    ej = (flash[:eid] or flash[:jid]) ? [flash[:eid].to_s, flash[:jid].to_s] : get_empeje
+
     clm = @mod.constantize
+
+    # Controlar si el modelo tiene permisos a través de su controlador asociado.
+    unless @usu.admin
+      ctrl_perm = clm.ctrl_for_perms
+      unless @usu.pref[:permisos][:ctr][ctrl_perm] && @usu.pref[:permisos][:ctr][ctrl_perm][ej[0].to_i]
+        render file: '/public/401.html', status: 401, layout: false
+        return
+      end
+    end
+
     modelo_bus = clm.modelo_bus
     if modelo_bus
       @mod = modelo_bus
@@ -101,8 +113,6 @@ class BusController < ApplicationController
     @titulo = flash[:tit] || "Búsqueda de #{nt(tabla)}"
 
     ctr = flash[:ctr] || params[:ctr] || '_'
-
-    ej = (flash[:eid] or flash[:jid]) ? [flash[:eid].to_s, flash[:jid].to_s] : get_empeje
 
     w = flash[:wh] || ''
 
@@ -176,6 +186,7 @@ class BusController < ApplicationController
     @ajax << (ctr ? "_controlador_edit='#{ctr}';" : "_controlador_edit='#{@mod.include?('::') ? clm.table_name.sub('_', '/') : clm.table_name}';")
     @ajax << "fic_pref=#{fic_pref.to_json};"
     @ajax << "view='#{clm}';"
+    @ajax << "empresa='#{ej[0]}';"
     # Si el tipo de búsqueda es histórico de borrados (hb) dar valor adecuado a _autoCompField
     # para que al hacer doble click sobre un registro se haga la acción oportuna.
     @ajax << '_autoCompField="*hb"' if flash[:tipo] == 'hb'
