@@ -1430,7 +1430,7 @@ module Modelo
         @ctrl_for_perms
       else
         mb = modelo_base
-        mb.name.include?('::') ? mb.table_name : mb.table_name.sub('_', '/')
+        mb.name.include?('::') ? mb.table_name.sub('_', '/') : mb.table_name
       end 
     end
   end
