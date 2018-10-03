@@ -139,7 +139,7 @@ module Nimbus
   # Método para transliterar la hora recibida como argumento a UTC (no convertida sino transliterada)
   # Si la hora recibida fuera 19:10CEST esta función devolvería 19:10UTC
   def self.time(t)
-    Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
+    t ? Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec): nil
   end
 
   # Método para obtener la hora actual pero en UTC (no convertida sino transliterada)
@@ -950,6 +950,7 @@ module MantMod
           end
         when :datetime
           v[:manti] ||= 19
+          v[:seg] = true if v[:seg].nil?
           if hay_grid
             v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
           end

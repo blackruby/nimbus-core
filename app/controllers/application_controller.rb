@@ -477,7 +477,7 @@ class ApplicationController < ActionController::Base
   def nim_send_file
     f = params[:file]
     return if f.include?('..')
-    send_file (f.starts_with?('/tmp') ? f : "data/#{f}"), disposition: :inline
+    send_file (f.starts_with?('/tmp') || f.starts_with?('/var') ? f : "data/#{f}"), disposition: :inline
   end
 
   def nim_path_image(modelo, id, tag)
@@ -1681,6 +1681,9 @@ class ApplicationController < ActionController::Base
       if cp[:grid_sel]
         @ajax_post << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
       end
+    when :datetime
+      @ajax << '$("#_f_' + cmp_s + '").val(' + val.strftime('%d-%m-%Y').to_json + ');'
+      @ajax << '$("#_h_' + cmp_s + '").val(' + val.strftime('%H:%M' + (cp[:seg] ? ':%S' : '')).to_json + ');'
     when :upload
       # No hacer nada
     else
@@ -2854,6 +2857,7 @@ class ApplicationController < ActionController::Base
       div_attr = 'class="nim-group'
       div_attr << '-span' if v[:span]
       div_attr << '-inline' if v[:inline]
+      div_attr << ' nim-datetime' if v[:type] == :datetime
       div_attr << '"'
       if v[:pw] || v[:ml]
         div_attr << ' style="'
@@ -2962,6 +2966,18 @@ class ApplicationController < ActionController::Base
           sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
           sal << '</div>'
         end
+      elsif v[:type] == :datetime
+        sal << "<div id='#{cs}' #{div_attr}>"
+        sal << '<div style="display: inline-block">'
+        sal << '<input class="nim-input" id="_f_' + cs + '" required style="max-width: ' + size + 'em"'
+        sal << plus + '/>'
+        sal << '<label class="nim-label" for="_f_' + cs + '">' + nt(v[:label]) + '</label>'
+        sal << '</div>'
+        sal << '<div style="display: inline-block">'
+        sal << '<input class="nim-input" id="_h_' + cs + '" required style="max-width: 5em"'
+        sal << '<label class="nim-label" for="_h_' + cs + '"></label>'
+        sal << '</div>'
+        sal << '</div>'
       else
         clase = 'nim-input'
         case v[:rol]
@@ -3051,6 +3067,11 @@ class ApplicationController < ActionController::Base
         sal << "$('##{cs}').datepicker('disable');" if v[:ro] == :all or v[:ro] == params[:action].to_sym
       elsif v[:type] == :time
         sal << '$("#' + cs + '").entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true);' : 'false);')
+      elsif v[:type] == :datetime
+        sal << 'date_pick("#_f_' + cs + '",' + v[:date_opts].to_json + ');'
+        sal << "$('#_f_#{cs}').datepicker('disable');" if v[:ro] == :all or v[:ro] == params[:action].to_sym
+        sal << '$("#_h_' + cs + '").entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true);' : 'false);')
+        #sal << "$('#_f_#{cs}, #_h_#{cs}').on('focus', ''');"
       elsif (v[:type] == :integer or v[:type] == :decimal) and !v[:sel]
         #sal << "numero('##{cs}',#{manti},#{decim},#{signo});"
         sal << "numero('##{cs}',#{v[:manti]},#{v[:decim]},#{v[:signo]});"

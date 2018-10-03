@@ -50,7 +50,8 @@ jQuery.fn.entrydate = function() {
   $(this).on("focus", function(e) {
     var hoy = new Date;
     month = hoy.getMonth() + 1;
-    year = hoy.getYear() + 1900;
+    //year = hoy.getYear() + 1900;
+    year = hoy.getFullYear();
 
     ov = lastv = $(this).val();
     $(this).data('ov', ov).select();
@@ -205,7 +206,7 @@ jQuery.fn.entrytime = function(segundos, nil) {
   var vt = "00:00:00";
   var ov;
 
-  $(this).on("input", function(e) {
+  $(this).data("seg", segundos).on("input", function(e) {
     var v = $(this).val();
     if (v == "" && nil) return;
     var cur = $(this).caret().begin;
@@ -1320,6 +1321,33 @@ function setMenuR(st) {
 
 $(window).load(function() {
   var _auto_comp_menu_;
+
+  $("body").on("focus", ".nim-datetime", function (e) {
+    var th = $(this);
+    var rt = e.relatedTarget;
+    if (!rt || $(rt).closest('.ui-datepicker-calendar').length == 0 && $(rt).parent().parent().attr("id") != th.attr("id")) {
+      var inps = th.find('input');
+      th.data('of', inps.first().val()).data('oh', inps.last().val())
+    }
+  }).on("blur", ".nim-datetime", function (e) {
+    var th = $(this);
+    var rt = e.relatedTarget;
+    if (!rt || $(rt).closest('.ui-datepicker-calendar').length == 0 && $(rt).parent().parent().attr("id") != th.attr("id")) {
+      var inps = th.find("input");
+      var f = inps.first();
+      var h = inps.last();
+      if (th.data("of") != f.val() || th.data("oh") != h.val()) {
+        if (f.val() == "" && h.val() != "") {
+          var hoy = new Date;
+          var d = hoy.getDate();
+          var m = hoy.getMonth() + 1;
+          f.val((d < 10 ? "0" : "") + d + '-' + (m < 10 ? "0" : "") + m + "-" + hoy.getFullYear());
+        }
+        if (h.val() == "" && f.val() != "") h.val("00:00" + (h.data("seg") ? ":00" : ""));
+        send_validar(th, (f.val() + " " + h.val()).trim());
+      }
+    }
+  });
 
   //$("body").on("focus", ".nim-input", function (e) {
   $("body").on("focus", "input", function (e) {
