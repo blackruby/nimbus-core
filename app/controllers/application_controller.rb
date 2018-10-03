@@ -1682,8 +1682,8 @@ class ApplicationController < ActionController::Base
         @ajax_post << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
       end
     when :datetime
-      @ajax << '$("#_f_' + cmp_s + '").val(' + val.strftime('%d-%m-%Y').to_json + ');'
-      @ajax << '$("#_h_' + cmp_s + '").val(' + val.strftime('%H:%M' + (cp[:seg] ? ':%S' : '')).to_json + ');'
+      @ajax << '$("#_f_' + cmp_s + '").val(' + (val ? val.strftime('%d-%m-%Y').to_json : '""') + ');'
+      @ajax << '$("#_h_' + cmp_s + '").val(' + (val ? val.strftime('%H:%M' + (cp[:seg] ? ':%S' : '')).to_json : '""') + ');'
     when :upload
       # No hacer nada
     else
