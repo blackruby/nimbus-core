@@ -192,7 +192,9 @@ class GiController < ApplicationController
     emp = params[:emp].to_i
 
     data = []
-    cl.column_names.sort.each {|c|
+
+    cols = Nimbus::Config.dig(:gi, :ord_cmp) ? cl.column_names : (['id'] + cl.pk + cl.column_names.sort).uniq
+    cols.each {|c|
       d = {table: cl.table_name, type: cl.columns_hash[c].type}
       if c.ends_with?('_id')
         d[:id] = cl.reflect_on_association(c[0..-4].to_sym).options[:class_name]
