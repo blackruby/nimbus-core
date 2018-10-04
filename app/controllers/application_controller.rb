@@ -230,6 +230,9 @@ class ApplicationController < ActionController::Base
       @ajax << "$('##{c}').attr('readonly', #{ed == :d ? 'true' : 'false'}).attr('tabindex', #{ed == :d ? '-1' : '0'});"
     elsif ty == :date
       @ajax << "$('##{c}').datepicker('#{ed == :d ? 'disable' : 'enable'}');"
+    elsif ty == :datetime
+      @ajax << "$('#_f_#{c}').datepicker('#{ed == :d ? 'disable' : 'enable'}');"
+      @ajax << "$('#_h_#{c}').attr('disabled', #{ed == :d ? 'true' : 'false'});"
     elsif ty == :boolean
       @ajax << "mdlCheckStatus('#{c}','#{ed}');"
     else
@@ -2975,6 +2978,7 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
         sal << '<div style="display: inline-block">'
         sal << '<input class="nim-input" id="_h_' + cs + '" required style="max-width: 5em"'
+        sal << plus + '/>'
         sal << '<label class="nim-label" for="_h_' + cs + '"></label>'
         sal << '</div>'
         sal << '</div>'
