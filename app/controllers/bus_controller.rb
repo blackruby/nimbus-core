@@ -316,9 +316,12 @@ class BusController < ApplicationController
         when 'integer', 'decimal'
           h[:align] = 'right'
           h[:searchoptions][:sopt] = ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
-        when 'date'
+        when 'date', 'time'
           h[:align] = 'center'
           h[:searchoptions][:sopt] = ['eq','ne','lt','le','gt','ge','nu','nn']
+        when 'datetime'
+          h[:align] = 'center'
+          h[:searchoptions][:sopt] = ['ge','le','gt','lt','eq','ne','nu','nn']
         else
           h[:searchoptions][:sopt] = ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
       end
