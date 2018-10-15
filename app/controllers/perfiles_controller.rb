@@ -68,8 +68,7 @@ class PerfilesController < ApplicationController
 
     return if @fact.id == 0
 
-    #@menu = WelcomeController.load_menu
-    @menu = Usuario.load_menu
+    @menu = Usuario.load_menu(true)
     gen_menu(@menu, '/', 'h')
     @ajax << "genMenu(#{@menu.to_json});"
   end

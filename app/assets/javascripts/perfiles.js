@@ -28,9 +28,12 @@ function _genMenu(menu) {
       cadMenu += "</div>";
       cadMenu += "</div>";
     } else {
-      cadMenu += "<div clave='" + m + "'>";
-      menuOption(menu[m].nt, 'relleno', menu[m].st, menu[m].sth);
-      cadMenu += "</div>";
+      if (menu[m].url) {
+        cadMenu += "<div clave='" + m + "'>";
+        menuOption(menu[m].nt, 'relleno', menu[m].st, menu[m].sth);
+        cadMenu += "</div>";
+      } else
+        cadMenu += '<div class="titulo-bloques">' + menu[m].nt + '</div>';
     }
   }
 }
@@ -59,6 +62,7 @@ function cambiaStatus(div, st) {
 
 function generaResult(div, path) {
   div.children().each(function() {
+    if ($(this).hasClass("titulo-bloques")) return;
     var sm = $(this).children('div');
     var id = $(this).attr('clave');
     var st = $(this).children().first().attr('class')[0];

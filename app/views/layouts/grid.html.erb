@@ -84,8 +84,10 @@
 </header>
   <div class="mdl-layout__drawer">
     <nav class="mdl-navigation">
-      <a class="mdl-navigation__link" style="cursor: pointer" onclick="grid_historico()">Histórico del registro</a>
-      <a class="mdl-navigation__link" style="cursor: pointer" onclick="callFonServer('histo_borrados')">Histórico de borrados</a>
+      <% if @view[:prm_hist] %>
+        <a class="mdl-navigation__link" style="cursor: pointer" onclick="grid_historico()">Histórico del registro</a>
+        <a class="mdl-navigation__link" style="cursor: pointer" onclick="callFonServer('histo_borrados')">Histórico de borrados</a>
+      <% end %>
       <% if @view[:menu_l].size > 0 %>
         <hr>
         <% @view[:menu_l].each_with_index {|m, i| %>

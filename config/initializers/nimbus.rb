@@ -1419,6 +1419,10 @@ module Modelo
       @view
     end
 
+    def historico?
+      false
+    end
+
     # El siguiente método sirve para devolver el nombre del controlador "asociado" a un modelo.
     # Esto es para poder controlar si un modelo tiene permiso de acceso (fundamentalmente para las búsquedas)
     # La idea es comprobar si su controlador asociado tiene permiso (total, sólo lectura o sin borrado)
@@ -1571,6 +1575,8 @@ module Historico
         # Caso nuevo (el modelo histórico hereda del modelo base)
         # En este caso solo hay que cambiar el nombre de la tabla (las asociaciones, etc. se heredan)
         # y asignar el hash de propiedades del padre
+        @ctrl_for_perms ||= self.table_name.gsub('_', '/')
+
         t = self.table_name.split('_')
         self.table_name = (t.size == 1 ? "h_#{t[0]}" : "#{t[0]}_h_#{t[1]}")
 
@@ -1595,6 +1601,10 @@ module Historico
 
     def modelo_bus
       @modelo_bus
+    end
+
+    def historico?
+      true
     end
   end
 

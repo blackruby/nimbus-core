@@ -660,6 +660,29 @@ class ApplicationController < ActionController::Base
       return
     end
 
+    # Control de permisos
+    unless @usu.admin
+      fr = modeloh.find_by idid: params[:id]
+
+      unless fr
+        render file: '/public/404.html', status: 404, layout: false
+        return
+      end
+
+      if modelo == Empresa
+        eid = fr.idid
+      elsif fr.respond_to? :empresa
+        eid = fr.empresa.id
+      else
+        eid = get_empeje[0].to_i
+      end
+
+      unless @usu.pref.dig(:permisos, :ctr, '_acc_hist_', eid) && @usu.pref.dig(:permisos, :ctr, modeloh.ctrl_for_perms, eid)
+        render file: '/public/401.html', status: 401, layout: false
+        return
+      end
+    end
+
     #@titulo = 'Histo: ' + modelo.table_name + '/' + params[:id]
     begin
       clave = params[:idb] ? forma_campo_id(modeloh, params[:idb]) : forma_campo_id(modelo, params[:id])
@@ -794,9 +817,11 @@ class ApplicationController < ActionController::Base
     if @usu.admin
       #prm = 'p'
       prm = params[:lock] ? 'c' : 'p'
+      prm_hist = 'p'
     else
       prm = @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid.to_i]
       prm = 'c' if prm && params[:lock]
+      prm_hist = @usu.pref.dig(:permisos, :ctr, '_acc_hist_', eid.to_i)
     end
 
     case prm
@@ -859,6 +884,7 @@ class ApplicationController < ActionController::Base
     @view[:eid] = eid
     @view[:jid] = jid
     @view[:id_edit] = params[:id_edit] ? params[:id_edit] : 0
+    @view[:prm_hist] = prm_hist
     @view[:model] = clm.superclass.to_s
     @view[:menu_r] = clm.menu_r
     @view[:menu_l] = clm.menu_l
@@ -1273,6 +1299,24 @@ class ApplicationController < ActionController::Base
       render file: '/public/404.html', status: 404, layout: false
       return
     end
+
+    # Control de permisos
+
+    unless @usu.admin
+      if cls[0] == 'Empresa'
+        eid = fh.idid
+      elsif fh.respond_to? :empresa
+        eid = fh.empresa.id
+      else
+        eid = get_empeje[0].to_i
+      end
+
+      unless @usu.pref.dig(:permisos, :ctr, '_acc_hist_', eid) && @usu.pref.dig(:permisos, :ctr, clmh.ctrl_for_perms, eid)
+        render file: '/public/401.html', status: 401, layout: false
+        return
+      end
+    end
+
     #fo = clmh.where('idid = ?', fh.idid).order(:created_at).first
     fo = clmh.where('idid = ? AND created_at < ?', fh.idid, fh.created_at).order(:created_at).last
     if fo.nil?

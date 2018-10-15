@@ -34,8 +34,11 @@ class Usuario < ActiveRecord::Base
     end
   end
 
-  def self.load_menu
+  def self.load_menu(perm = false)
     hmenu = {}
+    if perm
+      hmenu.deep_merge!(Perfil.permisos_especiales).deep_merge!({'_opciones_de_menu_' => nil})
+    end
     hmenu.deep_merge!(YAML.load(File.read('menu_pre.yml'))) if File.exists?('menu_pre.yml')
     #hmenu = YAML.load(File.read('modulos/nimbus-core/menu.yml'))
     hmenu.deep_merge!(YAML.load(File.read('modulos/nimbus-core/menu.yml')))
@@ -72,7 +75,8 @@ class Usuario < ActiveRecord::Base
 
   def self._calcula_permisos(menu, path, emp, prm, prf, dest)
     menu.each {|k, v|
-      next if k.starts_with? 'tag_'
+      #next if k.starts_with? 'tag_'
+      next if k.starts_with?('tag_') || v.nil?
 
       st = []
       emp.each_with_index {|e, i|
@@ -129,14 +133,19 @@ class Usuario < ActiveRecord::Base
   def self.calcula_permisos(usu, menu=nil, pf=nil)
     return if usu.admin
 
-    menu = load_menu unless menu
+    menu = load_menu(true) unless menu
     pf = {0 => {}} unless pf
 
     usu.pref[:permisos][:ctr] = {}
-    usu.pref[:permisos][:emp].each {|e|
-      unless pf[e[2]]
-        p = Perfil.find(e[2])
-        pf[e[2]] = p.data if p
+    usu.pref[:permisos][:emp].delete_if {|e|
+      if Empresa.exists?(e[0])
+        unless pf[e[2]]
+          p = Perfil.find(e[2])
+          pf[e[2]] = p.data if p
+        end
+        false
+      else
+        true
       end
     }
     usu.pref[:permisos][:ctr] = {}
@@ -150,7 +159,7 @@ class Usuario < ActiveRecord::Base
   end
 end
 
-class Usuario < ActiveRecord::Base
+class Usuario
   include Modelo
 end
 

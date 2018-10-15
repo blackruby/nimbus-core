@@ -94,7 +94,8 @@ class BusController < ApplicationController
     # Controlar si el modelo tiene permisos a través de su controlador asociado.
     unless @usu.admin
       ctrl_perm = clm.ctrl_for_perms
-      unless @usu.pref[:permisos][:ctr][ctrl_perm] && @usu.pref[:permisos][:ctr][ctrl_perm][ej[0].to_i]
+      #unless @usu.pref[:permisos][:ctr][ctrl_perm] && @usu.pref[:permisos][:ctr][ctrl_perm][ej[0].to_i]
+      if !@usu.pref.dig(:permisos, :ctr, ctrl_perm, ej[0].to_i) || clm.historico? && !@usu.pref.dig(:permisos, :ctr, '_acc_hist_', ej[0].to_i)
         render file: '/public/401.html', status: 401, layout: false
         return
       end
