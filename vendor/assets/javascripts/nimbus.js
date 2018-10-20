@@ -985,14 +985,14 @@ function autoCompNuevaFicha() {
 }
 
 function ponBusy() {
-  $("body").append('<div class="mdl-spinner mdl-js-spinner is-active" style="z-index:2000; position: absolute; left: 50%; top: 50%;"></div>');
+  //$("body").append('<div class="mdl-spinner mdl-js-spinner nim-busy is-active" style="z-index:100001; position: absolute; left: 50%; top: 50%;"></div>');
+  $("body").append("<div class='nim-body-modal nim-busy'></div><div class='mdl-spinner mdl-js-spinner nim-busy is-active' style='z-index:100001; position: absolute; left: 50%; top: 50%;'></div>'");
   componentHandler.upgradeDom();
-  //$(".mdl-spinner").addClass("is-active");
 }
 
 function quitaBusy() {
-  //$(".mdl-spinner").removeClass("is-active");
-  $(".mdl-spinner").remove();
+  //$(".mdl-spinner").remove();
+  $(".nim-busy").remove();
 }
 
 function creaMdlButton(id, siz, mb, fsiz, icon, title) {
