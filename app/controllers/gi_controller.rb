@@ -195,6 +195,7 @@ class GiController < ApplicationController
 
     cols = Nimbus::Config.dig(:gi, :ord_cmp) ? cl.column_names : (['id'] + cl.pk + cl.column_names.sort).uniq
     cols.each {|c|
+      cs = c.to_sym
       d = {table: cl.table_name, type: cl.columns_hash[c].type}
       if c.ends_with?('_id')
         d[:id] = cl.reflect_on_association(c[0..-4].to_sym).options[:class_name]
@@ -207,7 +208,6 @@ class GiController < ApplicationController
         d[:label] = c[0..-4]
         d[:load_on_demand] = true
       else
-        cs = c.to_sym
         d[:label] = c
         d[:pk] = cl.respond_to?(:pk) ? (c == cl.pk[-1]) : false
         d[:manti] = cl.propiedades[cs][:manti] if cl.propiedades[cs] and cl.propiedades[cs][:manti]
@@ -242,6 +242,8 @@ class GiController < ApplicationController
             d[:ali] = 'i'
         end
       end
+      tit = cl.propiedades.dig(cs, :title)
+      d[:title] = tit if tit
       data << d
     }
 

@@ -296,7 +296,10 @@ $(window).load(function() {
   $("#tree-campos").tree({
     selectable: false,
     //dataUrl: '/gi/campos?node=' + view
-    dataUrl: '/gi/campos?node=' + view + '&emp=' + empresa
+    dataUrl: '/gi/campos?node=' + view + '&emp=' + empresa,
+    onCreateLi: function (node, $li, is_selected) {
+      if (node.title) $li.attr("title", node.title);
+    }
   });
 
   $('#tree-campos')

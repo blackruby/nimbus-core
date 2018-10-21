@@ -1086,8 +1086,12 @@ $(window).load(function () {
 
   $("#tree_campos")
     .tree({
-      selectable: false, dataUrl: '/gi/campos?node=' + modelo, onCanSelectNode: function (node) {
+      selectable: false,
+      dataUrl: '/gi/campos?node=' + modelo, onCanSelectNode: function (node) {
         return node.load_on_demand != undefined ? false : true;
+      },
+      onCreateLi: function (node, $li, is_selected) {
+        if (node.title) $li.attr("title", node.title);
       }
     })
     .bind('tree.dblclick', function (event) {
