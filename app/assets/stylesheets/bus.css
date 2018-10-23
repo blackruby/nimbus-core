@@ -4,6 +4,7 @@
   height: 40px;
   line-height: 40px;
   font-size: large;
+  position: relative;
 }
 #tree-campos {
   float: left;
@@ -16,4 +17,17 @@
 #d-grid {
   position: absolute;
   top: 40px;
+}
+#d-no-cerrar {
+  display: inline-block;
+  line-height: 10px;
+  margin-right: 10px;
+  padding-left: 8px;
+  background-color: #D1C4E9;
+  width: 90px;
+  border-radius: 7px;
+  color: #FF4081;
+  position: fixed;
+  top: 8px;
+  right: 0;
 }

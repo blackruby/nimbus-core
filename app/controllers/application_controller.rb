@@ -2819,8 +2819,10 @@ class ApplicationController < ActionController::Base
     flash[:wh] = @dat[:auto_comp][:_pk_input] if @dat[:auto_comp] and @dat[:auto_comp][:_pk_input]
     msel = clmod.auto_comp_mselect
     flash[:msel] = msel if msel != ['*']
+    flash[:tipo] = 'mant'
 
-    @ajax << 'var w = window.open("/bus", "_blank", "width=700, height=500"); w._autoCompField = "mant";'
+    #@ajax << 'var w = window.open("/bus", "_blank", "width=700, height=500"); w._autoCompField = "mant";'
+    @ajax << 'openWinBus();'
   end
 
   def gen_form(h={})

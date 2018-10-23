@@ -191,6 +191,8 @@ class BusController < ApplicationController
     # Si el tipo de búsqueda es histórico de borrados (hb) dar valor adecuado a _autoCompField
     # para que al hacer doble click sobre un registro se haga la acción oportuna.
     @ajax << '_autoCompField="*hb"' if flash[:tipo] == 'hb'
+
+    @tipo_bus = flash[:tipo]
   end
 
   def list

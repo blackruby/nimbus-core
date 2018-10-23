@@ -1,3 +1,14 @@
+var winBus = null;
+
+function openWinBus() {
+  if (winBus) {
+    winBus.focus();
+  } else {
+    winBus = window.open("/bus", "_blank", "width=700, height=500");
+    winBus._autoCompField = "mant";
+  }
+}
+
 function editInLine() {
   id = grid.jqGrid('getGridParam','selrow');
   if (id != null)
@@ -263,4 +274,8 @@ $(window).load(function () {
   var eid = varView.eid;
   var jid = varView.jid;
   if (varView.grid.visible) redimWindow(); else gridCollapse();
+});
+
+$(window).unload(function() {
+  if (winBus) winBus.close();
 });

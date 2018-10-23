@@ -48,6 +48,14 @@
     <li class="mdl-menu__item" onclick="gridExport('xlsx')">Excel</li>
     <li class="mdl-menu__item" onclick="gridExport('pdf')">PDF</li>
   </ul>
+  <% if @tipo_bus == 'mant' %>
+  <div id="d-no-cerrar" title="Activar/Desactivar la visibilidad permanente de la ventana">
+    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="no_cerrar">
+      <input type="checkbox" id="no_cerrar" class="mdl-switch__input">
+      <i class="material-icons mdl-switch__label">visibility</i>
+    </label>
+    </div>
+  <% end %>
 </div>
 <div id="tree-campos"> </div>
 <div id="d-grid"> </div>
@@ -74,5 +82,5 @@
 <script>
   <%= @ajax.html_safe %>
   usuCod = "<%= @usu.codigo %>";
-  modelo = "<%= @mod %>"
+  modelo = "<%= @mod %>";
 </script>

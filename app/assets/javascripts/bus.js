@@ -125,7 +125,7 @@ function gridSelect(id) {
   switch (_autoCompField) {
     case 'mant':
       window.opener.editInForm(id);
-      window.close();
+      if (!$("#no_cerrar").is(":checked")) window.close();
       break;
     case 'auto':
       //if (_controlador_edit != 'no') window.open("/" + _controlador_edit + "/" + id + "/edit");
@@ -332,6 +332,10 @@ $(window).load(function() {
     $(this).css("color", $.inArray(vb, ficheros) >= 0 ? "red" : "black");
     $(this).val(vb);
     $(this).caret(cur);
+  });
+
+  $(window).unload(function() {
+    if (_autoCompField == 'mant') opener.winBus = null;
   });
 
   $(window).resize(redimWindow);
