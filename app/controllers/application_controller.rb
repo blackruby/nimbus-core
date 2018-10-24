@@ -2162,18 +2162,21 @@ class ApplicationController < ActionController::Base
           c[:manti] ||= 7
           c[:decim] ||= (c[:type] == :integer ? 0 : 2)
           c[:signo] = false if c[:signo].nil?
-          c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
           c[:editoptions][:dataInit] ||= "~function(e){numero(e,#{c[:manti]},#{c[:decim]},#{c[:signo]})}~"
+          c[:searchoptions][:dataInit] ||= c[:editoptions][:dataInit]
+          c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
           c[:sortfunc] ||= '~sortNumero~'
           c[:align] ||= 'right'
         when :date
           c[:sorttype] ||= 'date'
           c[:formatter] ||= 'date'
           c[:editoptions][:dataInit] ||= '~function(e){date_pick(e)}~'
+          c[:searchoptions][:dataInit] ||= c[:editoptions][:dataInit]
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
           #c[:sortfunc] ||= '~sortDate~'
         when :time
           c[:editoptions][:dataInit] ||= '~function(e){$(e).entrytime(' + (c[:seg] ? 'true,' : 'false,') + (c[:nil] ? 'true' : 'false') + ')}~'
+          c[:searchoptions][:dataInit] ||= c[:editoptions][:dataInit]
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
         when :references
           mt = c[:ref].split('::')
