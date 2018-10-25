@@ -157,6 +157,21 @@ class Usuario < ActiveRecord::Base
   def self.valida_password(p)
     return (p.size >= 8 and p =~ /[a-z]/ and p =~ /[A-Z]/ and p =~ /[0-9]/) ? nil : 'La contraseña debe de tener al menos 8 caracteres y contenr mayúsculas, minúsculas y números'
   end
+
+  # Método que devuelve las empresas a las que tiene acceso un usuario
+  # Si no se le pasan argumentos devuelve un array con los ids de las empresas
+  # Si se le pasa un número variable de argumentos (o un array) indicando
+  # campos del modelo Empresa (en forma de string o symbol), devuelve
+  # un array de arrays (si hay más de un argumento) con los valores de dichos campos.
+
+  def mis_empresas(*cmps)
+    ids = self.admin ? Empresa.pluck(:id) : self.pref[:permisos][:emp].map{|e| e[0]}
+    if cmps.empty?
+      ids
+    else
+      Empresa.where('id in (?)', ids).pluck(*cmps.flatten.compact)
+    end
+  end
 end
 
 class Usuario
