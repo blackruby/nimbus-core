@@ -19,16 +19,21 @@ def redondea_grupo(tot:, nums:, decimales:)
 end
 
 def redondea_g(tot:, nums:, decimales:)
+  tot = tot.round(decimales).to_d
   suma = nums.reduce(:+)
+  mindif = [99, 0]
   maxdif = [-99, 0]
-  nsuma = BigDecimal(0)
+  nsuma = 0.to_d
   nums.map!.with_index{|n, i|
-    nn = (tot*n/suma).round(decimales)
-    d = n - nn
-    maxdif = [d, i] if  d > maxdif[0]
-    nsuma += nn
-    nn
+    nn = tot*n/suma
+    nnr = nn.round(decimales)
+    d = nn - nnr
+    mindif = [d, i] if d < mindif[0]
+    maxdif = [d, i] if d > maxdif[0]
+    nsuma += nnr
+    nnr
   }
-  nums[maxdif[1]] += tot - nsuma
-  nums.join(', ')
+  dif = tot - nsuma
+  nums[dif > 0 ? maxdif[1] : mindif[1]] += dif
+  nums
 end
