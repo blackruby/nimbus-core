@@ -1191,8 +1191,11 @@ function creaGridLocal(opts, data) {
     $("#" + cmp + " .nim-titulo").append('&nbsp;&nbsp;' + creaMdlButton('b_ex_' + cmp, 30, 2, 22, 'assignment_returned', 'Exportar a Excel'));
     $("#b_ex_" + cmp).click(function() {
       //if (g.find('input').length > 0) return;
+      var ids = [];
+      var data = g.jqGrid("getGridParam", "lastSelectedData");
+      for (var i in data) ids.push(data[i].id);
       ponBusy();
-      callFonServer("grid_local_export", {cmp: cmp}, quitaBusy);
+      callFonServer("grid_local_export", {cmp: cmp, ids: ids}, quitaBusy);
     });
   }
 

@@ -2411,6 +2411,12 @@ class ApplicationController < ActionController::Base
   def grid_local_export
     return unless @v
 
+    ids = params[:ids]
+    unless ids
+      mensaje 'No hay datos para exportar'
+      return
+    end
+
     cmp = params[:cmp].to_sym
     cols = @fact.campos[cmp][:grid_emb][:opts][:cols]
     data = @fact.campos[cmp][:grid_emb][:data]
@@ -2426,7 +2432,7 @@ class ApplicationController < ActionController::Base
     sh.add_row(cols.map {|v| v[:label] || v[:name]})
 
     #data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| cols[i][:ref] ? forma_campo_id(cols[i][:ref], d) : d})}
-    data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| forma_campo_axlsx(cols[i], cols[i][:name], d)}, types: typ, style: sty)}
+    data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| forma_campo_axlsx(cols[i], cols[i][:name], d)}, types: typ, style: sty) if ids.include?(r[0].to_s)}
 
     # Fijar la fila de cabecera para repetir en cada página
     wb.add_defined_name("Hoja1!$1:$1", :local_sheet_id => sh.index, :name => '_xlnm.Print_Titles')
