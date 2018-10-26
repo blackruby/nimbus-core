@@ -3012,7 +3012,7 @@ class ApplicationController < ActionController::Base
         if !clm.mant? or @fact.id != 0
           sal << "<div title='#{nt(v[:title])}'>"
           sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true, target: "#{cs}_iframe")
-          sal << "<input id='#{cs}_input' name='#{cs + (v[:multi] ? '[]' : '')}' #{v[:multi] ? 'multiple' : ''} type='file' class='nim-input-img'} onchange='$(this).parent().submit()' #{plus}/>"
+          sal << "<input id='#{cs}_input' name='#{cs + (v[:multi] ? '[]' : '')}' #{v[:multi] ? 'multiple' : ''} type='file' class='nim-input-img'} onchange='$(this).parent().submit();$(this).val(\"\")' #{plus}/>"
           sal << "<label id='#{cs}' class='nim-label-upload' for='#{cs}_input'>#{nt(v[:label])}</label><br>"
           sal << '</form>'
           sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
