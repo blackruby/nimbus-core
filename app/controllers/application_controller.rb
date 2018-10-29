@@ -2604,11 +2604,15 @@ class ApplicationController < ActionController::Base
     if err
       mensaje(err) unless err == '@'
     else
+      call_nimbus_hook :before_borra
+
       #class_mant.view? ? class_modelo.destroy(@fact.id) : @fact.destroy
       @fact.destroy
 
       # Borrar los datos asociados
       `rm -rf data/#{class_modelo}/#{@fact.id}`
+
+      call_nimbus_hook :after_borra
 
       grid_reload
       @ajax << "window.location.replace('/' + _controlador + '/0/edit?head=#{@dat[:head]}');"
