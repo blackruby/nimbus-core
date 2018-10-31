@@ -6,6 +6,7 @@
   font-size: large;
   position: relative;
 }
+
 #tree-campos {
   float: left;
   overflow-x: hidden;
@@ -14,10 +15,12 @@
   background-color: #d3d3d3;
   padding: 3px 5px 10px 3px;
 }
+
 #d-grid {
   position: absolute;
   top: 40px;
 }
+
 #d-no-cerrar {
   display: inline-block;
   line-height: 10px;
@@ -30,4 +33,9 @@
   position: fixed;
   top: 8px;
   right: 0;
+}
+
+li i {
+  vertical-align: middle;
+  margin-right: 7px;
 }

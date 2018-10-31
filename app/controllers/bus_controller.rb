@@ -557,4 +557,9 @@ class BusController < ApplicationController
     @dat[:filters] = {rules: []}
     genera_grid(false, false)
   end
+
+  def reset_filtros
+    @dat[:filters] = {rules: []}
+    genera_grid(false, false)
+  end
 end

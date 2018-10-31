@@ -41,12 +41,13 @@
     <i class="material-icons" style="color: #ffffff; font-size: 22px">more_vert</i>
   </button>
   <ul class="mdl-menu mdl-js-menu" for="bus-menu">
-    <li class="mdl-menu__item" onclick="busNew()">Nueva</li>
-    <li class="mdl-menu__item" onclick="busSave()">Guardar</li>
-    <li class="mdl-menu__item" onclick="busPref()">Predeterminar</li>
-    <li class="mdl-menu__item" onclick="busDel()">Eliminar</li>
-    <li class="mdl-menu__item" onclick="gridExport('xlsx')">Excel</li>
-    <li class="mdl-menu__item" onclick="gridExport('pdf')">PDF</li>
+    <li class="mdl-menu__item" onclick="busNew()"><i class="material-icons">crop_portrait</i>Nueva</li>
+    <li class="mdl-menu__item" onclick="busSave()"><i class="material-icons">save</i>Guardar</li>
+    <li class="mdl-menu__item" onclick="resetFiltros()"><i class="material-icons">filter_list</i>Borrar filtros</li>
+    <li class="mdl-menu__item" onclick="busPref()"><i class="material-icons">favorite_border</i>Predeterminar</li>
+    <li class="mdl-menu__item" onclick="busDel()"><i class="material-icons">delete</i>Eliminar</li>
+    <li class="mdl-menu__item" onclick="gridExport('xlsx')"><i class="material-icons">grid_on</i>Excel</li>
+    <li class="mdl-menu__item" onclick="gridExport('pdf')"><i class="material-icons">picture_as_pdf</i>PDF</li>
   </ul>
   <% if @tipo_bus == 'mant' %>
   <div id="d-no-cerrar" title="Activar/Desactivar la visibilidad permanente de la ventana">

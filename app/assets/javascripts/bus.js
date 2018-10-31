@@ -196,6 +196,10 @@ function busSave() {
   $("#dialog-save").dialog("open");
 }
 
+function resetFiltros() {
+  callFonServer("reset_filtros");
+}
+
 function busDel() {
   var fic = $("#bus-sel").val();
   if (fic && fic.slice(0, 14) == "bus/_usuarios/") {
