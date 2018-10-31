@@ -1,32 +1,32 @@
+function checkDate(val) {
+  if (val == '') return('');
+
+  var dia = parseInt(val.substr(0, 2));
+  if (isNaN(dia)) return(null);
+  var mes = parseInt(val.substr(3, 2));
+  if (isNaN(mes)) return(null);
+  var ano = parseInt(val.substr(6, 4));
+  if (isNaN(ano)) return(null);
+
+  if (ano > 99 && ano < 1000) return(null);
+  if (ano < 100) ano += 2000;
+  if (ano < 1900 || ano > 2100) return(null); // Esto es discutible. Es sólo por acotar un rango razonable de años válidos
+
+  if (mes < 1 || mes > 12) return(null);
+
+  if (dia < 1 || dia > 31) return(null);
+
+  if (dia == 31 && [4,6,9,11].indexOf(mes) >= 0) return(null);
+
+  if (mes == 2 && dia > 28 + (ano % 4 == 0 ? 1 : 0)) return(null); // Estoy considerando años bisiestos a los mútiplos de cuatro. Estoy ignorando el caso múltiplo de 100
+
+  return((dia < 10 ? '0' : '') + dia + '-' + (mes < 10 ? 0 : '') + mes + '-' + ano);
+}
+
 jQuery.fn.entrydate = function() {
   var ov, lastv, month, year;
 
   $(this).attr("blurEnEspera", 0);
-
-  function checkDate(val) {
-    if (val == '') return('');
-
-    var dia = parseInt(val.substr(0, 2));
-    if (isNaN(dia)) return(null);
-    var mes = parseInt(val.substr(3, 2));
-    if (isNaN(mes)) return(null);
-    var ano = parseInt(val.substr(6, 4));
-    if (isNaN(ano)) return(null);
-
-    if (ano > 99 && ano < 1000) return(null);
-    if (ano < 100) ano += 2000;
-    if (ano < 1900 || ano > 2100) return(null); // Esto es discutible. Es sólo por acotar un rango razonable de años válidos
-
-    if (mes < 1 || mes > 12) return(null);
-
-    if (dia < 1 || dia > 31) return(null);
-
-    if (dia == 31 && [4,6,9,11].indexOf(mes) >= 0) return(null);
-
-    if (mes == 2 && dia > 28 + (ano % 4 == 0 ? 1 : 0)) return(null); // Estoy considerando años bisiestos a los mútiplos de cuatro. Estoy ignorando el caso múltiplo de 100
-
-    return((dia < 10 ? '0' : '') + dia + '-' + (mes < 10 ? 0 : '') + mes + '-' + ano);
-  }
 
   function calculaKey(keyCode) {
     if (keyCode >= 48 && keyCode <= 90) return(String.fromCharCode(keyCode));
@@ -1339,6 +1339,10 @@ $(window).load(function() {
       var inps = th.find("input");
       var f = inps.first();
       var h = inps.last();
+      if (th.data("of") != f.val()) {
+        var nf = checkDate(f.val());
+        f.val(nf == null ? th.data("of") : nf);
+      }
       if (th.data("of") != f.val() || th.data("oh") != h.val()) {
         if (f.val() == "" && h.val() != "") {
           var hoy = new Date;
