@@ -192,7 +192,7 @@ class BusController < ApplicationController
     # para que al hacer doble click sobre un registro se haga la acción oportuna.
     @ajax << '_autoCompField="*hb"' if flash[:tipo] == 'hb'
 
-    @tipo_bus = flash[:tipo]
+    @tipo_bus = flash[:tipo].to_s
   end
 
   def list

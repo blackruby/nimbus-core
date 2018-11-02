@@ -49,10 +49,10 @@
     <li class="mdl-menu__item" onclick="gridExport('xlsx')"><i class="material-icons">grid_on</i>Excel</li>
     <li class="mdl-menu__item" onclick="gridExport('pdf')"><i class="material-icons">picture_as_pdf</i>PDF</li>
   </ul>
-  <% if @tipo_bus == 'mant' %>
+  <% if @tipo_bus.starts_with?('mant') %>
   <div id="d-no-cerrar" title="Activar/Desactivar la visibilidad permanente de la ventana">
     <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="no_cerrar">
-      <input type="checkbox" id="no_cerrar" class="mdl-switch__input">
+      <input type="checkbox" id="no_cerrar" class="mdl-switch__input"<%= @tipo_bus[-1] == '*' ? ' checked' : '' %>>
       <i class="material-icons mdl-switch__label">visibility</i>
     </label>
     </div>
