@@ -2249,6 +2249,14 @@ class ApplicationController < ActionController::Base
 
   def del_data_grid(cmp, id)
     @ajax << "delDataGridLocal('#{cmp}', #{id});"
+    if @fact[cmp]
+      if @fact[cmp].is_a?(Array)
+        @fact[cmp].delete(id)
+        @fact[cmp] = nil if @fact[cmp].empty?
+      else
+        @fact[cmp] = nil if @fact[cmp] == id
+      end
+    end
   end
 
   def grid_local_ed_select
@@ -2327,7 +2335,7 @@ class ApplicationController < ActionController::Base
         return
       end
     end
-    grid_del_row(params[:cmp], row = params[:row])
+    grid_del_row(params[:cmp], row)
   end
 
   def grid_local_select
