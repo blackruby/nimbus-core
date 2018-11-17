@@ -165,6 +165,14 @@ module Nimbus
   end
 end
 
+# Añadir el método to_d a NilClass
+
+class NilClass
+  def to_d
+    0.to_d
+  end
+end
+
 #Cambiar inflections por defecto a español
 
 class String

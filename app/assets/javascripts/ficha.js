@@ -20,6 +20,8 @@ function liFon(li, fon, tipo, side) {
 }
 
 function tabClick(tab) {
+  if (typeof(_controlador) == "undefined") return;
+
   _activeTab = tab;
   var fs = "ontab_" + tab.attr("id").slice(2);
   if ($.inArray(fs, nimOnTabs) >= 0) callFonServer(fs);
