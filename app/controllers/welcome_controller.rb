@@ -153,6 +153,7 @@ class WelcomeController < ApplicationController
 
   def gen_menu(hm)
     hm.each {|k, v|
+      next if k[0] == '~'
       if v.class == Hash
         @menu << "<li><span>#{nt(k)}</span><ul>"
         gen_menu(v)
