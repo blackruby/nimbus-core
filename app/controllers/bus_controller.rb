@@ -78,8 +78,6 @@ class BusController < ApplicationController
     @assets_stylesheets = %w(bus)
     @assets_javascripts = %w(bus)
 
-    #@titulo = nt('bus')
-
     @mod = flash[:mod] || params[:mod]
     if @mod.nil?
       #render nothing: true
@@ -111,7 +109,6 @@ class BusController < ApplicationController
     end
 
     tabla = clm.table_name
-    @titulo = flash[:tit] || "Búsqueda de #{nt(tabla)}"
 
     ctr = flash[:ctr] || params[:ctr] || '_'
 
@@ -136,7 +133,24 @@ class BusController < ApplicationController
     end
 
     @v = Vista.new
-    @dat = @v.data = {mod: clm, view: clm, ctr: ctr, cols: cols, last_col: last_col, types:{}, msel: flash[:msel], join_emej: join_emej, order: '', who: flash[:wh].to_s, wh: w, filters: {rules: []}, eid: ej[0], jid: ej[1], rows: 50}
+    @dat = @v.data = {
+      mod: clm,
+      view: clm,
+      ctr: ctr,
+      cols: cols,
+      last_col: last_col,
+      types:{},
+      msel: flash[:msel],
+      join_emej: join_emej,
+      order: '',
+      who: flash[:wh].to_s,
+      wh: w,
+      filters: {rules: []},
+      eid: ej[0],
+      jid: ej[1],
+      rows: 50,
+      tit: flash[:tit] || (clm.respond_to?(:nim_bus_tit) ? clm.nim_bus_tit(@dat[:eid], @dat[:jid], @usu) : nil) || "Búsqueda de #{nt(tabla)}"
+    }
 
     # Calcular fichero de preferencias
     fic_pref = nil
@@ -212,6 +226,7 @@ class BusController < ApplicationController
 
     #clm = @dat[:mod]
     clm = @dat[:view]
+    clm_s = clm.to_s
     tabla = clm.table_name
 
     w = @dat[:wh].dup
@@ -268,14 +283,29 @@ class BusController < ApplicationController
     lim = @dat[:rows] = params[:rows] == '10000' ? 0 : params[:rows].to_i
 
     if lim > 0
-      tot_records = @dat[:cad_sel].empty? ? 0 : clm.select(:id).joins(@dat[:cad_join]).where(w).size
+      #tot_records = @dat[:cad_sel].empty? ? 0 : clm.select(:id).joins(@dat[:cad_join]).where(w).size
+      if @dat[:cad_sel].empty?
+        tot_records = 0
+      else
+        tot_records = clm.joins(@dat[:cad_join]).where(w)
+        #tot_records = tot_records.fonargs(*@dat[:fonargs][clm_s]) if @dat[:fonargs][clm_s]
+        tot_records = tot_records.fonargs(*clm.nim_fon_args(@dat[:eid], @dat[:jid], @usu)) if clm.respond_to?(:nim_fon_args)
+        tot_records = tot_records.size
+      end
       tot_pages = tot_records / lim
       tot_pages += 1 if tot_records % lim != 0
       page = params[:page].to_i
       page = tot_pages if page > tot_pages
       page = 1 if page <=0
 
-      sql = @dat[:cad_sel].empty? ? [] : clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
+      #sql = @dat[:cad_sel].empty? ? [] : clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
+      if @dat[:cad_sel].empty?
+        sql = []
+      else
+        sql = clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
+        #sql = sql.fonargs(*@dat[:fonargs][clm_s]) if @dat[:fonargs][clm_s]
+        sql = sql.fonargs(*clm.nim_fon_args(@dat[:eid], @dat[:jid], @usu)) if clm.respond_to?(:nim_fon_args)
+      end
 
       res = {page: page, total: tot_pages, records: tot_records, rows: []}
       sql.each {|s|
@@ -420,8 +450,13 @@ class BusController < ApplicationController
 
     #mod =  @dat[:mod]
     mod =  @dat[:view]
+    mod_s =  mod.to_s
     ty = params[:type] ? params[:type].to_sym : :form
-    val =  mod.mselect(mod.auto_comp_mselect).where("#{mod.table_name}.id = #{params[:id]}")[0].auto_comp_value(ty)
+    #val =  mod.mselect(mod.auto_comp_mselect).where("#{mod.table_name}.id = #{params[:id]}")[0].auto_comp_value(ty)
+    val =  mod.mselect(mod.auto_comp_mselect).where("#{mod.table_name}.id = #{params[:id]}")
+    #val = val.fonargs(*@dat[:fonargs][mod_s]) if @dat[:fonargs][mod_s]
+    val = val.fonargs(*mod.nim_fon_args(@dat[:eid], @dat[:jid], @usu)) if mod.respond_to?(:nim_fon_args)
+    val =  val[0].auto_comp_value(ty)
     @ajax << "_autoCompField.val('#{val}');"
     @ajax << 'window.close();'
   end
@@ -472,6 +507,7 @@ class BusController < ApplicationController
       @ajax << "$('#tree-campos').tree('loadDataFromUrl', '/gi/campos?node=#{h[:view]}');"
     end
     @dat.merge! h
+    @ajax << "$('#l-titulo').text(#{(h[:view].respond_to?(:nim_bus_tit) ? h[:view].nim_bus_tit(@dat[:eid], @dat[:jid], @usu) : @dat[:tit]).to_json});"
     genera_grid(false, false)
     @dat[:last_col] = @dat[:cols].map{|k, v| k}.max.to_s
   end
@@ -555,6 +591,9 @@ class BusController < ApplicationController
     @dat[:types] = {}
     @dat[:order] = ''
     @dat[:filters] = {rules: []}
+
+    @ajax << "$('#l-titulo').text(#{(view.respond_to?(:nim_bus_tit) ? view.nim_bus_tit(@dat[:eid], @dat[:jid], @usu) : @dat[:tit]).to_json});"
+    
     genera_grid(false, false)
   end
 

@@ -307,6 +307,15 @@ class ApplicationController < ActionController::Base
     @ajax << "$('#h_#{t}').attr('href', '#').css('cursor', 'not-allowed');"
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'disable_padre'}
+  # deshabilita todos los campos del mantenimiento padre y el botón de grabar
+  ##
+
+  def disable_padre
+    @ajax << '$(":input", parent.parent.document).attr("disabled", true);'
+    @ajax << '$(".cl-grabar", parent.parent.parent.document).attr("disabled", true);'
+  end
+
   ##nim-doc {sec: 'Métodos de usuario', met: 'visible(cmp)'}
   # Hace que el campo <i>cmp</i> sea visible
   ##
@@ -929,6 +938,8 @@ class ApplicationController < ActionController::Base
       @view[:url_new] << '&arg=' + params[:arg]
       @view[:arg_edit] << '&arg=' + params[:arg]
     end
+
+    @view[:hijos] = clm.hijos
 
     if params[:hijos]
       @view[:arg_edit] << '&hijos=' + params[:hijos]

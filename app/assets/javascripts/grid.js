@@ -20,15 +20,25 @@ function editInLine() {
 function searchBar() {vgrid[0].toggleToolbar();}
 
 function editInForm(id) {
-  if (id)
+  if (id) {
+    // Seguimos el convenio de que si el "id" tiene un underscore significa
+    // que la parte izquierda es el id principal y el de la derecha sería
+    // el del primer hijo. Si hubiera más de un hijo (o más underscores)
+    // habría que tratarlo.
+    var ids = id.toString().split("_");
+    var hijos = "";
+    if (ids.length > 1) {
+      id = id[0];
+      hijos = '&hijos="' + varView.hijos[0].url + '":' + ids[1]
+    }
+
     grid.jqGrid('setSelection', id);
-  else
+  } else
     id = grid.jqGrid('getGridParam', 'selrow');
 
-  if (id != null) {
-    //$("#ficha").attr('src', '<%= @view[:url_base] %>' + id + '/edit' + '<%= @view[:arg_edit] %>');
-    $("#ficha").attr('src', varView.url_base + id + '/edit' + varView.arg_edit);
-  } else
+  if (id != null)
+    $("#ficha").attr('src', varView.url_base + id + '/edit' + varView.arg_edit + hijos);
+  else
     alert("Seleccione un registro");
 }
 

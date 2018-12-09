@@ -429,6 +429,10 @@ class ActiveRecord::Base
     select(r[:cad_sel]).joins(r[:cad_join])
   end
 
+  def self.fonargs(*args)
+    from(table_name + '(' + args.join(',') + ') ' + table_name)
+  end
+
 =begin
   # Método para duplicar un registro incluyendo sus hijos
   def dup_in_db(campos={}, *hijos)
