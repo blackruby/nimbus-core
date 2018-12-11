@@ -170,7 +170,7 @@ function redimWindow() {
 
 function viewSel() {
   view = $("#view-sel").val();
-  $('#tree-campos').tree('loadDataFromUrl', '/gi/campos?node=' + view);
+  $('#tree-campos').tree('loadDataFromUrl', '/gi/campos?node=' + view + '&emp=' + empresa);
   callFonServer("view_sel", {view: view});
 }
 
@@ -182,7 +182,7 @@ function gridExport(tipo) {
 function busNew() {
   $("#bus-sel").prop("selectedIndex", -1);
   view = modelo;
-  $('#tree-campos').tree('loadDataFromUrl', '/gi/campos?node=' + view);
+  $('#tree-campos').tree('loadDataFromUrl', '/gi/campos?node=' + view + '&emp=' + empresa);
   $('#view-sel').val(view).attr("disabled", false);
   callFonServer("view_sel", {view: view});
 }
