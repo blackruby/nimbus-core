@@ -215,6 +215,38 @@ class String
     return self
   end
 
+  def validarCCC 
+    banco     = self[0..3]
+    sucursal  = self[4..7]
+    dc        = self[8..9]
+    cccCuenta = self[10.. self.length]
+
+    bancoSucursal = "00"+banco.to_s+sucursal.to_s
+
+    if (obtenerDC(bancoSucursal).to_i == dc[0].to_i && obtenerDC(cccCuenta).to_i == dc[1].to_i)
+      return true 
+    else 
+      return false 
+    end
+
+  end
+
+  def obtenerDC(value)
+
+    valores = [1,2,4,8,5,10,9,7,3,6]
+    control = 0
+
+    (0..9).each {|i|
+      control = control + (value[i].to_i * valores[i])   
+    }
+    control = 11 - (control % 11)
+      if control == 11
+        control = 0
+      elsif control == 10
+        control = 1
+      end
+    return control
+  end
 end
 
 def fecha_texto(fecha, formato = :default)
