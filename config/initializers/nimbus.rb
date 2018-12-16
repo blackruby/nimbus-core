@@ -1105,6 +1105,10 @@ module MantMod
     def nim_lock
       @nim_lock
     end
+
+    def nim_bus_plantilla
+      @nim_bus_plantilla
+    end
   end
 
   ### Métodos de instancia

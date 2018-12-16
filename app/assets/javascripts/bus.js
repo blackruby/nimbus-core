@@ -138,6 +138,9 @@ function gridSelect(id) {
     default:
       callFonServer("bus_value", {id: id, type: _autoCompField.data("type")}, null, true);
 
+      // Si el id contiene underscores (hijos) nos quedamos con el id del padre
+      id = id.toString().split("_")[0];
+
       _autoCompField.attr("dbid", id);
       if (_autoCompField.data("fon_auto")) // función asociada propia
         _autoCompField.data("fon_auto").call(null, _autoCompField, id);

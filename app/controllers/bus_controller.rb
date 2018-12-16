@@ -132,6 +132,8 @@ class BusController < ApplicationController
       last_col = 'c00'
     end
 
+    @nim_bus_lock = flash[:lock]
+
     @v = Vista.new
     @dat = @v.data = {
       mod: clm,

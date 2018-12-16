@@ -11,31 +11,26 @@
   -->
 
   &nbsp;
-  <select id="bus-sel" title="Plantilla" onchange="busSel()">
-    <% @sel.each {|k, v| %>
-      <optgroup label="<%= k %>">
-        <% v.each {|f| %>
-          <option value="<%= f %>"><%= f.split('/')[-1][0..-5] %></option>
-        <% } %>
-      </optgroup>
-    <% } %>
-  </select>
-
-  <% if @views.size > 1 %>
-    &nbsp;
-    <select id="view-sel" title="Vista" onchange="viewSel()">
-      <% @views.each {|v| %>
-        <option value="<%= v %>"><%= nt(v) %></option>
+  <% unless @nim_bus_lock %>
+    <select id="bus-sel" title="Plantilla" onchange="busSel()">
+      <% @sel.each {|k, v| %>
+        <optgroup label="<%= k %>">
+          <% v.each {|f| %>
+            <option value="<%= f %>"><%= f.split('/')[-1][0..-5] %></option>
+          <% } %>
+        </optgroup>
       <% } %>
     </select>
-  <% end %>
 
-  <!--
-  &nbsp;&nbsp;&nbsp;
-  <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" style="margin-bottom: 4px;height: 30px;width: 30px;min-width: 30px;" onclick="busSave()">
-    <i class="material-icons" style="font-size: 22px">save</i>
-  </button>
-  -->
+    <% if @views.size > 1 %>
+      &nbsp;
+      <select id="view-sel" title="Vista" onchange="viewSel()">
+        <% @views.each {|v| %>
+          <option value="<%= v %>"><%= nt(v) %></option>
+        <% } %>
+      </select>
+    <% end %>
+  <% end %>
 
   <button id="bus-menu" class="mdl-button mdl-js-button mdl-button-icon" style="margin-bottom: 10px;height: 30px;width: 30px;min-width: 30px;">
     <i class="material-icons" style="color: #ffffff; font-size: 22px">more_vert</i>

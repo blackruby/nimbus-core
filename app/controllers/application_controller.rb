@@ -873,6 +873,8 @@ class ApplicationController < ActionController::Base
     @dat = @v.data
     @dat[:eid] = eid
     @dat[:jid] = jid
+    @dat[:persistencia] = {}
+    @g = @dat[:persistencia]
 
     grid = clm.grid.deep_dup
     grid_conf(grid) if self.respond_to?(:grid_conf)
@@ -962,12 +964,12 @@ class ApplicationController < ActionController::Base
       @view[:col_model] = eval_cad(clm.col_model_html(cm))
     end
 
+    after_index if self.respond_to?('after_index')
+
     @v.save
     @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
     # Añadir distintivo de color de la empresa si procede
     @ajax << %Q($("body").append('<div class="#{@e.param[:estilo]}" style="background-color: #{@e.param[:color]}"></div>');) if @e && @e.param[:estilo] && @e.param[:estilo] != 'nil' && !params[:mod]
-
-    after_index if self.respond_to?('after_index')
 
     pag_render('grid')
   end
@@ -2843,6 +2845,7 @@ class ApplicationController < ActionController::Base
   end
 
   def bus_call_pk
+    clm = class_mant
     clmod = class_modelo
     flash[:mod] = clmod.to_s
     flash[:ctr] = params[:controller]
@@ -2853,6 +2856,7 @@ class ApplicationController < ActionController::Base
     flash[:msel] = msel if msel != ['*']
     permanente = self.respond_to?(:busqueda_global_permanente) ? busqueda_global_permanente : false
     flash[:tipo] = 'mant' + (permanente ? '*' : '')
+    flash[:pref] = clm.nim_bus_plantilla if clm.nim_bus_plantilla
 
     #@ajax << 'var w = window.open("/bus", "_blank", "width=700, height=500"); w._autoCompField = "mant";'
     @ajax << 'openWinBus();'
