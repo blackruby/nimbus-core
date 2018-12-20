@@ -56,9 +56,9 @@ module Nimbus
     }
     @procesar_add = nil
 
-    # Tratamientos especiales en el caso de que sea un controlador
-
     if f[iapp + 1] == 'controllers'
+      # Tratamientos especiales en el caso de que sea un controlador
+
       # Cálculo de las vistas
 
       ctr_name = f[-1][0..f[-1].index('_controller')-1]
@@ -108,6 +108,14 @@ module Nimbus
         end
       rescue
       end
+    else
+      # Tratamientos especiales en el caso de que sea un modelo
+
+      # Desactivar los callbacks al grabar registros (save) del histórico (si lo tiene)
+      modulo = f[-2] == 'models' ? '' : f[-2]
+      modelo = ((modulo == '' ? '' : modulo.capitalize + '::') + f[-1][0..-4].capitalize).constantize
+      histo = modelo.modelo_histo
+      histo.reset_callbacks(:save) if histo
     end
   end
 
@@ -318,6 +326,7 @@ class ActiveRecord::Base
 
   # Extensiones en ActiveRecord (para control histórico)
 
+=begin
   before_save :hubo_cambios
 
   def hubo_cambios
@@ -328,30 +337,12 @@ class ActiveRecord::Base
   def hubo_cambios?
     @hubo_cambios
   end
+=end
 
   def control_histo
-    return unless hubo_cambios?
-=begin
-    cl = self.class.to_s.ends_with?('Mod') ? self.class.superclass.to_s : self.class.to_s
-    cls = cl.split('::')
-    clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
-    h = clmh.new
-    h.created_by_id = user_id
-    h.created_at = Nimbus.now
-    h.idid = id
-    self.class.column_names.each {|c|
-      next if c == 'id'
-      h.method(c+'=').call(self.method(c).call)
-    }
-    h.save
+    #return unless hubo_cambios?
+    return unless saved_changes?
 
-    begin
-      clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
-      h = clmh.create(self.attributes.merge({id: nil, idid: self.id, created_by_id: self.user_id, created_at: Nimbus.now}))
-    rescue
-      # El "único" posible error sería que no existiera control de históricos para el modelo (y fallara el constantize)
-    end
-=end
     clh = self.class.modelo_histo
     if clh
       clh.create(self.attributes.merge({id: nil, idid: self.id, created_by_id: self.user_id, created_at: Nimbus.now}))
@@ -360,16 +351,6 @@ class ActiveRecord::Base
 
   def control_histo_b
     return unless self.id
-=begin
-    cl = self.class.to_s.ends_with?('Mod') ? self.class.superclass.to_s : self.class.to_s
-    cls = cl.split('::')
-    begin
-      clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
-      h = clmh.create(clmh.where('idid = ?', self.id).order(:created_at).last.attributes.merge({id: nil, idid: -self.id, created_by_id: self.user_id, created_at: Nimbus.now}))
-    rescue
-      # El "único" posible error sería que no existiera control de históricos para el modelo (y fallara el constantize)
-    end
-=end
       clh = self.class.modelo_histo
       if clh
         begin
