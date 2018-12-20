@@ -7,8 +7,8 @@ class EjerciciosMod < Ejercicio
     ej_anterior_id: {tab: 'pre'},
     ej_siguiente_id: {tab: 'pre'},
     divisa_id: {tab: 'pre', manti: 10},
-    fec_inicio: {tab: 'pre', grid:{}},
-    fec_fin: {tab: 'pre', grid:{}},
+    fec_inicio: {tab: 'pre', grid:{}, req: true},
+    fec_fin: {tab: 'pre', grid:{}, req: true},
   }
 
   @grid = {
@@ -26,6 +26,9 @@ class EjerciciosMod < Ejercicio
 end
 
 class EjerciciosController < ApplicationController
+  def vali_save
+    "La fecha final debe de ser mayor a la inicial" if @fact.fec_fin < @fact.fec_inicio
+  end
 end
 
 Nimbus.load_adds __FILE__
