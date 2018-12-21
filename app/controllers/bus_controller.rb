@@ -157,14 +157,14 @@ class BusController < ApplicationController
     # Calcular fichero de preferencias
     fic_pref = nil
     pref = "bus/_usuarios/#{@usu.codigo}/#{@mod}/_preferencias"
-    if File.exists?(pref)
+    if File.exist?(pref)
       fic_pref = YAML.load(File.read(pref))[ctr]
-      fic_pref = nil unless File.exists?(fic_pref.to_s)
+      fic_pref = nil unless File.exist?(fic_pref.to_s)
     end
 
     unless fic_pref
       fic_pref = flash[:pref] || params[:pref]
-      fic_pref = nil unless File.exists?(fic_pref.to_s)
+      fic_pref = nil unless File.exist?(fic_pref.to_s)
     end
 
     # Construcción de de la lista de ficheros de búsqueda
@@ -568,7 +568,7 @@ class BusController < ApplicationController
 
     path = "bus/_usuarios/#{@usu.codigo}/#{@dat[:mod]}"
     pref = path + '/_preferencias'
-    if File.exists?(pref)
+    if File.exist?(pref)
       hpref = YAML.load(File.read(pref))
       hpref[@dat[:ctr]] = params[:fic]
     else

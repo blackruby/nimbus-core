@@ -122,7 +122,7 @@ class OspController < ApplicationController
     loop do
       fa[s] = "#{nn} (#{n})"
       nf = fa.join('.')
-      break unless File.exists?(nf)
+      break unless File.exist?(nf)
       n += 1
     end
     nf
@@ -136,7 +136,7 @@ class OspController < ApplicationController
     params[:osp].each {|f|
       d = "#{@dat[:ruta]}/#{@dat[:dir]}/#{f.original_filename}"
       da = f.original_filename.split('.')
-      dx = File.exists?(d)
+      dx = File.exist?(d)
 
       cpdf = conf.dig(:upload, :pdf) || :version
 

@@ -24,7 +24,7 @@ module Nimbus
   Debug = false
 
   # Lectura del hash de configuración
-  Config = File.exists?('config/nimbus-core.yml') ? YAML.load(File.read('config/nimbus-core.yml')) : {}
+  Config = File.exist?('config/nimbus-core.yml') ? YAML.load(File.read('config/nimbus-core.yml')) : {}
 
   # Nombre de la cookie de empresa/ejercicio
   CookieEmEj = ('_' + Rails.app_class.to_s.split(':')[0].downcase + '_emej').to_sym
@@ -44,7 +44,7 @@ module Nimbus
 
     Modulos.each {|m|
       p = rails_root + '/' + m + fic
-      if File.exists? p
+      if File.exist? p
         Rails.env == 'development' ? require_dependency(p) : load(p)
       end
     }
@@ -63,12 +63,12 @@ module Nimbus
         ruta = "/app/views/#{mod}/#{ctr_name}/#{tipo}.html.erb"
 
         fic = f[0..iapp-1].join('/') + '/' + ruta
-        views << fic if File.exists?(fic)
+        views << fic if File.exist?(fic)
 
         Modulos.each {|m|
           next if m == f[iapp-2] + '/' + f[iapp-1]
           fic = rails_root + '/' + m + ruta
-          views << fic if File.exists?(fic)
+          views << fic if File.exist?(fic)
         }
 
         ctr.set_nimbus_views tipo, views

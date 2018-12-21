@@ -251,17 +251,6 @@ class GiController < ApplicationController
   end
 
   def graba_fic
-=begin
-    file = 'formatos/' + params[:file] + '.yml'
-    if params[:ow] == 'n' and File.exists?(file)
-      render text: 'n'
-      return
-    end
-
-    data = eval(params[:data])
-    File.write(file, data.to_yaml)
-    render text: 's'
-=end
     begin
       case params[:modulo]
         when ''
@@ -320,14 +309,14 @@ class GiController < ApplicationController
           pref = 'app/controllers'
         else
           pref = "modulos/#{@gi_modulo}/app"
-          if File.exists?("#{pref}/models/#{@gi_modulo}.rb")
+          if File.exist?("#{pref}/models/#{@gi_modulo}.rb")
             pref << "/controllers/#{@gi_modulo}"
             pref_html = "/#{@gi_modulo}/"
           else
             pref << "/controllers"
           end
         end
-        return({redirect: "#{pref_html}#{@gi_formato}"}) if File.exists?("#{pref}/#{@gi_formato}_controller.rb")
+        return({redirect: "#{pref_html}#{@gi_formato}"}) if File.exist?("#{pref}/#{@gi_formato}_controller.rb")
       end
 
 
@@ -770,8 +759,8 @@ class GI
 
     # Cargar fuentes si existen
     if cl
-      cl.instance_eval(File.read(path + form[:fuente] + '.rb')) if File.exists?(path + form[:fuente].to_s + '.rb')
-      cl.instance_eval(File.read(path + file + '.rb')) if File.exists?(path + file + '.rb')
+      cl.instance_eval(File.read(path + form[:fuente] + '.rb')) if File.exist?(path + form[:fuente].to_s + '.rb')
+      cl.instance_eval(File.read(path + file + '.rb')) if File.exist?(path + file + '.rb')
     end
 
     form

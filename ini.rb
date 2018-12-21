@@ -45,7 +45,7 @@
   }
 
   d = 'modulos/nimbus-core/' + r
-  config.paths[r] << d if File.exists?(d)
+  config.paths[r] << d if File.exist?(d)
 }
 ############# carpetas de migraciones
 
@@ -54,10 +54,10 @@ mods = Dir.glob('modulos/*').map{|m| m.split('/')[1]}
 
 Dir.glob('modulos/*/db').each {|d|
   s = "#{d}/migrate"
-  config.paths[r] << s if File.exists?(s)
+  config.paths[r] << s if File.exist?(s)
   mods.each {|m|
     s = "#{d}/migrate_#{m}"
-    config.paths[r] << s if File.exists?(s)
+    config.paths[r] << s if File.exist?(s)
   }
 }
 

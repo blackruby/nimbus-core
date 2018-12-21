@@ -23,8 +23,7 @@ namespace :nimbus do
         tableh = modulo + '_h_' + modp
       end
 
-      #return if tipo == :new and File.exists?("#{path}app/controllers/#{modulo}/#{modp}_controller.rb")
-      return if tipo == :new and File.exists?("#{path}app/models/#{modulo}/#{mod}.rb")
+      return if tipo == :new and File.exist?("#{path}app/models/#{modulo}/#{mod}.rb")
 
       begin
         puts "Procesando #{fic}..."
@@ -328,7 +327,7 @@ namespace :nimbus do
 
     f = args[:file]
     if f
-      unless File.exists?(f)
+      unless File.exist?(f)
         puts
         puts 'No existe el esquema'
         puts
@@ -344,7 +343,7 @@ namespace :nimbus do
       if f.start_with?('esquemas/') or f.start_with?('modulos/nimbus-core/')
         mod = ''
       #elsif File.directory?(f[0..f.rindex('/')-1].gsub('esquemas', '.git'))
-      elsif File.exists?(f[0..f.rindex('/')-1].gsub('esquemas', '.git'))
+      elsif File.exist?(f[0..f.rindex('/')-1].gsub('esquemas', '.git'))
         mod = f[8..f.index('/', 8)-1]
       else
         mod = ''
@@ -355,7 +354,7 @@ namespace :nimbus do
       Dir.glob('modulos/*/esquemas').each {|d|
         nmod = d[8..d.rindex('/')-1]
         #mod = (nmod != 'nimbus-core' and File.directory?(d[0..d.rindex('/')] + '.git')) ? nmod : ''
-        mod = (nmod != 'nimbus-core' and File.exists?(d[0..d.rindex('/')] + '.git')) ? nmod : ''
+        mod = (nmod != 'nimbus-core' and File.exist?(d[0..d.rindex('/')] + '.git')) ? nmod : ''
         busca_esquemas(d, mod, ar)
       }
     end
