@@ -36,25 +36,18 @@ module Nimbus
     I18n.t('date.month_names')[1..-1].map.with_index {|m,i| [i+1, m.capitalize]}.to_h
   end
 
-  def self.procesar_add
-    @procesar_add
-  end
-
   def self.load_adds(fi)
     f = fi.split('/')
     iapp = f.index('app')
     fic = '/' + f[iapp..-1].join('/')[0..-4] + '_add.rb'
     rails_root = Rails.root.to_s
-    # Poner a true la variable @procesar_add para que los ficheros "_add" puedan satisfacer el "if" de procesamiento
-    # y sólo se procesen cuando son cargados desde aquí y no automáticamente por rails (en modo production)
-    @procesar_add = true
+
     Modulos.each {|m|
       p = rails_root + '/' + m + fic
       if File.exists? p
         Rails.env == 'development' ? require_dependency(p) : load(p)
       end
     }
-    @procesar_add = nil
 
     if f[iapp + 1] == 'controllers'
       # Tratamientos especiales en el caso de que sea un controlador
