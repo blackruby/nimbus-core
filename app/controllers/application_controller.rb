@@ -2668,22 +2668,21 @@ class ApplicationController < ActionController::Base
 
         cmps_img << cs if v[:img] && @fact[c]
 
-        if v[:type] == :div
+        valor = @fact[c]
+        if v[:type] == :div && valor.is_a?(HashForGrids)
           e = nil
-          valor = @fact[c]
-          if valor.is_a? HashForGrids
-            valor[:data].each {|r|
-              valor[:cols].each_with_index {|col, i|
-                fun = "vali_#{c}_#{col[:name]}"
-                er, t = procesa_vali(method(fun).call(r[0], r[i+1])) if self.respond_to?(fun)
-                err << '<br>' + er if t == :duro
-              }
+          valor[:data].each {|r|
+            valor[:cols].each_with_index {|col, i|
+              fun = "vali_#{c}_#{col[:name]}"
+              er, t = procesa_vali(method(fun).call(r[0], r[i+1])) if self.respond_to?(fun)
+              err << '<br>' + er if t == :duro
             }
-          end
+          }
         else
           if v[:req]
-            valor = @fact[c]
-            (valor.nil? or ([:string, :text].include?(v[:type]) and not c.ends_with?('_id') and valor.strip == '')) ? e = "Campo #{nt(v[:label])} requerido" : e = nil
+            #valor = @fact[c]
+            #(valor.nil? or ([:string, :text].include?(v[:type]) and not c.ends_with?('_id') and valor.strip == '')) ? e = "Campo #{nt(v[:label])} requerido" : e = nil
+            e = @fact[c].blank? ? "Campo #{nt(v[:label])} requerido" : nil
           else
             e = nil
           end
