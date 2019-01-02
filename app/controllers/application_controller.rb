@@ -396,12 +396,24 @@ class ApplicationController < ActionController::Base
     @ajax << "window.open('/#{params[:controller]}/#{id}/edit', '_self');"
   end
 
+  def add_empeje_to_url(url)
+    uri = URI(url)
+    # Si hay un host explícito (url externa) no hacer nada
+    return(url) if uri.host
+
+    q = URI.decode_www_form(uri.query.to_s).to_h
+    q['eid'] = @dat[:eid] if !q.include?('eid') && @dat[:eid].present?
+    q['jid'] = @dat[:jid] if !q.include?('jid') && @dat[:jid].present?
+
+    q.present? ? uri.path + '?' + URI.encode_www_form(q) : url
+  end
+
   ##nim-doc {sec: 'Métodos de usuario', met: 'open_url(url)'}
   # Abre la URL especificada en una nueva pestaña
   ##
 
   def open_url(url)
-    @ajax << "window.open('#{url}', '_blank');"
+    @ajax << "window.open('#{add_empeje_to_url(url)}', '_blank');"
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'index_reload'}
@@ -900,7 +912,10 @@ class ApplicationController < ActionController::Base
     @view[:prm_hist] = prm_hist
     @view[:model] = clm.superclass.to_s
     @view[:menu_r] = clm.menu_r
-    @view[:menu_l] = clm.menu_l
+    # Adecuar menu_l añadiendo a las url la empresa y el ejercicio
+    m_l = clm.menu_l.deep_dup
+    m_l.each {|m| m[:url] = add_empeje_to_url(m[:url])}
+    @view[:menu_l] = m_l
     @view[:url_base] = '/' + params[:controller] + '/'
     @view[:url_list] = @view[:url_base] + 'list'
     @view[:url_new] = @view[:url_base] + 'new'
