@@ -1113,7 +1113,8 @@ module MantMod
     return nil if val.nil? and v[:nil]
 
     if v[:ref]
-      if val.is_a?(String) && val.strip.empty?
+      #if val.is_a?(String) && val.strip.empty?
+      if val.blank?
         return nil
       else
         return val.to_i
