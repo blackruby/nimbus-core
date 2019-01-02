@@ -228,13 +228,12 @@ namespace :nimbus do
         modelo.puts('  #end')
         modelo.puts('end')
         modelo.puts
-        modelo.puts("class #{namesp}#{modc} < ActiveRecord::Base")
+        modelo.puts("class #{namesp}#{modc}")
         modelo.puts('  include Modelo')
         modelo.puts('end')
         if prop[:histo]
           modelo.puts
-          modelo.puts("class #{namesp}H#{modc} < ActiveRecord::Base")
-          #modelo.puts("  belongs_to :created_by, :class_name => 'Usuario'")
+          modelo.puts("class #{namesp}H#{modc} < #{namesp}#{modc}")
           modelo.puts('  include Historico')
           modelo.puts('end')
         end
@@ -258,7 +257,7 @@ namespace :nimbus do
         controller.puts('  #end')
         controller.puts('end')
         controller.puts
-        controller.puts("class #{namesp}#{modcp}Mod < #{namesp}#{modc}")
+        controller.puts("class #{namesp}#{modcp}Mod")
         controller.puts('  include MantMod')
         controller.puts('end')
         controller.puts
