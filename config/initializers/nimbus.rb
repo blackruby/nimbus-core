@@ -1237,9 +1237,9 @@ module Modelo
         @auto_comp_data = h
       end
 
-      if @auto_comp_mselect
-        @auto_comp_mselect << 'id' unless @auto_comp_mselect.include?('id')
-      end
+      #if @auto_comp_mselect
+      #  @auto_comp_mselect << 'id' unless @auto_comp_mselect.include?('id')
+      #end
 
       # Cálculo del vector de claves primarias (pk)
       @pk = []
@@ -1382,7 +1382,12 @@ module Modelo
     end
 
     def auto_comp_mselect
-      @auto_comp_mselect ? @auto_comp_mselect : ['*']
+      #@auto_comp_mselect ? @auto_comp_mselect : ['*']
+      if @auto_comp_mselect
+        @auto_comp_mselect + (@auto_comp_mselect.include?('id') ? [] : ['id'])
+      else
+        ['*']
+      end
     end
 
     def hijo?
