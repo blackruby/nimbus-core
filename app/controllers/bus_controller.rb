@@ -336,7 +336,7 @@ class BusController < ApplicationController
     #mp = mselect_parse(@dat[:view], @dat[:cols].map{|k, v| v[:label]})
     mp = mselect_parse(@dat[:view], @dat[:cols].map{|k, v| v[:label]} + @dat[:msel].to_a)
     @dat[:cad_sel] = mp[:cad_sel]
-    jemej = @dat[:join_emej].to_s.empty? ? '' : ljoin_parse(@dat[:view], @dat[:join_emej] + '(t_emej)')[:cad]
+    jemej = @dat[:join_emej].to_s.empty? ? '' : ljoin_parse_alias(@dat[:view], 'iz', @dat[:join_emej] + '(t_emej)')[:cad]
     @dat[:cad_join] = mp[:cad_join] + ' ' + jemej
 
     col_mod = @dat[:cols].map {|k, c|

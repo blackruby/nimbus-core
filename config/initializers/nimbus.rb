@@ -243,10 +243,9 @@ end
 # ':tab' que es otro hash cuyas claves son las tablas usadas en el
 # join y los valores de los alias utilizados
 
-def ljoin_parse(modelo, *columns)
+def ljoin_parse_alias(modelo, ali_auto, *columns)
   cad_join = ''
   tab_proc = {}
-  ali_auto = 'sz' # Para que el primer alias automático sea 'ta'
   columns.flatten.compact.each {|col|
     mod = modelo
     ali = mod.table_name
@@ -283,6 +282,11 @@ def ljoin_parse(modelo, *columns)
   }
 
   {cad: cad_join, alias: tab_proc}
+end
+
+def ljoin_parse(modelo, *columns)
+  # Para que el primer alias automático sea 'ta' pasamos el alias 'sz'
+  ljoin_parse_alias(modelo, 'sz', *columns)
 end
 
 # Método para generar select de múltiples tablas con sus left join correspondientes
