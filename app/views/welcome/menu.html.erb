@@ -58,4 +58,5 @@
   panel = <%= raw @panel ? @panel : {} %>;
   numEjer = <%= Ejercicio.where('empresa_id = ?', @usu.empresa_def_id).count %>
   daysLeft = <%= @days_left.to_json %>;
+  <%= @ajax.html_safe %>
 </script>

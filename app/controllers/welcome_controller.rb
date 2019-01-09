@@ -89,6 +89,7 @@ class WelcomeController < ApplicationController
       if usu.password_fec_mod.nil? or (usu.num_dias_validez_pass.to_i != 0 and (@ahora - usu.password_fec_mod)/86400 > usu.num_dias_validez_pass)
         render 'cambia_pass'
       else
+        flash[:login] = true
         redirect_to '/menu'
       end
     else
@@ -257,6 +258,9 @@ class WelcomeController < ApplicationController
         @days_left = days_left
       end
     end
+
+    @ajax = ''
+    on_ini_sesion if flash[:login] && self.respond_to?(:on_ini_sesion)
   end
 
   def cambio_emej
@@ -278,5 +282,7 @@ class WelcomeController < ApplicationController
   end
 =end
 end
+
+Nimbus.load_adds __FILE__
 
 end
