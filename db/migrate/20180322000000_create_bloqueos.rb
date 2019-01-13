@@ -5,6 +5,8 @@ class CreateBloqueos < ActiveRecord::Migration[5.0]
       t.integer :ctrlid
       t.references :empre
       t.string :clave
+      t.integer :idindex
+      t.boolean :activo
       t.references :created_by
       t.timestamp :created_at
     end

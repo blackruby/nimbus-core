@@ -952,6 +952,10 @@ class ApplicationController < ActionController::Base
     @view[:url_new] << arg_list_new + arg_ej
     @view[:arg_edit] << arg_ej
 
+    # Pasar el parámetro v.id para poder usarlo en las fichas como referencia para bloqueos
+    @view[:url_new] << "&idindex=#{@v.id}"
+    @view[:arg_edit] << "&idindex=#{@v.id}"
+
     # Pasar como herencia el argumento especial 'arg'
     if params[:arg]
       @view[:url_new] << '&arg=' + params[:arg]
@@ -1254,6 +1258,7 @@ class ApplicationController < ActionController::Base
     @fact = @dat[:fact]
     @fact.user_id = session[:uid]
     @dat[:head] = params[:head] if params[:head]
+    @dat[:idindex] = params[:idindex].to_i
     #@fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord ???
 
     set_parent
@@ -1505,6 +1510,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
+    @dat[:idindex] = params[:idindex].to_i
     @dat[:prm] = 'c' if params[:lock]
 
     blq = nil
@@ -1512,10 +1518,19 @@ class ApplicationController < ActionController::Base
       begin
         add_nim_lock
       rescue ActiveRecord::RecordNotUnique
-        # El registro está siendo editado por otro usuario
-        blq = Bloqueo.find_by controlador: params[:controller], ctrlid: @fact.id
-        mensaje onload: true, tit: 'Registro bloqueado', msg: "El registro está siendo editado por:<br><br>Usuario: #{blq.created_by.nombre}<br>Fecha: #{fecha_texto(blq.created_at, :long)}<br><br>Se activará el modo 'sólo lectura'."
-        @dat[:prm] = 'c'
+        # El registro está bloqueado
+        Bloqueo.transaction {
+          blq = Bloqueo.lock.find_by controlador: params[:controller], ctrlid: @fact.id
+          if blq.idindex != 0 && blq.idindex == @dat[:idindex]
+            # El registro está siendo reeditado en la misma ventana
+            blq.activo = true # Para que no se borre el bloqueo y así se puede reaprovechar
+            blq.save
+            @ajax << "_nimlock=#{blq.id};"
+          else
+            mensaje onload: true, tit: 'Registro bloqueado', msg: "El registro está siendo editado por:<br><br>Usuario: #{blq.created_by.nombre}<br>Fecha: #{fecha_texto(blq.created_at, :long)}<br><br>Se activará el modo 'sólo lectura'."
+            @dat[:prm] = 'c'
+          end
+        }
       end
     end
 
@@ -2816,7 +2831,7 @@ class ApplicationController < ActionController::Base
   end
 
   def add_nim_lock
-    b = Bloqueo.create controlador: params[:controller], ctrlid: @fact.id, empre_id: @dat[:eid], clave: forma_campo_id(class_modelo, @fact.id, :lock), created_by_id: @usu.id, created_at: Nimbus.now
+    b = Bloqueo.create controlador: params[:controller], ctrlid: @fact.id, empre_id: @dat[:eid], clave: forma_campo_id(class_modelo, @fact.id, :lock), idindex: @dat[:idindex], created_by_id: @usu.id, created_at: Nimbus.now
     @ajax << "_nimlock=#{b.id};"
   end
 
@@ -2831,7 +2846,18 @@ class ApplicationController < ActionController::Base
 
     # Eliminar bloqueos si procede
     if params[:nimlock]
-      Bloqueo.where('id in (?)', params[:nimlock]).delete_all
+      #Bloqueo.where('id in (?)', params[:nimlock]).delete_all
+      Bloqueo.transaction {
+        blq = Bloqueo.lock.find_by(id: params[:nimlock])
+        if blq
+          if blq.activo
+            blq.activo = false
+            blq.save
+          else
+            blq.destroy
+          end
+        end
+      }
     end
 
     head :no_content
