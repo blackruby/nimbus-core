@@ -1,0 +1,8 @@
+.- El método disable_padre deshabilita todos los "inputs" del padre menos los botones del diálogo "borrar"
+.- El método edita_ficha ahora pasa todos los argumentos asociados a la edición (lock, idindex, etc.)
+.- Corregido bug por el que al editar una ficha con bloqueo (nim_lock) por segunda vez si ésta
+   tenía hijos se heredaba mal el status de bloqueo
+.- Corregido bug que provocaba un error interno (sin trascendencia para el usuario) en el server
+   al poner un guión (para buscar por el comienzo) en campos "id"
+.- Añadido el atributo "autocomplete=off" en campos de tipo :date y :datetime para que Chrome
+   no muestre sugerencias de completado en estos campos y sea más sencillo acceder al calendario.

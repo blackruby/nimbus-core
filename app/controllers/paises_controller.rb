@@ -25,7 +25,7 @@ class PaisesMod < Pais
   #end
 end
 
-class PaisesMod < Pais
+class PaisesMod
   include MantMod
 end
 

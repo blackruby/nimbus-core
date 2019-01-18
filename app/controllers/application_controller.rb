@@ -314,6 +314,7 @@ class ApplicationController < ActionController::Base
   def disable_padre
     @ajax << '$(":input", parent.parent.document).attr("disabled", true);'
     @ajax << '$(".cl-grabar", parent.parent.parent.document).attr("disabled", true);'
+    @ajax << '$("#dialog-borrar", parent.parent.document).parent().find(":input").attr("disabled", false);'
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'visible(cmp)'}
@@ -389,11 +390,12 @@ class ApplicationController < ActionController::Base
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'edita_ficha(id)'}
-  # Edita en una nueva pestaña la ficha con id <i>id</i> del mantenimiento en curso
+  # Edita la ficha con id <i>id</i> del mantenimiento en curso
   ##
 
   def edita_ficha(id)
-    @ajax << "window.open('/#{params[:controller]}/#{id}/edit', '_self');"
+    #@ajax << "window.open('/#{params[:controller]}/#{id}/edit', '_self');"
+    @ajax << "parent.editInForm(#{id});"
   end
 
   def add_empeje_to_url(url)
@@ -1526,6 +1528,7 @@ class ApplicationController < ActionController::Base
             blq.activo = true # Para que no se borre el bloqueo y así se puede reaprovechar
             blq.save
             @ajax << "_nimlock=#{blq.id};"
+            blq = nil
           else
             mensaje onload: true, tit: 'Registro bloqueado', msg: "El registro está siendo editado por:<br><br>Usuario: #{blq.created_by.nombre}<br>Fecha: #{fecha_texto(blq.created_at, :long)}<br><br>Se activará el modo 'sólo lectura'."
             @dat[:prm] = 'c'
@@ -1589,14 +1592,14 @@ class ApplicationController < ActionController::Base
 
   def _auto(par)
     unless request.xhr? # Si la petición no es Ajax... ¡Puerta! (para evitar accesos desde la barra de direcciones)
-      render json: ''
-      return
+      #render json: ''
+      return ''
     end
 
     p = par[:term]
     if p == '-' or p == '--'
-      render json: ''
-      return
+      #render json: ''
+      return ''
     end
 
     mod = par[:mod].constantize
@@ -3097,7 +3100,7 @@ class ApplicationController < ActionController::Base
       elsif v[:type] == :datetime
         sal << "<div id='#{cs}' #{div_attr}>"
         sal << '<div style="display: inline-block">'
-        sal << '<input class="nim-input" id="_f_' + cs + '" required style="max-width: ' + size + 'em"'
+        sal << '<input class="nim-input" id="_f_' + cs + '" autocomplete=off required style="max-width: ' + size + 'em"'
         sal << plus + '/>'
         sal << '<label class="nim-label" for="_f_' + cs + '">' + nt(v[:label]) + '</label>'
         sal << '</div>'
@@ -3127,6 +3130,7 @@ class ApplicationController < ActionController::Base
         sal << "<div #{div_attr}>"
         sal << '<input class="' + clase + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
         sal << " maxlength=#{size}" if v[:type] == :string
+        sal << ' autocomplete=off' if v[:type] == :date
         sal << plus + '/>'
         sal << '<label class="nim-label" for="' + cs + '">' + nt(v[:label]) + '</label>'
         sal << '</div>'
