@@ -1,3 +1,19 @@
+.- Añadido el atributo "autocomplete=off" en campos de tipo references.
+.- Quitada la herencia en la segunda apertura de clases en modelos y ctrls.
+   de nimbus-core.
+.- Posibilidad de usar ERB en los menús y en el fichero de configuración
+   (config/nimbus-core.yml).
+.- Posibilidad de llamar a callFonServer aunque no esté definida "_vista"
+.- Inicialización por defecto del campo idioma a español al crear nuevos
+   usuarios.
+.- Corregido bug por el que se perdía el idioma por defecto al grabar fichas 
+   de usuarios sin idioma.
+.- Implementada la opción de mensajería entre usuarios de Nimbus. Por defecto
+   está desactivada. Para activarla hay que añadir la línea ":noticias: true"
+   en el archivo config/nimbus-core.yml. Si quisiéramos que la opción sólo
+   estuviera activa en producción podríamos poner:
+   :noticias: <%= Rails.env == 'production' %>
+-------------------------------------------------------------------------------
 .- El método disable_padre deshabilita todos los "inputs" del padre menos los
    botones del diálogo "borrar".
 .- El método edita_ficha ahora pasa todos los argumentos asociados a la

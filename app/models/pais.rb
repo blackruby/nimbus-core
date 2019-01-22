@@ -19,7 +19,7 @@ class Pais < ActiveRecord::Base
   end
 end
 
-class Pais < ActiveRecord::Base
+class Pais
   include Modelo
 end
 

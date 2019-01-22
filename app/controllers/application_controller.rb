@@ -138,10 +138,6 @@ class ApplicationController < ActionController::Base
     class_mant.modelo_base
   end
 
-  def noticias
-    render js: ''
-  end
-
   def eval_cad(cad)
     cad.is_a?(String) ? eval('%~' + cad.gsub('~', '\~') + '~') : cad
   end
@@ -3047,7 +3043,7 @@ class ApplicationController < ActionController::Base
       elsif cs.ends_with?('_id')
         #sal << '<div class="nim-group">'
         sal << "<div #{div_attr}>"
-        sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em"'
+        sal << '<input class="nim-input" id="' + cs + '" autocomplete=off required style="max-width: ' + size + 'em"'
         sal << ' menu="N"' if v.include?(:menu) and !v[:menu]
         sal << ' dialogo="' + h[:dlg] + '"' if h[:dlg]
         sal << " go='go_#{cs}'" if self.respond_to?('go_' + cs)

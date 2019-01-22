@@ -17,7 +17,7 @@ class DivisasMod < Divisa
   #end
 end
 
-class DivisasMod < Divisa
+class DivisasMod
   include MantMod
 end
 

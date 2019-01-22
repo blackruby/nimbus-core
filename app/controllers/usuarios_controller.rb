@@ -31,6 +31,7 @@ class UsuariosMod < Usuario
     self.campos.each {|c, v|
       self[c] = self.pref[c] if v[:pref]
     }
+    self.locale = 'es' if self.locale.blank?
   end
 
   def graba_pref
@@ -40,7 +41,7 @@ class UsuariosMod < Usuario
   end
 end
 
-class UsuariosMod < Usuario
+class UsuariosMod
   include MantMod
 end
 
@@ -229,7 +230,8 @@ class UsuariosController < ApplicationController
       Usuario.calcula_permisos(@fact)
     end
 
-    cookies.permanent[:locale] = session[:locale] = @fact.pref[:locale] || I18n.default_locale
+    #cookies.permanent[:locale] = session[:locale] = @fact.pref[:locale] || I18n.default_locale
+    cookies.permanent[:locale] = session[:locale] = (@fact.present? ? @fact.locale.to_sym : I18n.default_locale)
   end
 
   def after_save

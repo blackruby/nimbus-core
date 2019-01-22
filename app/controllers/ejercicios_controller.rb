@@ -21,7 +21,7 @@ class EjerciciosMod < Ejercicio
   #end
 end
 
-class EjerciciosMod < Ejercicio
+class EjerciciosMod
   include MantMod
 end
 

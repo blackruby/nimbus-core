@@ -23,11 +23,16 @@ body {
   margin-left: 15px;
 }
 
-#nim-alertas {
-  position: absolute;
-  top: 20px;
-  right: 8px;
+#d-nim-noticias {
   cursor: pointer;
+  margin-left: 15px;
+  display: inline-block;
+  position: relative;
+}
+
+#nim-noticias {
+  position: absolute;
+  top: -18px;
 }
 
 @media screen and (max-width: 670px) {

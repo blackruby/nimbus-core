@@ -4,6 +4,9 @@ General:
   empresas: /empresas
   paises: /paises
   divisas: /divisas
+  <% if Nimbus::Config[:noticias] %>
+  mensajes: /mensajes
+  <% end %>
   tag_gi: <hr>
   gi: /gi
   giv: /giv

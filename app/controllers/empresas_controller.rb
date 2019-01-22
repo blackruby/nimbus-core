@@ -47,7 +47,7 @@ class EmpresasMod < Empresa
   end
 end
 
-class EmpresasMod < Empresa
+class EmpresasMod
   include MantMod
 end
 

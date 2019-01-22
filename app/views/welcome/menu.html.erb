@@ -1,7 +1,7 @@
 <div id="titulo" class="mm-fixed-top">
   <a id="a-menu" href="#nim-menu" style="margin-left: 12px;"><i class="material-icons" style="margin-top: 12px;">menu</i></a>
 
-    <label style="font-size: 20px; margin-left: 15px;"> <%= nt('hola_nimbus') %> </label>
+  <label style="font-size: 20px; margin-left: 15px;"> <%= nt('hola_nimbus') %> </label>
 
   <div class="nim-group div-head" style="width: 250px">
     <input class="nim-input" id="empresa" required size="20" style="max-width: 20em"/>
@@ -19,9 +19,10 @@
       <img <%= nim_path_image('Usuario', @usu.id, :foto).html_safe %>" height="40" border="0" style="margin-left: 8px">
       <%= @usu.nombre %>
     </a>
+    <% if Nimbus::Config[:noticias] %>
+    <div id="d-nim-noticias"><span id="nim-noticias" title="notificaciones" class="material-icons mdl-badge mdl-badge--overlap">notifications</span></div>
+    <% end %>
   </div>
-
-  <div id="nim-alertas" class="material-icons mdl-badge mdl-badge--overlap" data-badge="1" style="display: none">account_box</div>
 </div>
 
 <nav id="nim-menu">
@@ -58,5 +59,6 @@
   panel = <%= raw @panel ? @panel : {} %>;
   numEjer = <%= Ejercicio.where('empresa_id = ?', @usu.empresa_def_id).count %>
   daysLeft = <%= @days_left.to_json %>;
+  nimNoticias = <%= Nimbus::Config[:noticias].to_json %>
   <%= @ajax.html_safe %>
 </script>

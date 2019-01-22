@@ -550,11 +550,15 @@ $.fn.focusNextInputField = function() {
 
 // Función para invocar a una función del servidor (tipo proc_FonC)
 function callFonServer(fon_s, data, fon_ret, sync) {
+  var params = {fon: fon_s};
+  if (typeof(_vista) != "undefined") params.vista = _vista;
+
   $.ajax({
     url: '/' + _controlador + '/fon_server',
     type: "POST",
     async: !sync,
-    data: $.extend(true, {vista: _vista, fon: fon_s}, data),
+    //data: $.extend(true, {vista: _vista, fon: fon_s}, data),
+    data: $.extend(true, params, data),
     success: fon_ret
   })
 }

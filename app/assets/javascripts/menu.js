@@ -184,7 +184,7 @@ function set_cookie_emej() {
 }
 
 // Funciones para comprobar periódicamente noticias del servidor
-function noticias() {
+function getNoticias() {
   $.ajax({
     url: '/noticias',
     type: 'POST'
@@ -193,13 +193,31 @@ function noticias() {
 
 var tmo;
 
-function noticiass() {
-  noticias();
-  tmo = setTimeout("noticiass()", 30000);
+function noticias() {
+  getNoticias();
+  tmo = setTimeout("noticias()", 30000);
 }
 
 $(window).load(function () {
-  //tmo = setTimeout("noticiass()", 30000);
+  if (nimNoticias) noticias();
+
+  $("#nim-noticias").click(function (e) {
+    var h = 800;
+    var w = 600;
+    window.open(
+      "/shownoticias",
+      "noticias",
+      "location=no" +
+        ",menubar=no" +
+        ",status=no" +
+        ",toolbar=no" +
+        ",height=" + h +
+        ",width=" + w +
+        ",left=" + (window.screenX + (window.innerWidth - 600)/2) +
+        ",top=" + (window.screenY + 140)
+    );
+    $(this).attr("data-badge", null);
+  });
 
   //$("#nim-menu").mmenu({classes: "mm-slide"});
   $("#nim-menu").mmenu({onClick: {close: false}, searchfield: true});
@@ -351,7 +369,6 @@ $(window).load(function () {
   // Inicialización de los campos empresa y ejercicio
   $("#empresa").val(empresa_nom);
   $("#ejercicio").val(ejercicio_nom);
-  //$("#ejercicio").autocomplete("option", "source", '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=' + empresa_id);
 
   if (numEjer > 0) $("#d-ejercicio").css("visibility", "visible");
 

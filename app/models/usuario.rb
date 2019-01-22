@@ -34,26 +34,30 @@ class Usuario < ActiveRecord::Base
     end
   end
 
+  def self.add_menu(hm, menu)
+    hm.deep_merge!(YAML.load(ERB.new(File.read(menu)).result))
+  end
+
   def self.load_menu(perm = false)
     hmenu = {}
     if perm
       hmenu.deep_merge!(Perfil.permisos_especiales).deep_merge!({'_opciones_de_menu_' => nil})
     end
-    hmenu.deep_merge!(YAML.load(File.read('menu_pre.yml'))) if File.exist?('menu_pre.yml')
-    hmenu.deep_merge!(YAML.load(File.read('modulos/nimbus-core/menu.yml')))
+    add_menu(hmenu, 'menu_pre.yml') if File.exist?('menu_pre.yml')
+    add_menu(hmenu, 'modulos/nimbus-core/menu.yml')
     # Mezclar el menú de cada módulo y obtener un array con los módulos disponibles
     modulos = []
     Dir.glob('modulos/*/menu.yml').each {|m|
       next if m == 'modulos/nimbus-core/menu.yml'
-      hmenu.deep_merge!(YAML.load(File.read(m)))
+      add_menu(hmenu, m)
       modulos << m.split('/')[1]
     }
     # Mezclar los menús de sobrecarga de módulos de cada módulo si el módulo a sobrecargar existe
     Dir.glob('modulos/*/menu_*.yml').each {|m|
-      hmenu.deep_merge!(YAML.load(File.read(m))) if modulos.include?(m.scan(/_\w*\.yml/)[0][1..-5])
+      add_menu(hmenu, m) if modulos.include?(m.scan(/_\w*\.yml/)[0][1..-5])
     }
     # Mezclar el menú principal de la gestión
-    hmenu.deep_merge!(YAML.load(File.read('menu.yml'))) if File.exist?('menu.yml')
+    add_menu(hmenu, 'menu.yml') if File.exist?('menu.yml')
 
     return hmenu
   end

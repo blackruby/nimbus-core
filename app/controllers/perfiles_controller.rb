@@ -18,7 +18,7 @@ class PerfilesMod < Perfil
   #end
 end
 
-class PerfilesMod < Perfil
+class PerfilesMod
   include MantMod
 end
 

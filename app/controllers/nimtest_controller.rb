@@ -63,7 +63,7 @@ class NimtestMod < Pais
   end
 end
 
-class NimtestMod < Pais
+class NimtestMod
   include MantMod
 end
 

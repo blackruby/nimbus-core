@@ -31,7 +31,7 @@ class Ejercicio < ActiveRecord::Base
   end
 end
 
-class Ejercicio < ActiveRecord::Base
+class Ejercicio
   include Modelo
 end
 

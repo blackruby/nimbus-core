@@ -13,7 +13,7 @@ class Divisa < ActiveRecord::Base
   #end
 end
 
-class Divisa < ActiveRecord::Base
+class Divisa
   include Modelo
 end
 

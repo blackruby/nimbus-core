@@ -24,7 +24,7 @@ module Nimbus
   Debug = false
 
   # Lectura del hash de configuración
-  Config = File.exist?('config/nimbus-core.yml') ? YAML.load(File.read('config/nimbus-core.yml')) : {}
+  Config = File.exist?('config/nimbus-core.yml') ? YAML.load(ERB.new(File.read('config/nimbus-core.yml')).result) : {}
 
   # Nombre de la cookie de empresa/ejercicio
   CookieEmEj = ('_' + Rails.app_class.to_s.split(':')[0].downcase + '_emej').to_sym

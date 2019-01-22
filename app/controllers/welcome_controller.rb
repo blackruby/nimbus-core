@@ -260,6 +260,9 @@ class WelcomeController < ApplicationController
     end
 
     @ajax = ''
+
+    # LLamar al método on_ini_sesion si existe. Este método hay que definirlo
+    # en app/controllers/welcome_controller_add.rb de la gestión.
     on_ini_sesion if flash[:login] && self.respond_to?(:on_ini_sesion)
   end
 

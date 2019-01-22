@@ -8,3 +8,6 @@ es:
   _permisos_especiales_: Permisos especiales
   _opciones_de_menu_: Opciones de menú
   preview: Vista previa
+  from: Remitente
+  to: Destinatario
+  leido: Leído

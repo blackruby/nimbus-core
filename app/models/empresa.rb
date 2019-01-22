@@ -29,7 +29,7 @@ class Empresa < ActiveRecord::Base
   end
 end
 
-class Empresa < ActiveRecord::Base
+class Empresa
   include Modelo
 end
 

@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  ['usuarios','nimtest','empresas','ejercicios','divisas','paises','perfiles','bloqueos'].each{|c|
+  ['usuarios','nimtest','empresas','ejercicios','divisas','paises','perfiles','bloqueos','mensajes'].each{|c|
     next if Nimbus::Config["excluir_#{c}".to_sym]
     get c => "#{c}#index"
     get "#{c}/new" => "#{c}#new"
@@ -50,7 +50,8 @@ Rails.application.routes.draw do
   post 'osp/fon_server' => 'osp#fon_server'
   post 'application/destroy_vista' => 'application#destroy_vista'
 
-  post 'noticias' => 'application#noticias'
+  post 'noticias' => 'mensajes#nuevas'
+  get 'shownoticias' => 'mensajes#show'
 
   unless Nimbus::Config[:excluir_bus]
     get 'bus' => 'bus#bus'
