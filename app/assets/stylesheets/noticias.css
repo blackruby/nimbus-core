@@ -13,7 +13,7 @@
 }
 
 body {
-  background-color: #D1C4E9;
+  background-color: #673AB7;
   padding-top: 15px;
 }
 
@@ -127,24 +127,6 @@ body {
   border: 0;
   font-size: medium;
 }
-
-/*
-.t-nuevo-msg {
-  position: fixed;
-  top: 60px;
-  left: 29px;
-  right: 29px;
-  height: 50px;
-  margin-right: 29px;
-  display: block;
-  resize: none;
-  outline: none;
-  border: 0;
-  box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
-  border-radius: 2px;
-  font-size: medium;
-}
-*/
 
 #d-lista-usu {
   position: fixed;
