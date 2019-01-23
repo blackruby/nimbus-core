@@ -1075,6 +1075,12 @@ class GI
     end
   end
 
+  def col_code(i)
+    r='A'
+    i.times{r.next!}
+    r
+  end
+
   def _add_banda(ban, valores={}, sheet)
     @ri_act = @ris[sheet]
     merg = []
@@ -1109,7 +1115,8 @@ class GI
         end
 
         if c[:colspan].to_i > 0 or c[:rowspan].to_i > 0
-          merg << "#{('A'.ord + i).chr}#{@ri_act}:#{('A'.ord + i + c[:colspan].to_i).chr}#{@ri_act + c[:rowspan].to_i}"
+          #merg << "#{('A'.ord + i).chr}#{@ri_act}:#{('A'.ord + i + c[:colspan].to_i).chr}#{@ri_act + c[:rowspan].to_i}"
+          merg << "#{col_code(i)}#{@ri_act}:#{col_code(i + c[:colspan].to_i)}#{@ri_act + c[:rowspan].to_i}"
         end
       }
       sty = r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}

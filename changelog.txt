@@ -1,3 +1,5 @@
+.- Corregido bug en el GI por el que no se podían agrupar más de 26 columnas.
+-------------------------------------------------------------------------------
 .- Añadido el atributo "autocomplete=off" en campos de tipo references.
 .- Quitada la herencia en la segunda apertura de clases en modelos y ctrls.
    de nimbus-core.
