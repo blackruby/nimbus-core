@@ -38,6 +38,17 @@ class Usuario < ActiveRecord::Base
     hm.deep_merge!(YAML.load(ERB.new(File.read(menu)).result))
   end
 
+  def self.del_opts_menu(menu)
+    menu.delete_if {|k, v|
+      if v.is_a? Hash
+        del_opts_menu(v)
+        false
+      else
+        v == '_'
+      end
+    }
+  end
+
   def self.load_menu(perm = false)
     hmenu = {}
     if perm
@@ -58,6 +69,10 @@ class Usuario < ActiveRecord::Base
     }
     # Mezclar el menú principal de la gestión
     add_menu(hmenu, 'menu.yml') if File.exist?('menu.yml')
+
+    # Eliminar recursivamente todas las opciones que tengan como valor (url) un "-" que es el
+    # convenio para eliminar opciones (fundamentalmente sobrecargándolas desde el menú principal)
+    del_opts_menu(hmenu)
 
     return hmenu
   end

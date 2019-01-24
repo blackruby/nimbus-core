@@ -1,12 +1,63 @@
+# Controlador para gestionar la oficina sin papeles (OSP)
+#
+# OSP proporciona un nuevo botón (una grapa) en cada ficha de todos
+# los mantenimientos. Al pulsarlo se abrirá una carpeta en la que podemos
+# subir archivos que quedarán asociados a la ficha en curso. También se 
+# pueden crear subcarpetas. En cada archivo tenemos un menú contextual
+# desde el que podemos descargar el archivo (si éste es susceptible de
+# vista previa se mostrará ésta y desde ella se podrá descargar); borrarlo;
+# renombrarlo; y si es un pdf y además existen otros pdfs nos ofrecerá otra
+# opción para poder añadir dicho pdf a cualquiera de los existentes. Después
+# de añadirlo, el original se borrará o no en función de la configuración.
+#
+# Para activar OSP es necesario añadir en el fichero config/nimbus-core.yml
+# la directiva :osp: Su valor puede ser true o un hash.
+# Si es true (:osp: true) estará activo con las opciones por defecto.
+# Si es un hash, éstas son las posibles claves y valores (los que llevan un *
+# entre paréntesis son los valores por defecto):
+# :osp:
+#   :pdf_add_rm: true|false(*)
+#   :upload:
+#     :pdf: :pre|:post|:version(*)
+#     :version: :new(*)|:old|:no
+# 
+# Explicación de las posibles opciones:
+#
+# :pdf_add_rm: indica si después de añadir un pdf a otro (desde el menú
+# contextual) el primero ha de ser borrado.
+#
+# :upload: => :pdf tiene tres valores:
+# :pre => Indica que al subir un pdf, si ya existe un archivo con ese nombre
+# el contenido del fichero subido se empalmará por delante al fichero existente.
+# :post => Indica que al subir un pdf, si ya existe un archivo con ese nombre
+# el contenido del fichero subido se empalmará por detrás al fichero existente.
+# :version => Indica que al subir un pdf, si ya existe un archivo con ese nombre
+# no se hará ninguna acción especial y el comportamiento será como el de cualquier
+# otro tipo de archivo siguiendo las pautas indicadas en la opción (:upload: :version:)
+#
+# :upload: => :version tiene tres valores:
+# :new => Indica que si al subir un archivo ya existe uno con ese nombre,
+# se renombrará el archivo subido añadiéndole un número de versión entre
+# paréntesis.
+# :old => Indica que si al subir un archivo ya existe uno con ese nombre,
+# se renombrará el archivo existente añadiéndole un número de versión entre
+# paréntesis y subiendo el nuevo con el nombre inalterado.
+# :no => Indica que si al subir un archivo ya existe uno con ese nombre,
+# se reemplazará (machacará) con el nuevo.
+#
+# Nota: para poder empalmar pdfs se usa el comando de linux pdfunite.
+# En las distribuciones estándar de Centos ya viene por defecto, en caso
+# de no estar disponible habría que instalar con yum el paquete poppler-utils.
+
 class OspController < ApplicationController
   def index
     @assets_javascripts = @assets_stylesheets = %w(osp)
 
     unless Nimbus::Config[:osp] && flash[:ruta]
-      Nimbus::Config[:excluir_paises]
       render file: '/public/401.html', status: 401, layout: false
       return
     end
+
     @titulo = flash[:tit]
     path = "#{flash[:ruta]}/#{flash[:dir]}/*"
     @files = {}

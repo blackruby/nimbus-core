@@ -1,3 +1,6 @@
+.- Posibilidad de eliminar opciones de menú poniendo como url un "_"
+.- Añadida documentación en osp_controller.rb
+-------------------------------------------------------------------------------
 .- Corregido bug en el GI por el que no se podían agrupar más de 26 columnas.
 -------------------------------------------------------------------------------
 .- Añadido el atributo "autocomplete=off" en campos de tipo references.
