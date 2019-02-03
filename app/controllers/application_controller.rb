@@ -3185,6 +3185,7 @@ class ApplicationController < ActionController::Base
         #sal << '","' + v[:ref].constantize.table_name + '");'
         mt = v[:ref].split('::')
         sal << '","' + (mt.size == 1 ? v[:ref].constantize.table_name : mt[0].downcase + '/' + mt[1].downcase.pluralize) + '");'
+        sal << "$('##{cs}').data('menu', #{v[:menu].to_json});" if v[:menu].present?
       elsif v[:mask]
         sal << '$("#' + cs + '").mask("' + v[:mask] + '",{placeholder: " "});'
         #sal << 'mask({elem: "#' + cs + '", mask:"' + mask + '"'

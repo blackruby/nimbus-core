@@ -88,6 +88,17 @@ module Nimbus
           else
             cmpa << [k, v]
           end
+
+          # Hacer include del module "Controller" si existe y añadir las opciones del menú contextual (auto_comp_menu) a v[:menu]
+          if v[:ref]
+            if v[:menu]
+              v[:ref].constantize.auto_comp_menu.each {|m|
+                v[:menu] << m
+              }
+            end
+            mdl_ctr = "#{v[:ref]}::Controller"
+            ctr.instance_eval("include #{mdl_ctr}") if Object.const_defined?(mdl_ctr)
+          end
         }
 
         if post
@@ -805,6 +816,7 @@ module MantMod
           v[:ref] = self.superclass.reflect_on_association(campo[0..-4].to_sym).options[:class_name] unless cm.nil?
           v[:ref] ||= campo.split('_')[0].capitalize
         end
+        v[:menu] = [] if v[:menu].nil?
       end
 
       if v[:img]
@@ -1241,6 +1253,8 @@ module Modelo
         @auto_comp_data = h
       end
 
+      @auto_comp_menu ||= []
+
       #if @auto_comp_mselect
       #  @auto_comp_mselect << 'id' unless @auto_comp_mselect.include?('id')
       #end
@@ -1342,6 +1356,7 @@ module Modelo
       @pk = self.superclass.pk.deep_dup
       @auto_comp_data = self.superclass.auto_comp_data.deep_dup
       @auto_comp_mselect = self.superclass.auto_comp_mselect.deep_dup
+      @auto_comp_menu = self.superclass.auto_comp_menu.deep_dup
       @view = true
       # Sobrecargar el método "save" para poder grabar en el modelo base
       self.class_eval(%q(
@@ -1392,6 +1407,10 @@ module Modelo
       else
         ['*']
       end
+    end
+
+    def auto_comp_menu
+      @auto_comp_menu
     end
 
     def hijo?
@@ -1584,6 +1603,7 @@ module Historico
         @pk = self.superclass.pk
         @auto_comp_data = self.superclass.auto_comp_data
         @auto_comp_mselect = self.superclass.auto_comp_mselect
+        @auto_comp_menu = self.superclass.auto_comp_menu
 
         # Desactivar los callbacks al grabar registros (save), para que no se disparen al grabar la ficha del histórico
         self.reset_callbacks(:save)

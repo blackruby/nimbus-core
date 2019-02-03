@@ -1,3 +1,38 @@
+.- Encerrado el seed de países en una transacción.
+.- Mejorado el "Nueva alta" en campos references para que tenga en cuenta la
+   empresa/ejercicio del mantenimiento en curso y no el de la cookie.
+.- Mejorado el "ir a..." en campos references para que tenga en cuenta la
+   empresa/ejercicio del mantenimiento en curso y no el de la cookie.
+.- Añadidos iconos a las opciones del menú contextual de campos references.
+.- Posibilidad de añadir opciones propias al menú contextual de los campos
+   references. Ahora, la clave "menu" que existía en @campos para dichos campos
+   puede tener los siguientes valores:
+   .- false => En este caso no saldría el menú contextual.
+   .- Un array donde cada elemento es un hash que define una nueva opción del menú.
+      Las claves de dicho hash son las siguientes:
+      .- label: Es el título de la opción. Se hace traducción (nt) automática.
+      .- icono: Nombre de un icono de "material design" (opcional)
+      .- metodo: Symbol (o string) haciendo referencia al método al que se
+         llamará cuando se pulse sobre la opción. Tiene que estar definido en el
+         controlador. Dentro del método sabremos el campo que lo ha invocado
+         a través de params[:cmp].
+      .- dis_ro: true/false Indica si la opción estará deshabilitada cuando el
+         mantenimiento esté en modo consulta (ro) o el campo esté deshabiltado.
+         Por defecto vale false (opción siempre habilitada).
+.- Nueva variable en modelos (@auto_comp_menu) para definir opciones de menú
+   que se añadirán automáticamente al menú contextual de todos los campos
+   references relativos a ese modelo que aprezcan en cualquier controlador. 
+   La variable es un array idéntico al del punto anterior.
+.- Posibilidad de definir un module especial llamado "Controller" dentro de un
+   modelo que será incluido (include) automáticamente en todos los controladores
+   que tengan algún campo references que haga referencia a dicho modelo.
+   Significa que todos los métodos definidos dentro de dicho module estarán
+   disponibles en todos los controladores mencionados. En dichos métodos tenemos
+   acceso a todas las variables y métodos propios de los controladores:
+   @fact, @ajax, @dat, etc...
+   Para que un controlador se vea afectado por alguno de los dos puntos
+   anteriores tiene que ser sobrecargable.
+-------------------------------------------------------------------------------
 .- Posibilidad de eliminar opciones de menú poniendo como url un "_"
 .- Añadida documentación en osp_controller.rb
 -------------------------------------------------------------------------------

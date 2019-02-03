@@ -972,8 +972,7 @@ function autoCompIrAFicha() {
   if (dbid == undefined || dbid == '') return;
   var go = inp.attr("go");
   if (go == undefined) {
-    //window.open('/' + inp.attr("controller") + '/' + dbid + '/edit', '_blank', '');
-    window.open('/' + inp.attr("controller") + '?hidegrid=1&id_edit=' + dbid, '_blank', '');
+    window.open('/' + inp.attr("controller") + '?hidegrid=1&id_edit=' + dbid + (typeof(eid) != "undefined" && eid != "" ? "&eid=" + eid : "") + (typeof(jid) != "undefined" && jid != "" ? "&jid=" + jid : ""), '_blank', '');
   } else
     callFonServer(go);
 }
@@ -982,8 +981,8 @@ function autoCompNuevaFicha() {
   var inp = $("#_auto_comp_button_").parent().find("input");
   var nw = inp.attr("new");
   if (nw == undefined) {
-    //window.open('/' + inp.attr("controller") + '/new', '_blank', '');
-    window.open('/' + inp.attr("controller") + '?hidegrid=1&id_edit=-1', '_blank', '');
+    //window.open('/' + inp.attr("controller") + '?hidegrid=1&id_edit=-1', '_blank', '');
+    window.open('/' + inp.attr("controller") + '?hidegrid=1&id_edit=-1' + (typeof(eid) != "undefined" && eid != "" ? "&eid=" + eid : "") + (typeof(jid) != "undefined" && jid != "" ? "&jid=" + jid : ""), '_blank', '');
   } else
     callFonServer(nw);
 }
@@ -1375,18 +1374,23 @@ $(window).load(function() {
       '<i class="material-icons">more_vert</i>'+
       '</button>'
     );
-    if ($("#_auto_comp_menu_").length == 0)
-      $('body').append(
-        '<div id="_auto_comp_menu_" class="nim-context-menu">'+
-        '<ul class="nim-context-menu-ul">'+
-        '<li class="nim-context-menu-li" onClick="autoCompIrAFicha()">Ir a...</li>'+
-        (nimRO ? '' : '<li class="nim-context-menu-li nim-context-menu-ed" onclick="autoCompBuscar()">Buscar</li>')+
-        '<li class="nim-context-menu-li nim-context-menu-ed" onClick="autoCompNuevaFicha()">Nueva alta</li>'+
-        '</ul>'+
-        '</div>'
-      );
 
-    $(".nim-context-menu-ed").css("display", $(this).attr("readonly") == "readonly" ? "none" : "block");
+    $("#_auto_comp_menu_").remove();
+    
+    var rw = !(nimRO || $(this).attr("readonly") == "readonly");
+    var htm = '<div id="_auto_comp_menu_" class="nim-context-menu">'+
+      '<ul class="nim-context-menu-ul">'+
+      '<li class="nim-context-menu-li" onClick="autoCompIrAFicha()"><i class="material-icons nim-context-menu-icon">exit_to_app</i>Ir a...</li>';
+      if (rw) htm += '<li class="nim-context-menu-li" onclick="autoCompBuscar()"><i class="material-icons nim-context-menu-icon">search</i>Buscar</li>';
+      htm += '<li class="nim-context-menu-li" onClick="autoCompNuevaFicha()"><i class="material-icons nim-context-menu-icon">add</i>Nueva alta</li>';
+    if ($(this).data("menu")) {
+      for (const m of $(this).data("menu")) {
+        if (rw || !m.dis_ro) htm += `<li class="nim-context-menu-li" onClick="callFonServer('${m.metodo}', {cmp: '${$(this).attr("id")}'})"><i class="material-icons nim-context-menu-icon">${m.icono}</i>${m.label}</li>`;
+      }
+    }
+    htm += '</ul></div>';
+
+    $('body').append(htm);
 
     $('#_auto_comp_button_').on('click', function(e){
       e.stopPropagation();

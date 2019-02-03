@@ -70,7 +70,7 @@ class Usuario < ActiveRecord::Base
     # Mezclar el menú principal de la gestión
     add_menu(hmenu, 'menu.yml') if File.exist?('menu.yml')
 
-    # Eliminar recursivamente todas las opciones que tengan como valor (url) un "-" que es el
+    # Eliminar recursivamente todas las opciones que tengan como valor (url) un "_" que es el
     # convenio para eliminar opciones (fundamentalmente sobrecargándolas desde el menú principal)
     del_opts_menu(hmenu)
 

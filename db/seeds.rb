@@ -281,24 +281,26 @@ unless Nimbus::Config[:excluir_paises]
 
   paises_cee = %w(DE HU AT IE BE IT BG LV CY LT HR LU DK MT SK NL SI PL ES PT EE GB FI CZ FR RO GR SE)
 
-  paises.each {|p|
-    cod = p[1]
-    fp = Pais.find_by codigo: cod
-    fp = Pais.new unless fp
+  Pais.transaction {
+    paises.each {|p|
+      cod = p[1]
+      fp = Pais.find_by codigo: cod
+      fp = Pais.new unless fp
 
-    fp.codigo = cod
-    fp.nombre = p[0] if fp.nombre.nil? || fp.nombre.empty?
-    fp.codigo_iso3 = p[2]
-    fp.codigo_num = p[3]
-    if cod == 'ES'
-      fp.tipo = 'N'
-    elsif paises_cee.include?(cod)
-      fp.tipo = 'C'
-    else
-      fp.tipo = 'R'
-    end
-    fp.user_id = 1
+      fp.codigo = cod
+      fp.nombre = p[0] if fp.nombre.nil? || fp.nombre.empty?
+      fp.codigo_iso3 = p[2]
+      fp.codigo_num = p[3]
+      if cod == 'ES'
+        fp.tipo = 'N'
+      elsif paises_cee.include?(cod)
+        fp.tipo = 'C'
+      else
+        fp.tipo = 'R'
+      end
+      fp.user_id = 1
 
-    fp.save
+      fp.save
+    }
   }
 end
