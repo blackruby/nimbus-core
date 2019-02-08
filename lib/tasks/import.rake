@@ -48,7 +48,7 @@ namespace :nimbus do
       puts "  en la carpeta #{path_i}"
       puts '  El nombre de cada fichero tiene que coincidir con el modelo al que haga'
       puts '  referencia en minúsculas, y si pertenece a un módulo tiene que tener el'
-      puts '  nombre del módulo como prefijo más un underscore. ejs.:'
+      puts '  nombre del módulo como prefijo, más un underscore. ejs.:'
       puts '  pais.csv conta_cuenta.csv'
       puts '  La primera línea de cada fichero debe de contener los nombres de los campos'
       puts '  que se incluyen en cada fila del fichero. Si un campo es de tipo "id" se'
