@@ -1,7 +1,10 @@
+-------------------------------------------------------------------------------
+.- Nuevas opciones en rake nimbus:import
+-------------------------------------------------------------------------------
 .- Encerrado el seed de países en una transacción.
 .- Mejorado el "Nueva alta" en campos references para que tenga en cuenta la
    empresa/ejercicio del mantenimiento en curso y no el de la cookie.
-.- Mejorado el "ir a..." en campos references para que tenga en cuenta la
+.- Mejorado el "Ir a..." en campos references para que tenga en cuenta la
    empresa/ejercicio del mantenimiento en curso y no el de la cookie.
 .- Añadidos iconos a las opciones del menú contextual de campos references.
 .- Posibilidad de añadir opciones propias al menú contextual de los campos
@@ -21,7 +24,7 @@
          Por defecto vale false (opción siempre habilitada).
 .- Nueva variable en modelos (@auto_comp_menu) para definir opciones de menú
    que se añadirán automáticamente al menú contextual de todos los campos
-   references relativos a ese modelo que aprezcan en cualquier controlador. 
+   references relativos a ese modelo que aparezcan en cualquier controlador. 
    La variable es un array idéntico al del punto anterior.
 .- Posibilidad de definir un module especial llamado "Controller" dentro de un
    modelo que será incluido (include) automáticamente en todos los controladores
