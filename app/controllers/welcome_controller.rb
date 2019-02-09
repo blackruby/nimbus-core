@@ -206,8 +206,7 @@ class WelcomeController < ApplicationController
 
     @menu = ''
 
-    #hmenu = self.class.load_menu
-    hmenu = Usuario.load_menu
+    hmenu = Usuario.load_menu false, @usu
 
     if @usu.admin
       gen_menu(hmenu)

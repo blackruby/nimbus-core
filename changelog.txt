@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Usado contexto (y en particular la variable @usu) en los ERB de menús.
+-------------------------------------------------------------------------------
 .- Nuevas opciones en rake nimbus:import
 -------------------------------------------------------------------------------
 .- Encerrado el seed de países en una transacción.

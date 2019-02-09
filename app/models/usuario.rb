@@ -35,7 +35,7 @@ class Usuario < ActiveRecord::Base
   end
 
   def self.add_menu(hm, menu)
-    hm.deep_merge!(YAML.load(ERB.new(File.read(menu)).result))
+    hm.deep_merge!(YAML.load(ERB.new(File.read(menu)).result(binding)))
   end
 
   def self.del_opts_menu(menu)
@@ -49,7 +49,8 @@ class Usuario < ActiveRecord::Base
     }
   end
 
-  def self.load_menu(perm = false)
+  def self.load_menu(perm = false, usu = nil)
+    @usu = usu
     hmenu = {}
     if perm
       hmenu.deep_merge!(Perfil.permisos_especiales).deep_merge!({'_opciones_de_menu_' => nil})
