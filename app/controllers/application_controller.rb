@@ -652,7 +652,9 @@ class ApplicationController < ActionController::Base
 
   # Método para invocar al explorador de documentos asociados (oficina sin papeles: osp)
   def osp
-    if Nimbus::Config[:osp] && @fact && @fact.id
+    eid = @dat[:eid] || get_empeje[0]
+    prm_osp = @usu.pref.dig(:permisos, :ctr, '_osp_', eid.to_i)
+    if Nimbus::Config[:osp] && prm_osp && @fact && @fact.id
       cms = class_modelo.to_s
       flash[:tit] = "#{nt(cms)}: #{forma_campo_id(cms, @fact.id, :osp)}"
       if @fact.respond_to?(:osp_ruta)
@@ -660,7 +662,14 @@ class ApplicationController < ActionController::Base
       else
         flash[:ruta] = "data/#{cms}/#{@fact.id}/osp"
       end
-      flash[:prm] = @dat[:prm]
+      #flash[:prm] = @dat[:prm]
+      if @dat[:prm] == 'c' || prm_osp == 'c'
+        flash[:prm] = 'c'
+      elsif @dat[:prm] == 'b' || prm_osp == 'b'
+        flash[:prm] = 'b'
+      else
+        flash[:prm] = 'p'
+      end
 
       FileUtils.mkpath(flash[:ruta])
 
@@ -839,10 +848,12 @@ class ApplicationController < ActionController::Base
       #prm = 'p'
       prm = params[:lock] ? 'c' : 'p'
       prm_hist = 'p'
+      prm_osp = 'p'
     else
       prm = @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][eid.to_i]
       prm = 'c' if prm && params[:lock]
       prm_hist = @usu.pref.dig(:permisos, :ctr, '_acc_hist_', eid.to_i)
+      prm_osp = @usu.pref.dig(:permisos, :ctr, '_osp_', eid.to_i)
     end
 
     case prm
@@ -908,6 +919,7 @@ class ApplicationController < ActionController::Base
     @view[:jid] = jid
     @view[:id_edit] = params[:id_edit] ? params[:id_edit] : 0
     @view[:prm_hist] = prm_hist
+    @view[:prm_osp] = prm_osp
     @view[:model] = clm.superclass.to_s
     @view[:menu_r] = clm.menu_r
     # Adecuar menu_l añadiendo a las url la empresa y el ejercicio

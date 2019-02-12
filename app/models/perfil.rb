@@ -15,6 +15,7 @@ class Perfil < ActiveRecord::Base
   # Esta variable de clase se puede ampliar (<<) o modificar en módulos o gestiones.
 
   @@permisos_especiales = {'_permisos_especiales_' => nil, '_acc_hist_' => '_acc_hist_'}
+  @@permisos_especiales['_osp_'] = '_osp_' if Nimbus::Config[:osp]
 
   def self.permisos_especiales
     @@permisos_especiales

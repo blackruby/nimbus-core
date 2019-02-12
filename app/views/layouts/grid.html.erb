@@ -41,7 +41,7 @@
       <button title="Eliminar" class="cl-borrar nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored" disabled onclick="mantBorrarGrid()">
         <i class="material-icons">delete</i>
       </button>
-      <% if Nimbus::Config[:osp] %>
+      <% if Nimbus::Config[:osp] && @view[:prm_osp] %>
         &nbsp; &nbsp; &nbsp; &nbsp;
         <button title="Documentos asociados (Alt-d)" id="b-osp" disabled onclick="ospGrid()" class="cl-osp nim-hbut mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
           <i class="material-icons">attach_file</i>
