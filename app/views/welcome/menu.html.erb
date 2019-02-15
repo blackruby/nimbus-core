@@ -19,9 +19,12 @@
       <img <%= nim_path_image('Usuario', @usu.id, :foto).html_safe %>" height="40" border="0" style="margin-left: 8px">
       <%= @usu.nombre %>
     </a>
-    <% if Nimbus::Config[:noticias] %>
-    <div id="d-nim-noticias"><span id="nim-noticias" title="notificaciones" class="material-icons mdl-badge mdl-badge--overlap">notifications</span></div>
-    <% end %>
+    <div class="d-icon-cab">
+      <% if Nimbus::Config[:noticias] %>
+      <span id="nim-noticias" title="Notificaciones" class="material-icons mdl-badge mdl-badge--overlap icon-cab">notifications</span>
+      <% end %>
+      <span id="nim-logout" title="Cerrar sesión" class="material-icons icon-cab cerrar-sesion">directions_run</span>
+    </div>
   </div>
 </div>
 
@@ -29,18 +32,27 @@
   <ul>
     <%= @menu.html_safe %>
 
+<!--
     <li class="menu-ref"><a href="/usuarios/<%= session[:uid] %>/edit"><%= nt('preferencias') %></a></li>
-    <li class="nim-wide">
-      <span>Activar panel</span>
-      <input id="actPan" type="checkbox" class="Toggle"/>
-    </li>
-    <li class="nim-wide">
-      <span>Ampliar horizontal</span>
-      <input id="ampHor" type="checkbox" class="Toggle"/>
-    </li>
-    <li id="bAddToPanel" class="nim-wide"><a href="#">Añadir a panel</a></li>
-    <li id="bSave" class="nim-wide"><a href="#">Guardar panel</a></li>
-    <li id="bCerrar"><a href="#">Cerrar sesión</a></li>
+-->
+    <hr>
+    <li class="nim-wide"><span>Panel</span><ul>
+      <li class="nim-wide">
+        <span><label for="actPan">Activar panel</label></span>
+        <input id="actPan" type="checkbox" class="Toggle"/>
+      </li>
+      <li class="nim-wide">
+        <span><label for="addFav">Añadir como favorito</label></span>
+        <input id="addFav" type="checkbox" class="Toggle"/>
+      </li>
+      <li class="nim-wide">
+        <span><label for="ampHor">Ampliar horizontal</label></span>
+        <input id="ampHor" type="checkbox" class="Toggle"/>
+      </li>
+      <li id="bAddToPanel" class="nim-wide"><a href="#">Añadir a panel</a></li>
+      <li id="bSave" class="nim-wide"><a href="#">Guardar panel</a></li>
+    </ul></li>
+    <li class="cerrar-sesion"><a href="#">Cerrar sesión</a></li>
   </ul>
 </nav>
 

@@ -1,4 +1,12 @@
 -------------------------------------------------------------------------------
+.- Mejoras en panel de control.
+.- Posibilidad de añadir favoritos.
+.- Nuevo icono en cabecera para cerrar sesión.
+.- Agrupamiento de las opciones de menú relativas al manejo del panel.
+.- Quitada opción de menú "Preferencias" (ahora sólo es accesible desde el
+   nombre o la foto del usuario en la cabecera del panel de control).
+.- Añadida imagen de fondo a la pantalla inicial de login.
+-------------------------------------------------------------------------------
 .- Permisos para OSP.
 -------------------------------------------------------------------------------
 .- Usado contexto (y en particular la variable @usu) en los ERB de menús.

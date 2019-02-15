@@ -23,16 +23,22 @@ body {
   margin-left: 15px;
 }
 
-#d-nim-noticias {
+.d-icon-cab {
   cursor: pointer;
   margin-left: 15px;
+  margin-right: 25px;
+  margin-top: 30px;
   display: inline-block;
   position: relative;
 }
 
-#nim-noticias {
+.icon-cab {
   position: absolute;
   top: -18px;
+}
+
+#nim-logout {
+  left: 40px;
 }
 
 @media screen and (max-width: 670px) {
@@ -43,6 +49,9 @@ body {
   .div-head {
     display: block;
     margin-top: 60px;
+  }
+  #div-body {
+    display: none;
   }
 }
 
@@ -105,4 +114,38 @@ body {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+.base-fav {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: absolute;
+}
+
+.div-fav {
+  margin: 1px;
+  background-color: #673AB7;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  overflow: hidden;
+  position: relative;
+  border-radius: 18px;
+}
+
+.url-fav {
+  color: white;
+  margin-left: 15px;
+  margin-right: 40px;
+  vertical-align: middle;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.del-fav {
+  color: #d3d3d3;
+  cursor: pointer;
+  position: absolute;
+  right: 5px;
+  top: 5px;
 }
