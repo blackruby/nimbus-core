@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Nuevo método en la clase String: expande_macros.
+-------------------------------------------------------------------------------
 .- Mejoras en panel de control.
 .- Posibilidad de añadir favoritos.
 .- Nuevo icono en cabecera para cerrar sesión.
