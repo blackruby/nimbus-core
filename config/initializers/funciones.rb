@@ -250,12 +250,12 @@ class String
   # Este método busca todos los macros (expresiones que empiezan con "@"
   # y a continuación tienen un conjunto de letras, números o "_"), y por
   # cada uno de ellos llama al bloque que hay que pasarle, para que éste
-  # lo evalúe y devuelva el valor por el que será sustituído. Retorna otra
-  # cadena en la que todos los macros han sido sustituídos. Admite un 
+  # lo evalúe y devuelva el valor por el que será sustituido. Retorna otra
+  # cadena en la que todos los macros han sido sustituidos. Admite un 
   # argumento (:eval) que significa que, además de sustituir los macros,
   # la expresión final resultante será evaluada numéricamente. En este 
   # caso, el método retornará el valor numérico resultante de evaluar la
-  # expesión. Si la expresión no fuera evaluable, por tener errores o
+  # expresión. Si la expresión no fuera evaluable, por tener errores o
   # caracteres diferentes a los estrictamente numéricos (números, y 
   # operaciones matemáticas), retornará el Bigdecimal especial NaN
   # (Not A Number).
