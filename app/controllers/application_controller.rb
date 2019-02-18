@@ -652,8 +652,13 @@ class ApplicationController < ActionController::Base
 
   # Método para invocar al explorador de documentos asociados (oficina sin papeles: osp)
   def osp
-    eid = @dat[:eid] || get_empeje[0]
-    prm_osp = @usu.pref.dig(:permisos, :ctr, '_osp_', eid.to_i)
+    if @usu.admin
+      prm_osp = 'p'
+    else
+      eid = @dat[:eid] || get_empeje[0]
+      prm_osp = @usu.pref.dig(:permisos, :ctr, '_osp_', eid.to_i)
+    end
+
     if Nimbus::Config[:osp] && prm_osp && @fact && @fact.id
       cms = class_modelo.to_s
       flash[:tit] = "#{nt(cms)}: #{forma_campo_id(cms, @fact.id, :osp)}"
