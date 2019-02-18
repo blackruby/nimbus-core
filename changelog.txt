@@ -1,5 +1,11 @@
 -------------------------------------------------------------------------------
 .- Nuevo icono de cerrar sesión.
+.- Mostrar el botón de eliminar favorito en el panel de control sólo cuando
+   el panel está activo.
+-------------------------------------------------------------------------------
+.- Corregido bug al acceder a OSP siendo admin.
+-------------------------------------------------------------------------------
+.- Nuevo icono de cerrar sesión.
 -------------------------------------------------------------------------------
 .- Nuevo método en la clase String: expande_macros.
 -------------------------------------------------------------------------------

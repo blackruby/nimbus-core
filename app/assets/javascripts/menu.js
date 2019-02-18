@@ -127,10 +127,11 @@ function creaWin(url, prop, lbl) {
     ajustaWin();
   } else {
     // Favoritos
+    var chk = $("#actPan").is(":checked");
     var htm =
       '<div id="rt' + nPan + '" class="div-fav">' +
       '<a href=' + url + ' target="_blank" class="url-fav">' + prop.lbl + '</a>' +
-      '<i class="material-icons del-fav" title="Eliminar favorito" onclick="$(\'#' + did + '\').remove()">clear</i>' +
+      '<i class="material-icons del-fav" title="Eliminar favorito" style="display: ' + (chk ? "block" : "none") + '" onclick="$(\'#' + did + '\').remove()">clear</i>' +
       '</div>';
 
     $("<div class='base-fav elemento-panel' id='" + did + "'>").
@@ -274,6 +275,13 @@ $(window).load(function () {
   $("#bAddToPanel").click(function (e) {
     var url = prompt('URL:');
     if (url != null) creaWin(url);
+  });
+
+  $("#actPan").click(function (e) {
+    if ($("#actPan").is(":checked"))
+      $(".del-fav").css("display", "block");
+    else
+      $(".del-fav").css("display", "none");
   });
 
   $("#bSave").click(function (e) {
