@@ -1577,7 +1577,7 @@ module Historico
 
   module ClassMethods
     def ini_datos
-      belongs_to :created_by, :class_name => 'Usuario'
+      belongs_to :created_by, :class_name => '::Usuario'
 
       if self.superclass == ActiveRecord::Base
         # Es el caso antiguo (se mantiene por compatibilidad)

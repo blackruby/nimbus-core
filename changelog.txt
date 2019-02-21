@@ -1,4 +1,8 @@
 -------------------------------------------------------------------------------
+.- Corregido bug por el que los históricos no accedían bien a la clase Usuario
+   si existía un modelo (Usuario) con el mismo nombre en el módulo al que
+   pertenecía.
+-------------------------------------------------------------------------------
 .- Nuevo icono de cerrar sesión.
 .- Mostrar el botón de eliminar favorito en el panel de control sólo cuando
    el panel está activo.
