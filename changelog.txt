@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Mejorado el comportamiento del método "grabar" con el argumento "ajx"
+-------------------------------------------------------------------------------
 .- Corregido bug por el que los históricos no accedían bien a la clase Usuario
    si existía un modelo (Usuario) con el mismo nombre en el módulo al que
    pertenecía.

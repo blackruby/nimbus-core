@@ -2693,20 +2693,24 @@ class ApplicationController < ActionController::Base
 
   #### GRABAR
 
-  def grabar(ajx=true)
+  def grabar(ajx = true)
     if @dat[:prm] == 'c'
       #render nothing: true
       head :no_content
       return
     end
 
+    if ajx
+      get_fact_from_marshal
+      @g = @dat[:persistencia]
+      fact_clone
+      ini_ajax
+    end
+
     clm = class_mant
-    get_fact_from_marshal
-    @g = @dat[:persistencia]
-    fact_clone
     err = ''
-    ini_ajax
     last_c = nil
+
     begin
       cmps_img = [] # Crear un vector con los campos de imagen modificados
       @fact.campos.each {|cs, v|
@@ -2827,12 +2831,11 @@ class ApplicationController < ActionController::Base
       pinta_exception(e, 'Error interno')
     end
 
-    sincro_ficha :ajax => true
-
-    @v.save
-
-    #render :js => @ajax if ajx
-    render_ajax if ajx
+    if ajx
+      sincro_ficha :ajax => true
+      @v.save
+      render_ajax
+    end
   end
 
   # Método para hacer una grabación de @fact manual y con las acciones oportunas
