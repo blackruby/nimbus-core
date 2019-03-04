@@ -44,6 +44,17 @@ body {
   */
 }
 
+.nim-popup {
+  position: absolute;
+  cursor: none;
+  background-color: black;
+  color: white;
+  padding: 20px;
+  border-radius: 20px;
+  display: none;
+  z-index: 1000;
+}
+
 .negrita {
   color: blue;
 }

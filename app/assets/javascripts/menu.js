@@ -30,19 +30,12 @@ function myZoom(fr, factor) {
 }
 
 function fonStartDrag(e, ui) {
-  //$(ui.helper).children('iframe').css("display", "none");
   $("iframe").css("display", "none");
-  ajustaZ(ui.helper);
 }
 
 function fonStopDrag(e, ui) {
-  //$(ui.helper).children('iframe').css("display", "block");
   $("iframe").css("display", "block");
   ajustaWin();
-}
-
-function fonDrag(e, ui) {
-  //$("#div-body").css("width", "2000px");
 }
 
 var nPan = 0;
@@ -84,8 +77,8 @@ function calculaPosWin() {
 function creaWin(url, prop, lbl) {
   if (prop == undefined) {
     var p = calculaPosWin();
-    if (lbl == undefined)
-      prop = {top: p.top, left: p.left, width: propWin.w, height: propWin.h, zi: nPan, vtit: 'block', zoom: 1};
+    if (!url || lbl == undefined)
+      prop = {top: p.top, left: p.left, width: propWin.w, height: propWin.h, zi: nPan, vtit: 'block', zoom: 1, lbl: lbl};
     else
       prop = {top: p.top, left: p.left, zi: nPan, lbl: lbl};
   }
@@ -97,19 +90,28 @@ function creaWin(url, prop, lbl) {
   if (prop.lbl == undefined) {
     // Ventanas
     var htm =
-      '<div id="rt' + nPan + '" class="res-tit"></div>' +
+      //'<div id="rt' + nPan + '" class="res-tit"></div>' +
+      '<div class="res-tit res-tit-1"></div>' +
+      '<div class="res-tit res-tit-2"></div>' +
       '<div id="' + tid + '" class="div-titulo ui-widget-header" style="display:' + prop.vtit + '">' +
+      /**
       '<button id="bzm' + nPan + '" onclick="myZoom($(\'#' + fid + '\'), -1)">Zoom -</button>' +
       '<button id="bzp' + nPan + '" onclick="myZoom($(\'#' + fid + '\'), +1)">Zoom +</button>' +
       '<button id="brl' + nPan + '" onclick="$(\'#' + fid + '\').attr(\'src\', function(i,v){return v;})">Recargar contenido</button>' +
       '<button id="bht' + nPan + '" onclick="$(\'#' + tid + '\').css(\'display\', \'none\')">Ocultar título</button>' +
       '<button id="brm' + nPan + '" onclick="$(\'#' + did + '\').remove()">Cerrar</button>' +
+      **/
+      '<i class="material-icons win-icons" title="Zoom -" onclick="myZoom($(\'#' + fid + '\'), -1)">zoom_out</i>' +
+      '<i class="material-icons win-icons" title="Zoom +" onclick="myZoom($(\'#' + fid + '\'), +1)">zoom_in</i>' +
+      '<i class="material-icons win-icons" title="Recargar contenido" onclick="$(\'#' + fid + '\').attr(\'src\', function(i,v){return v;})">refresh</i>' +
+      '<i class="material-icons win-icons" title="Ocultar título" onclick="$(\'#' + tid + '\').css(\'display\', \'none\')">expand_less</i>' +
+      '<i class="material-icons win-icons" title="Cerrar ventana" onclick="$(\'#' + did + '\').remove()">close</i>' +
       '</div>' +
       '<iframe id="' + fid + '" class="ficha" src=' + url + '></iframe>';
 
     $("<div class='base elemento-panel' id='" + did + "'>").
       appendTo($("#div-body")).
-      draggable({snap: true, handle: "div", containment: "parent", scroll: true, start: fonStartDrag, stop: fonStopDrag, drag: fonDrag}).
+      draggable({snap: true, handle: "div", containment: "parent", scroll: true, start: fonStartDrag, stop: fonStopDrag}).
       resizable({containment: "parent", handles: "n, e, s, w, se", autoHide: true, start: fonStartDrag, stop: fonStopDrag}).
       css('left', prop.left).
       css('top', prop.top).
@@ -118,84 +120,135 @@ function creaWin(url, prop, lbl) {
       css('z-index', prop.zi).
       append(htm);
 
+    /*
     $("#bzm" + nPan).button({icons: {primary: "ui-icon-zoomout"}, text: false});
     $("#bzp" + nPan).button({icons: {primary: "ui-icon-zoomin"}, text: false});
     $("#brl" + nPan).button({icons: {primary: "ui-icon-refresh"}, text: false});
     $("#bht" + nPan).button({icons: {primary: "ui-icon-arrow-n"}, text: false});
     $("#brm" + nPan).button({icons: {primary: "ui-icon-closethick"}, text: false});
-
-    ajustaWin();
+    */
   } else {
-    // Favoritos
-    var chk = $("#actPan").is(":checked");
-    var htm =
-      '<div id="rt' + nPan + '" class="div-fav">' +
-      '<a href=' + url + ' target="_blank" class="url-fav">' + prop.lbl + '</a>' +
-      '<i class="material-icons del-fav" title="Eliminar favorito" style="display: ' + (chk ? "block" : "none") + '" onclick="$(\'#' + did + '\').remove()">clear</i>' +
-      '</div>';
+    if (url) {
+      // Favoritos
+      var chk = $("#actPan").is(":checked");
+      var htm =
+        '<div id="rt' + nPan + '" class="div-fav">' +
+        '<a href=' + url + ' target="_blank" class="url-fav">' + prop.lbl + '</a>' +
+        '<div class=div-del-fav>' +
+        '<i class="material-icons del-fav" title="Eliminar favorito" onclick="$(\'#' + did + '\').remove()">clear</i>' +
+        '</div></div>';
 
-    $("<div class='base-fav elemento-panel' id='" + did + "'>").
-      appendTo($("#div-body")).
-      draggable({snap: true, handle: "div", containment: "parent", scroll: true, start: fonStartDrag, stop: fonStopDrag, drag: fonDrag}).
-      resizable({containment: "parent", handles: "e"}).
-      css('left', prop.left).
-      css('top', prop.top).
-      css('z-index', prop.zi).
-      append(htm);
+      $("<div class='base-fav elemento-panel' id='" + did + "'>").
+        appendTo(prop.cont ? prop.cont : $("#div-body")).
+        draggable({snap: true, handle: "div", containment: $("#div-body"), scroll: true,
+          start: function(e, ui) {
+            dragActivo = true;
+          },
+          stop: ajustaWin
+        }).
+        mousedown(function() {
+          dragActivo = false;
+          var par = $(this).parent();
+          if (par.hasClass("contenedor")){
+            dragParent = par;
+            var di = $(this);
+            var top = di.offset().top;
+            var left = di.offset().left;
+            di.detach().css("top", top).css("left", left).appendTo($("#div-body"));
+          } else {
+            dragParent = null;
+          }
+        }).
+        mouseup(function() {
+          if (!dragActivo && dragParent) {
+            var di = $(this);
+            if ($("i:hover").length != 0) {
+              // Estamos sobre el icono de cerrar favorito
+              di.remove();
+              return;
+            }
+            if ($("a:hover").length != 0) window.open(di.find("a").attr("href"), "_blank");
+            var dp = dragParent.parent();
+            var top = di.position().top - dragParent.position().top - dp.position().top + dragParent.scrollTop();
+            var left = di.position().left - dragParent.position().left - dp.position().left + dragParent.scrollLeft();
+            di.detach().css("top", top).css("left", left).appendTo(dragParent);
+          }
+        }).
+        resizable({containment: "parent", handles: "e", start: function() {$(this).find("i").css("display", "none")}, stop: function() {$(this).find("i").css("display", "inline")}}).
+        css('left', prop.left).
+        css('top', prop.top).
+        css('z-index', prop.zi).
+        append(htm);
 
-    var div = $("#" + did);
-    if (prop.width == undefined) {
-      prop.minw = div.width();
+      var div = $("#" + did);
+      if (prop.width == undefined) {
+        prop.minw = div.width();
+      } else {
+        div.css("width", prop.width)
+      }
+      div.resizable("option", "minWidth", prop.minw);
     } else {
-      div.css("width", prop.width)
+      // Contenedores
+      var htm = 
+        '<p class="tit-contenedor">' + prop.lbl + '</p>' +
+        '<div class="bot-contenedor">' +
+        '<i class="material-icons edit-tit-cont" title="Editar título">edit</i>' +
+        '<i class="material-icons" title="Eliminar contenedor" onclick="$(\'#' + did + '\').remove()">clear</i>' +
+        '</div>';
+
+      $("<div class='base-cont elemento-panel' id='" + did + "'>").
+        appendTo($("#div-body")).
+        draggable({snap: true, handle: "p", containment: "parent", scroll: true,
+          start: function(e, ui) {
+          },
+          stop: ajustaWin
+        }).
+        resizable({containment: "parent", handles: "e, s, se"}).
+        css('left', prop.left).
+        css('top', prop.top).
+        css('width', prop.width).
+        css('height', prop.height).
+        css('z-index', prop.zi).
+        append(htm).
+        append(
+          $("<div class='contenedor'>").
+          droppable({
+            accept: ".base-fav",
+            drop: function(e, ui) {
+              var di = $(this);
+              var dp = di.parent();
+              var top = ui.position.top - di.position().top - dp.position().top + di.scrollTop();
+              var left = ui.position.left - di.position().left - dp.position().left + di.scrollLeft();
+              ui.draggable.detach().css("top", top).css("left", left).appendTo($(this));
+            }
+          })
+        );
     }
-    div.resizable("option", "minWidth", prop.minw);
   } 
 
   nPan += 1;
+  ajustaWin();
 }
 
 function ajustaWin() {
-  wmax = hmax = 0;
-  $(".base").each(function () {
-    wm = parseInt($(this).css("left")) + parseInt($(this).css("width"));
+  var el, wm, hm, wmax = 0, hmax = 0;
+  $(".elemento-panel").each(function () {
+    el = $(this);
+    //wm = parseInt($(this).css("left")) + parseInt($(this).css("width"));
+    wm = el.position().left + el.width();
     if (wm > wmax) wmax = wm;
-    hm = parseInt($(this).css("top")) + parseInt($(this).css("height"));
+    //hm = parseInt($(this).css("top")) + parseInt($(this).css("height"));
+    hm = el.position().top + el.height();
     if (hm > hmax) hmax = hm;
   });
 
-  for (i = 0; i < 2; i++) {
+  //for (i = 0; i < 2; i++) { // Por si la primera redimensión altera medidas y hay que volver a hacerla
     w = Math.max(wmax, $(window).width());
     h = Math.max(hmax, $(window).height());
 
-    $("#div-body").css("height", h + "px");
-    $("#div-body").css("width", w + "px");
-  }
+    $("#div-body").css("height", h + "px").css("width", w + "px");
+  //}
 }
-
-function ajustaZ(th) {
-  zmax = -1;
-  $(".elemento-panel").each(function () {
-    z = $(this).css("z-index");
-    if (z > zmax) {
-      zmax = z;
-      obj = $(this);
-    }
-  });
-
-  z = th.css("z-index");
-  obj.css("z-index", z);
-  th.css("z-index", zmax);
-}
-
-// Tratamiento de la selección de empresa
-
-/*
- var empresa_id = null;
- var empresa_nom = "";
- var ejercicio_id = null;
- var ejercicio_nom = "";
- */
 
 function session_out() {
   clearTimeout(tmo);
@@ -209,24 +262,6 @@ function well_auto_comp_error(e, ui) {
     session_out();
   }
 }
-
-/*
-function graba_emej() {
-  $.ajax({
-    url: '/usuarios/validar_cell',
-    type: 'POST',
-    //data: {nocallback: true, id: <%= @usu.id %>, empresa_def_id: empresa_id}
-    data: {nocallback: true, id: usu_id, empresa_def_id: empresa_id}
-  });
-
-  $.ajax({
-    url: '/usuarios/validar_cell',
-    type: 'POST',
-    //data: {nocallback: true, id: <%= @usu.id %>, ejercicio_def_id: ejercicio_id}
-    data: {nocallback: true, id: usu_id, ejercicio_def_id: ejercicio_id}
-  });
-}
-*/
 
 function set_cookie_emej() {
   //document.cookie = "<%= Nimbus::CookieEmEj %>=" + empresa_id + ":" + ejercicio_id + ";path=/";
@@ -246,6 +281,15 @@ var tmo;
 function noticias() {
   getNoticias();
   tmo = setTimeout("noticias()", 30000);
+}
+
+function prompTitulo(tit) {
+  var lbl = prompt('Título:', tit);
+  if (lbl) {
+    lbl = lbl.trim();
+    return(lbl == "" ? "&nbsp;" : lbl);
+  } else
+    return(tit && tit != "" ? tit : "&nbsp;");
 }
 
 $(window).load(function () {
@@ -272,43 +316,61 @@ $(window).load(function () {
   //$("#nim-menu").mmenu({classes: "mm-slide"});
   $("#nim-menu").mmenu({onClick: {close: false}, searchfield: true});
 
-  $("#bAddToPanel").click(function (e) {
+  $("#bAddToPanel, #add-url").click(function (e) {
     var url = prompt('URL:');
-    if (url != null) creaWin(url);
+    if (url && url.trim() != "") creaWin(url);
   });
 
-  $("#actPan").click(function (e) {
-    if ($("#actPan").is(":checked"))
-      $(".del-fav").css("display", "block");
-    else
-      $(".del-fav").css("display", "none");
+  $("#bAddContenedor, #add-cont").click(function (e) {
+    creaWin(null, undefined, prompTitulo());
   });
 
-  $("#bSave").click(function (e) {
+  $("#bSave, #save-panel").click(function (e) {
     e.preventDefault();
-    h = {win: []};
-    $(".elemento-panel").each(function () {
-      w = $(this);
-      id = w.attr("id").slice(1);
-      i = h.win.push({});
-      wh = h.win[i - 1];
+    var h = {win: []};
+    function add(w, fav) {
+      var wh = {};
       wh.zi = w.css("z-index");
       wh.top = w.css("top");
       wh.left = w.css("left");
       wh.width = w.css("width");
-      if (w.hasClass('base')) {
-        // Ventanas
-        wh.height = w.css("height");
-        wh.zoom = w.css("zoom");
-        wh.vtit = $("#t" + id).css("display");
-        wh.src = $("#f" + id).attr("src");
-      } else {
+      if (fav) {
         // Favoritos
         wh.minw = w.resizable("option", "minWidth");
         var a = w.find("a");
         wh.lbl = a.text();
         wh.src = a.attr("href");
       }
+      return(wh);
+    }
+    // Ventanas
+    $(".base").each(function () {
+      var w = $(this);
+      var wh = add(w);
+      wh.height = w.css("height");
+      wh.zoom = w.css("zoom");
+      wh.vtit = w.find(".div-titulo").css("display");
+      wh.src = w.find(".ficha").attr("src");
+      h.win.push(wh);
+    });
+
+    //Favoritos no pernecientes a ningún contenedor
+    $(".base-fav").not(".contenedor .base-fav").each(function () {
+      h.win.push(add($(this), true));
+    });
+
+    //Contenedores
+    $(".base-cont").each(function () {
+      var w = $(this);
+      var wh = add(w);
+      wh.height = w.css("height");
+      wh.lbl = w.find(".tit-contenedor").html();
+      wh.fav = [];
+      // Favoritos dentro del contenedor
+      w.find(".base-fav").each(function () {
+        wh.fav.push(add($(this), true));
+      });
+      h.win.push(wh);
     });
 
     $.ajax({
@@ -317,7 +379,7 @@ $(window).load(function () {
       data: {pref: "panel", data: JSON.stringify(h)}
     });
 
-    alert('Panel guardado');
+    nimPopup("Panel guardado");
   });
 
   $(".cerrar-sesion").click(function (e) {
@@ -349,12 +411,87 @@ $(window).load(function () {
     }
   });
 
-  $("#div-body").on("mouseenter", ".res-tit", function () {
-    id = $(this).attr("id").slice(2);
-    $("#t" + id).css("display", "block");
+  $("#act-desact-panel").click(function (e) {
+    if ($("#actPan").is(":checked")) {
+      $("#actPan").prop("checked", false);
+      nimPopup("Panel desactivado");
+    } else {
+      $("#actPan").prop("checked", true);
+      nimPopup("Panel activado");
+    }
   });
 
-  $("#div-body").on("click", ".elemento-panel", function () {ajustaZ($(this));});
+  $("#fav-win").click(function (e) {
+    if ($("#addFav").is(":checked")) {
+      $("#addFav").prop("checked", false);
+      nimPopup("Las opciones de menú se añadirán como ventanas");
+    } else {
+      $("#addFav").prop("checked", true);
+      nimPopup("Las opciones de menú se añadirán como favoritos");
+    }
+  });
+
+  $("#hor-ver").click(function (e) {
+    if ($("#ampHor").is(":checked")) {
+      $("#ampHor").prop("checked", false);
+      nimPopup("Los nuevos elementos se añadirán en vertical");
+    } else {
+      $("#ampHor").prop("checked", true);
+      nimPopup("Los nuevos elementos se añadirán en horizontal");
+    }
+  });
+
+  $("#div-body").on("mouseenter", ".res-tit", function () {
+    $(this).parent().find(".div-titulo").css("display", "block");
+  }).on("mousedown", ".elemento-panel", function () {
+    var z = parseInt($(this).css("z-index"));
+    var zmax = 0;
+    $(".elemento-panel").each(function() {
+      var el = $(this);
+      var zi = parseInt(el.css("z-index"));
+      if (zi > z) el.css("z-index", zi - 1);
+      if (zi > zmax) zmax = zi;
+    });
+    $(this).css("z-index", zmax);
+  }).on("click", ".edit-tit-cont", function () {
+    var el = $(this).parent().prev();
+    var tit = el.text();
+    el.html(prompTitulo(tit));
+  }).on("contextmenu", ".base-fav", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }).on("contextmenu", ".base-cont", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }).on("contextmenu", function (e) {
+    e.preventDefault();
+    if ($("#actPan").is(":checked")) {
+      $("#act-desact-panel i").text("open_in_new");
+      $("#act-desact-panel span").text("Desactivar panel");
+      $("#fav-win").css("display", "block");
+      if ($("#addFav").is(":checked")) {
+        $("#fav-win i").text("web");
+        $("#fav-win span").text("Añadir como ventana");
+      } else {
+        $("#fav-win i").text("favorite_border");
+        $("#fav-win span").text("Añadir como favorito");
+      }
+    } else {
+      $("#act-desact-panel i").text("input");
+      $("#act-desact-panel span").text("Activar panel");
+      $("#fav-win").css("display", "none");
+    }
+    if ($("#ampHor").is(":checked")) {
+      $("#hor-ver i").text("swap_vert");
+      $("#hor-ver span").text("Ampliar en vertical");
+    } else {
+      $("#hor-ver i").text("swap_horiz");
+      $("#hor-ver span").text("Ampliar en horizontal");
+    }
+
+    $("#context-menu").css("display", "block").position({my: "top", of: e});
+  });
+
 
   $("#empresa").blur(function () {
     $(this).val(empresa_nom);
@@ -417,8 +554,19 @@ $(window).load(function () {
 
   $(window).resize(ajustaWin);
 
-  for (var i in panel.win) {
-    creaWin(panel.win[i].src, panel.win[i]);
+  for (var w of panel.win) {
+    if (w.src) {
+      // Ventanas y favoritos fuera de contenedores
+      creaWin(w.src, w);
+    } else {
+      // Contenedores y sus favoritos
+      creaWin(undefined, w);
+      var con = $(".contenedor").last();
+      for (var f of w.fav) {
+        f.cont = con;
+        creaWin(f.src, f);
+      }
+    }
   }
 
   if (daysLeft) {

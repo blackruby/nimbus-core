@@ -49,14 +49,27 @@
         <span><label for="ampHor">Ampliar horizontal</label></span>
         <input id="ampHor" type="checkbox" class="Toggle"/>
       </li>
-      <li id="bAddToPanel" class="nim-wide"><a href="#">Añadir a panel</a></li>
+      <hr>
+      <li id="bAddToPanel" class="nim-wide"><a href="#">Añadir URL</a></li>
+      <li id="bAddContenedor" class="nim-wide"><a href="#">Añadir contenedor</a></li>
+      <hr>
       <li id="bSave" class="nim-wide"><a href="#">Guardar panel</a></li>
     </ul></li>
     <li class="cerrar-sesion"><a href="#">Cerrar sesión</a></li>
   </ul>
 </nav>
 
-<div id="div-body">
+<div id="div-body"></div>
+
+<div id="context-menu" class="nim-context-menu">
+  <ul class="nim-context-menu-ul">
+    <li id="act-desact-panel" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon"></i><span></span></li>
+    <li id="fav-win" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon"></i><span></span></li>
+    <li id="hor-ver" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon"></i><span></span></li>
+    <li id="add-url" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon">link</i>Añadir URL</li>
+    <li id="add-cont" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon">folder_open</i>Añadir Contenedor</li>
+    <li id="save-panel" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon">save</i>Guardar panel</li>
+  </ul>
 </div>
 
 <script>

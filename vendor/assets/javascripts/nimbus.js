@@ -534,7 +534,6 @@ jQuery.fn.entryn = function (manti, decim, signo) {
 };
 
 // Función para conseguir el próximo elemento en la rueda de focos
-
 $.fn.focusNextInputField = function() {
   return this.each(function() {
       var fields = $(this).parents('form:eq(0),body').find('button,input,textarea,select');
@@ -545,6 +544,16 @@ $.fn.focusNextInputField = function() {
       return false;
       });
 };
+
+// Función para mostrar un PopUp con el texto pasado como argumento
+function nimPopup(texto) {
+  $(".nim-popup").remove();
+  $("body").append('<div class="nim-popup">' + texto + '</div>');
+  var np = $(".nim-popup");
+  np.contextmenu(function(e) {e.preventDefault();});
+  np.position({my: "bottom-5", of: window.event});
+  np.fadeIn(1400, function() {np.fadeOut(1400);});
+}
 
 // Funciones para el mant
 
@@ -1460,6 +1469,10 @@ $(window).load(function() {
         }
       }
     });
+  });
+
+  $(document).on("keydown", function (e) {
+    if (e.keyCode == 27) $(".nim-context-menu").css("display", "none");
   });
 
   $(window).unload(function() {

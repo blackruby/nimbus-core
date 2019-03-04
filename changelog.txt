@@ -1,4 +1,21 @@
 -------------------------------------------------------------------------------
+.- Cambio de los iconos de control de las ventanas del panel de control. Se han
+   adaptado a "material design" y se han alineado a la derecha. Cuando la barra
+   de control de la ventana está oculta, ésta se puede activar pasando el ratón
+   por el vértice superior izquierdo o derecho de la ventana.
+.- Para eliminar un favorito hay que pasar el ratón por la parte derecha de
+   éste y cuando aprezca el icono de cerrar, pulsar en él.
+.- Menú contextual en panel de control accesible con botón derecho en cualquier
+   zona libre del panel. Desde dicho menú tenemos acceso a todas las opciones
+   disponibles para controlar el panel.
+.- Nuevo elemento en panel de control: "contenedores" son como carpetas deonde
+   podemos introducir (arrastrándolos) los favoritos que tengamos en el panel.
+   Pasando el ratón por la esquina superior derecha del contenedor aparecen dos
+   botones, uno para editar el título de la carpeta y otro para eliminar el
+   contenedor y todo su contenido.
+.- Nueva función javascript: nimPopup(texto) Sirve para sacar un PopUp de 
+   tres segundos de duración mostrando el texto pasado como argumento.
+-------------------------------------------------------------------------------
 .- Mejorado el comportamiento del método "grabar" con el argumento "ajx"
 -------------------------------------------------------------------------------
 .- Corregido bug por el que los históricos no accedían bien a la clase Usuario
