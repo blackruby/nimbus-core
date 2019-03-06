@@ -1,4 +1,7 @@
 -------------------------------------------------------------------------------
+.- Corregido z-index en título de panel de control para que el desplegable de
+   empresas y ejercicios sea visible.
+-------------------------------------------------------------------------------
 .- Cambio de los iconos de control de las ventanas del panel de control. Se han
    adaptado a "material design" y se han alineado a la derecha. Cuando la barra
    de control de la ventana está oculta, ésta se puede activar pasando el ratón
@@ -8,7 +11,7 @@
 .- Menú contextual en panel de control accesible con botón derecho en cualquier
    zona libre del panel. Desde dicho menú tenemos acceso a todas las opciones
    disponibles para controlar el panel.
-.- Nuevo elemento en panel de control: "contenedores" son como carpetas deonde
+.- Nuevo elemento en panel de control: "contenedores" son como carpetas donde
    podemos introducir (arrastrándolos) los favoritos que tengamos en el panel.
    Pasando el ratón por la esquina superior derecha del contenedor aparecen dos
    botones, uno para editar el título de la carpeta y otro para eliminar el
