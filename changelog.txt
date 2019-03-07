@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Nuevo método fact_hijo para poder acceder a @fact de un hijo.
+-------------------------------------------------------------------------------
 .- En el método load_adds se ha incorporado nuevo código para dotar a los
    históricos de los nuevos belongs_to que se hayan podido declarar en los adds.
 -------------------------------------------------------------------------------
