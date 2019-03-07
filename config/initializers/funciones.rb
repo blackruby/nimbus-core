@@ -128,36 +128,98 @@ class String
   end
 =end
 
-  def iban?
-    return true if self.length == 0
-    len = {
-      AL: 28, AD: 24, AT: 20, AZ: 28, BE: 16, BH: 22, BA: 20, BR: 29,
-      BG: 22, CR: 21, HR: 21, CY: 28, CZ: 24, DK: 18, DO: 28, EE: 20,
-      FO: 18, FI: 18, FR: 27, GE: 22, DE: 22, GI: 23, GR: 27, GL: 18,
-      GT: 28, HU: 28, IS: 26, IE: 22, IL: 23, IT: 27, KZ: 20, KW: 30,
-      LV: 21, LB: 28, LI: 21, LT: 20, LU: 20, MK: 19, MT: 31, MR: 27,
-      MU: 30, MC: 27, MD: 24, ME: 22, NL: 18, NO: 15, PK: 24, PS: 29,
-      PL: 28, PT: 25, RO: 24, SM: 27, SA: 24, RS: 22, SK: 24, SI: 19,
-      ES: 24, SE: 24, CH: 21, TN: 24, TR: 26, AE: 23, GB: 22, VG: 24
+  LenIbanPaises = {
+    AL: 28, AD: 24, AT: 20, AZ: 28, BE: 16, BH: 22, BA: 20, BR: 29,
+    BG: 22, CR: 21, HR: 21, CY: 28, CZ: 24, DK: 18, DO: 28, EE: 20,
+    FO: 18, FI: 18, FR: 27, GE: 22, DE: 22, GI: 23, GR: 27, GL: 18,
+    GT: 28, HU: 28, IS: 26, IE: 22, IL: 23, IT: 27, KZ: 20, KW: 30,
+    LV: 21, LB: 28, LI: 21, LT: 20, LU: 20, MK: 19, MT: 31, MR: 27,
+    MU: 30, MC: 27, MD: 24, ME: 22, NL: 18, NO: 15, PK: 24, PS: 29,
+    PL: 28, PT: 25, RO: 24, SM: 27, SA: 24, RS: 22, SK: 24, SI: 19,
+    ES: 24, SE: 24, CH: 21, TN: 24, TR: 26, AE: 23, GB: 22, VG: 24
+  }
+
+  # Método para validar un IBAN. El argumento (opcional) es lo que se devolverá en caso de que la cadena esté vacía
+  def iban?(vacio = true)
+    # Quitar caracteres especiales
+    iban = self.gsub(/[\s-]/, '')
+
+    # Retornar si está vacío
+    return vacio if iban.empty?
+
+    # Retornar si hay caracteres diferentes de letras o números
+    return false unless iban =~ /^[\dA-Z]+$/
+
+    # Validar longitud en función del país
+    return false unless iban.size == LenIbanPaises[iban[0, 2].to_sym]
+
+    # Finalmente será válido si cumple la siguiente regla
+    (iban[4..-1] + iban[0, 4]).gsub(/./){|c| c.to_i(36)}.to_i % 97 == 1
+  end
+
+  # Devuelve una cadena convertida a IBAN. Si self ya es un IBAN se retorna a sí mismo
+  # y si es un CCC se convierte a IBAN. En cualquier otro caso devuelve nil.
+  def to_iban(sep = '-')
+    return self if self.iban?
+
+    ccc = self.gsub(/[\s-]/, '')
+
+    return nil unless ccc.ccc?
+
+    resto = ''
+    [0, 5, 10, 15].each {|i|
+      codigo = (resto + ccc[i, 5]).to_i
+      resto = (codigo % 97).to_s
     }
 
-    # Ensure upper alphanumeric input.
-    self.delete! " \t"
-    return false unless self =~ /^[\dA-Z]+$/
+    codigo = (resto.to_s + '142800').to_i
+    resto = codigo % 97
 
-    # Validate country code against expected length.
-    cc = self[0, 2].to_sym
-    return false unless self.size == len[cc]
+    format('ES%02d%s%s%s%s%s%s%s%s%s%s', 98 - resto, sep, ccc[0, 4], sep, ccc[4, 4], sep, ccc[8, 4], sep, ccc[12, 4], sep, ccc[16, 4])
+  end
 
-    # Shift and convert.
-    iban = self[4..-1] + self[0, 4]
-    iban.gsub!(/./) { |c| c.to_i(36) }
-
-    if iban.to_i % 97 == 1
-      return true
+  # Convierte self a un IBAN. Si self ya es un IBAN se queda inalterado,
+  # si es un CCC se convierte a IBAN. En cualquier otro caso se queda inalterado.
+  # Devuelve true o false en función de si el contenido es un IBAN correcto
+  # o se ha podido convertir a un IBAN correcto, por lo que también vale de
+  # método de validación.
+  def to_iban!(sep = '-')
+    iban = to_iban(sep)
+    if iban
+      self.replace(iban)
+      true
     else
-      return false
+      false
     end
+  end
+
+  def ccc?(vacio = true)
+    ccc = self.gsub(/[\s-]/, '')
+
+    # Retornar si está vacío
+    return vacio if ccc.empty?
+
+    return false unless ccc.size == 20
+
+    # Retornar si hay caracteres diferentes de números
+    return false unless ccc =~ /^\d+$/
+
+    obtener_dc('00' + ccc[0, 8]) == ccc[8].to_i && obtener_dc(ccc[10..-1]) == ccc[9].to_i
+  end
+
+  private def obtener_dc(value)
+    valores = [1,2,4,8,5,10,9,7,3,6]
+    control = 0
+
+    (0..9).each {|i| control = control + value[i].to_i * valores[i]}
+    control = 11 - (control % 11)
+    if control == 11
+      control = 0
+    elsif control == 10
+      control = 1
+    end
+
+    control
   end
 
   # Método para decidir si un número (n) está dentro de la cadena self (con la notación: a,b,c-d,e...)
@@ -189,63 +251,6 @@ class String
 		}
 		res
 	end
-
-  def ccc2iban
-    if self.gsub(/[\s-]+/,'').length == 20
-      codigo = self.gsub(/[\s-]+/,'')[0, 5].to_i
-      resto = codigo.modulo(97)
-
-      codigo = (resto.to_s + self.gsub(/[\s-]+/,'')[5, 5]).to_i
-      resto = codigo.modulo(97)
-
-      codigo = (resto.to_s + self.gsub(/[\s-]+/,'')[10, 5]).to_i
-      resto = codigo.modulo(97)
-
-      codigo = (resto.to_s + self.gsub(/[\s-]+/,'')[15, 5]).to_i
-      resto = codigo.modulo(97)
-
-      codigo = resto.to_s + '142800'
-      resto = codigo.to_i.modulo(97)
-
-      pp '************************'
-      pp self[0, 24]
-      pp self
-      return 'ES' + format('%02d', 98 - resto) + '-' + self[0, 24]
-    end
-    return self
-  end
-
-  def validarCCC 
-    banco     = self[0..3]
-    sucursal  = self[4..7]
-    dc        = self[8..9]
-    cccCuenta = self[10.. self.length]
-
-    bancoSucursal = "00"+banco.to_s+sucursal.to_s
-
-    if (obtenerDC(bancoSucursal).to_i == dc[0].to_i && obtenerDC(cccCuenta).to_i == dc[1].to_i)
-      return true 
-    else 
-      return false 
-    end
-  end
-
-  def obtenerDC(value)
-
-    valores = [1,2,4,8,5,10,9,7,3,6]
-    control = 0
-
-    (0..9).each {|i|
-      control = control + (value[i].to_i * valores[i])   
-    }
-    control = 11 - (control % 11)
-      if control == 11
-        control = 0
-      elsif control == 10
-        control = 1
-      end
-    return control
-  end
 
   # Este método busca todos los macros (expresiones que empiezan con "@"
   # y a continuación tienen un conjunto de letras, números o "_"), y por
@@ -287,4 +292,8 @@ def fecha_texto(fecha, formato = :default)
   else
     I18n.l(fecha, format: formato)
   end
+end
+
+def iban_mask(pais = 'ES')
+  pais == 'ES' ? '**99-9999-9999-9999-9999-9999' : '**********************************'
 end

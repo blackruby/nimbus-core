@@ -315,7 +315,7 @@ $.fn.extend({
 					}, 10);
 				})
 				.bind("blur.mask", function() {
-					checkVal();
+					//checkVal();
 					if (input.val() != focusText)
 						input.change();
 				})

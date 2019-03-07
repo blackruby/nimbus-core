@@ -1,4 +1,7 @@
 -------------------------------------------------------------------------------
+.- Funciones para el cálculo y validación de CCC's e IBAN.
+.- Quitada validación final en jquery.maskedinput.
+-------------------------------------------------------------------------------
 .- Nuevo método fact_hijo para poder acceder a @fact de un hijo.
 -------------------------------------------------------------------------------
 .- En el método load_adds se ha incorporado nuevo código para dotar a los
