@@ -1246,10 +1246,23 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def set_parent
+  def set_parent(vid = false)
     if params[:padre]
       @dat[:vp] = Vista.find(params[:padre].to_i)
       @fact.parent = @dat[:vp].data[:fact]
+      unless vid == false
+        @dat[:vp].data[:hijos] ||= {}
+        @dat[:vp].data[:hijos][params[:controller]] = vid
+        @dat[:vp].save
+      end
+    end
+  end
+
+  def fact_hijo(ctrl)
+    if @v.data[:hijos] && @v.data[:hijos][ctrl]
+      Vista.find(@v.data[:hijos][ctrl]).data[:fact]
+    else
+      nil
     end
   end
 
@@ -1276,7 +1289,7 @@ class ApplicationController < ActionController::Base
     @dat[:idindex] = params[:idindex].to_i
     #@fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord ???
 
-    set_parent
+    set_parent @v.id
 
     #var_for_views(clm)
 
@@ -1450,7 +1463,7 @@ class ApplicationController < ActionController::Base
     @dat[:fact] = @fact
     @dat[:head] = params[:head] if params[:head]
 
-    set_parent
+    #set_parent
 
     emp_perm = nil
 
@@ -1564,6 +1577,8 @@ class ApplicationController < ActionController::Base
     @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
     @v.save unless clm.mant? and @fact.id == 0
+
+    set_parent @v.id
 
     @ajax << 'eid="' + @dat[:eid].to_s + '",jid="' + @dat[:jid].to_s + '";'
     unless clm.mant? and @fact.id == 0
