@@ -1,4 +1,7 @@
 -------------------------------------------------------------------------------
+.- En el método load_adds se ha incorporado nuevo código para dotar a los
+   históricos de los nuevos belongs_to que se hayan podido declarar en los adds.
+-------------------------------------------------------------------------------
 .- Corregido z-index en título de panel de control para que el desplegable de
    empresas y ejercicios sea visible.
 -------------------------------------------------------------------------------

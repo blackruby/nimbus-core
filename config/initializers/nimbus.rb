@@ -113,13 +113,24 @@ module Nimbus
       rescue
       end
     else
-      # Tratamientos especiales en el caso de que sea un modelo
+      # Tratamientos especiales en el caso de que sea un modelo con histórico
 
-      # Desactivar los callbacks al grabar registros (save) del histórico (si lo tiene)
       modulo = f[-2] == 'models' ? '' : f[-2]
       modelo = ((modulo == '' ? '' : modulo.capitalize + '::') + f[-1][0..-4].capitalize).constantize
       histo = modelo.modelo_histo
-      histo.reset_callbacks(:save) if histo
+      if histo
+        # Desactivar los callbacks al grabar registros (save) del histórico
+        histo.reset_callbacks(:save)
+
+        # Añadir los belongs_to nuevos definidos en el add al modelo histórico.
+        # Parece ser que aunque el histórico herede del modelo base, las nuevas
+        # asociaciones que se añaden a éste no las ve el histórico.
+        modelo.reflect_on_all_associations(:belongs_to).each {|a|
+          unless histo.reflect_on_all_associations(:belongs_to).index{|h| h.name == a.name}
+            histo.instance_eval("belongs_to :#{a.name}, class_name: '#{a.options[:class_name]}'")
+          end
+        }
+      end
     end
   end
 
