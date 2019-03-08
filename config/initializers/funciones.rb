@@ -140,7 +140,7 @@ class String
   }
 
   # Método para validar un IBAN. El argumento (opcional) es lo que se devolverá en caso de que la cadena esté vacía
-  def iban?(vacio = true)
+  def iban?(vacio:  true)
     # Quitar caracteres especiales
     iban = self.gsub(/[\s-]/, '')
 
@@ -159,7 +159,7 @@ class String
 
   # Devuelve una cadena convertida a IBAN. Si self ya es un IBAN se retorna a sí mismo
   # y si es un CCC se convierte a IBAN. En cualquier otro caso devuelve nil.
-  def to_iban(sep = '-')
+  def to_iban(sep: '-')
     return self if self.iban?
 
     ccc = self.gsub(/[\s-]/, '')
@@ -182,9 +182,12 @@ class String
   # si es un CCC se convierte a IBAN. En cualquier otro caso se queda inalterado.
   # Devuelve true o false en función de si el contenido es un IBAN correcto
   # o se ha podido convertir a un IBAN correcto, por lo que también vale de
-  # método de validación.
-  def to_iban!(sep = '-')
-    iban = to_iban(sep)
+  # método de validación. Si la cena está vacía se queda inalterada y devuelve
+  # lo indicado por el argumento "vacio" (true por defecto)
+  def to_iban!(sep: '-', vacio: true)
+    return vacio if self.gsub(/[\s-]/, '').empty?
+
+    iban = to_iban sep: sep
     if iban
       self.replace(iban)
       true
@@ -193,7 +196,7 @@ class String
     end
   end
 
-  def ccc?(vacio = true)
+  def ccc?(vacio: true)
     ccc = self.gsub(/[\s-]/, '')
 
     # Retornar si está vacío
@@ -295,5 +298,5 @@ def fecha_texto(fecha, formato = :default)
 end
 
 def iban_mask(pais = 'ES')
-  pais == 'ES' ? '**99-9999-9999-9999-9999-9999' : '**********************************'
+  pais == 'ES' ? '?**99-9999-9999-9999-9999-9999' : '?**********************************'
 end

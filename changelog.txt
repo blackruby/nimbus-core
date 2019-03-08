@@ -1,4 +1,9 @@
 -------------------------------------------------------------------------------
+.- Mejoras en las funciones para el cálculo y validación de CCC's e IBAN.
+.- Reposición del jquery.maskedinput original (el carácter especial ? hace que
+   se pueda recoger la entrada como opcional y así no se vacía el contenido
+   cuando no se satisface la máscara).
+-------------------------------------------------------------------------------
 .- Funciones para el cálculo y validación de CCC's e IBAN.
 .- Quitada validación final en jquery.maskedinput.
 -------------------------------------------------------------------------------
