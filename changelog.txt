@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Tratamiento correcto de nil en campos datetime para poder borrar su contenido.
+-------------------------------------------------------------------------------
 .- Mejoras en las funciones para el cálculo y validación de CCC's e IBAN.
 .- Reposición del jquery.maskedinput original (el carácter especial ? hace que
    se pueda recoger la entrada como opcional y así no se vacía el contenido

@@ -947,6 +947,7 @@ module MantMod
           end
         when :date
           v[:manti] ||= 10
+          v[:nil] = true if v[:nil].nil?
           v[:date_opts] ||= {}
           if hay_grid
             v[:grid][:align] ||= 'center'
@@ -964,6 +965,7 @@ module MantMod
         when :datetime
           v[:manti] ||= 19
           v[:seg] = true if v[:seg].nil?
+          v[:nil] = true if v[:nil].nil?
           if hay_grid
             v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
           end
@@ -1158,7 +1160,7 @@ module MantMod
       when :time
         if val
           t = val.is_a?(String) ? val.to_time : val
-          return(Time.utc(2000, 1, 1, t.hour, t.min, t.sec))
+          return(t ? Time.utc(2000, 1, 1, t.hour, t.min, t.sec) : nil)
         end
       when :datetime
         if val && val.is_a?(String)
