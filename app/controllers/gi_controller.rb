@@ -198,15 +198,22 @@ class GiController < ApplicationController
       cs = c.to_sym
       d = {table: cl.table_name, type: cl.columns_hash[c].type}
       if c.ends_with?('_id')
-        d[:id] = cl.reflect_on_association(c[0..-4].to_sym).options[:class_name]
-        # Controlar permisos. Si no se tiene permiso para el controlador asociado al modelo
-        # correspondiente al campo "id" ==> Excluir dicho id para no poder acceder a esa tabla.
-        unless @usu.admin
-          ctrl = cl.reflect_on_association(c[0..-4].to_sym).class_name.constantize.ctrl_for_perms
-          next unless @usu.pref[:permisos][:ctr][ctrl] && @usu.pref[:permisos][:ctr][ctrl][emp]
+        assoc = cl.reflect_on_association(c[0..-4].to_sym)
+        if assoc
+          #d[:id] = cl.reflect_on_association(c[0..-4].to_sym).options[:class_name]
+          d[:id] = assoc.class_name
+          # Controlar permisos. Si no se tiene permiso para el controlador asociado al modelo
+          # correspondiente al campo "id" ==> Excluir dicho id para no poder acceder a esa tabla.
+          unless @usu.admin
+            ctrl = assoc.class_name.constantize.ctrl_for_perms
+            next unless @usu.pref[:permisos][:ctr][ctrl] && @usu.pref[:permisos][:ctr][ctrl][emp]
+          end
+          d[:label] = c[0..-4]
+          d[:load_on_demand] = true
+        else
+          logger.fatal "######## ERROR. Modelo: #{cl}, campo: #{c} No tiene belongs_to asociado."
+          next
         end
-        d[:label] = c[0..-4]
-        d[:load_on_demand] = true
       else
         d[:label] = c
         d[:pk] = cl.respond_to?(:pk) ? (c == cl.pk[-1]) : false
