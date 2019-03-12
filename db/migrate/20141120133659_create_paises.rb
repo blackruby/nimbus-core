@@ -8,6 +8,7 @@ class CreatePaises < ActiveRecord::Migration[5.0]
           t.string :codigo_cr
           t.string :codigo_iso3
           t.string :codigo_num
+          t.references :divisa
       }
 
       create_table(:paises) {|t| col.call(t)}

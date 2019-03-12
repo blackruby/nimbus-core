@@ -5,7 +5,9 @@ class PaisesMod < Pais
     codigo: {tab: 'pre', gcols: 2, grid:{}},
     nombre: {tab: 'pre', gcols: 4, grid:{}},
     tipo: {tab: 'pre', gcols: 2, grid:{}},
-    codigo_iso3: {tab: 'pre', gcols: 2, br: true},
+    codigo_iso3: {tab: 'pre', gcols: 2},
+    separador: {tab: 'pre', gcols: 2, type: :div, br: true},
+    divisa_id: {tab: 'pre', gcols: 4, grid:{}},
     codigo_num: {tab: 'pre', gcols: 2},
     codigo_cr: {tab: 'pre', gcols: 2},
   }

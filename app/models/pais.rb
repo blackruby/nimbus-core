@@ -8,7 +8,10 @@ class Pais < ActiveRecord::Base
     codigo_iso3: {manti: 3},
     codigo_num: {manti: 3, mask: '999'},
     codigo_cr: {manti: 3},
+    divisa_id: {},
   }
+
+  belongs_to :divisa, :class_name => 'Divisa'
 
   after_initialize :ini_campos
 
