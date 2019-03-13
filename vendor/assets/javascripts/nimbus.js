@@ -928,6 +928,7 @@ function jqg_custom_value(e) {
 
 // Añadir nuevas definiciones para las máscaras
 $.mask.definitions['&'] = '[.0-9]';
+$.mask.placeholder = ' ';
 
 /*
 function mask(h) {

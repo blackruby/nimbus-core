@@ -3199,15 +3199,6 @@ class ApplicationController < ActionController::Base
 
       next if plus == 'stop'
 
-=begin
-      manti = eval_cad(v[:manti]).to_i
-      decim = eval_cad(v[:decim]).to_i
-      signo = eval_cad(v[:signo])
-      mask = eval_cad(v[:mask])
-      date_opts = eval_cad(v[:date_opts])
-      ro = eval_cad(v[:ro])
-=end
-
       cs = c.to_s
       if cs.ends_with?('_id')
         sal << 'auto_comp("#' + cs + '","/application/auto?mod=' + v[:ref]
@@ -3217,15 +3208,12 @@ class ApplicationController < ActionController::Base
         sal << '&vista=' + @v.id.to_s
         sal << '&cmp=' + cs
         sal << '","' + v[:ref]
-        #sal << '","' + v[:ref].constantize.table_name + '");'
         mt = v[:ref].split('::')
         sal << '","' + (mt.size == 1 ? v[:ref].constantize.table_name : mt[0].downcase + '/' + mt[1].downcase.pluralize) + '");'
         sal << "$('##{cs}').data('menu', #{v[:menu].to_json});" if v[:menu].present?
       elsif v[:mask]
-        sal << '$("#' + cs + '").mask("' + v[:mask] + '",{placeholder: " "});'
-        #sal << 'mask({elem: "#' + cs + '", mask:"' + mask + '"'
-        #sal << ', may:' + may.to_s if may
-        #sal << '});'
+        #sal << '$("#' + cs + '").mask("' + v[:mask] + '",{placeholder: " "});'
+        sal << '$("#' + cs + '").mask("' + v[:mask] + '");'
       elsif v[:type] == :date
         #sal << 'date_pick("#' + cs + '",' + (date_opts == {} ? '{showOn: "button"}' : date_opts.to_json) + ');'
         sal << 'date_pick("#' + cs + '",' + v[:date_opts].to_json + ');'

@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Puesto placeholder ' ' por defecto para todos los maskedinputs.
+-------------------------------------------------------------------------------
 .- Nuevo campo divisa en países.
 -------------------------------------------------------------------------------
 .- Mejor tratamiento de los campos id en búsquedas y gi. Ahora si un campo id
