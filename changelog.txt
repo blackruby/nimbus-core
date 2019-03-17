@@ -1,4 +1,7 @@
 -------------------------------------------------------------------------------
+.- Posibilidad de cambiar de ejercicio directamente en los mantenimientos que
+   dependen de él.
+-------------------------------------------------------------------------------
 .- Puesto placeholder ' ' por defecto para todos los maskedinputs.
 -------------------------------------------------------------------------------
 .- Nuevo campo divisa en países.

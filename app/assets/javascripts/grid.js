@@ -164,6 +164,17 @@ function pkBlur() {
   $(".mdl-navigation").css('display', 'flex');
 }
 
+function selNewEjercicio() {
+  var ej = $("#sel-nim-ejer");
+  var url = new URL(window.location.href);
+  url.searchParams.set("eid", eid);
+  url.searchParams.set("jid", ej.val());
+  window.location.replace(url.href);
+  // Reponemos el ejercicio original por si el location.replace no tiene lugar
+  // porque lo ha aboratdo el usuario en el diálogo que sale si hay cambios sin guardar.
+  ej.val(jid);
+}
+
 $(window).load(function () {
   grid = $("#grid");
   toolgrid = '#grid_toppager';
@@ -281,8 +292,8 @@ $(window).load(function () {
   else
     $("#ficha").attr('src', varView.url_base + varView.id_edit + '/edit' + varView.arg_edit);
 
-  var eid = varView.eid;
-  var jid = varView.jid;
+  eid = varView.eid;
+  jid = varView.jid;
   if (varView.grid.visible) redimWindow(); else gridCollapse();
 });
 

@@ -1205,6 +1205,17 @@ class ApplicationController < ActionController::Base
 
   def set_titulo(tit, ecod, jcod)
     @titulo = "#{ecod}#{jcod ? '/' : ''}#{jcod} #{tit}"
+    if jcod
+      @titulo_htm = "#{ecod}&nbsp;/"
+      @titulo_htm << '<select id="sel-nim-ejer" onchange="selNewEjercicio()">'
+      Ejercicio.where(empresa: @dat[:eid]).order(:codigo).pluck(:id, :codigo).each{|j|
+        @titulo_htm << %Q(<option #{j[1] == jcod ? 'selected' : ''} value="#{j[0]}">#{j[1]}</option>)
+      }
+      @titulo_htm << '</select>'
+      @titulo_htm << tit
+    else
+      @titulo_htm = @titulo
+    end
   end
 
   def var_for_views(clm)
