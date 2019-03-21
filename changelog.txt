@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Corregido bug del punto anterior.
+-------------------------------------------------------------------------------
 .- gi: Ahora si un formato tiene controlador propio pero pertenece a un módulo
    sin "module" se busca su "yml" por todos los módulos ya que no se puede
    inferir el módulo desde la ruta del controlador.
