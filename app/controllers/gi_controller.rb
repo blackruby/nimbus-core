@@ -752,9 +752,9 @@ class GI
   def self.formato_read(modulo, file, user, cl=nil)
     case modulo
       when '', '_', Rails.app_class.to_s.split(':')[0].downcase
-        path = "formatos/"
+        path = 'formatos/'
       when 'publico'
-        path = "formatos/_publico/"
+        path = 'formatos/_publico/'
       when 'privado'
         path = "formatos/_usuarios/#{user}/"
       else
@@ -762,7 +762,22 @@ class GI
     end
 
     # Cargar formato
-    form = YAML.load(File.read(path + file + '.yml'))
+    form = nil
+    archivo = path + file + '.yml'
+    if File.exist? archivo
+      form = YAML.load(File.read(archivo))
+    elsif path == 'formatos/'
+      # Podría ser el caso de formatos con un controlador que está en un módulo no declarado como tal
+      # Sin module asociado pero con carpeta propia. En este caso vamos a buscar el yml por todos los
+      # módulos para ver si existe.
+      Nimbus::Modulos[0..-2].each {|m|
+        ar = m + '/' + archivo
+        if File.exist? ar
+          form = YAML.load(File.read(ar))
+          break
+        end
+      }
+    end
 
     # Cargar fuentes si existen
     if cl
