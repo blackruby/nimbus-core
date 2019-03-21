@@ -454,8 +454,8 @@ class ApplicationController < ActionController::Base
   ##
 
   def status_botones(h={})
-    h[:borrar] = false if %w(b c).include?(@dat[:prm]) && h[:borrar]
-    h[:grabar] = false if %w(c).include?(@dat[:prm]) && h[:grabar]
+    h[:borrar] = false if @dat && %w(b c).include?(@dat[:prm]) && h[:borrar]
+    h[:grabar] = false if @dat && %w(c).include?(@dat[:prm]) && h[:grabar]
     @ajax << "statusBotones(#{h.to_json});"
   end
 
