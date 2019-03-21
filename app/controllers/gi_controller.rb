@@ -773,6 +773,7 @@ class GI
       Nimbus::Modulos[0..-2].each {|m|
         ar = m + '/' + archivo
         if File.exist? ar
+          path = m + '/formatos/'
           form = YAML.load(File.read(ar))
           break
         end
