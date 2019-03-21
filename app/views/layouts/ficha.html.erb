@@ -155,6 +155,9 @@
   $("#<%= d[:id] %>" ).dialog({
     autoOpen: false,
     resizable: false,
+    <% if d[:position] %>
+    position: <%= d[:position].to_json.html_safe %>,
+    <% end %>
     width: "<%= d[:width] ? d[:width] : '100%' %>",
     height: "<%= d[:height] ? d[:height] : 'auto' %>",
     modal: true,

@@ -1,4 +1,7 @@
 -------------------------------------------------------------------------------
+.- Nuevas opciones para determinar la anchura de un grid y para poder posicionar
+   los diálogos con la nueva clave "position".
+-------------------------------------------------------------------------------
 .- Corregido bug del punto anterior.
 -------------------------------------------------------------------------------
 .- gi: Ahora si un formato tiene controlador propio pero pertenece a un módulo

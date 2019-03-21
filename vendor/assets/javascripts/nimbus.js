@@ -1217,8 +1217,8 @@ function creaGridLocal(opts, data) {
     if (!opts.search) vg[0].toggleToolbar();
   }
 
-  //_addDataGridLocal(g, data);
-  g.setGridWidth(g.width());
+  //g.setGridWidth(g.width());
+  g.setGridWidth(grid.width ? grid.width : g.width());
 }
 
 function autoCompGridLocal(el, modelo, ctrl, cmp, col) {
