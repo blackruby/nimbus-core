@@ -1,4 +1,9 @@
 -------------------------------------------------------------------------------
+.- Nuevo parámetro "tab" en URL's para poder editar fichas con una pestaña
+   concreta predeterminada.
+.- Nuevo botón biestado en la zona izquierda de las pestañas de un mantenimiento
+   para poder bloquear/desbloquear la pestaña activa en sucesivas ediciones.
+-------------------------------------------------------------------------------
 .- Nuevas opciones para determinar la anchura de un grid y para poder posicionar
    los diálogos con la nueva clave "position".
 -------------------------------------------------------------------------------

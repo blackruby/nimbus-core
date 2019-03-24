@@ -20,10 +20,13 @@ function liFon(li, fon, tipo, side) {
 }
 
 function tabClick(tab) {
-  if (typeof(_controlador) == "undefined") return;
-
   _activeTab = tab;
-  var fs = "ontab_" + tab.attr("id").slice(2);
+  var tab_name = tab.attr("id").slice(2);
+  if (botLockTab.text() == "lock") parent.nimDefaultTab = tab_name;
+
+  if (typeof(_controlador) == "undefined") return;
+  
+  var fs = "ontab_" + tab_name;
   if ($.inArray(fs, nimOnTabs) >= 0) callFonServer(fs);
   setTimeout(function(){
     if (typeof tabClickUsu == "function") tabClickUsu(tab);
@@ -48,25 +51,21 @@ function grabarConTecla(e) {
   f.focus();
 }
 
+function nimLockTabs(def) {
+  if (botLockTab.text() == "lock_open" || typeof(def) == "string") {
+    if (botLockTab.text() == "lock_open") parent.nimDefaultTab = _activeTab.attr("id").slice(2);
+    botLockTab.text("lock").css("color", "#FF4081").prop("title", "Desbloquear pestaña activa");
+  } else {
+    botLockTab.text("lock_open").css("color", "white").prop("title", "Bloquear pestaña activa en sucesivas ediciones");
+    parent.nimDefaultTab = null;
+  }
+}
+
 window.onbeforeunload = function() {
   if (CambiosPendientesDeGrabar()) return('Hay cambios pendientes de grabar');
 };
 
 $(window).load(function () {
-  /*
-  $("#dialog-nim-alert").dialog({
-    autoOpen: false,
-    resizable: false,
-    modal: true,
-    width: "auto",
-    buttons: {
-      "Aceptar": function() {
-        $(this).dialog("close");
-      }
-    }
-  });
-  */
-
   $("#dialog-borrar").dialog({
     autoOpen: false,
     resizable: false,
@@ -127,4 +126,19 @@ $(window).load(function () {
   //componentHandler.upgradeDom();
   if (parent != self && $.isFunction(parent.redimWindow)) parent.redimWindow();
   $("input,select,textarea").filter(":enabled[readonly!='readonly']").first().focus();
+
+  // Si hay pestañas, reutilizar el botón invisible de la izquierda del contenedor
+  // para bloqueo/desbloqueo de pestañas en sucesivas ediciones.
+  botLockTab = $(".mdl-layout__tab-bar").prev().find("i");
+  if (botLockTab.length == 1 && parent != self) {
+    _activeTab = $(".nim-div-tab section").first();
+    botLockTab.click(nimLockTabs);
+    nimLockTabs(parent.nimDefaultTab);
+  }
+
+  // Seleccionar pestaña (si se ha indicado en la URL o en la URL del padre)
+  var url = new URL(window.location.href);
+  var tab = url.searchParams.get("tab");
+  if (!tab && parent != self) tab = parent.nimDefaultTab;
+  if (tab) $("#h_" + tab + " span")[0].click();
 });

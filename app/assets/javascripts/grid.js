@@ -295,6 +295,10 @@ $(window).load(function () {
   eid = varView.eid;
   jid = varView.jid;
   if (varView.grid.visible) redimWindow(); else gridCollapse();
+
+  // Acuñar la pestaña por defecto del hijo
+  var url = new URL(window.location.href);
+  nimDefaultTab = url.searchParams.get("tab");
 });
 
 $(window).unload(function() {
