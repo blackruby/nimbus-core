@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Posibilidad de usar id's compuestos (con underscores) en búsquedas autónomas.
+-------------------------------------------------------------------------------
 .- Nuevo parámetro "tab" en URL's para poder editar fichas con una pestaña
    concreta predeterminada.
 .- Nuevo botón biestado en la zona izquierda de las pestañas de un mantenimiento

@@ -20,7 +20,7 @@ function editInLine() {
 function searchBar() {vgrid[0].toggleToolbar();}
 
 function editInForm(id) {
-  if (id) {
+  if (id != null) {
     // Seguimos el convenio de que si el "id" tiene un underscore significa
     // que la parte izquierda es el id principal y el de la derecha sería
     // el del primer hijo. Si hubiera más de un hijo (o más underscores)
@@ -289,8 +289,10 @@ $(window).load(function () {
   //$("#ficha").attr('src', '<%= @view[:url_base] %>0/edit' + '<%= @view[:arg_edit] %>');
   if (varView.id_edit == -1)
     $("#ficha").attr('src', varView.url_new);
-  else
-    $("#ficha").attr('src', varView.url_base + varView.id_edit + '/edit' + varView.arg_edit);
+  else {
+    //$("#ficha").attr('src', varView.url_base + varView.id_edit + '/edit' + varView.arg_edit);
+    editInForm(varView.id_edit);
+  }
 
   eid = varView.eid;
   jid = varView.jid;
