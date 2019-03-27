@@ -28,7 +28,7 @@ function editInForm(id) {
     var ids = id.toString().split("_");
     var hijos = "";
     if (ids.length > 1) {
-      id = id[0];
+      id = ids[0];
       hijos = '&hijos="' + varView.hijos[0].url + '":' + ids[1]
     }
 

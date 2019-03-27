@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Corregido bug del punto anterior.
+-------------------------------------------------------------------------------
 .- Posibilidad de usar id's compuestos (con underscores) en búsquedas autónomas.
 -------------------------------------------------------------------------------
 .- Nuevo parámetro "tab" en URL's para poder editar fichas con una pestaña
