@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Corregido la apertura de histórico desde fichas sin padre (grid).
+-------------------------------------------------------------------------------
 .- Corregido bug del punto anterior.
 -------------------------------------------------------------------------------
 .- Posibilidad de usar id's compuestos (con underscores) en búsquedas autónomas.
