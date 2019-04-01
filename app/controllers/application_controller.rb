@@ -2752,7 +2752,7 @@ class ApplicationController < ActionController::Base
     end
 
     clm = class_mant
-    clmod = class_modelo
+    clmod = class_modelo rescue nil
     err = ''
     last_c = nil
 

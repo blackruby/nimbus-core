@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Corregido bug en el commit anterior.
+-------------------------------------------------------------------------------
 .- Tratamiento de imágenes en grids y mejoras del tratamiento de éstas en 
    controladores. Ver ayuda en nimbus_help.
 -------------------------------------------------------------------------------
