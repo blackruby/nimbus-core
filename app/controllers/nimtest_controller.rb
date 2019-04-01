@@ -13,6 +13,7 @@ class NimtestMod < Pais
     combo: {tab: 'pre', gcols: 2, type: :integer, sel: {1 => 'Opción A', 2 => 'Opción B'}},
     pxa: {tab: 'post', type: :div, gcols: 12},
     pxb: {tab: 'post', type: :div, gcols: 12},
+    pxc: {tab: 'post', type: :div, gcols: 12},
 
     campo_x: {dlg: 'uno', gcols: 6},
     mig1: {dlg: 'uno', type: :div, gcols: 6},
@@ -103,6 +104,15 @@ class NimtestController < ApplicationController
     set_auto_comp_filter('pxa_11_pais_id', "nombre like 'B%'")
 
     @fact.add_campo :cmpx, tab: 'post', gcols: 12, type: :decimal
+
+    cols3 = [
+      {name: 'codigo', label: 'Código', width: 70},
+      {name: 'nombre', label: 'Nombre', width: 200},
+      {name: 'Imagen', type: :img, width: 60}
+    ]
+
+    q = Usuario.pluck :id, :codigo, :nombre
+    crea_grid cmp: :pxc, cols: cols3, grid: {caption: "Usuarios", height: 200}, data: q.map{|u| u + [nim_image(mod: Usuario, id: u[0], tag: :foto)]}
   end
 
   def new_pxa(pos)

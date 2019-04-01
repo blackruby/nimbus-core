@@ -509,6 +509,16 @@ class ApplicationController < ActionController::Base
     src.size > 0 ? "src='/nim_send_file?file=#{src[0][5..-1]}'" : ''
   end
 
+  def nim_image(mod: class_modelo, id: @fact.id, tag:, hid: nil, w: nil, h: nil)
+    h = 25 if w.nil? && h.nil?
+    "<img #{hid ? 'id=' + hid : ''} #{nim_path_image(mod, id, tag)}#{w ? ' width=' + w.to_s : ''}#{h ? ' height=' + h.to_s: ''} />"
+  end
+
+  def nim_asset_image(img:, hid: nil, w: nil, h: nil)
+    h = 25 if w.nil? && h.nil?
+    "<img #{hid ? 'id=' + hid : ''} src='#{helpers.image_path(img)}'#{w ? ' width=' + w.to_s : ''}#{h ? ' height=' + h.to_s : ''} />"
+  end
+
   def ir_a_origen
     return unless @fact.id
 
@@ -1171,11 +1181,11 @@ class ApplicationController < ActionController::Base
 
     res = {page: page, total: tot_pages, records: tot_records, rows: []}
     sql.each {|s|
+      @fact = s
       h = {:id => s.id, :cell => []}
       #clm.columnas.each {|c|
       @dat[:columnas].each {|c|
         begin
-          #h[:cell] << forma_campo(:grid, s, c).to_s
           h[:cell] << forma_campo(:grid, s, c, s[c]).to_s
         rescue
           h[:cell] << ''
@@ -1797,7 +1807,11 @@ class ApplicationController < ActionController::Base
 
   def forma_campo(tipo, ficha, cmp, val)
     cp = ficha.respond_to?('campos') ? ficha.campos[cmp.to_sym] : class_mant.campos[cmp.to_sym]
-    _forma_campo(tipo, cp, cmp, val)
+    if cp[:img] && tipo == :grid
+      self.respond_to?(cmp) ? method(cmp).call : nim_image(id: ficha.id, tag: cmp, w: cp[:img][:wg], h: cp[:img][:hg])
+    else
+      _forma_campo(tipo, cp, cmp, val)
+    end
   end
 
   def envia_campo(cmp, val)
@@ -2275,6 +2289,10 @@ class ApplicationController < ActionController::Base
         when :text
           c[:edittype] ||= 'textarea'
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
+        when :img
+          c[:sortable] = false if c[:sortable].nil?
+          c[:search] = false if c[:search].nil?
+          c[:editable] = false
         else
           if c[:sel]
             c[:formatter] ||= 'select'
@@ -2734,6 +2752,7 @@ class ApplicationController < ActionController::Base
     end
 
     clm = class_mant
+    clmod = class_modelo
     err = ''
     last_c = nil
 
@@ -2779,39 +2798,21 @@ class ApplicationController < ActionController::Base
 
       if err == ''
         call_nimbus_hook :before_save
-=begin
-        if clm.view?
-          clmod = class_modelo
-          if (@fact.id)
-            f = clmod.find(@fact.id)
-          else
-            f = clmod.new
-          end
-          clmod.column_names.each {|c|
-            #f.method(c+'=').call(@fact.method(c).call)
-            f[c] = @fact[c]
-          }
-          f.user_id = @fact.user_id
-          f.save
-          @fact.id = f.id
-        else
-            @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
-        end
-=end
+
         @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
 
         # Tratar campos imagen
         cmps_img.each {|c|
           v = @fact.campos[c][:img]
-          path = "data/#{v[:modelo]}/#{@fact.id}/_imgs"
+          path = "data/#{clmod}/#{@fact.id}/_imgs"
 
           # Borrar imágenes previas
-          `rm -f #{path}/#{v[:tag]}.*`
+          `rm -f #{path}/#{c}.*`
 
           unless @fact[c] == '*' # el valor asterisco es borrar la imagen, cosa que se ha hecho en la línea anterior
             ia = @fact[c].split('.')
             FileUtils.mkdir_p(path)
-            `mv #{@fact[c]} #{path}/#{v[:tag]}.#{ia[1]}`
+            `mv #{@fact[c]} #{path}/#{c}.#{ia[1]}`
           end
 
           @fact[c] = nil
@@ -3107,26 +3108,20 @@ class ApplicationController < ActionController::Base
         }
         sal << '</div>'
       elsif v[:img] && @v   # Si no hay @v es la edición de una ficha histórica (edith)
-        if v[:img][:fon_id]
+        if @fact.id == 0
+          imagen = ''
+        elsif self.respond_to?(c)
           plus << ' disabled' unless plus.include?(' disabled')
-          img_id = method(v[:img][:fon_id]).call
+          imagen = method(c).call.to_s
         else
-          img_id = @fact.id == 0 ? nil : @fact.id
+          imagen = nim_image(tag: c, hid: "#{cs}_img", w: v[:img][:w] || v[:img][:width], h: v[:img][:h] || v[:img][:height])
         end
         sal << '<div style="text-align: left;overflow: auto">'
         sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true, target: "#{cs}_iframe")
         sal << "<input id='#{cs}' name='#{cs}' type='file' accept='image/*' class='nim-input-img' onchange='$(this).parent().submit()' #{plus}/>"
         sal << "<label class='nim-label-img' for='#{cs}'>#{nt(v[:label])}</label><br>"
-        sal << "<img id='#{cs}_img'"
-        #if img_id
-        #  src = Dir.glob("data/#{v[:img][:modelo]}/#{img_id}/_imgs/#{v[:img][:tag]}.*")
-        #  sal << "src='/nim_send_file?file=#{src[0][5..-1]}'" if src.size > 0
-        #end
-        sal << nim_path_image(v[:img][:modelo], img_id, v[:img][:tag])
-        sal << " width=#{v[:img][:width]}" if v[:img][:width]
-        sal << " height=#{v[:img][:height]}" if v[:img][:height]
-        #sal << '></label>'
-        sal << '></form>'
+        sal << imagen
+        sal << '</form>'
         sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
         sal << '</div>'
       elsif v[:type] == :upload

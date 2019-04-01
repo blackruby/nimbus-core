@@ -1,4 +1,7 @@
 -------------------------------------------------------------------------------
+.- Tratamiento de imágenes en grids y mejoras del tratamiento de éstas en 
+   controladores. Ver ayuda en nimbus_help.
+-------------------------------------------------------------------------------
 .- Corregido la apertura de histórico desde fichas sin padre (grid).
 -------------------------------------------------------------------------------
 .- Corregido bug del punto anterior.

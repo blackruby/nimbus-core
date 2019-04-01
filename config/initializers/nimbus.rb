@@ -831,10 +831,10 @@ module MantMod
       end
 
       if v[:img]
-        if mo and !v[:img][:modelo]
-          v[:img][:modelo] = mo.to_s
-        end
-        v[:img][:tag] ||= c
+        #if mo and !v[:img][:modelo]
+        #  v[:img][:modelo] = mo.to_s
+        #end
+        #v[:img][:tag] ||= c
         v[:nil] = true
       end
 
@@ -925,6 +925,10 @@ module MantMod
               v[:grid][:editoptions][:may] ||= v[:may]
               v[:grid][:editoptions][:custom_element] ||= "~jqg_custom_element~"
               v[:grid][:editoptions][:custom_value] ||= "~jqg_custom_value~"
+            elsif v[:img]
+              v[:grid][:sortable] = false
+              v[:grid][:search] = false
+              v[:editable] = false
             end
           end
         when :integer, :decimal
