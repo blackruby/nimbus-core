@@ -36,6 +36,18 @@ module Nimbus
     I18n.t('date.month_names')[1..-1].map.with_index {|m,i| [i+1, m.capitalize]}.to_h
   end
 
+  def self.add_context_menu(ctr, v)
+    if v[:ref]
+      if v[:menu]
+        v[:ref].constantize.auto_comp_menu.each {|m|
+          v[:menu] << m
+        }
+      end
+      mdl_ctr = "#{v[:ref]}::Controller"
+      ctr.instance_eval("include #{mdl_ctr}") if Object.const_defined?(mdl_ctr) && !ctr.included_modules.include?(mdl_ctr.constantize)
+    end
+  end
+
   def self.load_adds(fi)
     f = fi.split('/')
     iapp = f.index('app')
@@ -90,15 +102,7 @@ module Nimbus
           end
 
           # Hacer include del module "Controller" si existe y añadir las opciones del menú contextual (auto_comp_menu) a v[:menu]
-          if v[:ref]
-            if v[:menu]
-              v[:ref].constantize.auto_comp_menu.each {|m|
-                v[:menu] << m
-              }
-            end
-            mdl_ctr = "#{v[:ref]}::Controller"
-            ctr.instance_eval("include #{mdl_ctr}") if Object.const_defined?(mdl_ctr)
-          end
+          add_context_menu(ctr, v) if v[:ref]
         }
 
         if post
@@ -1218,6 +1222,9 @@ module MantMod
     @campos[c.to_sym] = v
     self.class.ini_campo(c, v, self)
     val_campo(c, v) unless v[:value]
+    # Hacer include del module "Controller" si existe y añadir las opciones del menú contextual (auto_comp_menu) a v[:menu]
+    # self.class vale xxxMod así que inferimos la clase del controlador: xxxController
+    Nimbus.add_context_menu("#{self.class.to_s[0..-4]}Controller".constantize, v) if v[:ref]
   end
 
   def campos

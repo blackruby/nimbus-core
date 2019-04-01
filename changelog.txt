@@ -1,4 +1,7 @@
 -------------------------------------------------------------------------------
+.- Incluido el menú contextual definido en el modelo de los campos references
+   cuando son añadidos dinámicamente (con add_campo),
+-------------------------------------------------------------------------------
 .- Corregido bug en el commit anterior.
 -------------------------------------------------------------------------------
 .- Tratamiento de imágenes en grids y mejoras del tratamiento de éstas en 
