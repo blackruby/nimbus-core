@@ -1,4 +1,7 @@
 -------------------------------------------------------------------------------
+.- Nueva opción en usuarios para poder iniciar sesión en el ejercicio actual
+   independientemente del ejercicio por defecto que tuviera.
+-------------------------------------------------------------------------------
 .- Incluido el menú contextual definido en el modelo de los campos references
    cuando son añadidos dinámicamente (con add_campo),
 -------------------------------------------------------------------------------

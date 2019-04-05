@@ -36,7 +36,6 @@ class WelcomeController < ApplicationController
 
     usu = Usuario.find_by codigo: @login
 
-
     if usu
       # Control de que el usuario no esté de baja
       if usu.fecha_baja and usu.fecha_baja <= @ahora
@@ -129,10 +128,13 @@ class WelcomeController < ApplicationController
     else
       ahora = Time.now
 
-      usu.password_salt = BCrypt::Engine.generate_salt
-      usu.password_hash = BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
-      usu.password_fec_mod = ahora
-      usu.save
+      #usu.password_salt = BCrypt::Engine.generate_salt
+      #usu.password_hash = BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
+      #usu.password_fec_mod = ahora
+      #usu.save
+      ps = BCrypt::Engine.generate_salt
+      ph = BCrypt::Engine.hash_secret(params[:password], ps)
+      usu.update_columns(password_salt: ps, password_hash: ph, password_fec_mod: ahora)
 
       session[:fec] = ahora + 1       #Fecha de creación
       session[:fem] = session[:fec]   #Fecha de modificación (último uso)
@@ -219,11 +221,12 @@ class WelcomeController < ApplicationController
         end
       }
 
-      if ie == 0
-        @usu.empresa_def_id = nil
-        @usu.ejercicio_def_id = nil
-        @usu.save
-      end
+      #if ie == 0
+      #  @usu.empresa_def_id = nil
+      #  @usu.ejercicio_def_id = nil
+      #  @usu.save
+      #end
+      @usu.update_columns(empresa_def_id: nil, ejercicio_def_id: nil) if ie == 0
 
       prm = 'x'
       iprf = nil
@@ -256,6 +259,12 @@ class WelcomeController < ApplicationController
       if days_left <= 3
         @days_left = days_left
       end
+    end
+
+    # Calcular en qué ejercicio se va a entrar
+    if @usu.empresa_def_id && @usu.pref[:log_ej_actual]
+      jid = Ejercicio.where('empresa_id = ? AND ? BETWEEN fec_inicio AND fec_fin', @usu.empresa_def_id, Date.today).order('fec_inicio desc').limit(1).pluck(:id)[0] || @usu.ejercicio_def_id
+      @usu.update_columns(ejercicio_def_id: jid) if jid != @usu.ejercicio_def_id
     end
 
     @ajax = ''

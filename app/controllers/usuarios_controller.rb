@@ -17,6 +17,7 @@ class UsuariosMod < Usuario
     #ldapservidor_id: {tab: 'general', gcols: 4},
     empresa_def_id: {tab: 'general', gcols: 4},
     ejercicio_def_id: {tab: 'general', gcols: 4},
+    log_ej_actual: {tab: 'general', type: :boolean, gcols: 4, pref: true},
   }
 
   @grid = {
