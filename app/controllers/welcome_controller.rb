@@ -261,8 +261,8 @@ class WelcomeController < ApplicationController
       end
     end
 
-    # Calcular en qué ejercicio se va a entrar
-    if @usu.empresa_def_id && @usu.pref[:log_ej_actual]
+    # Calcular en qué ejercicio se va a entrar (sólo al iniciar sesión)
+    if flash[:login] && @usu.empresa_def_id && @usu.pref[:log_ej_actual]
       jid = Ejercicio.where('empresa_id = ? AND ? BETWEEN fec_inicio AND fec_fin', @usu.empresa_def_id, Date.today).order('fec_inicio desc').limit(1).pluck(:id)[0] || @usu.ejercicio_def_id
       @usu.update_columns(ejercicio_def_id: jid) if jid != @usu.ejercicio_def_id
     end
