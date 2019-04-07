@@ -201,6 +201,9 @@ class WelcomeController < ApplicationController
     @assets_stylesheets = %w(welcome/menu)
     @assets_javascripts = %w(menu)
 
+    @usu.update_columns(empresa_def_id: nil, ejercicio_def_id: nil) if @usu.empresa_def_id && !Empresa.exists?(@usu.empresa_def_id)
+    @usu.update_columns(ejercicio_def_id: nil) if @usu.ejercicio_def_id && !Ejercicio.exists?(@usu.ejercicio_def_id)
+
     @v = Vista.new
     @v.data = {auto_comp: {ej: "empresa_id=#{@usu.empresa_def_id}", em: (@usu.admin ? '' : "id in (#{@usu.pref[:permisos][:emp].map{|e| e[0]}.join(',')})")}}
     @v.data[:eid] = @usu.empresa_def_id
