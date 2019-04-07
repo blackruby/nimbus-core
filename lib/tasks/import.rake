@@ -3,7 +3,7 @@
 
 namespace :nimbus do
   desc 'Importación de tablas en PostgreSQL y cálculo de las columnas _id'
-  task :import, [:opt] => :environment do |_task, args|
+  task :import, [:opt, :op1, :op2] => :environment do |_task, args|
 
     # Método recursivo para calcular la clave primaria ampliada (pk_a)
 
@@ -40,9 +40,10 @@ namespace :nimbus do
     path_i = "/nimbus-import/#{Rails.app_class.to_s.split(':')[0].downcase}"
 
     opt = args[:opt]
-    if opt.nil? || !%w(c a m).include?(opt)
+    #if !%w(c a m).include?(opt) || nh && nh != 'nh'
+    if !%w(c a m).include?(opt) || ![nil, 'nh', 'np'].include?(args[:op1]) || ![nil, 'nh', 'np'].include?(args[:op2]) || args.to_a.size > 3
       puts
-      puts 'Sintaxis: rake nimbus:import[c|a|m]'
+      puts 'Sintaxis: rake nimbus:import[c|a|m,nh|np,nh|np]'
       puts 
       puts '  Esta tarea procesa todos los ficheros con extensión "csv" que se encuentren'
       puts "  en la carpeta #{path_i}"
@@ -63,13 +64,13 @@ namespace :nimbus do
       puts '  rake nimbus:import[c]'
       puts '    Crea en vacío cada una de las tablas y sus históricos y luego inserta.'
       puts '    Los campos references se calcularán tanto desde los registros ya existentes'
-      puts '    como desde registros pertenecientes a otros ficheros inportados en la'
+      puts '    como desde registros pertenecientes a otros ficheros importados en la'
       puts '    misma sesión.'
       puts
       puts '  rake nimbus:import[a]'
       puts '    Inserta nuevos registros. Si alguno ya existiera se producirá una excepción.'
       puts '    Los campos references se calcularán tanto desde los registros ya existentes'
-      puts '    como desde registros pertenecientes a otros ficheros inportados en la'
+      puts '    como desde registros pertenecientes a otros ficheros importados en la'
       puts '    misma sesión.'
       puts
       puts '  rake nimbus:import[m]'
@@ -78,15 +79,31 @@ namespace :nimbus do
       puts '    ya existentes y no con otros declarados en la misma sesión.'
       puts '    Para esta opción es necesario una versión de postgres >= 9.5'
       puts
-      puts '  Todas las opciones actualizan los históricos si existieran.'
+      puts '  Todas las opciones actualizan los históricos si existieran'
+      puts '  salvo si ha especificado la opción "nh" como segundo argumento.'
+      puts '  P.ej.: "rake nimbus:import[a,nh]" insertaría nuevos registros'
+      puts '  pero no actualizaría sus históricos.'
       puts
-      puts '  si en cualquier módulo existiera un fichero llamado igual que el fichero'
+      puts '  Si en cualquier módulo existiera un fichero llamado igual que el fichero'
       puts '  procesado pero con extensión ".rb" en la carpeta "db/import", éste será'
       puts '  ejecutado antes de borrar las columnas adicionales para poder hacer el'
       puts '  postprocesado que se desee.'
+      puts '  El postprocesado no se realizará si se especifica la opción "np".'
+      puts '  P.ej.: "rake nimbus:import[a,np]" insertaría nuevos registros'
+      puts '  pero no postprocesaría las tablas.'
+      puts
+      puts '  Si no se desea actualizar históricos ni postprocesar habría que'
+      puts '  especificar las dos opciones ("nh" y "np") en cualquier orden.'
+      puts '  P.ej.: "rake nimbus:import[a,nh,np]"'
+      puts
+      puts '  Es importante notar que para especificar las opciones, éstas tienen'
+      puts '  que ir entre corchetes, separadas por comas y sin ningún espacio en blanco.'
       puts
       exit 1
     end
+
+    nh = args[:op1] == 'nh' || args[:op2] == 'nh'
+    np = args[:op1] == 'np' || args[:op2] == 'np'
 
     if opt == 'm'
       version = sql_exe('select version()').pluck('version')[0].split[1].to_f
@@ -113,29 +130,36 @@ namespace :nimbus do
         File.foreach(fic) {|l| head = l.chomp; break}
         cmps = head.split(',')
 
-        name_a = fic.split('/')[-1][0..-5].downcase.split('_')
-        if name_a.size == 1
-          mod = name_a[0].capitalize.constantize
+        name = fic.split('/')[-1][0..-5].downcase
+        name_a = name.split('_')
+
+        if name_a.size == 1 || name_a[0] == 'h'
+          name[2..-1].camelize.constantize if name_a[0] == 'h' # Para precargar la clase del modelo principal si es un histórico
+          mod = name.camelize.constantize
         else
-          mod = (name_a[0].capitalize + '::' + name_a[1].capitalize).constantize
+          "#{name_a[0].capitalize}::#{name_a[2..-1].join('_').camelize}".constantize if name_a[1] == 'h' # Para precargar la clase del modelo principal si es un histórico
+          mod = "#{name_a[0].capitalize}::#{name_a[1..-1].join('_').camelize}".constantize
         end
 
         cmps_o = mod.column_names
 
         puts mod.to_s
 
-        tab_update << {mod: mod, cols_id: [], cols_csv: []}
+        tab_update << {mod: mod, cols_id: [], cols_csv: [], hay_id: cmps.include?('id')}
         tu = tab_update[-1]
 
         if opt == 'm'
           # Creamos una tabla auxilar para insertar los registros
           tab = "_tmp_#{mod.table_name}"
-          sql_exe("CREATE TEMP TABLE #{tab} (LIKE #{mod.table_name}) ON COMMIT DROP; ALTER TABLE #{tab} DROP COLUMN id")
+          #sql_exe("CREATE TEMP TABLE #{tab} (LIKE #{mod.table_name}) ON COMMIT DROP; ALTER TABLE #{tab} DROP COLUMN id")
+          sql_exe("CREATE TEMP TABLE #{tab} (LIKE #{mod.table_name}) ON COMMIT DROP")
+          sql_exe("ALTER TABLE #{tab} DROP COLUMN id") unless tu[:hay_id]
         else
           tab = mod.table_name
           if opt == 'c'
+            sql_exe("TRUNCATE #{tab} RESTART IDENTITY")
             his = mod.modelo_histo
-            sql_exe("TRUNCATE #{his ? tab + ',' + his.table_name : tab} RESTART IDENTITY")
+            sql_exe("TRUNCATE #{his.table_name} RESTART IDENTITY") if his && !nh
           end
           tu[:last_id] = sql_exe("select last_value from #{tab}_id_seq").values[0][0]
         end
@@ -220,18 +244,20 @@ namespace :nimbus do
           t[:ids] = sql_exe(%Q{
             INSERT INTO #{t[:mod].table_name} (#{cols})
             SELECT #{cols} FROM #{t[:tab]}
-            ON CONFLICT (#{t[:mod].pk.join(',')}) DO UPDATE SET (#{cols}) = (#{t[:cols_csv].map{|c| 'EXCLUDED.' + c}.join(',')})
+            ON CONFLICT (#{t[:hay_id] ? 'id' : t[:mod].pk.join(',')}) DO UPDATE SET (#{cols}) = (#{t[:cols_csv].map{|c| 'EXCLUDED.' + c}.join(',')})
             RETURNING id
           }).pluck('id')
         }
         puts
       end
 
-      puts 'Postprocesado de tablas.'
-      Dir.glob("**/db/import/{#{ficheros_procesados.join(',')}}.rb").each {|f|
-        puts f
-        load(f)
-      }
+      unless np
+        puts 'Postprocesado de tablas.'
+        Dir.glob("**/db/import/{#{ficheros_procesados.join(',')}}.rb").each {|f|
+          puts f
+          load(f)
+        }
+      end
 
       if drop_cols.present?
         puts
@@ -240,24 +266,26 @@ namespace :nimbus do
         sql_exe("#{drop_cols}")
       end
 
-      # Actualizar históricos
-      puts
-      puts 'Actualizando históricos'
-      ahora = Nimbus.now
-      tab_update.each {|t|
-        his = t[:mod].modelo_histo
-        next unless his
-        puts his.table_name
-        wh = opt == 'm' ? "IN (#{t[:ids].join(',')})" : ">= #{t[:last_id]}"
-        cols = t[:mod].column_names.join(',')
-        sql_exe %Q(
-          INSERT INTO #{his.table_name}
-          (created_by_id, created_at, id#{cols})
-          SELECT 1, '#{ahora}', #{cols}
-          FROM #{t[:mod].table_name}
-          WHERE id #{wh}
-        )
-      }
+      unless nh
+        # Actualizar históricos
+        puts
+        puts 'Actualizando históricos'
+        ahora = Nimbus.now
+        tab_update.each {|t|
+          his = t[:mod].modelo_histo
+          next unless his
+          puts his.table_name
+          wh = opt == 'm' ? "IN (#{t[:ids].join(',')})" : ">= #{t[:last_id]}"
+          cols = t[:mod].column_names.join(',')
+          sql_exe %Q(
+            INSERT INTO #{his.table_name}
+            (created_by_id, created_at, id#{cols})
+            SELECT 1, '#{ahora}', #{cols}
+            FROM #{t[:mod].table_name}
+            WHERE id #{wh}
+          )
+        }
+      end
     end
   end
 end

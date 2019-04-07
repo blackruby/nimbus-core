@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Nuevas tareas de rake: 'nimbus:empeje' y mejora de 'nimbus:import'.
+-------------------------------------------------------------------------------
 .- Nueva opción en usuarios para poder iniciar sesión en el ejercicio actual
    independientemente del ejercicio por defecto que tuviera.
 -------------------------------------------------------------------------------

@@ -289,6 +289,14 @@ class String
   end
 end
 
+class Numeric
+  # Formatea un número con separador de miles
+  def to_texto
+      n = self.to_s.split('.')
+     n[0].reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse + (n[1] ? ",#{n[1]}" : '')
+  end
+end
+
 def fecha_texto(fecha, formato = :default)
   if fecha.nil?
     ''
