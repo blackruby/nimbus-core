@@ -19,7 +19,13 @@ function editInLine() {
 
 function searchBar() {vgrid[0].toggleToolbar();}
 
+function fichaLoaded() {
+  fichaLoading = false;
+}
+
 function editInForm(id) {
+  if (fichaLoading) return;
+
   if (id != null) {
     // Seguimos el convenio de que si el "id" tiene un underscore significa
     // que la parte izquierda es el id principal y el de la derecha sería
@@ -36,9 +42,10 @@ function editInForm(id) {
   } else
     id = grid.jqGrid('getGridParam', 'selrow');
 
-  if (id != null)
+  if (id != null) {
+    fichaLoading = true;
     $("#ficha").attr('src', varView.url_base + id + '/edit' + varView.arg_edit + hijos);
-  else
+  } else
     alert("Seleccione un registro");
 }
 

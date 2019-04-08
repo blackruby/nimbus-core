@@ -118,7 +118,7 @@
          gr << ' mdl-cell--' + c.to_s + '-col-phone'
          fi << ' mdl-cell--' + (c >= 4 ? 4 : 4-c).to_s + '-col-phone'
          gr << '"><table id="grid"></table></div>'
-         fi << '"><iframe id="ficha" class="ficha"> </iframe></div>'
+         fi << '"><iframe id="ficha" class="ficha" onLoad="fichaLoaded()"> </iframe></div>'
 
          ((@view[:grid][:ew] == :w) ? gr + fi : fi + gr).html_safe
       %>

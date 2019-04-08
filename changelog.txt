@@ -1,4 +1,8 @@
 -------------------------------------------------------------------------------
+.- Nuevo control en mantenimientos para no poder editar fichas mientras hay una
+   edición en progreso. Hasta que no se completa la carga de una ficha no se
+   puede editar otra.
+-------------------------------------------------------------------------------
 .- Nueva opción en la configuración del gi: "No saltar en la última ruptura".
 -------------------------------------------------------------------------------
 .- Nuevas tareas de rake: 'nimbus:empeje' y mejora de 'nimbus:import'.
