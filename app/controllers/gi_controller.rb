@@ -685,6 +685,7 @@ Variables disponibles para usar en los métodos de usuario
 @dat        Es un hash vacío para poder almacenar variables de usuario
 @data       Es un array de arrays conteniendo todas las filas de datos
             que se pintarán
+@ds         @data.size - 1
 @wb         Referencia al workbook
 @sh         Hoja (sheet) principal
 @di         Índice de datos (indica el índice en @data que se está procesando)
@@ -1183,7 +1184,7 @@ class GI
       @ban = "rp#{i}"
       @rupi = i + 1
       _add_banda(@form[:rup][i][:pie], valores, sheet)
-      if @form[:rup][i][:salto]
+      if @form[:rup][i][:salto] && (!@form[:no_salto_last_rup] || @di < @ds)
         sheet.add_page_break("A#{@ris[sheet]}") unless @form[:cab_din]
         @lis[sheet] = -1
       end
@@ -1266,7 +1267,7 @@ class GI
     inicio if self.respond_to?(:inicio)
     @d = @data[0] # Por si 'inicio' ha alterado el array @data
     @di = 0
-    ds = @data.size - 1
+    @ds = @data.size - 1
 
     # Añadir banda de cabecera (si no hay método específico)
     row_ini_cab = @ri
@@ -1310,7 +1311,7 @@ class GI
       end
 
       # Calcular rup
-        if di == ds
+        if di == @ds
           @rup = @nr
         else
           @rup = 0

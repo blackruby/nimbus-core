@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Nueva opción en la configuración del gi: "No saltar en la última ruptura".
+-------------------------------------------------------------------------------
 .- Nuevas tareas de rake: 'nimbus:empeje' y mejora de 'nimbus:import'.
 -------------------------------------------------------------------------------
 .- Nueva opción en usuarios para poder iniciar sesión en el ejercicio actual
