@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+.- Control en load_adds para no heredar belongs_to de vistas.
+-------------------------------------------------------------------------------
 .- Nuevo control en mantenimientos para no poder editar fichas mientras hay una
    edición en progreso. Hasta que no se completa la carga de una ficha no se
    puede editar otra.

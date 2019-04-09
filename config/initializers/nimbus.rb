@@ -117,12 +117,12 @@ module Nimbus
       rescue
       end
     else
-      # Tratamientos especiales en el caso de que sea un modelo con histórico
+      # Tratamientos especiales en el caso de que sea un modelo con histórico (y no sea una vista)
 
       modulo = f[-2] == 'models' ? '' : f[-2]
       modelo = ((modulo == '' ? '' : modulo.capitalize + '::') + f[-1][0..-4].capitalize).constantize
       histo = modelo.modelo_histo
-      if histo
+      if !modelo.view? && histo
         # Desactivar los callbacks al grabar registros (save) del histórico
         histo.reset_callbacks(:save)
 
