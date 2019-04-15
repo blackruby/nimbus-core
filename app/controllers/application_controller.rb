@@ -3,7 +3,7 @@ SESSION_EXPIRATION_TIME = 30.minutes
 class ApplicationController < ActionController::Base
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
-  protect_from_forgery with: :exception
+  protect_from_forgery with: :exception, unless: -> {params[:action] == 'destroy_vista'}
 
   include ActionView::Helpers::NumberHelper
 
@@ -858,7 +858,7 @@ class ApplicationController < ActionController::Base
 
     eid, jid = get_empeje
 
-    # Tener en cuenta de que puede llegar el parámetro prm en modo consulta ('c') en el caso de que venga de un padre con bloqueo (nimlock)
+    # Tener en cuenta que puede llegar el parámetro prm en modo consulta ('c') en el caso de que venga de un padre con bloqueo (nimlock)
     if @usu.admin
       #prm = 'p'
       prm = params[:lock] ? 'c' : 'p'
@@ -2884,8 +2884,8 @@ class ApplicationController < ActionController::Base
   # Método para destruir una vista cuando se abandona la página
 
   def destroy_vista
-    #sql_exe("DELETE FROM vistas where id = #{params[:vista]}")
-    Vista.where('id in (?)', params[:vista]).delete_all
+    #Vista.where('id in (?)', params[:vista]).delete_all
+    Vista.where(id: params[:vista]).delete_all
 
     # Borrar todas las imágenes temporales que queden
     `rm -f /tmp/nimImg-#{params[:vista]}-*`

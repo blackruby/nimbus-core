@@ -1479,6 +1479,7 @@ $(window).load(function() {
   $(window).unload(function() {
     if (typeof(_vista) == "undefined") return;
 
+    /*
     var vista = [];
     var nimlock = [];
 
@@ -1503,5 +1504,10 @@ $(window).load(function() {
       async: false,
       data: {vista: vista, nimlock: nimlock}
     });
+    */
+    var data = new FormData();
+    data.set('vista', _vista);
+    if (typeof(_nimlock) != "undefined") data.set('nimlock', _nimlock);
+    navigator.sendBeacon("/application/destroy_vista", data);
   });
 });

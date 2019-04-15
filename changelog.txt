@@ -1,4 +1,12 @@
 -------------------------------------------------------------------------------
+.- Nuevo tratamiento en el control del "unload" de las páginas. En vez de enviar
+   un request ajax (que parece que no funciona en todos los navegadores) se usa
+   navigator.sendBeacon que parece que siempre funciona. También parece
+   innecesario el rastrear todas las "_vistas" de las páginas hijas en previsión
+   de que no se dispare su unload. El problema siempre estaba en el request
+   ajax. Ahora con sendBeacon parece garantizado que cada página (padre o hija)
+   destruya su _vista y su bloqueo (_nimlock).
+-------------------------------------------------------------------------------
 .- Control en load_adds para no heredar belongs_to de vistas.
 -------------------------------------------------------------------------------
 .- Nuevo control en mantenimientos para no poder editar fichas mientras hay una
