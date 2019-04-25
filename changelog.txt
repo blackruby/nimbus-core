@@ -1,4 +1,17 @@
 -------------------------------------------------------------------------------
+.- Nuevo callback "set_permiso"
+.- Corregido bug en históricos de registros que dependían de ejercicio.
+.- Unificación de todos los métodos before_xxx (index, new, edit) para que
+   sigan la misma filosofía.
+,- Nuevo layout "mensaje" para poder renderizar una página con un mensaje
+   desde donde sea necesario (fundamentalmente en los before_xxx)
+.- Ordenación descendente de ejercicios en auto_comp.
+,- Corregido bug en permisos de informes. Ahora se calcula bien el permiso
+   en función de la empresa.
+.- Mejor tratamiento de títulos en la presentación del menú en perfiles.
+.- Nuevo método "fact_parent" con el objetivo de eliminar @fact.parent 
+.- Nueva opción en el hash de retorno de métodos "vali": ':reponer'
+-------------------------------------------------------------------------------
 .- Nuevo tratamiento en el control del "unload" de las páginas. En vez de enviar
    un request ajax (que parece que no funciona en todos los navegadores) se usa
    navigator.sendBeacon que parece que siempre funciona. También parece

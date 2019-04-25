@@ -20,6 +20,8 @@ class Ejercicio < ActiveRecord::Base
 
   serialize :param
 
+  @auto_comp_data    = {campos: %w(codigo descripcion), orden: 'fec_inicio desc'}
+
   after_initialize :ini_campos
 
   def ini_campos

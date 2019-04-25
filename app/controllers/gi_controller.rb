@@ -323,11 +323,16 @@ class GiController < ApplicationController
             pref << "/controllers"
           end
         end
-        return({redirect: "#{pref_html}#{@gi_formato}"}) if File.exist?("#{pref}/#{@gi_formato}_controller.rb")
+        #return({redirect: "#{pref_html}#{@gi_formato}"}) if File.exist?("#{pref}/#{@gi_formato}_controller.rb")
+        if File.exist?("#{pref}/#{@gi_formato}_controller.rb")
+          redirect_to "#{pref_html}#{@gi_formato}"
+          return
+        end
       end
 
-
-      return('/public/401.html') unless @usu.admin or params[:modulo] == 'publico' or params[:modulo] == 'privado' or @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
+      #return('/public/401.html') unless @usu.admin or params[:modulo] == 'publico' or params[:modulo] == 'privado' or @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
+      prm = @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
+      return(false) unless @usu.admin or params[:modulo] == 'publico' || params[:modulo] == 'privado' || prm && prm[get_empeje[0].to_i]
     else
       ctr = params[:controller].split('/')
       if ctr.size == 1
@@ -342,21 +347,26 @@ class GiController < ApplicationController
     @formato = GI.new(@gi_modulo, @gi_formato, @usu.codigo, nil)
     @form = @formato.formato
 
-    @titulo = @form[:descripcion] if @form[:descripcion] && !@form[:descripcion].strip.empty?
-    if @form[:modelo]
-      cl = h_constantize(@form[:modelo])
-      if cl.respond_to?('ejercicio_path')
-        @nivel = :j
-      elsif cl.respond_to?('empresa_path')
-        @nivel = :e
+    if @form
+      @titulo = @form[:descripcion] if @form[:descripcion] && !@form[:descripcion].strip.empty?
+      if @form[:modelo]
+        cl = h_constantize(@form[:modelo])
+        if cl.respond_to?('ejercicio_path')
+          @nivel = :j
+        elsif cl.respond_to?('empresa_path')
+          @nivel = :e
+        end
+        @titulo ||= 'Listado de ' + nt(cl.table_name)
+      else
+        @titulo ||= 'Listado'
       end
-      @titulo ||= 'Listado de ' + nt(cl.table_name)
+      @nivel ||= :g
+      return true
     else
-      @titulo ||= 'Listado'
+      render file: '/public/404.html', status: 404, layout: false
+      return
     end
-    @nivel ||= :g
-
-    @form ? nil : {file: '/public/404.html', status: 404}
+    #@form ? nil : {file: '/public/404.html', status: 404}
   end
 
   def before_envia_ficha
@@ -782,7 +792,7 @@ class GI
     end
 
     # Cargar fuentes si existen
-    if cl
+    if cl && form
       cl.instance_eval(File.read(path + form[:fuente] + '.rb')) if File.exist?(path + form[:fuente].to_s + '.rb')
       cl.instance_eval(File.read(path + file + '.rb')) if File.exist?(path + file + '.rb')
     end

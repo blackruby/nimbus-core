@@ -173,7 +173,8 @@ class ApplicationController < ActionController::Base
     @ajax << '$(window).load(function(){' if h[:onload]
     @ajax << "$('<div></div>', #{h[:context]}).html(#{h[:msg].to_json}).dialog({"
     @ajax << 'resizable: false, modal: true, width: "auto",'
-    @ajax << 'close: function(){$(this).remove();},'
+    #@ajax << 'close: function(){$(this).remove();},'
+    @ajax << "close: function(){#{h[:js] ? h[:js] : ''};$(this).remove();},"
     @ajax << "title: #{h[:tit].to_json},"
     @ajax << 'buttons: {'
     h[:bot].each {|b|
@@ -817,11 +818,6 @@ class ApplicationController < ActionController::Base
     @ajax << '});' if posponer
   end
 
-  def sincro_parent
-    @dat[:vp].save
-    @ajax << 'parent.parent.callFonServer("envia_ficha");'
-  end
-
   def get_empeje
     #emej = cookies[:emej].split(':')
     emej = cookies[Nimbus::CookieEmEj] ? cookies[Nimbus::CookieEmEj].split(':') : ['null', 'null']
@@ -848,10 +844,7 @@ class ApplicationController < ActionController::Base
     ini_ajax
 
     self.respond_to?('before_index') ? r = before_index : r = true
-    unless r
-      render file: '/public/401.html', status: 401, layout: false
-      return
-    end
+    return if render_before_ine(r)
 
     clm = class_mant
     mod_tab = clm.table_name
@@ -1215,10 +1208,10 @@ class ApplicationController < ActionController::Base
 
   def set_titulo(tit, ecod, jcod)
     @titulo = "#{ecod}#{jcod ? '/' : ''}#{jcod} #{tit}"
-    if jcod
+    if jcod && @dat
       @titulo_htm = "#{ecod}&nbsp;/"
       @titulo_htm << '<select id="sel-nim-ejer" onchange="selNewEjercicio()">'
-      Ejercicio.where(empresa: @dat[:eid]).order(:codigo).pluck(:id, :codigo).each{|j|
+      Ejercicio.where(empresa: @dat[:eid]).order(fec_inicio: :desc).pluck(:id, :codigo).each{|j|
         @titulo_htm << %Q(<option #{j[1] == jcod ? 'selected' : ''} value="#{j[0]}">#{j[1]}</option>)
       }
       @titulo_htm << '</select>'
@@ -1267,6 +1260,7 @@ class ApplicationController < ActionController::Base
     end
   end
 
+=begin
   def set_parent(vid = false)
     if params[:padre]
       @dat[:vp] = Vista.find(params[:padre].to_i)
@@ -1278,12 +1272,53 @@ class ApplicationController < ActionController::Base
       end
     end
   end
+=end
+
+  def set_parent
+    if params[:padre]
+      @dat[:pid] = params[:padre]
+      @dat[:vp] = Vista.find(params[:padre])
+      @fact.parent = @dat[:vp].data[:fact]
+    end
+  end
+
+  def graba_v
+    @v.save
+    if @dat[:vp]
+      @dat[:vp].data[:hijos] ||= {}
+      @dat[:vp].data[:hijos][params[:controller]] = @v.id
+      @dat[:vp].save
+    end
+  end
 
   def fact_hijo(ctrl)
-    if @v.data[:hijos] && @v.data[:hijos][ctrl]
-      Vista.find(@v.data[:hijos][ctrl]).data[:fact]
+    h = (@v.data[:hijos] && @v.data[:hijos][ctrl]) ? Vista.find_by(id: @v.data[:hijos][ctrl]) : nil
+    h ? h.data[:fact] : nil
+  end
+
+  def fact_parent
+    @v_parent = Vista.find(@dat[:pid]) if @dat[:pid] && @v_parent.nil?
+    @v_parent ? @v_parent.data[:fact] : nil
+  end
+
+  def sincro_parent
+    @v_parent ? @v_parent.save : @dat[:vp].save
+    @ajax << 'parent.parent.callFonServer("envia_ficha");'
+  end
+
+  def render_before_ine(r)
+    return true if performed?
+    if r == true
+      return false
     else
-      nil
+      if r.is_a? Hash
+        @mensaje = r
+        r[:tit] ||= 'Aviso'
+        render html: '', layout: 'mensaje'
+      else
+        render file: '/public/401.html', status: 401, layout: false
+      end
+      return true
     end
   end
 
@@ -1291,14 +1326,12 @@ class ApplicationController < ActionController::Base
     ini_ajax
 
     self.respond_to?('before_new') ? r = before_new : r = true
-    unless r
-      render file: '/public/401.html', status: 401, layout: false
-      return
-    end
+    return if render_before_ine(r)
 
     clm = class_mant
 
-    @v = Vista.create
+    #@v = Vista.create
+    @v = Vista.new
     @v.data = {}
     @dat = @v.data
     @dat[:persistencia] = {}
@@ -1310,7 +1343,8 @@ class ApplicationController < ActionController::Base
     @dat[:idindex] = params[:idindex].to_i
     #@fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord ???
 
-    set_parent @v.id
+    #set_parent @v.id
+    set_parent
 
     #var_for_views(clm)
 
@@ -1332,7 +1366,8 @@ class ApplicationController < ActionController::Base
 
     if params[:mod]
       # Si es un mant hijo, inicializar el id del padre
-      eval('@fact.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
+      #eval('@fact.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
+      @fact[params[:mod].split(':')[-1].downcase + '_id'] = params[:id]
     else
       if clm.respond_to?('ejercicio_path')
         if jid.nil?
@@ -1357,18 +1392,19 @@ class ApplicationController < ActionController::Base
 
     @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
-    @ajax << '_vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
+    #@ajax << '_vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
 
     #Activar botones necesarios (Grabar/Borrar)
     #@ajax << 'statusBotones({grabar: true, borrar: false});'
     status_botones grabar: true, borrar: false, osp: false
     @ajax << 'setMenuR(false);'
 
-    #before_envia_ficha if self.respond_to?('before_envia_ficha')
     call_nimbus_hook :before_envia_ficha
     envia_ficha
 
-    @v.save
+    #@v.save
+    graba_v
+    @ajax << '_vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
 
     pag_render('ficha')
   end
@@ -1458,6 +1494,7 @@ class ApplicationController < ActionController::Base
 
     ini_ajax
 
+=begin
     ((!clm.mant? or @fact.id != 0) and self.respond_to?('before_edit')) ? r = before_edit : r = nil
     if r
       if r.is_a? Hash
@@ -1471,6 +1508,9 @@ class ApplicationController < ActionController::Base
       end
       return
     end
+=end
+    ((!clm.mant? or @fact.id != 0) and self.respond_to?('before_edit')) ? r = before_edit : r = true
+    return if render_before_ine(r)
 
     #var_for_views(clm)
     call_nimbus_hook :ini_campos
@@ -1484,7 +1524,7 @@ class ApplicationController < ActionController::Base
     @dat[:fact] = @fact
     @dat[:head] = params[:head] if params[:head]
 
-    #set_parent
+    set_parent
 
     emp_perm = nil
 
@@ -1559,10 +1599,13 @@ class ApplicationController < ActionController::Base
       end
     end
 
+    call_nimbus_hook(:set_permiso) if clm.mant? && @fact.id != 0
+
     @dat[:idindex] = params[:idindex].to_i
     @dat[:prm] = 'c' if params[:lock]
 
-    blq = nil
+    #blq = nil
+    blq = (@dat[:prm] == 'c')
     if clm.mant? && @fact.id != 0 && clm.nim_lock && @dat[:prm] != 'c'
       begin
         add_nim_lock
@@ -1597,14 +1640,14 @@ class ApplicationController < ActionController::Base
 
     @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
-    @v.save unless clm.mant? and @fact.id == 0
+    #@v.save unless clm.mant? and @fact.id == 0
 
-    set_parent @v.id
+    #set_parent @v.id
 
     @ajax << 'eid="' + @dat[:eid].to_s + '",jid="' + @dat[:jid].to_s + '";'
-    unless clm.mant? and @fact.id == 0
-      @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
-    end
+    #unless clm.mant? and @fact.id == 0
+    #  @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
+    #end
 
     var_for_views(clm)
 
@@ -1612,10 +1655,11 @@ class ApplicationController < ActionController::Base
     call_nimbus_hook :before_envia_ficha
 
     unless clm.mant? and @fact.id == 0
+      graba_v
+      @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
       envia_ficha
       sincro_hijos(true, blq ? true : false) if clm.mant?
-
-      @v.save
+      #@v.save
     end
 
     r = false
@@ -1814,31 +1858,38 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def envia_campo(cmp, val)
+  def envia_campo(cmp, val, ajax = true)
     cmp_s = cmp.to_s
     cp = @fact.campos[cmp.to_sym]
 
-    return if cp[:img]
+    return('') if cp[:img]
 
     case cp[:type]
     when :boolean
       val = false unless val
-      #@ajax << '$("#' + cmp_s + '").prop("checked",' + val.to_s + ');'
-      @ajax << "mdlCheck('#{cmp_s}',#{val.to_s});"
+      res = "mdlCheck('#{cmp_s}',#{val.to_s});"
     when :div
       if cp[:grid_sel]
-        @ajax_post << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
+        res = "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
+        @ajax_post << res if ajax
+        return res
+      else
+        res = ''
       end
     when :datetime
-      @ajax << '$("#_f_' + cmp_s + '").val(' + (val ? val.strftime('%d-%m-%Y').to_json : '""') + ');'
-      @ajax << '$("#_h_' + cmp_s + '").val(' + (val ? val.strftime('%H:%M' + (cp[:seg] ? ':%S' : '')).to_json : '""') + ');'
+      res = '$("#_f_' + cmp_s + '").val(' + (val ? val.strftime('%d-%m-%Y').to_json : '""') + ');'
+      res << '$("#_h_' + cmp_s + '").val(' + (val ? val.strftime('%H:%M' + (cp[:seg] ? ':%S' : '')).to_json : '""') + ');'
     when :upload
       # No hacer nada
+      res = ''
     else
-      @ajax << '$("#' + cmp_s + '").val(' + forma_campo(:form, @fact, cmp_s, val).to_json + ')'
-      @ajax << '.attr("dbid",' + val.to_s + ')' if cmp_s.ends_with?('_id') and val
-      @ajax << ';'
+      res = '$("#' + cmp_s + '").val(' + forma_campo(:form, @fact, cmp_s, val).to_json + ')'
+      res << '.attr("dbid",' + val.to_s + ')' if cmp_s.ends_with?('_id') and val
+      res << ';'
     end
+
+    @ajax << res if ajax
+    res
   end
 
   def call_on(c, val)
@@ -1964,11 +2015,11 @@ class ApplicationController < ActionController::Base
 
   def procesa_vali(err)
     if err.nil? or err == ''
-      @last_error = [nil, :blando]
+      @last_error = [nil, :blando, false]
     elsif err.is_a? String
-      @last_error = [err, :duro]
+      @last_error = [err, :duro, false]
     else  # Se supone que es un hash con dos claves: :msg (con el texto del error) y :tipo (:duro o :blando)
-      @last_error = [err[:msg], err[:tipo] || :blando]
+      @last_error = [err[:msg], err[:tipo] || :blando, err[:reponer]]
     end
   end
 
@@ -2635,10 +2686,15 @@ class ApplicationController < ActionController::Base
     if err.nil?
       @ajax << '$("#' + campo + '").removeClass("ui-state-error");'
     else
-      @ajax << '$("#' + campo + '").focus();'
-      @ajax << '$("#' + campo + '").addClass("ui-state-error");'
-      #@ajax << 'alert(' + err.to_json + ');' if err != ''
-      mensaje(err)
+      h = {msg: err}
+      if @last_error[2]  # Hay que reponer el valor anterior del campo (cuando se cierre el mensaje)
+        @fact[campo] = @fant[campo.to_sym]
+        h[:js] = envia_campo(campo, @fact[campo], false) + "$('##{campo}').focus()"
+      else
+        @ajax << '$("#' + campo + '").focus();'
+        @ajax << '$("#' + campo + '").addClass("ui-state-error");'
+      end
+      mensaje h
     end
 
     if @fact[campo] == valor
@@ -2822,7 +2878,7 @@ class ApplicationController < ActionController::Base
           #Refrescar el grid si procede
           grid_reload
 
-          if @dat[:grabar_y_alta] or params[:_new] # Entrar en una ficha nueva después de grabar
+          if @dat[:grabar_y_alta] == true || params[:_new] || @dat[:grabar_y_alta] == :new && @fant[:id].nil? # Entrar en una ficha nueva después de grabar
             @ajax << "parent.newFicha(#{@fact.id});"
           else
             if @fant[:id].nil?

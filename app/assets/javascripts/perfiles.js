@@ -28,7 +28,7 @@ function _genMenu(menu) {
       cadMenu += "</div>";
       cadMenu += "</div>";
     } else {
-      if (menu[m].url) {
+      if (menu[m].url != null) {
         cadMenu += "<div clave='" + m + "'>";
         menuOption(menu[m].nt, 'relleno', menu[m].st, menu[m].sth);
         cadMenu += "</div>";

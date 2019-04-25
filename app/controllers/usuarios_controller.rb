@@ -64,7 +64,8 @@ class UsuariosController < ApplicationController
   end
 
   def before_edit
-    return(@usu.admin || @fact.id == @usu.id || @usu.pref[:permisos][:usu].include?(@fact.id) ? nil : '/public/401.html')
+    #return(@usu.admin || @fact.id == @usu.id || @usu.pref[:permisos][:usu].include?(@fact.id) ? nil : '/public/401.html')
+    @usu.admin || @fact.id == @usu.id || @usu.pref[:permisos][:usu].include?(@fact.id)
   end
 
   def existe_dato(eid, dat)
