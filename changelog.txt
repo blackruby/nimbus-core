@@ -1,4 +1,8 @@
 -------------------------------------------------------------------------------
+.- Optimizada la selección de ejercicios en los títulos de mantenimientos.
+.- Priorizado el fichero de preferencia en las búsquedas al indicado en el 
+   flash o en el params sobre la preferencia del usuario.
+-------------------------------------------------------------------------------
 .- Nuevo callback "set_permiso"
 .- Corregido bug en históricos de registros que dependían de ejercicio.
 .- Unificación de todos los métodos before_xxx (index, new, edit) para que

@@ -964,7 +964,7 @@ class ApplicationController < ActionController::Base
 
     @view[:arg_auto] = @v ? "&vista=#{@v.id}&cmp=_pk_input" : arg_ej
     #@titulo << ' ' + clm.titulo
-    set_titulo(clm.titulo, @e&.codigo, @j&.codigo) unless @titulo
+    set_titulo(clm.titulo, @e&.codigo, @j&.codigo, true) unless @titulo
 
     @view[:url_list] << arg_list_new + arg_ej + (@v ? "&vista=#{@v.id}" : '')
     @view[:url_new] << arg_list_new + arg_ej
@@ -1206,9 +1206,9 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def set_titulo(tit, ecod, jcod)
+  def set_titulo(tit, ecod, jcod, list_ej = false)
     @titulo = "#{ecod}#{jcod ? '/' : ''}#{jcod} #{tit}"
-    if jcod && @dat
+    if jcod && list_ej && @dat
       @titulo_htm = "#{ecod}&nbsp;/"
       @titulo_htm << '<select id="sel-nim-ejer" onchange="selNewEjercicio()">'
       Ejercicio.where(empresa: @dat[:eid]).order(fec_inicio: :desc).pluck(:id, :codigo).each{|j|
