@@ -797,6 +797,13 @@ class ApplicationController < ActionController::Base
     open_url("/histo/#{params[:ctr]}/#{-params[:mod].constantize.find(params[:id]).idid}?idb=#{params[:id]}");
   end
 
+  def call_histo_pk
+    flash[:mod] = class_modelo.to_s
+    flash[:id] = @fact.id
+    flash[:head] = 0
+    open_url '/histo_pk'
+  end
+
   def sincro_hijos(posponer = false, lock = false)
     hijos = class_mant.hijos
     return if hijos.empty?
@@ -1239,7 +1246,8 @@ class ApplicationController < ActionController::Base
       @on_tabs << f if self.respond_to?(f)
     }
 
-    @head = (params[:head] ? params[:head].to_i : 1)
+    #@head = (params[:head] ? params[:head].to_i : 1)
+    @head = (flash[:head] || params[:head] || 1).to_i
     @menu_l = clm.menu_l
     @menu_r = clm.menu_r
 
@@ -2303,6 +2311,7 @@ class ApplicationController < ActionController::Base
       c[:type] = c[:type].to_sym
       case c[:type]
         when :boolean
+          c[:manti] ||= 6
           c[:align] ||= 'center'
           #c[:formatter] ||= 'checkbox'
           c[:formatter] ||= '~format_check~'
@@ -2320,6 +2329,7 @@ class ApplicationController < ActionController::Base
           c[:sortfunc] ||= '~sortNumero~'
           c[:align] ||= 'right'
         when :date
+          c[:manti] ||= 10
           c[:sorttype] ||= 'date'
           c[:formatter] ||= 'date'
           c[:editoptions][:dataInit] ||= '~function(e){date_pick(e)}~'
@@ -2327,10 +2337,19 @@ class ApplicationController < ActionController::Base
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
           #c[:sortfunc] ||= '~sortDate~'
         when :time
+          c[:manti] ||= 8
           c[:editoptions][:dataInit] ||= '~function(e){$(e).entrytime(' + (c[:seg] ? 'true,' : 'false,') + (c[:nil] ? 'true' : 'false') + ')}~'
           c[:searchoptions][:dataInit] ||= c[:editoptions][:dataInit]
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
+        when :datetime
+          c[:manti] ||= 19
+          c[:sorttype] ||= 'date'
+          c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
+          c[:formatter] = 'date'
+          format = "d-m-Y H:i#{c[:seg] ? ':s' : ''}"
+          c[:formatoptions] ||= {srcformat: format, newformat: format}
         when :references
+          c[:manti] ||= 30
           mt = c[:ref].split('::')
           c[:controller] = (mt.size == 1 ? c[:ref].constantize.table_name : mt[0].downcase + '/' + mt[1].downcase.pluralize)
           #sal << " go='go_#{cs}'" if self.respond_to?('go_' + cs)
@@ -2338,23 +2357,29 @@ class ApplicationController < ActionController::Base
           c[:editoptions] = {dataInit:  "~function(e){autoCompGridLocal(e,'#{c[:ref]}','#{c[:controller]}','#{cmp}','#{c[:name]}');}~"}
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
         when :text
+          c[:manti] ||= 30
           c[:edittype] ||= 'textarea'
           c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
         when :img
+          c[:manti] ||= 8
           c[:sortable] = false if c[:sortable].nil?
           c[:search] = false if c[:search].nil?
           c[:editable] = false
         else
           if c[:sel]
+            c[:manti] ||= 6
             c[:formatter] ||= 'select'
             c[:edittype] ||= 'select'
             c[:editoptions][:value] ||= c[:sel]
             c[:align] ||= 'center'
             c[:searchoptions][:sopt] ||= ['eq', 'ne', 'in', 'ni', 'nu', 'nn']
           else
+            c[:manti] ||= 30
             c[:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
           end
       end
+
+      c[:width] ||= 8 * [c[:manti].to_i, (c[:label] || c[:name]).size].max
     }
 
     data = opts[:data]

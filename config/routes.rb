@@ -15,6 +15,7 @@ Rails.application.routes.draw do
     get 'histo/:modulo/:tabla/:id' => 'application#histo'
     get 'histo/:tabla/:id' => 'application#histo'
     post 'histo_list' => 'application#histo_list'
+    get 'histo_pk' => 'histo_pk#edit'
   end
 
   unless Nimbus::Config[:excluir_usuarios]

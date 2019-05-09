@@ -196,6 +196,7 @@ class GiController < ApplicationController
     cols = Nimbus::Config.dig(:gi, :ord_cmp) ? cl.column_names : (['id'] + cl.pk + cl.column_names.sort).uniq
     cols.each {|c|
       cs = c.to_sym
+      next if cl.propiedades.dig(cs, :bus_hide)
       d = {table: cl.table_name, type: cl.columns_hash[c].type}
       if c.ends_with?('_id')
         assoc = cl.reflect_on_association(c[0..-4].to_sym)

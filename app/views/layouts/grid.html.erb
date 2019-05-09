@@ -86,6 +86,7 @@
     <nav class="mdl-navigation">
       <% if @view[:prm_hist] %>
         <a class="mdl-navigation__link" style="cursor: pointer" onclick="grid_historico()">Histórico del registro</a>
+        <a class="mdl-navigation__link" style="cursor: pointer" onclick="grid_historico_pk()">Histórico por clave</a>
         <a class="mdl-navigation__link" style="cursor: pointer" onclick="callFonServer('histo_borrados')">Histórico de borrados</a>
       <% end %>
       <% if @view[:menu_l].size > 0 %>

@@ -6,6 +6,10 @@ function historico() {
   if (_factId && _factId > 0) window.open("/histo/" + _controlador + "/" + _factId);
 }
 
+function historico_pk() {
+  if (_factId && _factId > 0) callFonServer("call_histo_pk");
+}
+
 function liFon(li, fon, tipo, side) {
   if ($(li).attr("disabled") == "disabled") return;
   if (typeof fon == 'function')

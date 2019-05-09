@@ -5,8 +5,8 @@ class Usuario < ActiveRecord::Base
     codigo: {pk: true, manti: 30},
     nombre: {},
     email: {},
-    password_salt: {},
-    password_hash: {},
+    password_salt: {bus_hide: true},
+    password_hash: {bus_hide: true},
     password_fec_mod: {},
     admin: {},
     timeout: {manti: 6, nil: true},
@@ -16,7 +16,7 @@ class Usuario < ActiveRecord::Base
     num_dias_validez_pass: {manti: 3, nil: true},
     ips: {manti: 80},
     ldapservidor_id: {},
-    pref: {},
+    pref: {bus_hide: true},
   }
 
   serialize :pref

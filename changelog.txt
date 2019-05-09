@@ -1,3 +1,7 @@
+.- Nueva propiedad en @propiedes (modelos): :bus_hide. Si vale true el campo
+   no aparecerá en búsquedas ni en el gi.
+. Histórico de un registro por pk.
+-------------------------------------------------------------------------------
 .- Funcionalidad de encriptación en producción.
 .- Más control en el método auto_comp_label automático.
 .- Cambio de nombre (contenedores por carpetas) en panel de control.

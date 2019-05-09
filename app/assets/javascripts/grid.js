@@ -69,6 +69,10 @@ function grid_historico() {
   $("#ficha")[0].contentWindow.historico();
 }
 
+function grid_historico_pk() {
+  $("#ficha")[0].contentWindow.historico_pk();
+}
+
 function grid_reload() {
   grid.trigger('reloadGrid', [{current:true}]);
 }
