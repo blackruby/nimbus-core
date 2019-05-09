@@ -1491,7 +1491,9 @@ module Modelo
       t << self[c].to_s + ' '
     }
 
-    t[0..-2]
+    #t[0..-2]
+    t.strip!
+    t.empty? ? '------' : t
   end
 
   def auto_comp_value(tipo=:form)

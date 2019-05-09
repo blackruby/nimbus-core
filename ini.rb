@@ -64,3 +64,6 @@ Dir.glob('modulos/*/db').each {|d|
 # Inicializar hash de orígenes (procedencias).
 
 $nim_origenes = {}
+
+nim_ext_conf = "#{Rails.root}/modulos/nimbus-core/extconf/nimbus"
+require nim_ext_conf unless Dir.glob("#{nim_ext_conf}*").empty?

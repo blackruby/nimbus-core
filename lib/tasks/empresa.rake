@@ -84,7 +84,7 @@ namespace :nimbus do
     end
 
     def pinta_info(mod, niv, n, sql, dir, op)
-      print format('%5d %12s %-50s ', niv, n.to_texto, mod)
+      print format('%5d %12s %-50s ', niv, n.to_sep_mil, mod)
       fic = mod.to_s.split('::').map(&:underscore).join('_')
       case op
         when 'Volcado'
@@ -117,7 +117,7 @@ namespace :nimbus do
         Empresa.deep_data(id: id, met: met) {|m, niv, sql, sqlh|
           n = sql.count
           nh = sqlh ? sqlh.count : 0
-          puts format('%5d %12s %14s %s', niv, sql.count.to_texto, (sqlh ? nh.to_texto : '---'), m) if n > 0 || nh > 0
+          puts format('%5d %12s %14s %s', niv, sql.count.to_sep_mil, (sqlh ? nh.to_sep_mil : '---'), m) if n > 0 || nh > 0
         }
       when 'dump'
         dump_del('Volcado', id, met, args[:dir])

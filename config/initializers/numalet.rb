@@ -56,4 +56,12 @@ class Numeric
     res << " #{sep_decim} " + Nimbus.numalet(n: dec, gen: gen_decim, suf: suf_decim) if dec != 0
     res
   end
+
+  alias to_texto texto
+
+  # Formatea un número con separador de miles
+  def to_sep_mil
+    n = self.to_s.split('.')
+    n[0].reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse + (n[1] ? ",#{n[1]}" : '')
+  end
 end
