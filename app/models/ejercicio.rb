@@ -10,7 +10,7 @@ class Ejercicio < ActiveRecord::Base
     divisa_id: {},
     fec_inicio: {},
     fec_fin: {},
-    param: {},
+    param: {bus_hide: true},
   }
 
   belongs_to :empresa, :class_name => 'Empresa'

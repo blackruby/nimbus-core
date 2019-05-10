@@ -15,7 +15,7 @@ class Empresa < ActiveRecord::Base
     fax: {manti: 30},
     email: {manti: 70},
     web: {manti: 70},
-    param: {},
+    param: {bus_hide: true},
   }
 
   belongs_to :pais, :class_name => 'Pais'

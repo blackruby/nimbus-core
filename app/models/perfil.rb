@@ -4,7 +4,7 @@ class Perfil < ActiveRecord::Base
   @propiedades = {
     codigo: {manti: 30, pk: 1},
     descripcion: {manti: 50},
-    data: {},
+    data: {bus_hide: true},
   }
 
   serialize :data

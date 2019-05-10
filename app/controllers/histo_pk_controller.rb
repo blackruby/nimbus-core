@@ -7,6 +7,10 @@ class HistoPkMod
 end
 
 class HistoPkController < ApplicationController
+  def before_edit
+    flash[:mod].constantize.modelo_histo.nil? ? {msg: 'No hay histórico'} : true
+  end
+
   def before_envia_ficha
     #@assets_stylesheets = %w(histo_pk)
     @assets_javascripts = %w(histo_pk)
@@ -29,7 +33,7 @@ class HistoPkController < ApplicationController
     modh.columns_hash.each {|c, v|
       next if %w(id idid created_at created_by_id).include?(c) || modh.propiedades.dig(c.to_sym, :bus_hide)
 
-      prop = modh.propiedades[c.to_sym]
+      prop = modh.propiedades[c.to_sym] || {}
       cols << {name: c, label: nt(c), type: v.type, manti: prop[:manti], decim: prop[:decim]}
       if c.ends_with? '_id'
         cl = modh.reflect_on_association(c[0..-4]).class_name

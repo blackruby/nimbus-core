@@ -1,7 +1,9 @@
 colores = [['#FFEDB4', 'white'], ['red', 'gray']];
 
 function gridCargado() {
-  var ci = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  var ci = [];
+  var n_columnas = $("tbody tr.jqgrow").first().find("td").length;
+  for (var i = 0; i < n_columnas; i++) ci[i] = 0;
   var fila = 0;
   $("tbody tr.jqgrow").each(function() {
     var tr = $(this);
