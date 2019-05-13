@@ -29,7 +29,12 @@ class Ejercicio < ActiveRecord::Base
   end
 
   def auto_comp_value(tipo)
-    self.codigo.to_s + ' ' + self.descripcion
+    case tipo
+      when :dbops
+        format("%s %s (\e[1mEmpresa:\e[0m %s %s)", self.codigo, self.descripcion, self.empresa.codigo, self.empresa.nombre)
+      else
+        self.codigo.to_s + ' ' + self.descripcion
+    end
   end
 end
 

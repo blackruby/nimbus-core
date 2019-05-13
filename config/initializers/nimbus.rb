@@ -1302,7 +1302,8 @@ module Modelo
         cad_emp = ''
         cl = self
         loop {
-          if cl.column_names.include?('empresa_id')
+          #if cl.column_names.include?('empresa_id')
+          if cl.pk.include?('empresa_id')
             if cad_emp.empty?
               self.instance_eval("def empresa_path;'';end")
             else
@@ -1327,7 +1328,8 @@ module Modelo
         cad_eje = ''
         cl = self
         loop {
-          if cl.column_names.include?('ejercicio_id')
+          #if cl.column_names.include?('ejercicio_id')
+          if cl.pk.include?('ejercicio_id')
             if cad_eje.empty?
               self.instance_eval("def ejercicio_path;'';end")
             else

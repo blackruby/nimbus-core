@@ -1,3 +1,5 @@
+.- Nueva tarea rake: dbops.
+-------------------------------------------------------------------------------
 .- Nueva propiedad en @propiedes (modelos): :bus_hide. Si vale true el campo
    no aparecerá en búsquedas ni en el gi.
 . Histórico de un registro por pk.
