@@ -1,3 +1,9 @@
+.- Control en el método "validar" de application_controller por si han intentado
+   hackear un campo 'ro' forzando su habilitación desde la consola web
+.- Limitación de búsqueda de usuarios sólo a admin.
+.- Nuevo botón en la ficha de usuario y en la pantalla de cambio de contraseña
+   para poder mostrar el texto introducido.
+-------------------------------------------------------------------------------
 .- Nueva tarea rake: dbops.
 -------------------------------------------------------------------------------
 .- Nueva propiedad en @propiedes (modelos): :bus_hide. Si vale true el campo

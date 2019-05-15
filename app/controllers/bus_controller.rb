@@ -79,15 +79,19 @@ class BusController < ApplicationController
     @assets_javascripts = %w(bus)
 
     @mod = flash[:mod] || params[:mod]
-    if @mod.nil?
-      #render nothing: true
-      head :no_content
+    if @mod.nil? || @mod == 'Usuario' && !@usu.admin
+      render file: '/public/404.html', status: 404, layout: false
       return
     end
 
     ej = (flash[:eid] or flash[:jid]) ? [flash[:eid].to_s, flash[:jid].to_s] : get_empeje
 
-    clm = @mod.constantize
+    begin
+      clm = @mod.constantize
+    rescue
+      render file: '/public/404.html', status: 404, layout: false
+      return
+    end
 
     # Controlar si el modelo tiene permisos a través de su controlador asociado.
     unless @usu.admin

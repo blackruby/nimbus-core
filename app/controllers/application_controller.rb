@@ -220,6 +220,7 @@ class ApplicationController < ActionController::Base
       if v
         ty = v[:type]
         rol = true if v[:rol]
+        v[:ro] = ed == :d ? :all : nil
       end
     end
 
@@ -2661,6 +2662,13 @@ class ApplicationController < ActionController::Base
     campo = params[:campo]
     cs = @fact.campos[campo.to_sym]
     valor = params[:valor]
+
+    # Control por si han intentado hackear un campo 'ro' forzando su habilitación desde la consola web
+    if cs[:ro]
+      envia_campo campo, @fact[campo]
+      render_ajax
+      return
+    end
 
     if cs[:img]
       if valor == '*' # Es un borrado de imagen

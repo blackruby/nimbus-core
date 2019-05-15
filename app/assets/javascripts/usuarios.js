@@ -84,6 +84,17 @@ function tabClickUsu(tab) {
   if (div.length != 0) div.css("height", $(window).height() - div.offset().top).css("margin-left", ($(window).width()-div.width())/2+"px");
 }
 
+function showHidePass() {
+  var p = $("#password, #password_rep");
+  if (p.attr("type") == "password") {
+    p.attr("type", "text");
+    $("#d_vis i").attr("title", "Ocultar contraseñas");
+  } else {
+    p.attr("type", "password");
+    $("#d_vis i").attr("title", "Mostrar contraseñas");
+  }
+}
+
 $(window).load(function () {
   $("#t-empresas").on("change", ".c-permiso", function (e) {
     var pm = $(this).val();
@@ -101,4 +112,6 @@ $(window).load(function () {
   });
 
   //$(window).resize(tabClickUsu);
+
+  $("#d_vis").html('<i class="material-icons" title="Mostrar contraseñas" onclick="showHidePass()">visibility</i>');
 });

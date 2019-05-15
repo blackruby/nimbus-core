@@ -40,3 +40,12 @@ td select {
 .dsbl {
   background-color: #d3d3d3;
 }
+
+#d_vis {
+  text-align: center;
+}
+#d_vis i {
+  vertical-align: bottom;
+  margin-top: 7px;
+  cursor: pointer;
+}

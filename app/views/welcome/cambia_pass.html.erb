@@ -12,6 +12,7 @@
       <div class="nim-group">
         <input class="nim-input" autocomplete="new-password" type="password" name="password" id="password" required style="max-width: 16em"/>
         <label class="nim-label" for="password"> <%= nt('password') %> </label>
+        <i id="b-vis" class="material-icons" title="Mostrar contraseñas" onclick="showHidePass()" style="margin-left: 10px;cursor: pointer;">visibility</i>
       </div>
       <br>
       <div class="nim-group">
@@ -37,4 +38,15 @@
   $("#password2").val('');
   wCard = $(".w-card.mdl-card");
   wCard.css("margin-top", -wCard.height()/2);
+
+  function showHidePass() {
+    var p = $("#password, #password2");
+    if (p.attr("type") == "password") {
+      p.attr("type", "text");
+      $("#b-vis").attr("title", "Ocultar contraseñas");
+    } else {
+      p.attr("type", "password");
+      $("#b-vis").attr("title", "Mostrar contraseñas");
+    }
+  }
 </script>
