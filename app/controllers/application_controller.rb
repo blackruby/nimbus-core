@@ -2664,7 +2664,7 @@ class ApplicationController < ActionController::Base
     valor = params[:valor]
 
     # Control por si han intentado hackear un campo 'ro' forzando su habilitación desde la consola web
-    if cs[:ro]
+    if cs[:ro] == :all
       envia_campo campo, @fact[campo]
       render_ajax
       return

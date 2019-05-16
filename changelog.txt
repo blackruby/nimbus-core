@@ -1,3 +1,5 @@
+.- Corregido bug en parche de seguridad.
+-------------------------------------------------------------------------------
 .- Control en el método "validar" de application_controller por si han intentado
    hackear un campo 'ro' forzando su habilitación desde la consola web
 .- Limitación de búsqueda de usuarios sólo a admin.
