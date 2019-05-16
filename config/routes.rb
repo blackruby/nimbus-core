@@ -28,6 +28,8 @@ Rails.application.routes.draw do
     get 'logout' => 'welcome#logout'
     get 'menu' => 'welcome#menu'
     post 'pref_user' => 'usuarios#pref_user'
+    get 'perfiles_x_usu' => 'perfiles_x_usu#edit'
+    post 'perfiles_x_usu/fon_server' => 'perfiles_x_usu#fon_server'
   end
 
   unless Nimbus::Config[:excluir_gi]

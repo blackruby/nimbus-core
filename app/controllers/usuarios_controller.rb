@@ -55,6 +55,10 @@ class UsuariosController < ApplicationController
     true
   end
 
+  def after_index
+    @view[:menu_l] << {label: 'Perfiles por Usuario', url: '/perfiles_x_usu'} if @usu.admin
+  end
+
   def grid_conf(grid)
     #grid[:wh] = "id in (#{@usu.id},#{@usu.pref[:permisos][:usu]})".gsub('[', '').gsub(']', '') unless @usu.admin
     grid[:wh] = "usuarios.id in (#{@usu.id}#{@usu.pref[:permisos][:usu].empty? ? '' : ','}#{@usu.pref[:permisos][:usu].join(',')})" unless @usu.admin

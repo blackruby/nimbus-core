@@ -1,3 +1,5 @@
+.- Nueva opción en menu_l de usuarios admin para ver perfiles por usuario/empresa.
+-------------------------------------------------------------------------------
 .- Corregido bug en parche de seguridad.
 -------------------------------------------------------------------------------
 .- Control en el método "validar" de application_controller por si han intentado
