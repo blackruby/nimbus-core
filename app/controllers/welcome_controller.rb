@@ -75,7 +75,7 @@ class WelcomeController < ApplicationController
       return
     end
 
-    if usu and usu.password_hash == BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
+    if usu && usu.password_hash.present? && usu.password_hash == BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
       session[:uid] = usu.id
       session[:fec] = @ahora          #Fecha de creación
       session[:fem] = session[:fec]   #Fecha de modificación (último uso)

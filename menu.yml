@@ -7,9 +7,11 @@ General:
   <% if Nimbus::Config[:noticias] %>
   mensajes: /mensajes
   <% end %>
-  tag_gi: <hr>
-  gi: /gi
   giv: /giv
-  tag_accesos: <hr>
+  <% if @usu && @usu.admin %>
+  tag_admin: <hr>
+  gi: /gi
   bloqueos: /bloqueos
   ctraccess: /bus?mod=Acceso&ctr=no
+  p2p: /p2p
+  <% end %>

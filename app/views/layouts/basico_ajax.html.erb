@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= @titulo.nil? ? 'Nimbus' : @titulo %></title>
+  <%= stylesheet_link_tag    "application", *@assets_stylesheets, media: "all", "data-turbolinks-track" => true %>
+  <%= javascript_include_tag "application", *@assets_javascripts, "data-turbolinks-track" => true %>
+  <%= csrf_meta_tags %>
+</head>
+
+<body>
+<%= yield :body %>
+</body>
+
+<script>
+  <%= (@ajax + @ajax_post).html_safe %>
+  $(window).load(function () {<%= @ajax_load.html_safe %>});
+</script>
+
+</html>

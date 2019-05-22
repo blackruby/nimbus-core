@@ -237,8 +237,10 @@ class BusController < ApplicationController
     w = @dat[:wh].dup
 
     if params[:filters]
-      @dat[:filters] = eval(params[:filters])
+      #@dat[:filters] = eval(params[:filters])
+      @dat[:filters] = JSON.parse(params[:filters]).symbolize_keys
       @dat[:filters][:rules].each {|f|
+        f = f.symbolize_keys
         #[:eq,:ne,:lt,:le,:gt,:ge,:bw,:bn,:in,:ni,:ew,:en,:cn,:nc,:nu,:nn]
         op = f[:op].to_sym
         cmp = cols[f[:field].to_sym]
@@ -287,47 +289,51 @@ class BusController < ApplicationController
     @dat[:cad_order] = ord
     lim = @dat[:rows] = params[:rows] == '10000' ? 0 : params[:rows].to_i
 
+    res = {page: 0, total: 0, records: 0, rows: []}
     if lim > 0
-      #tot_records = @dat[:cad_sel].empty? ? 0 : clm.select(:id).joins(@dat[:cad_join]).where(w).size
-      if @dat[:cad_sel].empty?
-        tot_records = 0
-      else
-        tot_records = clm.joins(@dat[:cad_join]).where(w)
-        #tot_records = tot_records.fonargs(*@dat[:fonargs][clm_s]) if @dat[:fonargs][clm_s]
-        tot_records = tot_records.fonargs(*clm.nim_fon_args(@dat[:eid], @dat[:jid], @usu)) if clm.respond_to?(:nim_fon_args)
-        tot_records = tot_records.size
-      end
-      tot_pages = tot_records / lim
-      tot_pages += 1 if tot_records % lim != 0
-      page = params[:page].to_i
-      page = tot_pages if page > tot_pages
-      page = 1 if page <=0
+      begin
+        #tot_records = @dat[:cad_sel].empty? ? 0 : clm.select(:id).joins(@dat[:cad_join]).where(w).size
+        if @dat[:cad_sel].empty?
+          tot_records = 0
+        else
+          tot_records = clm.joins(@dat[:cad_join]).where(w)
+          #tot_records = tot_records.fonargs(*@dat[:fonargs][clm_s]) if @dat[:fonargs][clm_s]
+          tot_records = tot_records.fonargs(*clm.nim_fon_args(@dat[:eid], @dat[:jid], @usu)) if clm.respond_to?(:nim_fon_args)
+          tot_records = tot_records.size
+        end
+        tot_pages = tot_records / lim
+        tot_pages += 1 if tot_records % lim != 0
+        page = params[:page].to_i
+        page = tot_pages if page > tot_pages
+        page = 1 if page <=0
 
-      #sql = @dat[:cad_sel].empty? ? [] : clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
-      if @dat[:cad_sel].empty?
-        sql = []
-      else
-        sql = clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
-        #sql = sql.fonargs(*@dat[:fonargs][clm_s]) if @dat[:fonargs][clm_s]
-        sql = sql.fonargs(*clm.nim_fon_args(@dat[:eid], @dat[:jid], @usu)) if clm.respond_to?(:nim_fon_args)
-      end
+        #sql = @dat[:cad_sel].empty? ? [] : clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
+        if @dat[:cad_sel].empty?
+          sql = []
+        else
+          sql = clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
+          #sql = sql.fonargs(*@dat[:fonargs][clm_s]) if @dat[:fonargs][clm_s]
+          sql = sql.fonargs(*clm.nim_fon_args(@dat[:eid], @dat[:jid], @usu)) if clm.respond_to?(:nim_fon_args)
+        end
 
-      res = {page: page, total: tot_pages, records: tot_records, rows: []}
-      sql.each {|s|
-        h = {:id => s.id, :cell => []}
-        cols.each {|k, v|
-          begin
-            # Para acceder a los atributos de "s" es mejor usar el hash "attributes" que acceder a pelo (s[atributo]) porque el atributo "id" cuando
-            # la tabla que se procesa es una vista no es accesible "a pelo"
-            h[:cell] << _forma_campo(:grid, v, '', s.attributes[v[:alias]])
-          rescue
-            h[:cell] << ''
-          end
+        res = {page: page, total: tot_pages, records: tot_records, rows: []}
+        sql.each {|s|
+          h = {:id => s.id, :cell => []}
+          cols.each {|k, v|
+            begin
+              # Para acceder a los atributos de "s" es mejor usar el hash "attributes" que acceder a pelo (s[atributo]) porque el atributo "id" cuando
+              # la tabla que se procesa es una vista no es accesible "a pelo"
+              h[:cell] << _forma_campo(:grid, v, '', s.attributes[v[:alias]])
+            rescue
+              h[:cell] << ''
+            end
+          }
+          res[:rows] << h
         }
-        res[:rows] << h
-      }
-    else
-      res = {page: 0, total: 0, records: 0, rows: []}
+      rescue => e
+        logger.debug e.message
+        logger.debug e.backtrace.join("\n")
+      end
     end
 
     render :json => res
@@ -517,6 +523,7 @@ class BusController < ApplicationController
     @dat[:last_col] = @dat[:cols].map{|k, v| k}.max.to_s
   end
 
+=begin
   def bus_send
     vid = flash[:vista]
     @v = Vista.find_by id: vid
@@ -531,39 +538,52 @@ class BusController < ApplicationController
     FileUtils.rm "/tmp/nim#{vid}.xlsx", force: true
     FileUtils.rm "/tmp/nim#{vid}.pdf", force: true if dat[:file_type] == 'pdf'
   end
+=end
+
+  def bus_send
+    envia_fichero(file: "/tmp/nim#{@v.id}.#{@dat[:file_type]}", file_cli: "#{@dat[:mod].table_name}.#{@dat[:file_type]}", rm: true, disposition: @dat[:file_type] == 'pdf' ? 'inline' : 'attachment')
+  end
 
   def bus_export
     return unless @v
 
-    cols = @dat[:cols]
+    label = 'Obteniendo información'
+    exe_p2p(label: label, width: 400, cancel: true, info: "bus: #{@dat[:view]}", tag: (params[:tipo] == 'xlsx' ? :xls : :loff), fin: :bus_send) {
+      begin
+        cols = @dat[:cols]
 
-    xls = Axlsx::Package.new
-    wb = xls.workbook
-    sh = wb.add_worksheet(:name => "Hoja1")
+        xls = Axlsx::Package.new
+        wb = xls.workbook
+        sh = wb.add_worksheet(:name => "Hoja1")
 
-    sty, typ = array_estilos_tipos_axlsx(cols.map{|k, v| v}, wb)
+        sty, typ = array_estilos_tipos_axlsx(cols.map{|k, v| v}, wb)
 
-    # Primera fila (Cabecera)
-    sh.add_row(cols.map {|k, v| v[:label]})
+        # Primera fila (Cabecera)
+        sh.add_row(cols.map {|k, v| v[:label]})
 
-    @dat[:view].select(@dat[:cad_sel]).joins(@dat[:cad_join]).where(@dat[:cad_where]).order(@dat[:cad_order]).each {|s|
-      #sh.add_row(cols.map {|k, v| v[:type] == 'string' ? ' ' + s[v[:alias]].to_s : s[v[:alias]]})
-      #sh.add_row(cols.map {|k, v| forma_campo_axlsx(v, '', s[v[:alias]])}, types: typ, style: sty)
-      sh.add_row(cols.map {|k, v| Nimbus.nimval(s[v[:alias]])}, types: typ, style: sty)
+        @dat[:view].select(@dat[:cad_sel]).joins(@dat[:cad_join]).where(@dat[:cad_where]).order(@dat[:cad_order]).each {|s|
+          sh.add_row(cols.map {|k, v| Nimbus.nimval(s[v[:alias]])}, types: typ, style: sty)
+        }
+
+        # Fijar la fila de cabecera para repetir en cada página
+        wb.add_defined_name("Hoja1!$1:$1", :local_sheet_id => sh.index, :name => '_xlnm.Print_Titles')
+
+        xls.serialize("/tmp/nim#{@v.id}.xlsx")
+        #`libreoffice --headless --convert-to pdf --outdir /tmp /tmp/nim#{@v.id}.xlsx` if params[:tipo] == 'pdf'
+        if params[:tipo] == 'pdf'
+          p2p label: label << '<br>Generando PDF'
+          h = spawn "libreoffice -env:UserInstallation=file:///tmp/nim#{@v.id}_lo_dir --headless --convert-to pdf --outdir /tmp /tmp/nim#{@v.id}.xlsx"
+          Process.wait h
+          FileUtils.rm_rf %W(/tmp/nim#{@v.id}.xlsx /tmp/nim#{@v.id}_lo_dir)
+        end
+        @dat[:file_type] = params[:tipo]
+        #@ajax << "window.location.href='/bus/send';"
+        #flash[:vista] = @v.id
+      rescue => e
+        FileUtils.rm_rf Dir.glob("/tmp/nim#{@v.id}*")
+        raise e
+      end
     }
-
-    # Fijar la fila de cabecera para repetir en cada página
-    wb.add_defined_name("Hoja1!$1:$1", :local_sheet_id => sh.index, :name => '_xlnm.Print_Titles')
-
-    xls.serialize("/tmp/nim#{@v.id}.xlsx")
-    #`libreoffice --headless --convert-to pdf --outdir /tmp /tmp/nim#{@v.id}.xlsx` if params[:tipo] == 'pdf'
-    if params[:tipo] == 'pdf'
-      `libreoffice -env:UserInstallation=file:///tmp/nim#{@v.id}_lo_dir --headless --convert-to pdf --outdir /tmp /tmp/nim#{@v.id}.xlsx`
-      FileUtils.rm_rf "/tmp/nim#{@v.id}_lo_dir"
-    end
-    @dat[:file_type] = params[:tipo]
-    @ajax << "window.location.href='/bus/send';"
-    flash[:vista] = @v.id
   end
 
   def bus_pref

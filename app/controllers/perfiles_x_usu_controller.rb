@@ -25,8 +25,6 @@ class PerfilesXUsuController < ApplicationController
       {name: 'permiso', label: nt('permiso'), width: 50}
     ]
 
-    q = Usuario.order(:codigo)
-
     data = []
     id = 1
     Usuario.order(:codigo).each {|u|

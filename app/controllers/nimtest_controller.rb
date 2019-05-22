@@ -264,7 +264,7 @@ class NimtestController < ApplicationController
 
   def proc2plano
     lbl = 'Primera fase'
-    exe_p2p(tit: 'Hola', label: lbl, pbar: :fix, width: 400, cancel: true, fin: {label: 'Adios', met: :final}) {
+    exe_p2p(tit: 'Hola', label: lbl, pbar: :fix, width: 400, cancel: true, info: 'Mi propio p2p', tag: :proc, fin: {label: 'Adios', met: :final}) {
       begin
         #Código de la primera fase
         sleep 3

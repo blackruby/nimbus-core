@@ -554,17 +554,19 @@ $(window).load(function () {
 
   $(window).resize(ajustaWin);
 
-  for (var w of panel.win) {
-    if (w.src) {
-      // Ventanas y favoritos fuera de contenedores
-      creaWin(w.src, w);
-    } else {
-      // Contenedores y sus favoritos
-      creaWin(undefined, w);
-      var con = $(".contenedor").last();
-      for (var f of w.fav) {
-        f.cont = con;
-        creaWin(f.src, f);
+  if (panel.win) {
+    for (var w of panel.win) {
+      if (w.src) {
+        // Ventanas y favoritos fuera de contenedores
+        creaWin(w.src, w);
+      } else {
+        // Contenedores y sus favoritos
+        creaWin(undefined, w);
+        var con = $(".contenedor").last();
+        for (var f of w.fav) {
+          f.cont = con;
+          creaWin(f.src, f);
+        }
       }
     }
   }

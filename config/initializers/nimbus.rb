@@ -26,6 +26,18 @@ module Nimbus
   # Lectura del hash de configuración
   Config = File.exist?('config/nimbus-core.yml') ? YAML.load(ERB.new(File.read('config/nimbus-core.yml')).result) : {}
 
+  # Carga del código ruby de configuración (preferible al yaml anterior, por poderse encriptar)
+  #eval(File.read('config/nimbus-core.rb'), binding) if File.exist?('config/nimbus-core.rb')
+  # Adecuación de p2p
+  case Config[:p2p].class.to_s
+    when 'Fixnum'
+      Config[:p2p] = {tot: Config[:p2p]}
+    when 'Hash'
+      Config[:p2p][:tot] ||= Config[:p2p].values.reduce(:+) + 20
+    else
+      Config[:p2p] = {tot: 50}
+  end
+
   # Nombre de la cookie de empresa/ejercicio
   CookieEmEj = ('_' + Rails.app_class.to_s.split(':')[0].downcase + '_emej').to_sym
 

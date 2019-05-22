@@ -178,8 +178,9 @@ function viewSel() {
 }
 
 function gridExport(tipo) {
-  ponBusy();
-  callFonServer("bus_export", {tipo: tipo}, quitaBusy);
+  //ponBusy();
+  //callFonServer("bus_export", {tipo: tipo}, quitaBusy);
+  callFonServer("bus_export", {tipo: tipo});
 }
 
 function busNew() {

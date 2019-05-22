@@ -1,3 +1,18 @@
+.- Corregido bug en la formación de URL's con el params 'hijos' por el que
+   se podía inyectar código.
+.- Corregido bug en búsquedas y grids por el que se podía inyectar código
+   en los filtros de búsqueda de los campos.
+.- Control en bus_controller de los posibles errores en los filtros 
+   introducidos por el usuario. Se muestra un grid vacío y sólo se saca el
+   error a nivel "debug" (para que no salga en production)
+.- Sacar un grid vacío en histo_pk cuando no hay registros.
+.- Las exportaciones a PDF y XLSX de las búsquedas ahora van en p2p.
+.- GI: Ahora todos los listados van en segundo plano (p2p).
+.- p2p: Mejoras.
+.- Corregido bug: construcción del panel de control para usuarios que nunca lo
+   habían grabado.
+.- Corregido bug: usuarios nuevos sin password.
+-------------------------------------------------------------------------------
 .- Nueva opción en menu_l de usuarios admin para ver perfiles por usuario/empresa.
 -------------------------------------------------------------------------------
 .- Corregido bug en parche de seguridad.

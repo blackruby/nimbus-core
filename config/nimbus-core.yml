@@ -37,3 +37,19 @@
 #:excluir_accesos: true
 #:excluir_historicos: true
 #:excluir_gi: true
+
+# Habilta la opción de mensajería
+:noticias: true
+
+# Control de p2p
+# Posibles valores: O bien un número indicando el máximo número de p2p
+:p2p: 30
+# O un hash con límites por tags:
+:p2p:
+  :xls: 20
+  :loff: 10
+  :tot: 50
+# Los tags anteriores están reservados:
+# xls:  Listados que sólo generan excel
+# loff: Listados que usan libreoffice para conversión a PDF o XLS
+# tot:  Número total de procesos 

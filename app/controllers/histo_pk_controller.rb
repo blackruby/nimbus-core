@@ -20,9 +20,9 @@ class HistoPkController < ApplicationController
     modh = mod.modelo_histo
 
     fic = modh.where('idid = ?', id).order('created_at').last
-    fic.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
     begin
+      fic.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
       clave = forma_campo_id(modh, fic.id)
     rescue
       clave = nil
@@ -41,9 +41,12 @@ class HistoPkController < ApplicationController
       end
     }
 
-    wh = modh.pk.map{|k| "#{k} = '#{fic[k]}'"}.join(' AND ')
-
-    q = modh.where(wh).order(:created_at)
+    if fic
+      wh = modh.pk.map{|k| "#{k} = '#{fic[k]}'"}.join(' AND ')
+      q = modh.where(wh).order(:created_at)
+    else
+      q = []
+    end
 
     crea_grid(
       cmp: :panel,

@@ -39,7 +39,7 @@ Rails.application.routes.draw do
     get 'gi/new/:modelo' => 'gi#new'
     get 'gi/edit/:modulo/:formato' => 'gi#edita'
     get 'gi/run/:modulo/:formato' => 'gi#edit'
-    get 'gi/abrir/:id' => 'gi#abrir'
+    #get 'gi/abrir/:id' => 'gi#abrir'
     get 'gi/campos' => 'gi#campos'
     post 'gi/graba_fic' => 'gi#graba_fic'
     post 'gi/validar' => 'gi#validar'
@@ -59,10 +59,13 @@ Rails.application.routes.draw do
 
   unless Nimbus::Config[:excluir_bus]
     get 'bus' => 'bus#bus'
-    get 'bus/send' => 'bus#bus_send'
+    #get 'bus/send' => 'bus#bus_send'
     post 'bus/list' => 'bus#list'
     post 'bus/fon_server' => 'bus#fon_server'
   end
 
   get 'nimbus_help' => 'nimbus_help#index'
+
+  get 'p2p' => 'p2p#edit'
+  post 'p2p/fon_server' => 'p2p#fon_server'
 end

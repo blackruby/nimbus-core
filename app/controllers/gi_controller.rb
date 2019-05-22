@@ -371,6 +371,9 @@ class GiController < ApplicationController
   end
 
   def before_envia_ficha
+    @g[:go] = params[:go]
+    @g[:info] = @titulo
+
     @fact.form_type = 'pdf'
     @fact.form_modulo = @gi_modulo
     @fact.form_file = @gi_formato
@@ -415,84 +418,76 @@ class GiController < ApplicationController
 
   def mi_render
     if params[:go]
-      flash[:vista] = @v.id
-      redirect_to "/gi/abrir/#{Time.now.strftime("%y%m%d%H%M%S")}"
+      @ajax_load << 'callFonServer("grabar");'
+      render html: '', layout: 'basico_ajax'
     end
+  end
+
+  def gi_envia_datos
+    envia_fichero(file: "#{@g[:fns]}.#{@fact.form_type}", file_cli: "#{@fact.form_file}.#{@fact.form_type}", rm: true, disposition: @fact.form_type == 'pdf' ? 'inline' : 'attachment', popup: @g[:go] ? :self : false)
   end
 
   def after_save
-    url = "'/gi/abrir/#{Time.now.strftime("%y%m%d%H%M%S")}'"
-    @ajax << (@fact.form_type == 'pdf' ? "window.open(#{url});" : "window.location.href=#{url};")
-    flash[:vista] = @v.id
-  end
+    label = 'Obteniendo información'
+    exe_p2p(label: label, width: 400, cancel: true, info: @g[:info], tag: (@fact.form_type == 'xlsx' ? :xls : :loff), fin: :gi_envia_datos) {
+      begin
+        lim = {}
+        @fact.campos.each {|c, v|
+          cs = c.to_s
+          if v[:cmph]
+            lim[c] = @fact[cs[0..-4]].try(v[:cmph])
+          elsif v[:rango]
+            lim[c] = @fact[c].expande_rango
+            lim[("#{cs}_rango").to_sym] = @fact[c]
+          else
+            lim[c] = @fact[c]
+          end
 
-  def abrir
-    vid = flash[:vista]
-    @v = Vista.find_by id: vid
-    if @v
-      @fact = @v.data[:fact]
-    else
-      render file: '/public/401.html', status: 401, layout: false
-      return
-    end
+          if cs.ends_with?('_id')
+            lim[("#{cs}_value").to_sym] = @fact[c] ? forma_campo_id(v[:ref], @fact[c], :gi) : ''
+          end
+        }
 
-    lim = {}
-    @fact.campos.each {|c, v|
-      cs = c.to_s
-      if v[:cmph]
-        lim[c] = @fact[cs[0..-4]].try(v[:cmph])
-      elsif v[:rango]
-        lim[c] = @fact[c].expande_rango
-        lim[("#{cs}_rango").to_sym] = @fact[c]
-      else
-        lim[c] = @fact[c]
-      end
+        lim[:eid], lim[:jid] = get_empeje
 
-      if cs.ends_with?('_id')
-        lim[("#{cs}_value").to_sym] = @fact[c] ? forma_campo_id(v[:ref], @fact[c], :gi) : ''
+        g = GI.new(@fact.form_modulo, @fact.form_file, @usu.codigo, lim)
+
+        fns = "/tmp/nim#{@v.id}" #file_name_server
+        fnc = @fact.form_file
+        @g[:fns] = fns
+
+        p2p label: label << '<br>Formateando datos'
+        g.gen_xls("#{fns}.xlsx", @fact.form_type == 'pdf')
+
+        case @fact.form_type
+          when 'pdf'
+            p2p label: label << '<br>Generando PDF'
+            # LibreOffice, de momento, no es capaz de rodar instancias en paralelo. Parece que esto se va a
+            # solucionar en la versión 5.3.0
+            # Mientras tanto y como "workaround" se puede solventar forzando en cada instancia un directorio
+            # distinto de configuración con la opción: -env:UserInstallation=file:///directorio_de_conf
+            # Cuando el tema esté resuelto habría que quitar esta opción de la llamada a libreoffice.
+
+            #`libreoffice --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
+            #`libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
+            h = spawn "libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to pdf --outdir /tmp #{fns}.xlsx"
+            Process.wait h
+            FileUtils.rm_rf %W(#{fns}.xlsx #{fns}_lo_dir)
+          when 'xls'
+            p2p label: label << '<br>Generando XLS'
+            # La misma historia que en el caso anterior
+
+            #`libreoffice --headless --convert-to xls --outdir /tmp #{fns}.xlsx`
+            #`libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to xls --outdir /tmp #{fns}.xlsx`
+            h = spawn "libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to xls --outdir /tmp #{fns}.xlsx"
+            Process.wait h
+            FileUtils.rm_rf %W(#{fns}.xlsx #{fns}_lo_dir)
+        end
+      rescue => e
+        FileUtils.rm_rf %W(#{fns}.xlsx #{fns}.xls #{fns}.pdf #{fns}_lo_dir)
+        raise e
       end
     }
-
-    lim[:eid], lim[:jid] = get_empeje
-
-    g = GI.new(@fact.form_modulo, @fact.form_file, @usu.codigo, lim)
-
-    fns = "/tmp/nim#{vid}" #file_name_server
-
-    g.gen_xls("#{fns}.xlsx", @fact.form_type == 'pdf')
-
-    #fnc = g.formato[:modelo] ? g.formato[:modelo].table_name : 'listado' #file_name_client
-    fnc = @fact.form_file
-
-    case @fact.form_type
-      when 'pdf'
-        # LibreOffice, de momento, no es capaz de rodar instancias en paralelo. Parece que esto se va a
-        # solucionar en la versión 5.3.0
-        # Mientras tanto y como "workaround" se puede solventar forzando en cada instancia un directorio
-        # distinto de configuración con la opción: -env:UserInstallation=file:///directorio_de_conf
-        # Cuando el tema esté resuelto habría que quitar esta opción de la llamada a libreoffice.
-
-        #`libreoffice --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
-        `libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
-        send_data File.read("#{fns}.pdf"), filename: "#{fnc}.pdf", type: :pdf, disposition: 'inline'
-        #FileUtils.rm "#{fns}.pdf", force: true
-        FileUtils.rm_rf %W(#{fns}.pdf #{fns}_lo_dir)
-      when 'xls'
-        # La misma historia que en el caso anterior
-
-        #`libreoffice --headless --convert-to xls --outdir /tmp #{fns}.xlsx`
-        `libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to xls --outdir /tmp #{fns}.xlsx`
-        send_data File.read("#{fns}.xls"), filename: "#{fnc}.xls"
-        #FileUtils.rm "#{fns}.xls", force: true
-        FileUtils.rm_rf %W(#{fns}.xls #{fns}_lo_dir)
-      when 'xlsx'
-        send_data File.read("#{fns}.xlsx"), filename: "#{fnc}.xlsx"
-      else
-        #render nothing: true
-        head :no_content
-    end
-
-    FileUtils.rm "#{fns}.xlsx", force: true
   end
 end
 

@@ -481,7 +481,11 @@ class ApplicationController < ActionController::Base
       @ajax << "window.location.href='/nim_download';"
     else
       if popup
-        @ajax << 'window.open("/nim_download", "_blank", "width=700, height=750, left=" + (window.screenLeft + (window.outerWidth - 700)/2) + ", top=10");'
+        if popup == :self
+          @ajax << 'window.open("/nim_download", "_self");'
+        else
+          @ajax << 'window.open("/nim_download", "_blank", "width=700, height=750, left=" + (window.screenLeft + (window.outerWidth - 700)/2) + ", top=10");'
+        end
       else
         @ajax << "window.open('/nim_download');"
       end
@@ -553,8 +557,12 @@ class ApplicationController < ActionController::Base
 
   # Métodos para ejecutar procesos en segundo plano con seguimiento
 
-  class P2PCancel < SystemExit
-    # Clase para generar la excepción que detenga un proceso en segundo plano (p2p) al recibir un kill
+  class P2PSysCancel < StandardError
+    # Clase para generar la excepción que detenga un proceso en segundo plano (p2p) al recibir un kill TERM (15)
+  end
+
+  class P2PCancel < StandardError
+    # Clase para generar la excepción que detenga un proceso en segundo plano (p2p) al recibir un kill INT (2) (al cancelar el usuario)
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'p2p(label: nil, pbar: nil, js: nil, st: :run)'}
@@ -586,7 +594,7 @@ class ApplicationController < ActionController::Base
       @ajax << "p2pStatus=#{p2ps};" if p2ps != 1
     else  # Proceso cancelado
       begin
-        Process.kill("TERM", @dat[:p2p][:pid])
+        Process.kill('INT', -@dat[:p2p][:pid])
         Process.waitpid(@dat[:p2p][:pid])
       rescue
       end
@@ -600,7 +608,14 @@ class ApplicationController < ActionController::Base
     @ajax << @dat[:p2p][:js] if @dat[:p2p][:js]
   end
 
-  def exe_p2p(tit: 'En proceso', label: nil, pbar: :inf, cancel: false, width: nil, fin: {label: 'Finalizar', met: nil})
+  def exe_p2p(tit: 'En proceso', label: nil, pbar: :inf, cancel: false, width: nil, info: '', tag: nil, fin: {label: 'Finalizar', met: nil})
+    busy = P2p.count >= Nimbus::Config[:p2p][:tot]
+    busy = (P2p.where(tag: tag).count >= Nimbus::Config[:p2p][tag]) if !busy && Nimbus::Config[:p2p][tag]
+    if busy
+      mensaje 'El servidor está sobrecargado.<br>Por favor, inténtelo más tarde'
+      return
+    end
+
     @v.save # Por si hay cambios en @fact, etc. que se graben antes del fork y así padre e hijo tienen la misma información
 
     # Poner en orden el argumento 'fin'
@@ -620,10 +635,11 @@ class ApplicationController < ActionController::Base
 
     # Cerrar las conexiones con la base de datos para que el hijo no herede descriptores
     # Parece que no es necesario...
-    #config = ActiveRecord::Base.remove_connection
-    config = ActiveRecord::Base.connection_config
+    config = ActiveRecord::Base.remove_connection
+    #config = ActiveRecord::Base.connection_config
 
-    mant = class_mant.mant?
+    clm = class_mant
+    mant = clm ? class_mant.mant? : false
 
     # Crear el proceeso hijo
     h = fork {
@@ -633,19 +649,32 @@ class ApplicationController < ActionController::Base
       # Establecer conexión con la base de datos
       ActiveRecord::Base.establish_connection(config)
 
+      # Para hacer de este proceso el líder de grupo (por si lanza nuevos comandos poderlos matar a todos de golpe)
+      Process.setsid
+
       @dat[:p2p] = {pid: Process.pid, label: label, tpb: pbar, mant: mant, st: :run}
       @v.save
 
       Signal.trap('TERM') do
+        raise P2PSysCancel, 'Cierre forzado'
+      end
+
+      Signal.trap('INT') do
         raise P2PCancel, 'Cancelado'
       end
 
       begin
         yield
         p2p st: :fin
+      rescue P2PCancel
+        #
+      rescue P2PSysCancel
+        p2p label: 'Proceso cancelado por el sistema', st: :err
       rescue Exception => e
-        p2p st: :err
+        p2p label: 'Error interno', st: :err
         pinta_exception(e)
+      ensure
+        P2p.where(pgid: Process.pid).delete_all
       end
     }
 
@@ -653,10 +682,13 @@ class ApplicationController < ActionController::Base
 
     # Restablecer la conexión con la base de datos
     # Restablecer sólo en el caso de que antes del fork se haya cerrado (remove_connection)
-    #ActiveRecord::Base.establish_connection(config)
+    ActiveRecord::Base.establish_connection(config)
     
     # No hacer seguimiento del status del hijo (para que no quede zombi al terminar)
     Process.detach(h)
+
+    # Registrar el proceso en la tabla p2p
+    P2p.create(usuario_id: @usu.id, fecha: Nimbus.now, ctrl: self.class.to_s, info: info, tag: tag, pgid: h)
 
     # Código javascript para sacar el cuadro de diálogo de progreso del hijo
     @ajax << "p2p(#{tit.to_json}, #{label.to_s.to_json}, #{pbar.to_json}, #{cancel.to_json}, #{width.to_json}, #{mant.to_json}, #{fin.to_json});"
@@ -809,7 +841,8 @@ class ApplicationController < ActionController::Base
     hijos = class_mant.hijos
     return if hijos.empty?
 
-    id_hijos = params[:hijos] ? eval('{' + params[:hijos] + '}') : {}
+    #id_hijos = params[:hijos] ? eval('{' + params[:hijos] + '}') : {}
+    id_hijos = params[:hijos] ? JSON.parse('{' + params[:hijos] + '}').symbolize_keys : {}
     @ajax << '$(window).load(function(){' if posponer
     hijos.each_with_index {|h, i|
       @ajax << '$("#hijo_' + i.to_s + '").attr("src", "/' + h[:url]
@@ -840,6 +873,7 @@ class ApplicationController < ActionController::Base
   def ini_ajax
     @ajax = ''
     @ajax_post = ''
+    @ajax_load = ''
   end
 
   def render_ajax
@@ -1080,8 +1114,10 @@ class ApplicationController < ActionController::Base
     @j = Ejercicio.find_by(id: @dat[:jid]) if @dat[:jid]
 
     if params[:filters]
-      fil = eval(params[:filters])
+      #fil = eval(params[:filters])
+      fil = JSON.parse(params[:filters]).symbolize_keys
       fil[:rules].each {|f|
+        f = f.symbolize_keys
         #[:eq,:ne,:lt,:le,:gt,:ge,:bw,:bn,:in,:ni,:ew,:en,:cn,:nc,:nu,:nn]
         op = f[:op].to_sym
 
@@ -1165,35 +1201,41 @@ class ApplicationController < ActionController::Base
 =end
 
     #tot_records =  clm.eager_load(eager).where(w).where(params[:wh]).count
-    tot_records =  clm.eager_load(eager).joins(@dat[:cad_join]).where(w).count
-    lim = params[:rows].to_i
-    tot_pages = tot_records / lim
-    tot_pages += 1 if tot_records % lim != 0
-    page = params[:page].to_i
-    page = 1 if page <=0
-    #page = tot_pages if page > tot_pages
-    if page > tot_pages
-      render json: {page: tot_pages, total: tot_pages, records: tot_records, rows: []}
-      return
-    end
+    begin
+      tot_records =  clm.eager_load(eager).joins(@dat[:cad_join]).where(w).count
+      lim = params[:rows].to_i
+      tot_pages = tot_records / lim
+      tot_pages += 1 if tot_records % lim != 0
+      page = params[:page].to_i
+      page = 1 if page <=0
+      #page = tot_pages if page > tot_pages
+      if page > tot_pages
+        render json: {page: tot_pages, total: tot_pages, records: tot_records, rows: []}
+        return
+      end
 
-    #sql = clm.eager_load(eager).where(w).where(params[:wh]).order(ord).offset((page-1)*lim).limit(lim)
-    sql = clm.eager_load(eager).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
+      #sql = clm.eager_load(eager).where(w).where(params[:wh]).order(ord).offset((page-1)*lim).limit(lim)
+      sql = clm.eager_load(eager).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
 
-    res = {page: page, total: tot_pages, records: tot_records, rows: []}
-    sql.each {|s|
-      @fact = s
-      h = {:id => s.id, :cell => []}
-      #clm.columnas.each {|c|
-      @dat[:columnas].each {|c|
-        begin
-          h[:cell] << forma_campo(:grid, s, c, s[c]).to_s
-        rescue
-          h[:cell] << ''
-        end
+      res = {page: page, total: tot_pages, records: tot_records, rows: []}
+      sql.each {|s|
+        @fact = s
+        h = {:id => s.id, :cell => []}
+        #clm.columnas.each {|c|
+        @dat[:columnas].each {|c|
+          begin
+            h[:cell] << forma_campo(:grid, s, c, s[c]).to_s
+          rescue
+            h[:cell] << ''
+          end
+        }
+        res[:rows] << h
       }
-      res[:rows] << h
-    }
+    rescue => e
+      res = {page: 0, total: 0, records: 0, rows: []}
+      logger.debug e.message
+      logger.debug e.backtrace.join("\n")
+    end
     render :json => res
   end
 
@@ -1671,11 +1713,10 @@ class ApplicationController < ActionController::Base
       #@v.save
     end
 
-    r = false
-    r = mi_render if self.respond_to?(:mi_render)
+    mi_render if self.respond_to?(:mi_render)
 
     #(clm.mant? ? pag_render('ficha') : pag_render('ficha', 'proc')) unless r
-    pag_render('ficha') unless r
+    pag_render('ficha') unless performed?
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'set_auto_comp_filter(cmp, wh)'}
