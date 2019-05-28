@@ -1,4 +1,4 @@
-.- Ventana de detención de proceso en p2p: anchura correjida para que no se
+.- Ventana de detención de proceso en p2p: anchura corregida para que no se
    muevan los botones al moverla.
 .- Nueva opción "width" en el método "mensaje" para determinar la anchura
    de la ventana.
