@@ -14,6 +14,7 @@ class EjerciciosMod < Ejercicio
   @grid = {
     height: 100,
     scroll: true,
+    cellEdit: false,
   }
   #@hijos = []
 

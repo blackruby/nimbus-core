@@ -483,7 +483,7 @@ class GiController < ApplicationController
             Process.wait h
             FileUtils.rm_rf %W(#{fns}.xlsx #{fns}_lo_dir)
         end
-      rescue => e
+      rescue Exception => e
         FileUtils.rm_rf %W(#{fns}.xlsx #{fns}.xls #{fns}.pdf #{fns}_lo_dir)
         raise e
       end
@@ -1093,7 +1093,8 @@ class GI
     if c
       begin
         eval(c)
-      rescue Exception => e
+      #rescue Exception => e
+      rescue StandardError, ScriptError => e
         Rails.logger.debug "######## ERROR al evaluar '#{c}'"
         Rails.logger.debug e.message
         Rails.logger.debug e.backtrace[0..10]

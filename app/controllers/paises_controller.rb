@@ -15,6 +15,7 @@ class PaisesMod < Pais
   @grid = {
     height: 250,
     scroll: true,
+    cellEdit: false,
   }
 
   @menu_l = [

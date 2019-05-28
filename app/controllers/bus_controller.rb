@@ -258,13 +258,15 @@ class BusController < ApplicationController
         add_where w, ([:bn,:ni,:en,:nc].include?(op) ? 'NOT ' : '') + (ty == 'string' ? 'UNACCENT(LOWER(' + cmp_db + '))' : cmp_db)
         w << ({eq: '=', ne: '<>', cn: ' LIKE ', bw: ' LIKE ', ew: ' LIKE ', nc: ' LIKE ', bn: ' LIKE ', en: ' LIKE ', in: ' IN (', ni: ' IN (', lt: '<', le: '<=', gt: '>', ge: '>='}[op] || '=')
         if op == :in or op == :ni
-          f[:data].split(',').each {|d| w << '\'' + I18n.transliterate(d).downcase + '\','}
+          #f[:data].split(',').each {|d| w << '\'' + I18n.transliterate(d).downcase + '\','}
+          f[:data].split(',').each {|d| w << '\'' + I18n.transliterate(d).downcase.gsub('\'', '\'\'') + '\','}
           w.chop!
           w << ')'
         else
           w << '\''
           w << '%' if [:ew,:en,:cn,:nc].include?(op)
-          w << (ty == 'string' ? I18n.transliterate(f[:data]).downcase : f[:data])
+          #w << (ty == 'string' ? I18n.transliterate(f[:data]).downcase : f[:data])
+          w << (ty == 'string' ? I18n.transliterate(f[:data]).downcase.gsub('\'', '\'\'') : f[:data].gsub('\'', '\'\''))
           w << '%' if [:bw,:bn,:cn,:nc].include?(op)
           w << '\''
         end

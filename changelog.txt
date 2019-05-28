@@ -1,3 +1,17 @@
+.- Ventana de detención de proceso en p2p: anchura correjida para que no se
+   muevan los botones al moverla.
+.- Nueva opción "width" en el método "mensaje" para determinar la anchura
+   de la ventana.
+.- Corregidos bugs en filtros de búsquedas y auto_comp para evitar inyección sql.
+.- En el panel de control ahora sólo se permite eliminar carpetas y favoritos
+   si el panel está activado.
+.- En las exportaciones a excel de los grids embebidos se omiten las columnas
+   ocultas (hidden: true)
+.- Añadido el usuario en los logs de errores de application_controller.
+.- Mejoras en p2p. Ahora es altamente recomendable usar Puma sin threads: 
+   Muchos workers cada uno con 1 hilo, y configurar el pool de conexiones de
+   ActiveRecord a 1 o 2.
+-------------------------------------------------------------------------------
 .- Corregido bug en la formación de URL's con el params 'hijos' por el que
    se podía inyectar código.
 .- Corregido bug en búsquedas y grids por el que se podía inyectar código

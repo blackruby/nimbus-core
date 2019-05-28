@@ -9,6 +9,7 @@ class DivisasMod < Divisa
 
   @grid = {
     scroll: true,
+    cellEdit: false,
   }
 
   #@hijos = []

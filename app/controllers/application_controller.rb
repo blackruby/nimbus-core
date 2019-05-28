@@ -172,7 +172,7 @@ class ApplicationController < ActionController::Base
 =end
     @ajax << '$(window).load(function(){' if h[:onload]
     @ajax << "$('<div></div>', #{h[:context]}).html(#{h[:msg].to_json}).dialog({"
-    @ajax << 'resizable: false, modal: true, width: "auto",'
+    @ajax << %Q(resizable: false, modal: true, width: #{h[:width] || '"auto"'},)
     #@ajax << 'close: function(){$(this).remove();},'
     @ajax << "close: function(){#{h[:js] ? h[:js] : ''};$(this).remove();},"
     @ajax << "title: #{h[:tit].to_json},"
@@ -557,11 +557,12 @@ class ApplicationController < ActionController::Base
 
   # Métodos para ejecutar procesos en segundo plano con seguimiento
 
-  class P2PSysCancel < StandardError
+  #class P2PSysCancel < StandardError
+  class P2PSysCancel < SystemExit
     # Clase para generar la excepción que detenga un proceso en segundo plano (p2p) al recibir un kill TERM (15)
   end
 
-  class P2PCancel < StandardError
+  class P2PCancel < SystemExit
     # Clase para generar la excepción que detenga un proceso en segundo plano (p2p) al recibir un kill INT (2) (al cancelar el usuario)
   end
 
@@ -635,8 +636,9 @@ class ApplicationController < ActionController::Base
 
     # Cerrar las conexiones con la base de datos para que el hijo no herede descriptores
     # Parece que no es necesario...
-    config = ActiveRecord::Base.remove_connection
-    #config = ActiveRecord::Base.connection_config
+    config = ActiveRecord::Base.connection_config
+    #config = ActiveRecord::Base.remove_connection
+    ActiveRecord::Base.connection.disconnect!
 
     clm = class_mant
     mant = clm ? class_mant.mant? : false
@@ -647,6 +649,7 @@ class ApplicationController < ActionController::Base
       # en las lecturas que de ellos haga el parent (básicamente los requests http)
       ObjectSpace.each_object(IO) {|io| io.close if io.class == TCPSocket and !io.closed?}
       # Establecer conexión con la base de datos
+      config[:pool] = 1
       ActiveRecord::Base.establish_connection(config)
 
       # Para hacer de este proceso el líder de grupo (por si lanza nuevos comandos poderlos matar a todos de golpe)
@@ -1121,6 +1124,14 @@ class ApplicationController < ActionController::Base
         #[:eq,:ne,:lt,:le,:gt,:ge,:bw,:bn,:in,:ni,:ew,:en,:cn,:nc,:nu,:nn]
         op = f[:op].to_sym
 
+        fa = f[:field].split('.')
+        field = fa.map{|c| %Q("#{c.gsub('"', '""')}")}.join('.')
+        if fa[-2] == clm.table_name
+          ty = clm.campos[fa[-1].to_sym][:type]
+        else
+          ty = fa[-2].model.columns_hash[fa[-1]].type
+        end
+
         if op == :nu or op == :nn
           add_where w, f[:field]
           w << ' IS'
@@ -1129,22 +1140,19 @@ class ApplicationController < ActionController::Base
           next
         end
 
-        ty = f[:field].split('.')
-        if ty[-2] == clm.table_name
-          ty = clm.campos[ty[-1].to_sym][:type]
-        else
-          ty = ty[-2].model.columns_hash[ty[-1]].type
-        end
-        add_where w, ([:bn,:ni,:en,:nc].include?(op) ? 'NOT ' : '') + (ty == :string ? 'UNACCENT(LOWER(' + f[:field] + '))' : f[:field])
+        #add_where w, ([:bn,:ni,:en,:nc].include?(op) ? 'NOT ' : '') + (ty == :string ? 'UNACCENT(LOWER(' + f[:field] + '))' : f[:field])
+        add_where w, ([:bn,:ni,:en,:nc].include?(op) ? 'NOT ' : '') + (ty == :string ? 'UNACCENT(LOWER(' + field + '))' : field)
         w << ({eq: '=', ne: '<>', cn: ' LIKE ', bw: ' LIKE ', ew: ' LIKE ', nc: ' LIKE ', bn: ' LIKE ', en: ' LIKE ', in: ' IN (', ni: ' IN (', lt: '<', le: '<=', gt: '>', ge: '>='}[op] || '=')
         if op == :in or op == :ni
-          f[:data].split(',').each {|d| w << '\'' + I18n.transliterate(d).downcase + '\','}
+          #f[:data].split(',').each {|d| w << '\'' + I18n.transliterate(d).downcase + '\','}
+          f[:data].split(',').each {|d| w << '\'' + I18n.transliterate(d).downcase.gsub('\'', '\'\'') + '\','}
           w.chop!
           w << ')'
         else
           w << '\''
           w << '%' if [:ew,:en,:cn,:nc].include?(op)
-          w << (ty == :string ? I18n.transliterate(f[:data]).downcase : f[:data])
+          #w << (ty == :string ? I18n.transliterate(f[:data]).downcase : f[:data])
+          w << (ty == :string ? I18n.transliterate(f[:data]).downcase.gsub('\'', '\'\'') : f[:data].gsub('\'', '\'\''))
           w << '%' if [:bw,:bn,:cn,:nc].include?(op)
           w << '\''
         end
@@ -1782,10 +1790,11 @@ class ApplicationController < ActionController::Base
       end
 
       patron.gsub!('.', '%')
-      patron.gsub!('"', '\"')
     else
       patron = r
     end
+
+    patron = '\'' + I18n.transliterate(patron.gsub('"', '\"').gsub('\'', '\'\'')).downcase + '\''
 
     wh = '('
     data[:campos].each {|c|
@@ -1800,7 +1809,8 @@ class ApplicationController < ActionController::Base
         wh << 'UNACCENT(LOWER(' + c + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
       end
 =end
-      wh << 'UNACCENT(LOWER(' + c.to_s + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
+      #wh << 'UNACCENT(LOWER(' + c.to_s + ')) LIKE \'' + I18n.transliterate(patron).downcase + '\'' + ' OR '
+      wh << "UNACCENT(LOWER(#{c})) LIKE #{patron} OR "
     }
 
     wh = wh[0..-5] + ')'
@@ -2609,6 +2619,8 @@ class ApplicationController < ActionController::Base
     sty = []
     typ = []
     cols.each {|c|
+      next if c[:hidden]
+
       case c[:type].to_sym
         when :string
           typ << :string
@@ -2660,10 +2672,17 @@ class ApplicationController < ActionController::Base
     sty, typ = array_estilos_tipos_axlsx(cols, wb)
 
     # Primera fila (Cabecera)
-    sh.add_row(cols.map {|v| v[:label] || v[:name]})
+    sh.add_row(cols.select{|v| !v[:hidden]}.map{|v| v[:label] || v[:name]})
 
-    #data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| cols[i][:ref] ? forma_campo_id(cols[i][:ref], d) : d})}
-    data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| forma_campo_axlsx(cols[i], cols[i][:name], d)}, types: typ, style: sty) if ids.include?(r[0].to_s)}
+    #data.each {|r| sh.add_row(r[1..nc].map.with_index {|d, i| forma_campo_axlsx(cols[i], cols[i][:name], d)}, types: typ, style: sty) if ids.include?(r[0].to_s)}
+    data.each {|r|
+      next unless ids.include?(r[0].to_s)
+      row = []
+      r[1..nc].each.with_index {|d, i|
+        row << forma_campo_axlsx(cols[i], cols[i][:name], d) unless cols[i][:hidden]
+      }
+      sh.add_row(row, types: typ, style: sty)
+    }
 
     # Fijar la fila de cabecera para repetir en cada página
     wb.add_defined_name("Hoja1!$1:$1", :local_sheet_id => sh.index, :name => '_xlnm.Print_Titles')
@@ -2826,6 +2845,7 @@ class ApplicationController < ActionController::Base
 
   def pinta_exception(e, msg=nil)
     logger.fatal '######## ERROR #############'
+    logger.fatal "Usu: #{@usu.codigo}" if @usu
     logger.fatal e.message
     (0..10).each{|i| logger.fatal e.backtrace[i]}
     logger.fatal '############################'

@@ -135,7 +135,8 @@ function creaWin(url, prop, lbl) {
         '<div id="rt' + nPan + '" class="div-fav">' +
         '<a href=' + url + ' target="_blank" class="url-fav">' + prop.lbl + '</a>' +
         '<div class=div-del-fav>' +
-        '<i class="material-icons del-fav" title="Eliminar favorito" onclick="$(\'#' + did + '\').remove()">clear</i>' +
+        //'<i class="material-icons del-fav" title="Eliminar favorito" onclick="$(\'#' + did + '\').remove()">clear</i>' +
+        '<i class="material-icons del-fav" title="Eliminar favorito" onclick="cierraElem($(\'#' + did + '\'))">clear</i>' +
         '</div></div>';
 
       $("<div class='base-fav elemento-panel' id='" + did + "'>").
@@ -164,7 +165,8 @@ function creaWin(url, prop, lbl) {
             var di = $(this);
             if ($("i:hover").length != 0) {
               // Estamos sobre el icono de cerrar favorito
-              di.remove();
+              //di.remove();
+              cierraElem(di);
               return;
             }
             if ($("a:hover").length != 0) window.open(di.find("a").attr("href"), "_blank");
@@ -193,7 +195,8 @@ function creaWin(url, prop, lbl) {
         '<p class="tit-contenedor">' + prop.lbl + '</p>' +
         '<div class="bot-contenedor">' +
         '<i class="material-icons edit-tit-cont" title="Editar título">edit</i>' +
-        '<i class="material-icons" title="Eliminar contenedor" onclick="$(\'#' + did + '\').remove()">clear</i>' +
+        //'<i class="material-icons" title="Eliminar contenedor" onclick="$(\'#' + did + '\').remove()">clear</i>' +
+        '<i class="material-icons" title="Eliminar contenedor" onclick="cierraElem($(\'#' + did + '\'))">clear</i>' +
         '</div>';
 
       $("<div class='base-cont elemento-panel' id='" + did + "'>").
@@ -248,6 +251,13 @@ function ajustaWin() {
 
     $("#div-body").css("height", h + "px").css("width", w + "px");
   //}
+}
+
+function cierraElem(el) {
+  if ($("#actPan").is(":checked"))
+    el.remove();
+  else
+    nimPopup('Active el panel para eliminar elementos');
 }
 
 function session_out() {

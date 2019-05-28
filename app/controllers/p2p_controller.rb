@@ -51,7 +51,7 @@ class P2pController < ApplicationController
   end
 
   def p2p_select
-    mensaje tit: 'Control del proceso', msg: '¿Desea detener el proceso seleccionado?', bot: [{label: 'Detener', busy: true, accion: :p2p_kill15}, {label: 'Forzar Detención',busy: true,  accion: :p2p_kill9}, {label: 'Cancelar'}]
+    mensaje tit: 'Control del proceso', msg: '¿Desea detener el proceso seleccionado?', width: 350, bot: [{label: 'Detener', busy: true, accion: :p2p_kill15}, {label: 'Forzar Detención',busy: true,  accion: :p2p_kill9}, {label: 'Cancelar'}]
     @g[:id] = params[:id]
   end
 

@@ -8,7 +8,7 @@ end
 
 class HistoPkController < ApplicationController
   def before_edit
-    flash[:mod].constantize.modelo_histo.nil? ? {msg: 'No hay histórico'} : true
+    flash[:mod].nil? || flash[:mod].constantize.modelo_histo.nil? ? {msg: 'No hay histórico'} : true
   end
 
   def before_envia_ficha
