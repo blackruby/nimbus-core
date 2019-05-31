@@ -12,7 +12,7 @@ class DivisasMod < Divisa
     cellEdit: false,
   }
 
-  #@hijos = []
+  @hijos = [{url: 'divisalineas', tab: 'post'}]
 
   #def ini_campos_ctrl
   #end
