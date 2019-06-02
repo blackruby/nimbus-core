@@ -2436,7 +2436,7 @@ class ApplicationController < ActionController::Base
 
     data = opts[:data]
     data_grid = []
-    if data and not data.empty?
+    if data and data.present?
       data = [data] unless data[0].class == Array
       opts.delete(:data)
       data.each {|r|
@@ -2449,6 +2449,63 @@ class ApplicationController < ActionController::Base
       }
     end
 
+    if opts[:subgrid]
+      opts[:subgrid][:cols].each {|c|
+        c[:type] ||= :string
+        c[:type] = c[:type].to_sym
+        case c[:type]
+          when :boolean
+            c[:manti] ||= 6
+            c[:align] ||= 'center'
+            c[:formatter] ||= '~format_check~'
+            c[:unformat] ||= '~unformat_check~'
+          when :integer, :decimal
+            c[:manti] ||= 7
+            c[:decim] ||= (c[:type] == :integer ? 0 : 2)
+            c[:signo] = false if c[:signo].nil?
+            c[:sortfunc] ||= '~sortNumero~'
+            c[:align] ||= 'right'
+          when :date
+            c[:manti] ||= 10
+            c[:sorttype] ||= 'date'
+            c[:formatter] ||= 'date'
+          when :time
+            c[:manti] ||= 8
+          when :datetime
+            c[:manti] ||= 19
+            c[:sorttype] ||= 'date'
+            c[:formatter] = 'date'
+            format = "d-m-Y H:i#{c[:seg] ? ':s' : ''}"
+            c[:formatoptions] ||= {srcformat: format, newformat: format}
+          when :img
+            c[:manti] ||= 8
+            c[:sortable] = false
+          else
+            if c[:sel]
+              c[:manti] ||= 6
+              c[:formatter] ||= 'select'
+              c[:align] ||= 'center'
+            else
+              c[:manti] ||= 30
+            end
+        end
+        c[:width] ||= 8 * [c[:manti].to_i, (c[:label] || c[:name]).size].max
+      }
+
+      opts[:subgrid][:data] ||= {}
+      opts[:subgrid][:data].each {|k, v|
+        opts[:subgrid][:data][k] = []
+        if v && v.present?
+          v = [v] unless v[0].class == Array
+          v.each {|r|
+            h = {id: r[0]}
+            opts[:subgrid][:cols].each.with_index(1){|c, i| h[c[:name]] = _forma_campo(:lgrid, c, c[:name], r[i])}
+            opts[:subgrid][:data][k] << h
+          }
+        end
+      }
+    end
+
     @ajax_post << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data_grid.to_json});"
 
     @fact.campos[cmp][:grid_emb] = {opts: opts, data: data} if opts[:export]
@@ -2457,9 +2514,8 @@ class ApplicationController < ActionController::Base
         @fact[cmp] = HashForGrids.new(opts[:cols], data)
         @fant[cmp] = nil if @fant
       else
-        #@fact[cmp] = nil
-        #@fant[cmp] = nil if @fant
-        @fact.campos[cmp][:grid_sel] = true
+        #@fact.campos[cmp][:grid_sel] = true
+        @fact.campos[cmp][:grid_sel] = {sgm: (opts[:subgrid] ? (opts[:subgrid][:grid][:multiselect] ? true : false) : nil), gm: opts[:grid][:multiselect]}
         @ajax_post << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
     end
   end
@@ -2571,6 +2627,7 @@ class ApplicationController < ActionController::Base
     grid_del_row(params[:cmp], row)
   end
 
+=begin
   def grid_local_select
     campo = params[:cmp]
     sel = (params[:sel] == 'true')
@@ -2598,6 +2655,45 @@ class ApplicationController < ActionController::Base
       end
     else
       @fact[campo] = sel ? params[:row].to_i : nil
+    end
+
+    fun = "sel_#{campo}"
+    self.method(fun).call(params[:row]) if self.respond_to?(fun)
+  end
+=end
+  def grid_local_select
+    campo = params[:cmp]
+    sel = (params[:sel] == 'true')
+    gs = @fact.campos[campo.to_sym][:grid_sel]
+
+    if !gs[:gm] && gs[:sgm].nil?
+      # No hay subgrid y la selección es single
+      @fact[campo] = sel ? params[:row].to_i : nil
+    else
+      @fact[campo] = [] unless @fact[campo]
+      subg = params[:subg] ? params[:subg].to_i : nil
+      if params[:row] == ''
+        if subg
+          # Deseleccionar todos los registros del subgrid
+          @fact[campo].delete_if{|c| c.is_a?(Array) && c[0] == subg}
+        else
+          # Deseleccionar todos los registros del grid padre
+          @fact[campo].delete_if{|c| !c.is_a?(Array)}
+        end
+      elsif params[:row].is_a? Array
+        @fact[campo] += params[:row].map{|c| subg ? [subg, c.to_i] : c.to_i}
+      else
+        row = params[:row].to_i
+        if subg
+          @fact[campo].delete_if{|c| c.is_a?(Array) && c[0] == subg} unless gs[:sgm]
+          row = [subg, params[:row].to_i]
+        else
+          @fact[campo].delete_if{|c| !c.is_a?(Array)} unless gs[:gm]
+          row = params[:row].to_i
+        end
+        sel ? @fact[campo] << row : @fact[campo].delete(row)
+      end
+      @fact[campo].uniq!
     end
 
     fun = "sel_#{campo}"

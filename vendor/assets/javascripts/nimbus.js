@@ -1054,11 +1054,26 @@ function setDataGridLocal(cmp, data) {
 function setSelectionGridLocal(cmp, data) {
   var g = $("#g_" + cmp);
   g.jqGrid("resetSelection");
+  $.each(nim_subgrid_data[cmp], function(id) {
+    $("#g_" + cmp + "_" + id + "_t").jqGrid("resetSelection")
+    for (var d of nim_subgrid_data[cmp][id]) d._sel = false;
+  });
   if (data) {
     if (!$.isArray(data)) data = [data];
-    for (var i in data) g.jqGrid("setSelection", data[i], false);
+    //for (var i in data) g.jqGrid("setSelection", data[i], false);
+    for (var d of data) {
+      if ($.isArray(d)) {
+        var sg = $("#g_" + cmp + "_" + d[0] + "_t");
+        sg.jqGrid("setSelection", d[1], false);
+        for (var r of nim_subgrid_data[cmp][d[0]]) if (r.id == d[1]) r._sel = true;
+      } else
+        g.jqGrid("setSelection", d, false);
+    }
   }
 }
+
+// Variable global para almacenar los datos de los subgrids
+nim_subgrid_data = {};
 
 function creaGridLocal(opts, data) {
   var cmp = opts.cmp;
@@ -1105,9 +1120,37 @@ function creaGridLocal(opts, data) {
     default :
       grid_a = {
         deselectAfterSort: false,
-        onSelectRow: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: r, sel: s, multi: grid.multiselect})},
-        onSelectAll: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: (s ? r : null), sel: s, multi: grid.multiselect})}
+        onSelectRow: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: r, sel: s})},
+        onSelectAll: function(r, s){callFonServer("grid_local_select", {cmp: cmp, row: (s ? r : null), sel: s})}
       };
+      // Subgrid
+      if (opts.subgrid) {
+        nim_subgrid_data[cmp] = opts.subgrid.data;
+        grid_a.subGrid = true;
+        grid_a.subGridRowExpanded = function (div, rowId) {
+          if (opts.subgrid.data[rowId] == undefined) return;
+
+          var subgridTableId = div + "_t";
+          $("#" + div).html("<table id='" + subgridTableId + "'></table>");
+          var gs = $("#" + subgridTableId);
+          gs.jqGrid($.extend(true, {
+            datatype: 'local',
+            deselectAfterSort: false,
+            cellEdit: false,
+            data: nim_subgrid_data[cmp][rowId],
+            colModel: opts.subgrid.cols,
+            onSelectRow: function(r, s) {
+              callFonServer("grid_local_select", {cmp: cmp, row: r, sel: s, subg: rowId});
+              for (var d of nim_subgrid_data[cmp][rowId]) if (d.id == r) d._sel = s;
+            },
+            onSelectAll: function(r, s) {
+              callFonServer("grid_local_select", {cmp: cmp, row: (s ? r : null), sel: s, subg: rowId});
+              for (var d of nim_subgrid_data[cmp][rowId]) d._sel = s;
+            }
+          }, opts.subgrid.grid));
+          for (var d of nim_subgrid_data[cmp][rowId]) if (d._sel) gs.jqGrid("setSelection", d.id, false);
+        }
+      }
   }
 
   var vg = g.jqGrid($.extend(true, {
@@ -1199,6 +1242,20 @@ function creaGridLocal(opts, data) {
       break;
     default :
       if (caption != '') $('#gbox_g_' + cmp).prepend('<div class="nim-titulo">' + caption + '&nbsp;&nbsp;&nbsp;&nbsp;' + '</div>');
+
+      // Si hay subgrid
+      $("#jqgh_g_" + cmp + "_subgrid")
+        .html('<a style="cursor: pointer;"><span class="ui-icon ui-icon-plus" title="Expandir todo"></span></a>')
+        .click(function () {
+          var ico = $(this).find(">a>span"), tb = $(this).closest(".ui-jqgrid-view").find(">.ui-jqgrid-bdiv>div>.ui-jqgrid-btable>tbody");
+          if (ico.hasClass("ui-icon-plus")) {
+            ico.removeClass("ui-icon-plus").addClass("ui-icon-minus").attr("title", "Colapsar todo");
+            tb.find(">tr.jqgrow>td.sgcollapsed").click();
+          } else {
+            ico.removeClass("ui-icon-minus").addClass("ui-icon-plus").attr("title", "Expandir todo");
+            tb.find(">tr.jqgrow>td.sgexpanded").click();
+          }
+        });
   }
   if (opts.export) {
     $("#" + cmp + " .nim-titulo").append('&nbsp;&nbsp;' + creaMdlButton('b_ex_' + cmp, 30, 2, 22, 'assignment_returned', 'Exportar a Excel'));

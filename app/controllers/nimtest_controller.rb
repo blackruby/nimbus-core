@@ -14,9 +14,12 @@ class NimtestMod < Pais
     pxa: {tab: 'post', type: :div, gcols: 12},
     pxb: {tab: 'post', type: :div, gcols: 12},
     pxc: {tab: 'post', type: :div, gcols: 12},
+    fact_emp: {tab: 'post', label: '@fact.grid_emp', ro: :all, gcols: 12},
+    grid_emp: {tab: 'post', type: :div, gcols: 12},
 
     campo_x: {dlg: 'uno', gcols: 6},
-    mig1: {dlg: 'uno', type: :div, gcols: 6},
+    mig1: {dlg: 'uno', type: :div, gcols: 6, br: true},
+    mig0: {dlg: 'uno', type: :div, gcols: 6},
 
     campo_1: {dlg: 'dos', gcols: 12},
     campo_2: {dlg: 'dos', gcols: 12},
@@ -105,6 +108,7 @@ class NimtestController < ApplicationController
 
     @fact.add_campo :cmpx, tab: 'post', gcols: 12, type: :decimal
 
+    # Grid de usuarios con foto
     cols3 = [
       {name: 'codigo', label: 'Código', width: 70},
       {name: 'nombre', label: 'Nombre', width: 200},
@@ -113,6 +117,43 @@ class NimtestController < ApplicationController
 
     q = Usuario.pluck :id, :codigo, :nombre
     crea_grid cmp: :pxc, cols: cols3, grid: {caption: "Usuarios", height: 200}, data: q.map{|u| u + [nim_image(mod: Usuario, id: u[0], tag: :foto)]}
+
+    # Grid de empresas con subgrid de ejercicios
+    cols_emp = [
+      {name: 'cod', label: 'Código', width: 70},
+      {name: 'nom', label: 'Nombre', width: 200},
+      {name: 'cif', label: 'C.I.F.', width: 60},
+      {name: 'dir', label: 'Dirección', width: 200},
+      {name: 'pob', label: 'Población', width: 200}
+    ]
+    cols_eje= [
+      {name: 'cod', label: 'Código', width: 70},
+      {name: 'fi', label: 'Inicio', type: :date},
+      {name: 'ff', label: 'Final', type: :date},
+    ]
+
+    dat_emp = Empresa.order(:codigo).pluck(:id, :codigo, :nombre, :cif, :direccion, :poblacion)
+    dat_eje = {}
+    Ejercicio.order(:codigo).pluck(:empresa_id, :id, :codigo, :fec_inicio, :fec_fin).each{|j|
+      dat_eje[j[0]] ||= []
+      dat_eje[j[0]] << j[1..-1]
+    }
+
+    crea_grid(
+      cmp: :grid_emp,
+      cols: cols_emp,
+      grid: {caption: "Empresas", multiselect: true, height: 400},
+      data: dat_emp,
+      subgrid: {
+        cols: cols_eje,
+        grid: {multiselect: true, height: 100},
+        data: dat_eje
+      }
+    )
+  end
+
+  def on_grid_emp
+    @fact.fact_emp = @fact.grid_emp.to_s
   end
 
   def new_pxa(pos)
@@ -125,12 +166,15 @@ class NimtestController < ApplicationController
   def vali_pxa_nombre(id, val)
     return nil
   end
+
   def on_pxa_nombre(id, val)
     @fact.pxa.data(id, :nombre2, val[-4..-1])
   end
+
   def vali_pxa_nombre2(id, val)
     return "#{val}: Nombre muy largo" if val.size > 5
   end
+
   def on_pxa_nombre2(id, val)
     @fact.pxa.data(id, :double, 12.1)
   end
@@ -151,7 +195,10 @@ class NimtestController < ApplicationController
     q = Pais.where('nombre like ?', 'A%')
 
     crea_grid cmp: :mig1, cols: cols, grid: {multiselect: true, height: 250}, data: q.map{|p| [p.id, p.codigo, p.nombre]}
-    @fact.mig1 = [3,8,14]
+    crea_grid cmp: :mig0, cols: cols, grid: {multiselect: true, height: 250}, data: q.map{|p| [p.id, p.codigo, p.nombre]}
+    #@fact.mig1 = [3,8,14]
+    @fact.mig1 = []
+    @fact.mig0 = []
   end
 
   def fin_diag_1
@@ -234,6 +281,25 @@ class NimtestController < ApplicationController
 
   def on_campo_x
     @fact.mig1 = 8
+  end
+
+  def on_mig1
+    return unless params[:cmp].nil? || params[:cmp] == 'mig1'
+    pp 'on_mig1'
+    if params[:sel] == 'true'
+      @fact.mig0 << params[:row].to_i
+    else
+      @fact.mig0.delete params[:row].to_i
+    end
+  end
+  def on_mig0
+    return unless params[:cmp] == 'mig0'
+    pp 'on_mig0'
+    if params[:sel] == 'true'
+      @fact.mig1 << params[:row].to_i
+    else
+      @fact.mig1.delete params[:row].to_i
+    end
   end
 
   def on_upl(f)
