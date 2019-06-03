@@ -2696,8 +2696,10 @@ class ApplicationController < ActionController::Base
       @fact[campo].uniq!
     end
 
+    @fant[campo.to_sym] = @fact[campo].deep_dup
     fun = "sel_#{campo}"
     self.method(fun).call(params[:row]) if self.respond_to?(fun)
+    call_nimbus_hook "on_#{campo}"
   end
 
   # Método para calcular dos arrays: uno de estilos y otro de tipos
