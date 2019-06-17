@@ -3,7 +3,7 @@ unless Nimbus::Config[:excluir_usuarios]
 class WelcomeController < ApplicationController
   require 'bcrypt'
 
-  skip_before_action :ini_controller, only: [:index, :login, :cambia_pass]
+  skip_before_action :ini_controller, only: [:index, :login, :cambia_pass, :api_login]
 
   def index
     unless sesion_invalida
@@ -22,26 +22,44 @@ class WelcomeController < ApplicationController
   # * Intento de conexión en el periodo de bloqueo (La conexión no se produce aunque la contraseña sea válida)
   # B Intento de conexión de un usuario de baja
   # I Intento de conexión desde una IP no válida
+  # M Método de acceso incorrecto (un usuario WEB a trvés de la API o viceversa)
+  # X contraseña caducada en acceso vía API
 
-  def log_acceso(uid, login, status)
-    Acceso.create usuario_id: uid, login: login, fecha: @ahora, ip: request.remote_ip, status: status
+  def log_acceso(uid, login, status, web)
+    Acceso.create usuario_id: uid, login: login, fecha: @ahora, ip: "#{web ? '' : '*'}#{request.remote_ip}", status: status
   end
 
-  def login
+  def login(web = true)
     @assets_stylesheets = %w(welcome/index)
     @seg_blq = 300  # Nº de segundos que un usuario permanecerá bloqueado si introduce tres veces mal la contraseña.
 
-    @login = params[:usuario]
-    @ahora = Time.now
+    @login = params[:usuario].to_s
+    #@ahora = Time.now
+    @ahora = Nimbus.now
 
     usu = Usuario.find_by codigo: @login
 
     if usu
+      # Control de que el usuario accede por la vía correcta (web o API)
+      if web && usu.api || !web && !usu.api
+        log_acceso usu.id, @login, 'M', web
+        if web
+          redirect_to '/'
+          return
+        else
+          return 'Acceso no autorizado.'
+        end
+      end
+
       # Control de que el usuario no esté de baja
       if usu.fecha_baja and usu.fecha_baja <= @ahora
-        log_acceso usu.id, @login, 'B'
-        redirect_to '/'
-        return
+        log_acceso usu.id, @login, 'B', web
+        if web
+          redirect_to '/'
+          return
+        else
+          return 'El usuario ha sido dado de baja.'
+        end
       end
 
       # Control de acceso por IP
@@ -59,9 +77,13 @@ class WelcomeController < ApplicationController
           end
         }
         if bloqueo
-          log_acceso usu.id, @login, 'I'
-          redirect_to '/'
-          return
+          log_acceso usu.id, @login, 'I', web
+          if web
+            redirect_to '/'
+            return
+          else
+            return 'IP no autorizada.'
+          end
         end
       end
     end
@@ -69,38 +91,58 @@ class WelcomeController < ApplicationController
     acs = Acceso.where('login=? AND fecha>?', @login, @ahora - @seg_blq).order('fecha desc').limit(3)
     nacs = acs.length
     if nacs > 2 and acs[0].status < 'A' and acs[1].status < 'A' and acs[2].status < 'A'
-      log_acceso usu.try(:id), @login, '*'
+      log_acceso usu.try(:id), @login, '*', web
       @seg_blq -= (@ahora - acs[1].fecha).round
-      render 'bloqueo'
-      return
+      if web
+        render 'bloqueo'
+        return
+      else
+        return 'Usuario bloqueado. Espere 5 minutos.'
+      end
     end
 
     if usu && usu.password_hash.present? && usu.password_hash == BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
-      session[:uid] = usu.id
-      session[:fec] = @ahora          #Fecha de creación
-      session[:fem] = session[:fec]   #Fecha de modificación (último uso)
-      cookies.permanent[:locale] = session[:locale] = I18n.locale_available?(usu.pref[:locale]) ? usu.pref[:locale] : I18n.default_locale
+      if web
+        session[:uid] = usu.id
+        session[:fec] = @ahora          #Fecha de creación
+        session[:fem] = session[:fec]   #Fecha de modificación (último uso)
+        cookies.permanent[:locale] = session[:locale] = I18n.locale_available?(usu.pref[:locale]) ? usu.pref[:locale] : I18n.default_locale
 
-      log_acceso usu.id, @login, 'C'
+        log_acceso usu.id, @login, 'C', web
+      end
 
       # Comprobar si el password ha expirado o password_fec_mod es nil (primer login) y solicitar uno nuevo o llevar al menú
 
       if usu.password_fec_mod.nil? or (usu.num_dias_validez_pass.to_i != 0 and (@ahora - usu.password_fec_mod)/86400 > usu.num_dias_validez_pass)
-        render 'cambia_pass'
+        if web
+          render 'cambia_pass'
+        else
+          log_acceso usu.id, @login, 'X', web
+          return 'Contraseña caducada. Solicite una nueva.'
+        end
       else
-        flash[:login] = true
-        redirect_to '/menu'
+        if web
+          flash[:login] = true
+          redirect_to '/menu'
+        else
+          log_acceso usu.id, @login, 'C', web
+          return usu.id
+        end
       end
     else
-      session[:uid] = nil
+      log_acceso usu.try(:id), @login, '-', web
 
-      log_acceso usu.try(:id), @login, '-'
+      if web
+        session[:uid] = nil
 
-      if nacs > 1 and acs[0].status < 'A' and acs[1].status < 'A'
-        @seg_blq -= (@ahora - acs[1].fecha).round
-        render 'bloqueo'
+        if nacs > 1 and acs[0].status < 'A' and acs[1].status < 'A'
+          @seg_blq -= (@ahora - acs[1].fecha).round
+          render 'bloqueo'
+        else
+          redirect_to '/'
+        end
       else
-        redirect_to '/'
+        return 'Error de autentificación.'
       end
     end
   end
@@ -148,7 +190,7 @@ class WelcomeController < ApplicationController
 
     session[:uid] = nil
 
-    log_acceso @usu.id, @usu.codigo, 'D'
+    log_acceso @usu.id, @usu.codigo, 'D', true
 
     #render :nothing => true
     head :no_content
@@ -282,19 +324,15 @@ class WelcomeController < ApplicationController
     @ajax << 'location.reload();'
   end
 
-  # El siguiente método está obsoleto. Ahora al cambiar de empresa se recarga la página completa.
-=begin
-  def ejercicio_en_menu
-    if Ejercicio.where('empresa_id = ?', params[:eid]).count == 0
-      @ajax << '$("#d-ejercicio").css("visibility", "hidden")'
+  def api_login
+    res = login(false)
+    if res.is_a? String
+      # Error de autentificación
+      render json: {st: res}
     else
-      @ajax << '$("#d-ejercicio").css("visibility", "visible");$("#ejercicio").focus();'
+      render json: {st: 'Ok', jwt: JWT.encode({uid: res, exp: (Time.now + Nimbus::Config[:api][:jwt_exp]).to_i}, Rails.application.secrets.secret_key_base)}
     end
-
-    @dat[:eid] = params[:eid]
-    @dat[:auto_comp][:ej] = "empresa_id=#{params[:eid]}"
   end
-=end
 end
 
 Nimbus.load_adds __FILE__

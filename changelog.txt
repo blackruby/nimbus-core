@@ -1,3 +1,20 @@
+.- Implementación de acceso vía API a través de "json web tokens" (jwt).
+   Para habilitar la API hay que configurar la clave "api" en nimbus-core.yml
+   (ver posibilidades y documentación en modulos/nimbus-core/config/nimbus-core.yml)
+   Para el manejo de jwt hay que incluir en el Gemfile del proyecto la gema "jwt"
+   y rodar "bundle install" para instalarla.
+.- Se ha añadido un nuevo campo (api) a la tabla de usuarios para decidir si el
+   acceso de éste es a través de la API (true) o la web (false).
+   Es necesario rodar las migraciones para actualizar el campo anterior.
+.- Añadida una ventana de ayuda en el control de accesos para detallar el 
+   significado de los valores de los diferentes campos.
+.- Posibilidad de definir una web de ayuda para las ventanas de búsqueda.
+   El mecanismo consiste en definir un "partial" en la carpeta de views
+   y al llamar a la búsqueda pasarle como parámetro (o clave del flash)
+   help=partial_que_hayamos_creado.
+   Hay que recordar que los "partials" tienen que empezar por "_".
+   Como ejemplo puede servir el punto anteriror (búsqueda en la tabla de accesos)
+-------------------------------------------------------------------------------
 .- Posibilidad de subgrids en grids embebidos tipo ":sel" (selección)
 -------------------------------------------------------------------------------
 .- Ventana de detención de proceso en p2p: anchura corregida para que no se

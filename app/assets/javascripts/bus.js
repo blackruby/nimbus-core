@@ -222,6 +222,10 @@ function busPref() {
   }
 }
 
+function busHelp() {
+  $("#dialog-help").dialog("open");
+}
+
 $(window).load(function() {
   _controlador = 'bus';
   ficPrefijo = "bus/_usuarios/" + usuCod + "/" + modelo + "/";
@@ -299,6 +303,14 @@ $(window).load(function() {
         callFonServer("bus_pref", {fic: $("#bus-sel").val()});
       }
     }
+  });
+
+  $("#dialog-help").dialog({
+    title: "Ayuda",
+    autoOpen: false,
+    resizable: false,
+    modal: true,
+    width: "auto"
   });
 
   $("#tree-campos").tree({

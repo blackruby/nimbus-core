@@ -9,6 +9,7 @@ class CreateUsuarios < ActiveRecord::Migration[5.0]
         t.string :password_hash
         t.timestamp :password_fec_mod
         t.boolean :admin
+        t.boolean :api
         t.integer :timeout
         t.references :empresa_def
         t.references :ejercicio_def

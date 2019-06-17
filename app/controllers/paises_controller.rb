@@ -33,6 +33,9 @@ class PaisesMod
 end
 
 class PaisesController < ApplicationController
+  def api_paises
+    render json: {st: 'Ok', dat: Pais.order(:codigo).pluck(:codigo, :nombre)}
+  end
 end
 
 Nimbus.load_adds __FILE__

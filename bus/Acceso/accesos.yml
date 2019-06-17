@@ -9,14 +9,18 @@
     :w: 82
     :type: string
   :c03:
+    :label: usuario.id
+    :w: 50
+    :type: integer
+  :c04:
     :label: usuario.nombre
     :w: 266
     :type: string
-  :c04:
+  :c05:
     :label: ip
     :w: 105
     :type: string
-  :c05:
+  :c06:
     :label: status
     :w: 54
     :type: string

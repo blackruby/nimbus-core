@@ -43,6 +43,9 @@
     <li class="mdl-menu__item" onclick="busDel()"><i class="material-icons">delete</i>Eliminar</li>
     <li class="mdl-menu__item" onclick="gridExport('xlsx')"><i class="material-icons">grid_on</i>Excel</li>
     <li class="mdl-menu__item" onclick="gridExport('pdf')"><i class="material-icons">picture_as_pdf</i>PDF</li>
+    <% if @help %>
+    <li class="mdl-menu__item" onclick="busHelp()"><i class="material-icons">help</i>Ayuda</li>
+    <% end %>
   </ul>
   <% if @tipo_bus.starts_with?('mant') %>
   <div id="d-no-cerrar" title="Activar/Desactivar la visibilidad permanente de la ventana">
@@ -55,6 +58,12 @@
 </div>
 <div id="tree-campos"> </div>
 <div id="d-grid"> </div>
+
+<% if @help %>
+<div id="dialog-help" style="display: none">
+  <%= render @help %>
+</div>
+<% end %>
 
 <div id="dialog-save" style="display: none">
   <label>Nombre del archivo:</label>

@@ -68,4 +68,9 @@ Rails.application.routes.draw do
 
   get 'p2p' => 'p2p#edit'
   post 'p2p/fon_server' => 'p2p#fon_server'
+
+  if Nimbus::Config[:api]
+    post 'api/login' => 'welcome#api_login'
+    post 'api/paises' => 'paises#api_paises'
+  end
 end

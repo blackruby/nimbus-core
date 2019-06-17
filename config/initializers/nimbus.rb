@@ -37,6 +37,9 @@ module Nimbus
     else
       Config[:p2p] = {tot: 50}
   end
+  # Adecuación de api
+  Config[:api] = {} if Config[:api] == true
+  Config[:api][:jwt_exp] = 3600*24 if Config[:api]
 
   # Nombre de la cookie de empresa/ejercicio
   CookieEmEj = ('_' + Rails.app_class.to_s.split(':')[0].downcase + '_emej').to_sym

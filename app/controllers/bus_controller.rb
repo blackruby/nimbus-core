@@ -78,6 +78,8 @@ class BusController < ApplicationController
     @assets_stylesheets = %w(bus)
     @assets_javascripts = %w(bus)
 
+    @help = flash[:help] || params[:help]
+
     @mod = flash[:mod] || params[:mod]
     if @mod.nil? || @mod == 'Usuario' && !@usu.admin
       render file: '/public/404.html', status: 404, layout: false
@@ -157,6 +159,7 @@ class BusController < ApplicationController
       rows: 50,
       tit: flash[:tit] || (clm.respond_to?(:nim_bus_tit) ? clm.nim_bus_tit(@dat[:eid], @dat[:jid], @usu) : nil) || "Búsqueda de #{nt(tabla)}"
     }
+    @titulo = @dat[:tit]
 
     # Calcular fichero de preferencias
     fic_pref = flash[:pref] || params[:pref]

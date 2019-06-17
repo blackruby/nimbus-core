@@ -3,7 +3,9 @@ SESSION_EXPIRATION_TIME = 30.minutes
 class ApplicationController < ActionController::Base
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
-  protect_from_forgery with: :exception, unless: -> {params[:action] == 'destroy_vista'}
+  protect_from_forgery with: :exception, unless: -> {
+    params[:action] == 'destroy_vista' || request.fullpath.starts_with?('/api/')
+  }
 
   include ActionView::Helpers::NumberHelper
 
@@ -56,7 +58,21 @@ class ApplicationController < ActionController::Base
   end
 
   def ini_controller
-    if sesion_invalida
+    if request.fullpath.starts_with?('/api/')
+      if params[:jwt]
+        begin
+          jwt = JWT.decode(params[:jwt], Rails.application.secrets.secret_key_base)[0]
+          @usu = Usuario.find_by id: jwt['uid']
+        rescue JWT::ExpiredSignature
+          render json: {st: 'El token ha expirado'}
+        rescue
+          render json: ''
+        end
+      else
+        render json: ''
+      end
+      return
+    elsif sesion_invalida
       #session[:uid] = nil
       if request.xhr? # Si la petición es Ajax...
         case params[:action]

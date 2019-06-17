@@ -1,12 +1,14 @@
 unless Nimbus::Config[:excluir_usuarios]
 
 class UsuariosMod < Usuario
+  api = Nimbus::Config[:api] ? true : false
   @campos = {
     codigo: {tab: 'pre', gcols: 4, grid: {}},
     nombre: {tab: 'pre', gcols: 4, span: true, grid: {}},
     email: {tab: 'pre', gcols: 4, span: true, rol: :email},
     foto: {tab: 'pre', gcols: 2, img: {height: 120}},
     admin: {tab: 'general', gcols: 2, br: true, grid: {}},
+    api: {tab: 'general', label: 'Usuario API', gcols: 2, visible: api, grid: {hidden: !api}},
     timeout: {tab: 'general', gcols: 4},
     locale: {tab: 'general', gcols: 2, sel:{es: 'espanol', en: 'ingles'}, pref: true},
     password: {tab: 'general', hr: true, gcols: 3, attr: 'autocomplete="new-password" type="password"'},
@@ -205,6 +207,7 @@ class UsuariosController < ApplicationController
 
     unless @usu.admin
       disable(:admin)
+      disable(:api)
       status_botones(borrar: false) if @usu.id == @fact.id
     end
 
