@@ -126,7 +126,7 @@ class WelcomeController < ApplicationController
           redirect_to '/menu'
         else
           log_acceso usu.id, @login, 'C', web
-          return usu.id
+          return usu
         end
       end
     else
@@ -330,7 +330,7 @@ class WelcomeController < ApplicationController
       # Error de autentificación
       render json: {st: res}
     else
-      render json: {st: 'Ok', jwt: JWT.encode({uid: res, exp: (Time.now + Nimbus::Config[:api][:jwt_exp]).to_i}, Rails.application.secrets.secret_key_base)}
+      render json: {st: 'Ok', jwt: JWT.encode({uid: res.id, exp: (Time.now + (res.timeout.to_i == 0 ? 86400 : res.timeout*60)).to_i}, Rails.application.secrets.secret_key_base)}
     end
   end
 end

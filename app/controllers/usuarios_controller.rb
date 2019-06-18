@@ -202,6 +202,7 @@ class UsuariosController < ApplicationController
 
     if @fact.codigo == 'admin'
       disable(:admin)
+      disable(:api)
       status_botones borrar: false
     end
 
@@ -225,9 +226,9 @@ class UsuariosController < ApplicationController
 
       @fact.password_salt = BCrypt::Engine.generate_salt
       @fact.password_hash = BCrypt::Engine.hash_secret(@fact.password, @fact.password_salt)
-      # dejar la fecha de modificación del password en nil si el usuario es nuevo o le cambia la contraseña otro usuario (admin)
+      # dejar la fecha de modificación del password en nil si el usuario no es API, es nuevo o le cambia la contraseña otro usuario (admin)
       # Para tener un criterio para forzar el cambio de password en el siguiente login del usuario.
-      @fact.password_fec_mod = (@fact.id and @fact.id == @usu.id) ? ahora : nil
+      @fact.password_fec_mod = (@fact.api || @fact.id && @fact.id == @usu.id) ? ahora : nil
 
       session[:fec] = ahora + 1       #Fecha de creación
       session[:fem] = session[:fec]   #Fecha de modificación (último uso)

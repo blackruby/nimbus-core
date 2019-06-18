@@ -56,14 +56,14 @@
 
 # API
 #
+# Es necesario añadir en el Gemfile la gema 'jwt'
 # Para obtener el token de autentificación hay que enviar un request POST al server
 # con los parámetros "usuario" y "password" a la URL: /api/login
+# La validez del token la determina el campo timeout del usuario (en minutos). Si 
+# el campo es nil o cero se dará una validez de una hora.
 # El resto de métodos que se definan en la API deberán comenzar su ruta con /api/
-# (p.ej.: /api/venta/get_cliente), tienen que ser POST y Como parámetro obligatorio
+# (p.ej.: /api/venta/get_cliente), tienen que ser POST y como parámetro obligatorio
 # hay que pasar "jwt=xxxxx" donde "xxxxx" es el token obtenido con /api/login 
 #
-# Puede ser true (en este caso se asume el periodo de validez del token en 1 día)
+# Para habilitar el acceso vía API es necesario añadir la siguiente clave:
 :api: true
-# o un hash con una clave (jwt_exp) indicando el periodo de validez del token en segundos (en el ejemplo 1 hora)
-:api:
-  :jwt_exp: 3600
