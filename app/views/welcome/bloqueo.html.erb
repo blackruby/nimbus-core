@@ -4,6 +4,10 @@
   </div>
   <div class="mdl-card__supporting-text">
     Usuario <%= @login %> bloqueado.
+    <% if Nimbus::Config[:email_password] %>
+    <br><br>
+    <a id="a-olvido" href="#">¿Has olvidado la contraseña?</a>
+    <% end %>
   </div>
   <div class="mdl-card__actions mdl-card--border" style="text-align: center;">
     Tiempo restante de bloqueo:
@@ -12,12 +16,15 @@
   </div>
 </div>
 
-<script>
-  var wCard = $(".w-card.mdl-card");wCard.css("margin-top", -wCard.height()/2);
+<% if Nimbus::Config[:email_password] %>
+<div id="dialog-email" style="display: none">
+  Se le enviará una nueva contraseña de un sólo uso a su cuenta de correo.<br>
+  Si no tuviera configurada una cuenta de correo o no recibe el mensaje<br>
+  póngase en contacto con el administrador.
+</div>
+<% end %>
 
-  var reloj = <%= @seg_blq %>;
-  setInterval(function() {
-    $('#reloj').text(('0'+parseInt(reloj/60)).slice(-2) + ':' + ('0'+reloj%60).slice(-2));
-    if (reloj-- == 0) window.location.replace('/');
-  }, 1000);
+<script>
+  reloj = <%= @seg_blq %>;
+  usuario = "<%= @login %>";
 </script>

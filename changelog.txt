@@ -1,3 +1,7 @@
+.- Opción para enviar un correo en caso de olvido de contraseña. Hay que
+   activarlo en config/nimbus-core.yml
+   Ver documentación en modulos/nimbus-core/config/nimbus-core.yml
+-------------------------------------------------------------------------------
 .- Implementación de acceso vía API a través de "json web tokens" (jwt).
    Para habilitar la API hay que configurar la clave "api" en nimbus-core.yml
    (ver posibilidades y documentación en modulos/nimbus-core/config/nimbus-core.yml)

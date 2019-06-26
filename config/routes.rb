@@ -24,6 +24,7 @@ Rails.application.routes.draw do
     post 'login' => 'welcome#login'
     get 'cambia_pass' => 'welcome#index'
     post 'cambia_pass' => 'welcome#cambia_pass'
+    post 'pass_olvido' => 'welcome#pass_olvido'
     post 'welcome/fon_server' => 'welcome#fon_server'
     get 'logout' => 'welcome#logout'
     get 'menu' => 'welcome#menu'

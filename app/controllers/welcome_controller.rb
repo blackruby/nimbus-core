@@ -3,7 +3,7 @@ unless Nimbus::Config[:excluir_usuarios]
 class WelcomeController < ApplicationController
   require 'bcrypt'
 
-  skip_before_action :ini_controller, only: [:index, :login, :cambia_pass, :api_login]
+  skip_before_action :ini_controller, only: [:index, :login, :cambia_pass, :api_login, :pass_olvido]
 
   def index
     unless sesion_invalida
@@ -31,6 +31,8 @@ class WelcomeController < ApplicationController
 
   def login(web = true)
     @assets_stylesheets = %w(welcome/index)
+    @assets_javascripts = %w(welcome/bloqueo)
+
     @seg_blq = 300  # Nº de segundos que un usuario permanecerá bloqueado si introduce tres veces mal la contraseña.
 
     @login = params[:usuario].to_s
@@ -331,6 +333,19 @@ class WelcomeController < ApplicationController
       render json: {st: res}
     else
       render json: {st: 'Ok', jwt: JWT.encode({uid: res.id, exp: (Time.now + (res.timeout.to_i == 0 ? 86400 : res.timeout*60)).to_i}, Rails.application.secrets.secret_key_base)}
+    end
+  end
+
+  def pass_olvido
+    return unless Nimbus::Config[:email_password]
+
+    usu = Usuario.find_by codigo: params[:usu]
+    if usu && usu.email.present?
+      pass = ('@#$%&/+-*'.chars.shuffle[0,1] + (0..9).to_a.shuffle[0,2] + (('A'..'Z').to_a + ('a'..'z').to_a).shuffle[0,7]).shuffle.join
+      UsuariosMailer.new_password(usu, pass).deliver_now
+      ps = BCrypt::Engine.generate_salt
+      ph = BCrypt::Engine.hash_secret(pass, ps)
+      usu.update_columns(password_salt: ps, password_hash: ph, password_fec_mod: nil)
     end
   end
 end
