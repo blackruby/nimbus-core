@@ -1,3 +1,5 @@
+.- Mejoras en p2p.
+-------------------------------------------------------------------------------
 .- Opción para enviar un correo en caso de olvido de contraseña. Hay que
    activarlo en config/nimbus-core.yml
    Ver documentación en modulos/nimbus-core/config/nimbus-core.yml
