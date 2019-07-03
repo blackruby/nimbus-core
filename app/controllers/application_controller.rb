@@ -664,9 +664,18 @@ class ApplicationController < ActionController::Base
       # Cierro todos los sockets que haya abiertos para que no interfieran
       # en las lecturas que de ellos haga el parent (básicamente los requests http)
       ObjectSpace.each_object(IO) {|io| io.close if io.class == TCPSocket and !io.closed?}
-      # Establecer conexión con la base de datos
-      config[:pool] = 1
-      ActiveRecord::Base.establish_connection(config)
+      begin
+        # Establecer conexión con la base de datos
+        config[:pool] = 1
+        ActiveRecord::Base.establish_connection(config)
+      rescue Exception => e
+        p2p label: 'Error al conectar con la base de datos', st: :err
+        pinta_exception(e)
+        return
+      end
+
+      # Registrar el proceso en la tabla p2p
+      P2p.create(usuario_id: @usu.id, fecha: Nimbus.now, ctrl: self.class.to_s, info: info, tag: tag, pgid: Process.pid)
 
       # Para hacer de este proceso el líder de grupo (por si lanza nuevos comandos poderlos matar a todos de golpe)
       Process.setsid
@@ -694,6 +703,7 @@ class ApplicationController < ActionController::Base
         pinta_exception(e)
       ensure
         P2p.where(pgid: Process.pid).delete_all
+        ActiveRecord::Base.connection.disconnect!
       end
     }
 
@@ -705,9 +715,6 @@ class ApplicationController < ActionController::Base
     
     # No hacer seguimiento del status del hijo (para que no quede zombi al terminar)
     Process.detach(h)
-
-    # Registrar el proceso en la tabla p2p
-    P2p.create(usuario_id: @usu.id, fecha: Nimbus.now, ctrl: self.class.to_s, info: info, tag: tag, pgid: h)
 
     # Código javascript para sacar el cuadro de diálogo de progreso del hijo
     @ajax << "p2p(#{tit.to_json}, #{label.to_s.to_json}, #{pbar.to_json}, #{cancel.to_json}, #{width.to_json}, #{mant.to_json}, #{fin.to_json});"
