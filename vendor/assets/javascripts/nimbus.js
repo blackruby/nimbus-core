@@ -1316,9 +1316,14 @@ function p2p(tit, label, pb, cancel, width, mant, fin) {
   var vi;
 
   $(htm, (mant ? parent.document : document)).dialog({
-    resizable: false, modal: true, width: "auto", title: tit,
+    resizable: false,
+    draggable: false,
+    position: {my: "top", at: "top+100", of: window},
+    modal: true,
+    title: tit,
     closeOnEscape: false,
     width: width || 'auto',
+    maxHeight: window.innerHeight - 200,
     open: function () {
       var dlg = $(this);
       var dlgd = dlg.parent();

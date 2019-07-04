@@ -8,7 +8,7 @@ class NimbusHelpController < ApplicationController
     @cap = {}
 
     procesa_file('Controladores', 'app/controllers/application_controller.rb')
-    procesa_file('GI', 'app/controllers/gi_controller.rb')
+    procesa_file('GI', 'app/controllers/gi.rb')
     procesa_file('General', 'app/controllers/nimbus_help_controller.rb')
   end
 

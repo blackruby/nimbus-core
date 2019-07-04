@@ -1,3 +1,7 @@
+.- Nuevo método en la clase GI (run) para poder obtener el archivo del informe
+   por programa (para poder enviarlo por e-mail, etc.)
+.- Mejoras en la ventana de progreso de p2p.
+-------------------------------------------------------------------------------
 .- Mejoras en p2p.
 -------------------------------------------------------------------------------
 .- Opción para enviar un correo en caso de olvido de contraseña. Hay que
