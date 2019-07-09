@@ -303,7 +303,7 @@ class BusController < ApplicationController
     @dat[:cad_order] = ord
     lim = @dat[:rows] = params[:rows] == '10000' ? 0 : params[:rows].to_i
 
-    res = {page: 0, total: 0, records: 0, rows: []}
+    res = {page: 0, total: 0, records: 0, rows: [id: 0, cell: []]}
     if lim > 0 && (params[:rld] || !@dat[:rld])
       begin
         #tot_records = @dat[:cad_sel].empty? ? 0 : clm.select(:id).joins(@dat[:cad_join]).where(w).size
@@ -456,7 +456,7 @@ class BusController < ApplicationController
 
       # Eliminar la columna col del hash de filter si está incluida
       (rul.size - 1).downto(0).each {|i|
-        if rul[i][:field] == name_col
+        if rul[i]['field'] == name_col
           rul.delete_at(i)
           keep_scroll_v = false
           break

@@ -53,10 +53,9 @@ function selCampo(event, modo) {
 
 function nimReload() {
   nimRld = true;
-  var url = grid.getGridParam("url");
-  grid.setGridParam({url: url + "&rld=1"});
-  grid.trigger('reloadGrid', [{current:true}]);
-  grid.setGridParam({url: url});
+  grid.setGridParam({url: nimGridUrl + "&rld=1"});
+  $(".ui-search-table").first().find("input").trigger($.Event('keypress', {keyCode: 13}));
+  //grid.trigger('reloadGrid', [{current:true}]);
 }
 
 function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, keepScrollV) {
@@ -64,6 +63,9 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
   $("#d-grid").append("<table id='grid'></table>");
   grid = $("#grid");
   //var toolgrid = '#grid_toppager';
+  var pVez = true;
+
+  nimGridUrl = '/bus/list?vista=' + _vista;
 
   var vgrid = grid.jqGrid({
     colModel: colMod,
@@ -71,7 +73,8 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
     sortorder: sortorder,
     postData: postdata,
     page: (keepScrollV ? lastPage : 1),
-    url: '/bus/list?vista=' + _vista,
+    //url: '/bus/list?vista=' + _vista,
+    url: nimGridUrl,
     datatype: "json",
     mtype: 'POST',
     rowNum: rows,
@@ -102,13 +105,18 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
       }
     },
     loadComplete: function() {
+      grid.setGridParam({url: nimGridUrl});
       setTimeout(function() {
         redimWindow();
-        $("#d-grid .ui-jqgrid-bdiv").scrollLeft(keepScrollH ? lastScrollH : 90000).scrollTop(keepScrollV ? lastScrollV : 0);
         $("#d-grid .ui-jqgrid-view").css("display", "block");
+        if (pVez) $("#d-grid .ui-jqgrid-bdiv").scrollLeft(keepScrollH ? lastScrollH : 90000).scrollTop(keepScrollV ? lastScrollV : 0);
         if (!nimRld && nimRldServer) nimPopup("Recargue datos para obtener reultados", {of: window});
-        nimRld = loadEnCurso = false;
+        nimRld = loadEnCurso = pVez = false;
       }, 100);
+    },
+    onPaging: function() {
+      nimRld = true;
+      grid.setGridParam({url: nimGridUrl + "&rld=1"});
     }
   });
 
@@ -140,6 +148,8 @@ function gridSelect(id) {
     grid.jqGrid('setSelection', id)
   else
     id = grid.jqGrid('getGridParam', 'selrow');
+
+  if (id == 0) return;
 
   if (!id) {
     alert("Seleccione un registro");
@@ -354,13 +364,6 @@ $(window).load(function() {
         $('#bus-sel').val(fic_pref);
       }
     });
-
-  /*
-   $("body").on("click", ".clearsearchclass", function(e) {
-   var gsi = $(this).parent().prev().find('input');
-   setTimeout(function(){gsi.val('')}, 100);
-   });
-   */
 
   $("#inp-save").on("input", function() {
     var c;

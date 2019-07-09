@@ -1,3 +1,5 @@
+.- Corregidos bugs en búsquedas.
+-------------------------------------------------------------------------------
 .- Nuevo botón en las ventanas de búsqueda para poder refrescar los datos.
 .- Nuevo parámetro (rld) que se puede pasar a las ventas de búsqueda. Se puede
    pasar en la URL (...&rld=1) o en el flash (flash[:rld] = true). Con él se
