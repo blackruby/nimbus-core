@@ -119,6 +119,12 @@ class BusController < ApplicationController
     ctr = flash[:ctr] || params[:ctr] || '_'
 
     w = flash[:wh] || ''
+    if w[0] == '#'
+      # Es el caso de que el where va implícito en un id de vistas. En este caso se recibe una cadena de la forma: #vid#campo
+      w_a = w.split('#')
+      v = Vista.find(w_a[1])
+      w = v.data[:auto_comp][w_a[2].to_sym]
+    end
 
     if clm.respond_to?('ejercicio_path')
       join_emej = clm.ejercicio_path
@@ -157,7 +163,8 @@ class BusController < ApplicationController
       eid: ej[0],
       jid: ej[1],
       rows: 50,
-      tit: flash[:tit] || (clm.respond_to?(:nim_bus_tit) ? clm.nim_bus_tit(@dat[:eid], @dat[:jid], @usu) : nil) || "Búsqueda de #{nt(tabla)}"
+      tit: flash[:tit] || (clm.respond_to?(:nim_bus_tit) ? clm.nim_bus_tit(@dat[:eid], @dat[:jid], @usu) : nil) || "Búsqueda de #{nt(tabla)}",
+      rld: flash[:rld] || params[:rld]
     }
     @titulo = @dat[:tit]
 
@@ -214,6 +221,8 @@ class BusController < ApplicationController
     # para que al hacer doble click sobre un registro se haga la acción oportuna.
     @ajax << '_autoCompField="*hb"' if flash[:tipo] == 'hb'
 
+    @ajax << "nimRldServer=#{@dat[:rld] ? 'true' : 'false'};"
+
     @tipo_bus = flash[:tipo].to_s
   end
 
@@ -231,7 +240,7 @@ class BusController < ApplicationController
       head :no_content
       return
     end
-
+    
     #clm = @dat[:mod]
     clm = @dat[:view]
     clm_s = clm.to_s
@@ -295,7 +304,7 @@ class BusController < ApplicationController
     lim = @dat[:rows] = params[:rows] == '10000' ? 0 : params[:rows].to_i
 
     res = {page: 0, total: 0, records: 0, rows: []}
-    if lim > 0
+    if lim > 0 && (params[:rld] || !@dat[:rld])
       begin
         #tot_records = @dat[:cad_sel].empty? ? 0 : clm.select(:id).joins(@dat[:cad_join]).where(w).size
         if @dat[:cad_sel].empty?

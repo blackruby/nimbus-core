@@ -3196,8 +3196,10 @@ class ApplicationController < ActionController::Base
     flash[:ctr] += "_#{params[:col]}" if params[:col]
     flash[:eid] = @dat[:eid]
     flash[:jid] = @dat[:jid]
-    flash[:wh] = @dat[:auto_comp][cmp] if @dat[:auto_comp] and @dat[:auto_comp][cmp]
+    #flash[:wh] = @dat[:auto_comp][cmp] if @dat[:auto_comp] and @dat[:auto_comp][cmp]
+    flash[:wh] = "##{@v.id}##{cmp}" if @dat[:auto_comp] and @dat[:auto_comp][cmp]
     flash[:pref] = v[:bus] if v[:bus]
+    flash[:rld] = v[:rld] if v[:rld]
     msel = v[:ref].constantize.auto_comp_mselect
     flash[:msel] = msel if msel != ['*']
 
@@ -3211,12 +3213,14 @@ class ApplicationController < ActionController::Base
     flash[:ctr] = params[:controller]
     flash[:eid] = @dat[:eid]
     flash[:jid] = @dat[:jid]
-    flash[:wh] = @dat[:auto_comp][:_pk_input] if @dat[:auto_comp] and @dat[:auto_comp][:_pk_input]
+    #flash[:wh] = @dat[:auto_comp][:_pk_input] if @dat[:auto_comp] and @dat[:auto_comp][:_pk_input]
+    flash[:wh] = "##{@v.id}#_pk_input" if @dat[:auto_comp] and @dat[:auto_comp][:_pk_input]
     msel = clmod.auto_comp_mselect
     flash[:msel] = msel if msel != ['*']
     permanente = self.respond_to?(:busqueda_global_permanente) ? busqueda_global_permanente : false
     flash[:tipo] = 'mant' + (permanente ? '*' : '')
     flash[:pref] = clm.nim_bus_plantilla if clm.nim_bus_plantilla
+    flash[:rld] = clm.nim_bus_rld if clm.nim_bus_rld
 
     #@ajax << 'var w = window.open("/bus", "_blank", "width=700, height=500"); w._autoCompField = "mant";'
     @ajax << 'openWinBus();'

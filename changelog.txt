@@ -1,3 +1,26 @@
+.- Nuevo botón en las ventanas de búsqueda para poder refrescar los datos.
+.- Nuevo parámetro (rld) que se puede pasar a las ventas de búsqueda. Se puede
+   pasar en la URL (...&rld=1) o en el flash (flash[:rld] = true). Con él se
+   consigue que la búsqueda no se refresque automáticamente al poner filtros
+   o añadir/quitar columnas. En estos casos es necesario que el usuario fuerce
+   el refresco con el nuevo botón de recarga. Está pensado para que en búsquedas
+   "pesadas" no se estén haciendo continuamente querys innecesarias.
+.- Nueva clave (rld) en los campos references de @campos. Poniéndola a true
+   se consigue que su ventana de búsqueda asociada se comporte como el punto
+   anterior.
+.- Nueva variable @nim_bus_rld en las clases asociadas a controladores
+   (class xxxMod). Dándole el valor true se consigue que la ventana de búsqueda
+   asociada al controlador (click derecho en la lupa) se comporte como los
+   puntos anteriores.
+.- Mejoras en el autodimensionado de las ventanas de búsqueda.
+.- El paso de condiciones (clave :wh) en el flash para búsquedas ahora admite
+   además de una cadena explícita (como hasta ahora) una cadena de la forma
+   "#vid#campo" donde vid es el id de la vista en curso (@v.id) y "campo" es un
+   campo al que se le ha asignado un filtro con set_auto_comp_filter, De esta
+   forma se evita sobrecargar el flash y por lo tanto la cookie cuando el where
+   es muy largo. En las llamadas a búsquedas internas que hace nimbus-core ya
+   se ha adoptado la segunda variante.
+-------------------------------------------------------------------------------
 .- Nuevo método en la clase GI (run) para poder obtener el archivo del informe
    por programa (para poder enviarlo por e-mail, etc.)
 .- Mejoras en la ventana de progreso de p2p.

@@ -1,3 +1,6 @@
+loadEnCurso = false;
+nimRld = false;
+
 function gridCols() {
   var gcols = [];
   if (typeof(grid) != "undefined") {
@@ -13,7 +16,9 @@ function gridCols() {
 }
 
 function selCampo(event, modo) {
+  if (loadEnCurso) return;
   if (event.node.load_on_demand != undefined) return;
+
   z=event.node;
 
   var name = event.node.name;
@@ -44,6 +49,14 @@ function selCampo(event, modo) {
   }
 
   callFonServer("nueva_col", {dat: JSON.stringify({col: name, modo: modo, type: event.node.type, dec: dec, cols: gridCols()})});
+}
+
+function nimReload() {
+  nimRld = true;
+  var url = grid.getGridParam("url");
+  grid.setGridParam({url: url + "&rld=1"});
+  grid.trigger('reloadGrid', [{current:true}]);
+  grid.setGridParam({url: url});
 }
 
 function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, keepScrollV) {
@@ -78,11 +91,24 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
 
     shrinkToFit: false,
     multiSort: true,
+    beforeRequest: function() {
+      if (loadEnCurso) {
+        return false;
+      } else {
+        loadEnCurso = true;
+        // Ocultamos el viewport del grid para evitar parpadeos al redimensionar en el evento loadComplete
+        $("#d-grid .ui-jqgrid-view").css("display", "none");
+        return true;
+      }
+    },
     loadComplete: function() {
-      $("#d-grid .ui-jqgrid-bdiv").scrollLeft(keepScrollH ? lastScrollH : 90000).scrollTop(keepScrollV ? lastScrollV : 0);
-      //eval(onload);
-      //setTimeout(function(){console.log('ya', onload);grid.jqGrid('setGridParam', {loadComplete: null});eval(onload);},100);
-      //onload = ""
+      setTimeout(function() {
+        redimWindow();
+        $("#d-grid .ui-jqgrid-bdiv").scrollLeft(keepScrollH ? lastScrollH : 90000).scrollTop(keepScrollV ? lastScrollV : 0);
+        $("#d-grid .ui-jqgrid-view").css("display", "block");
+        if (!nimRld && nimRldServer) nimPopup("Recargue datos para obtener reultados", {of: window});
+        nimRld = loadEnCurso = false;
+      }, 100);
     }
   });
 
@@ -93,8 +119,8 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
 
   //$(".ui-pg-input").height(14); // Para que salga de la altura correcta el input del número de página del grid
 
-  gridLeft();
-  gridDim();
+  // Botón para recargar el grid
+  $("#grid_toppager_left").html('<i class="material-icons nim-reload" onclick="nimReload()" title="Recargar datos">autorenew</i>');
 
   //$("#grid").jqGrid('setGridParam', {url: '/bus/list?vista=' + _vista, datatype: 'json', mtype: 'POST', postData: {filters: '{"groupOp":"AND","rules":[{"field":"anunciantes.codigo","op":"cn","data":"000"}]}'}})
   //grid.trigger('reloadGrid')
@@ -153,22 +179,17 @@ function gridSelect(id) {
   }
 }
 
-function gridLeft() {
-  $("#d-grid").css("left", ($("#tree-campos").width() + 8) + "px");
-}
-
-function gridDim() {
-  if (typeof(grid) == "undefined") return;
-  var w = $(window).width() - $("#tree-campos").width() - 12;
-  var h = $(window).height() - $("#d-titulo").height() - 77;
-  grid.setGridWidth(w);
-  grid.setGridHeight(h);
-}
-
 function redimWindow() {
+  var wtc = $("#tree-campos").width();
+  $("#d-grid").css("left", (wtc + 8) + "px");
+
   var h = $(window).height() - $("#d-titulo").height();
   $("#tree-campos").css("height", h);
-  gridDim();
+
+  if (typeof(grid) != "undefined") {
+    grid.setGridWidth($(window).width() - wtc - 12);
+    grid.setGridHeight(h - 77);
+  }
 }
 
 function viewSel() {
@@ -325,8 +346,8 @@ $(window).load(function() {
   $('#tree-campos')
     .bind('tree.click', function(event) {selCampo(event, 'add')})
     .bind('tree.contextmenu', function(event) {selCampo(event, 'del')})
-    .bind('tree.open', gridLeft)
-    .bind('tree.close', gridLeft)
+    .bind('tree.open', redimWindow)
+    .bind('tree.close', redimWindow)
     .bind('tree.init', function(event) {
       if (fic_pref) {
         callFonServer('bus_sel', {fic: fic_pref});

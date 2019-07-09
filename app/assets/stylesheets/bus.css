@@ -39,3 +39,9 @@ li i {
   vertical-align: middle;
   margin-right: 7px;
 }
+
+.nim-reload {
+  cursor: pointer;
+  padding-left: 5px;
+  color: #673AB7;
+}

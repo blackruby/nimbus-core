@@ -1132,6 +1132,10 @@ module MantMod
     def nim_bus_plantilla
       @nim_bus_plantilla
     end
+
+    def nim_bus_rld
+      @nim_bus_rld
+    end
   end
 
   ### Métodos de instancia

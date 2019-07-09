@@ -546,12 +546,12 @@ $.fn.focusNextInputField = function() {
 };
 
 // Función para mostrar un PopUp con el texto pasado como argumento
-function nimPopup(texto) {
+function nimPopup(texto, pos) {
   $(".nim-popup").remove();
   $("body").append('<div class="nim-popup">' + texto + '</div>');
   var np = $(".nim-popup");
   np.contextmenu(function(e) {e.preventDefault();});
-  np.position({my: "bottom-5", of: window.event});
+  np.position(pos ? pos : {my: "bottom-5", of: window.event});
   np.fadeIn(1400, function() {np.fadeOut(1400);});
 }
 
