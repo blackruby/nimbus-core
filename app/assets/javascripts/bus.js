@@ -59,6 +59,9 @@ function nimReload() {
 }
 
 function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, keepScrollV) {
+  var sch = keepScrollH;
+  if (typeof(sch) == "boolean") sch = sch ? lastScrollH : 0;
+
   $('#d-grid').html('');
   $("#d-grid").append("<table id='grid'></table>");
   grid = $("#grid");
@@ -109,10 +112,18 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
       setTimeout(function() {
         redimWindow();
         $("#d-grid .ui-jqgrid-view").css("display", "block");
-        if (pVez) $("#d-grid .ui-jqgrid-bdiv").scrollLeft(keepScrollH ? lastScrollH : 90000).scrollTop(keepScrollV ? lastScrollV : 0);
+        //if (pVez) $("#d-grid .ui-jqgrid-bdiv").scrollLeft(keepScrollH ? lastScrollH : 90000).scrollTop(keepScrollV ? lastScrollV : 0);
+        if (pVez) $("#d-grid .ui-jqgrid-bdiv").scrollLeft(sch).scrollTop(keepScrollV ? lastScrollV : 0);
         if (!nimRld && nimRldServer) nimPopup("Recargue datos para obtener reultados", {of: window});
         nimRld = loadEnCurso = pVez = false;
       }, 100);
+    },
+    resizeStart: function() {
+      lastScrollH = $("#d-grid .ui-jqgrid-bdiv").scrollLeft();
+    },
+    resizeStop: function() {
+      redimWindow();
+      $("#d-grid .ui-jqgrid-bdiv").scrollLeft(lastScrollH);
     },
     onPaging: function() {
       nimRld = true;

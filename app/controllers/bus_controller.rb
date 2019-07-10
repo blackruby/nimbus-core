@@ -466,7 +466,7 @@ class BusController < ApplicationController
       @dat[:cols][@dat[:last_col].next!.to_sym] =  {label: col, w: 150, type: arg[:type]}
     end
 
-    genera_grid(arg[:modo] == 'del', keep_scroll_v)
+    genera_grid((arg[:modo] == 'del' ? true : 99999), keep_scroll_v)
     @ajax << "$('#view-sel').attr('disabled', #{@dat[:cols].empty? ? 'false' : 'true'});"
   end
 

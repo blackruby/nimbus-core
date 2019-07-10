@@ -1,3 +1,5 @@
+.- Mejoras en los scrolls en búsquedas.
+-------------------------------------------------------------------------------
 .- Corregidos bugs en búsquedas.
 -------------------------------------------------------------------------------
 .- Nuevo botón en las ventanas de búsqueda para poder refrescar los datos.
