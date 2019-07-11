@@ -1,3 +1,5 @@
+.- Tratamiento mejorado en métodos vali de grids embebidos.
+-------------------------------------------------------------------------------
 .- Mejoras en los scrolls en búsquedas.
 -------------------------------------------------------------------------------
 .- Corregidos bugs en búsquedas.

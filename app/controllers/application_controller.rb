@@ -2152,7 +2152,7 @@ class ApplicationController < ActionController::Base
       end
     end
     @fact[cmp].data(row, col, val)
-    @fant[cmp].data(row, col, val)
+    #@fant[cmp].data(row, col, val)
 
     fun = "vali_#{cmp}_#{col}"
 
@@ -2161,6 +2161,14 @@ class ApplicationController < ActionController::Base
 
     fun = "on_#{cmp}_#{col}"
     method(fun).call(row, val) if self.respond_to?(fun)
+
+    if @last_error[2]  # Hay que reponer el valor anterior del campo (cuando se cierre el mensaje)
+      @fact[cmp].data(row, col, @fant[cmp].data(row, col))
+      @fant[cmp].data(row, col, nil)
+    else
+      # Para que no se vuelva a enviar el campo en sincro_ficha
+      @fant[cmp].data(row, col, val)
+    end
 
     @ajax << 'hayCambios=true;'
   end
