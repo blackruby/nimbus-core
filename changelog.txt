@@ -1,3 +1,5 @@
+.- Corregido bug en onbeforeunload al decidir permanecer en la página.
+-------------------------------------------------------------------------------
 .- Tratamiento mejorado en métodos vali de grids embebidos.
 -------------------------------------------------------------------------------
 .- Mejoras en los scrolls en búsquedas.

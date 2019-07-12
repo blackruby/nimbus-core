@@ -65,8 +65,11 @@ function nimLockTabs(def) {
   }
 }
 
-window.onbeforeunload = function() {
-  if (CambiosPendientesDeGrabar()) return('Hay cambios pendientes de grabar');
+window.onbeforeunload = function(e) {
+  if (CambiosPendientesDeGrabar()) {
+    parent.fichaLoading = false;
+    return('Hay cambios pendientes de grabar');
+  }
 };
 
 $(window).load(function () {
