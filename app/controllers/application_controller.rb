@@ -2162,7 +2162,7 @@ class ApplicationController < ActionController::Base
     fun = "on_#{cmp}_#{col}"
     method(fun).call(row, val) if self.respond_to?(fun)
 
-    if @last_error[2]  # Hay que reponer el valor anterior del campo (cuando se cierre el mensaje)
+    if err && @last_error[2]  # Hay que reponer el valor anterior del campo (cuando se cierre el mensaje)
       @fact[cmp].data(row, col, @fant[cmp].data(row, col))
       @fant[cmp].data(row, col, nil)
     else

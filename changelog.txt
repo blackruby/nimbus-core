@@ -1,3 +1,6 @@
+.- Corregido bug en validación de celdas sin método vali asociado en grids
+   embebidos.
+-------------------------------------------------------------------------------
 .- Corregido bug en onbeforeunload al decidir permanecer en la página.
 -------------------------------------------------------------------------------
 .- Tratamiento mejorado en métodos vali de grids embebidos.
