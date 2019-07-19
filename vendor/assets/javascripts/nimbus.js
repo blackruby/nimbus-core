@@ -378,8 +378,9 @@ jQuery.fn.entryn = function (manti, decim, signo) {
         if (cur <= pc) {
           pp = 0;
           for (i = 0; i < pc; i++) {
-            if (val[i] == '0' && i >= cur) pp++;
-            if (val[i] >= '1' && val[i] <= '9') pp++;
+            //if (val[i] == '0' && i >= cur) pp++;
+            //if (val[i] >= '1' && val[i] <= '9') pp++;
+            if (val[i] >= '0' && val[i] <= '9') pp++;
           }
           if (pp < manti) {
             val = val.substr(0, cur) + String.fromCharCode(c) + val.substr(cur);

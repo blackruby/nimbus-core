@@ -250,9 +250,8 @@ class BusController < ApplicationController
 
     if params[:filters]
       #@dat[:filters] = eval(params[:filters])
-      @dat[:filters] = JSON.parse(params[:filters]).symbolize_keys
+      @dat[:filters] = JSON.parse(params[:filters]).deep_symbolize_keys
       @dat[:filters][:rules].each {|f|
-        f = f.symbolize_keys
         #[:eq,:ne,:lt,:le,:gt,:ge,:bw,:bn,:in,:ni,:ew,:en,:cn,:nc,:nu,:nn]
         op = f[:op].to_sym
         cmp = cols[f[:field].to_sym]
@@ -377,6 +376,7 @@ class BusController < ApplicationController
         when 'date', 'time'
           h[:align] = 'center'
           h[:searchoptions][:sopt] = ['eq','ne','lt','le','gt','ge','nu','nn']
+          h[:searchoptions][:dataInit] = '~function(e){date_pick(e)}~'
         when 'datetime'
           h[:align] = 'center'
           h[:searchoptions][:sopt] = ['ge','le','gt','lt','eq','ne','nu','nn']
@@ -422,7 +422,8 @@ class BusController < ApplicationController
   def nueva_col
     return unless @v
 
-    arg = eval(params[:dat])
+    #arg = eval(params[:dat])
+    arg = JSON.parse(params[:dat]).deep_symbolize_keys
     col = arg[:col]
 
     @dat[:cols] = arg[:cols]
@@ -432,6 +433,7 @@ class BusController < ApplicationController
     keep_scroll_v = true
 
     if arg[:modo] == 'del'
+=begin
       name_col = nil
       @dat[:cols].reverse_each {|k, v|
         if v[:label] == col
@@ -442,11 +444,14 @@ class BusController < ApplicationController
 
       @dat[:cols].delete(name_col)
       name_col = name_col.to_s
+=end
+      @dat[:cols].delete(col.to_sym)
 
       # Eliminar la columna col de la cadena de order
       vo = @dat[:order].split(', ')
       (vo.size - 1).downto(0).each {|i|
-        if vo[i].starts_with?(name_col + ' ')
+        #if vo[i].starts_with?(name_col + ' ')
+        if vo[i].starts_with?(col + ' ')
           vo.delete_at(i)
           keep_scroll_v = false
           break
@@ -456,7 +461,8 @@ class BusController < ApplicationController
 
       # Eliminar la columna col del hash de filter si está incluida
       (rul.size - 1).downto(0).each {|i|
-        if rul[i]['field'] == name_col
+        #if rul[i]['field'] == name_col
+        if rul[i][:field] == col
           rul.delete_at(i)
           keep_scroll_v = false
           break
@@ -489,7 +495,8 @@ class BusController < ApplicationController
   def bus_save
     return unless @v
 
-    arg = eval(params[:dat])
+    #arg = eval(params[:dat])
+    arg = JSON.parse(params[:dat]).deep_symbolize_keys
 
     h = {view: @dat[:view].to_s, cols: arg[:cols], filters: @dat[:filters], order: @dat[:order], rows: @dat[:rows]}
     path = "bus/_usuarios/#{@usu.codigo}/#{@dat[:mod]}"

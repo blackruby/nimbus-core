@@ -15,6 +15,18 @@ function gridCols() {
   return cols;
 }
 
+function setLastScroll() {
+  if (typeof(grid) == "undefined") {
+    lastScrollH = 0;
+    lastScrollV = 0;
+    lastPage = 1;
+  } else {
+    lastScrollH = $("#d-grid .ui-jqgrid-bdiv").scrollLeft();
+    lastScrollV = $("#d-grid .ui-jqgrid-bdiv").scrollTop();
+    lastPage = grid.jqGrid('getGridParam', 'page');
+  }
+}
+
 function selCampo(event, modo) {
   if (loadEnCurso) return;
   if (event.node.load_on_demand != undefined) return;
@@ -28,34 +40,40 @@ function selCampo(event, modo) {
     p = p.parent;
   }
 
-  // Calcular los decimales (son el último carácter del estilo)
-  if (event.node.estilo == undefined)
-    var dec = 0;
-  else {
-    var dec = parseInt(event.node.estilo.slice(-1));
-    if (isNaN(dec)) dec = 0;
-  }
-
-
-  // Construir el vector de columnas
-  if (typeof(grid) == "undefined") {
-    lastScrollH = 0;
-    lastScrollV = 0;
-    lastPage = 1;
+  if (modo == "del") {
+    if (typeof(grid) == "undefined") return;
+    var cols = grid.jqGrid('getGridParam', 'colModel');
+    for (var i = cols.length - 1; i >= 0; i--) {
+      if (cols[i].label == name) break;
+    }
+    if (i >= 0) {
+      nimColToDelete = cols[i].name;
+      $("#menu-r").css("display", "block").position({my: "left top", at: "left bottom", of: event.node.element});
+    }
   } else {
-    lastScrollH = $("#d-grid .ui-jqgrid-bdiv").scrollLeft();
-    lastScrollV = $("#d-grid .ui-jqgrid-bdiv").scrollTop();
-    lastPage = grid.jqGrid('getGridParam', 'page');
-  }
+    // Calcular los decimales (son el último carácter del estilo)
+    if (event.node.estilo == undefined)
+      var dec = 0;
+    else {
+      var dec = parseInt(event.node.estilo.slice(-1));
+      if (isNaN(dec)) dec = 0;
+    }
 
-  callFonServer("nueva_col", {dat: JSON.stringify({col: name, modo: modo, type: event.node.type, dec: dec, cols: gridCols()})});
+    setLastScroll();
+
+    callFonServer("nueva_col", {dat: JSON.stringify({col: name, modo: modo, type: event.node.type, dec: dec, cols: gridCols()})});
+  }
+}
+
+function nimSetUrlRld () {
+  nimRld = true;
+  grid.setGridParam({url: nimGridUrlRld});
 }
 
 function nimReload() {
-  nimRld = true;
-  grid.setGridParam({url: nimGridUrl + "&rld=1"});
-  $(".ui-search-table").first().find("input").trigger($.Event('keypress', {keyCode: 13}));
-  //grid.trigger('reloadGrid', [{current:true}]);
+  nimSetUrlRld();
+  //$(".ui-search-table").first().find("input").trigger($.Event('keypress', {keyCode: 13}));
+  grid[0].triggerToolbar();
 }
 
 function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, keepScrollV) {
@@ -69,6 +87,7 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
   var pVez = true;
 
   nimGridUrl = '/bus/list?vista=' + _vista;
+  nimGridUrlRld = nimGridUrl + "&rld=1";
 
   var vgrid = grid.jqGrid({
     colModel: colMod,
@@ -125,10 +144,7 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
       redimWindow();
       $("#d-grid .ui-jqgrid-bdiv").scrollLeft(lastScrollH);
     },
-    onPaging: function() {
-      nimRld = true;
-      grid.setGridParam({url: nimGridUrl + "&rld=1"});
-    }
+    onPaging: nimSetUrlRld
   });
 
   //grid.jqGrid('gridResize', {handles: "s,e", minHeight: 80});
@@ -140,18 +156,6 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
 
   // Botón para recargar el grid
   $("#grid_toppager_left").html('<i class="material-icons nim-reload" onclick="nimReload()" title="Recargar datos">autorenew</i>');
-
-  //$("#grid").jqGrid('setGridParam', {url: '/bus/list?vista=' + _vista, datatype: 'json', mtype: 'POST', postData: {filters: '{"groupOp":"AND","rules":[{"field":"anunciantes.codigo","op":"cn","data":"000"}]}'}})
-  //grid.trigger('reloadGrid')
-
-  /**
-   $(".ui-search-input").on("change", "input", function(e) {
-      var gsi = $(this);
-      z = $(this);
-      console.log('Cambio');
-      //setTimeout(function(){gsi.val('')}, 100);
-    });
-   **/
 }
 
 function gridSelect(id) {
@@ -268,6 +272,11 @@ function busHelp() {
   $("#dialog-help").dialog("open");
 }
 
+function delColumna() {
+  setLastScroll();
+  callFonServer("nueva_col", {dat: JSON.stringify({col: nimColToDelete, modo: "del", cols: gridCols()})});
+}
+
 $(window).load(function() {
   _controlador = 'bus';
   ficPrefijo = "bus/_usuarios/" + usuCod + "/" + modelo + "/";
@@ -375,6 +384,16 @@ $(window).load(function() {
         $('#bus-sel').val(fic_pref);
       }
     });
+
+  $("#d-grid").on("keydown", ".ui-search-table input", function(e) {
+    if (e.keyCode == 13) nimSetUrlRld();
+  });
+
+  $("#d-grid").on("contextmenu", ".ui-jqgrid-labels th", function(e) {
+    e.preventDefault();
+    $("#menu-r").css("display", "block").position({my: "top", at: "bottom+5", of: this});
+    nimColToDelete = grid.jqGrid('getGridParam', 'colModel')[$(this).index()].name;
+  });
 
   $("#inp-save").on("input", function() {
     var c;

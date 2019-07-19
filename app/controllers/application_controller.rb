@@ -1142,9 +1142,9 @@ class ApplicationController < ActionController::Base
 
     if params[:filters]
       #fil = eval(params[:filters])
-      fil = JSON.parse(params[:filters]).symbolize_keys
+      fil = JSON.parse(params[:filters]).deep_symbolize_keys
       fil[:rules].each {|f|
-        f = f.symbolize_keys
+        #f = f.symbolize_keys
         #[:eq,:ne,:lt,:le,:gt,:ge,:bw,:bn,:in,:ni,:ew,:en,:cn,:nc,:nu,:nn]
         op = f[:op].to_sym
 
@@ -3108,6 +3108,8 @@ class ApplicationController < ActionController::Base
             if @fant[:id].nil?
               # Bloquear el registro si procede
               add_nim_lock if clm.nim_lock
+              #Actualizar id para el acceso al histórico
+              @ajax << "_factId=#{@fact.id};"
     
               sincro_hijos
             end

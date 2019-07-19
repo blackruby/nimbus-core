@@ -84,6 +84,12 @@
   </label>
 </div>
 
+<div id="menu-r" class="nim-context-menu">
+  <ul class="nim-context-menu-ul">
+    <li class="nim-context-menu-li" onClick="delColumna()"><i class="material-icons c-bajo">delete_outline</i>Eliminar columna</li>
+  </ul>
+</div>
+
 <script>
   <%= @ajax.html_safe %>
   usuCod = "<%= @usu.codigo %>";

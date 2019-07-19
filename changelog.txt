@@ -1,3 +1,22 @@
+.- Corregido bug en acceso a histórico cuando el registro está recién dado
+   de alta.
+.- Corregido bug en los campos numéricos por el que se podía introducir un
+   número ilimitado de ceros cuando éste era el último dígito de la mantisa.
+.- Corregidos fallos de seguridad en búsquedas.
+.- Mejora en la introducción de fechas en los filtros de las ventanas de
+   búsqueda. Ahora tienen la misma funcionalidad que en los formularios
+   (despliegue del calendario y validación de la entrada en tiempo real)
+.- Para borrar una columna en las ventanas de búsquedas, hasta ahora había que
+   hacer click derecho sobre el campo que queríamos eliminar. Esto tenía el
+   inconveniente de que si el campo estaba varias veces en el grid, se eliminaba
+   el que estuviera en última posición sin poder elegir cúal se eliminaba.
+   Como no es intuitivo que un click derecho actúe así, ahora al dar click
+   derecho sale un menú contextual con un una única opción, que es eliminar
+   el campo (se seguirá eliminando el de la última posición). Además, para
+   poder controlar qué columna queremos eliminar exactamente se ha incorporado
+   ese mismo menú contextual al hacer click derecho en el título (cabecera)
+   de cada columna.
+-------------------------------------------------------------------------------
 .- Corregido bug en validación de celdas sin método vali asociado en grids
    embebidos.
 -------------------------------------------------------------------------------

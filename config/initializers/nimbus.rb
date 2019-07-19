@@ -975,6 +975,7 @@ module MantMod
             v[:grid][:editoptions][:dataInit] ||= '~function(e){date_pick(e,' + v[:date_opts].to_json + ')}~'
             #v[:grid][:searchoptions][:dataInit] ||= '~function(e){date_pick(e,' + v[:date_opts].to_json + ')}~'
             v[:grid][:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','nu','nn']
+            v[:grid][:searchoptions][:dataInit] = '~function(e){date_pick(e)}~'
           end
         when :time
           v[:manti] ||= 8
