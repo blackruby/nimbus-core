@@ -3098,6 +3098,8 @@ class ApplicationController < ActionController::Base
           @fact[c] = nil
         }
 
+        @ajax << 'hayCambios=false;'
+
         if clm.mant?
           #Refrescar el grid si procede
           grid_reload
@@ -3125,8 +3127,6 @@ class ApplicationController < ActionController::Base
         rescue Exception => e
           pinta_exception(e, 'Error: after_save')
         end
-
-        @ajax << 'hayCambios=false;'
       else
         # Si la cadena de error vale '@' No se pinta nada (y además no se ha grabado el registro). Es un convenio para vali_save
         unless err == '@'

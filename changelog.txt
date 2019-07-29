@@ -1,3 +1,6 @@
+.- Corregido el que salga mensaje de "cambios sin grabar" cuando está activado
+   @dat[:grabar_y_alta]
+-------------------------------------------------------------------------------
 .- Corregido bug en acceso a histórico cuando el registro está recién dado
    de alta.
 .- Corregido bug en los campos numéricos por el que se podía introducir un
