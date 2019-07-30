@@ -24,7 +24,7 @@ function fichaLoaded() {
 }
 
 function editInForm(id) {
-  if (fichaLoading) return;
+  if (fichaLoading || checkNimServerStop()) return;
 
   if (id != null) {
     // Seguimos el convenio de que si el "id" tiene un underscore significa
@@ -50,6 +50,8 @@ function editInForm(id) {
 }
 
 function newFicha(lastId) {
+  if (checkNimServerStop()) return;
+
   if ($("button.cl-crear").attr('disabled') == 'disabled') return;
   $("#ficha").attr('src', varView.url_new + (lastId ? '&last_id=' + lastId : ''));
 }
@@ -221,7 +223,8 @@ $(window).load(function () {
 
     shrinkToFit: varView.grid.shrinkToFit,
     multiSort: varView.grid.multiSort,
-    scroll: varView.grid.scroll
+    scroll: varView.grid.scroll,
+    beforeRequest: function() {return !checkNimServerStop()}
   });
 
   grid.jqGrid('gridResize', {handles: "s", minHeight: 80});

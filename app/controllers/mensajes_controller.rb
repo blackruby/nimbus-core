@@ -72,9 +72,14 @@ class MensajesController < ApplicationController
     render json: Usuario.order(:nombre).pluck(:id, :nombre).map {|u| {id: u[0], nom: u[1], img: nim_path_image('Usuario', u[0], :foto)}}
   end
 
+  File_msg = 'tmp/nim_mensaje.html'
+  File_stp = 'tmp/nim_stop'
+
   def nuevas
     n = Mensaje.where(to: @usu.id, leido: false).count
-    render js: "$('#nim-noticias').attr('data-badge', #{n == 0 ? 'null' : n});"
+    js = "nimActData(#{n},#{File.exist?(File_stp)},"
+    js << (File.exist?(File_msg) ? File.read(File_msg).to_json : 'null')
+    render js: js + ');'
   end
 
   def enviar_mensaje

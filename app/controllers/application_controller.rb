@@ -75,9 +75,12 @@ class ApplicationController < ActionController::Base
     elsif sesion_invalida
       #session[:uid] = nil
       if request.xhr? # Si la petición es Ajax...
-        case params[:action]
-        when 'noticias'
+        if request.fullpath == '/noticias'
           render js: 'session_out();'
+          return
+        end
+
+        case params[:action]
         when 'auto'
           #render json: [{error: 1}]
           render json: [{error: 'no_session'}]
@@ -102,7 +105,7 @@ class ApplicationController < ActionController::Base
       return
     end
 
-    session[:fem] = Time.now unless params[:action] == 'noticias'    #Actualizar fecha de último uso
+    session[:fem] = Time.now unless request.fullpath == '/noticias'    #Actualizar fecha de último uso
     I18n.locale = session[:locale]
 
     if params[:vista]

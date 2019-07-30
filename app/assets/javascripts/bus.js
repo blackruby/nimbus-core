@@ -117,7 +117,7 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
     shrinkToFit: false,
     multiSort: true,
     beforeRequest: function() {
-      if (loadEnCurso) {
+      if (loadEnCurso || checkNimServerStop()) {
         return false;
       } else {
         loadEnCurso = true;

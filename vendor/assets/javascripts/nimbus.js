@@ -560,6 +560,8 @@ function nimPopup(texto, pos) {
 
 // Función para invocar a una función del servidor (tipo proc_FonC)
 function callFonServer(fon_s, data, fon_ret, sync) {
+  if (checkNimServerStop()) return;
+
   var params = {fon: fon_s};
   if (typeof(_vista) != "undefined") params.vista = _vista;
 
@@ -574,7 +576,7 @@ function callFonServer(fon_s, data, fon_ret, sync) {
 }
 
 function send_validar(c, v, data) {
-  if (nimGrabacionEnCurso) return;
+  if (nimGrabacionEnCurso || checkNimServerStop()) return;
 
   $.ajax({
     url: '/' + _controlador + '/validar',
@@ -658,6 +660,10 @@ function vali_code(c, tam, pref, rell) {
 
 nimGrabacionEnCurso = false;
 function mant_grabar(nueva) {
+  if (nimGrabacionEnCurso || checkNimServerStop()) return;
+
+  nimGrabacionEnCurso = true;
+
   var res;
   /**
   if (parent == self) {
@@ -675,14 +681,16 @@ function mant_grabar(nueva) {
 
   if (typeof jsGrabar == "function") {
     res = jsGrabar();
-    if (res == null) return;
+    if (res == null) {
+      nimGrabacionEnCurso = false;
+      return;
+    }
   }
   if (typeof res != 'object') res = {};
 
   if (nueva) res = $.extend(true, {_new: true}, res);
 
   $("body", context).append('<div class="nim-body-modal"></div>');
-  nimGrabacionEnCurso = true;
   $.ajax({
     url: '/' + _controlador + '/grabar',
     type: "POST",
@@ -707,13 +715,13 @@ function parentGridShow() {
 }
 
 function mant_borrar() {
-  if (nimGrabacionEnCurso) return;
+  if (nimGrabacionEnCurso || checkNimServerStop()) return;
 
   $("#dialog-borrar").dialog("open");
 }
 
 function mant_borrar_ok() {
-  if (nimGrabacionEnCurso) return;
+  if (nimGrabacionEnCurso || checkNimServerStop()) return;
 
   $.ajax({
     url: '/' + _controlador + '/borrar',
@@ -978,6 +986,8 @@ function autoCompIrAFicha() {
   if (si == undefined) return;
   window.open('/' + inp.attr("controller") + '/' + si.id + '/edit', '_blank', '');
   */
+  if (checkNimServerStop()) return;
+
   var inp = $("#_auto_comp_button_").parent().find("input");
   var dbid = inp.attr("dbid");
   if (dbid == undefined || dbid == '') return;
@@ -989,6 +999,8 @@ function autoCompIrAFicha() {
 }
 
 function autoCompNuevaFicha() {
+  if (checkNimServerStop()) return;
+
   var inp = $("#_auto_comp_button_").parent().find("input");
   var nw = inp.attr("new");
   if (nw == undefined) {
@@ -1398,8 +1410,31 @@ function setMenuR(st) {
   if (!st) $(".menu-r-user" + (nimRO ? ":not(.dis-ro)" : ""), context).attr("disabled", false);
 }
 
+function checkNimServerStop() {
+  if (nimWinMenu.nimServerStop) {
+    alert('El servidor está en mantenimiento.\nSi sigue trabajando no se guardarán los datos.\nSe recomienda cerrar todas las ventanas\nhasta que se reanude el servicio.')
+    return true;
+  } else
+    return false;
+}
+
 $(window).load(function() {
   var _auto_comp_menu_;
+
+  // Calcular cuál es la ventana del menú principal (si sigue abierta)
+  nimWinMenu = self;
+  do {
+    if (nimWinMenu.parent == nimWinMenu.self) {
+      if (nimWinMenu.nimServerStop == undefined) {
+        if (nimWinMenu.opener == null)
+          break;
+        else
+          nimWinMenu = nimWinMenu.opener;
+      } else
+        break;
+    } else
+      nimWinMenu = nimWinMenu.parent;
+  } while (true);
 
   $("body").on("focus", ".nim-datetime", function (e) {
     var th = $(this);
