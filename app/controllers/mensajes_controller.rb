@@ -76,7 +76,7 @@ class MensajesController < ApplicationController
   File_stp = 'tmp/nim_stop'
 
   def nuevas
-    n = Mensaje.where(to: @usu.id, leido: false).count
+    n = Nimbus::Config[:noticias] ? Mensaje.where(to: @usu.id, leido: false).count : 0
     js = "nimActData(#{n},#{File.exist?(File_stp)},"
     js << (File.exist?(File_msg) ? File.read(File_msg).to_json : 'null')
     render js: js + ');'

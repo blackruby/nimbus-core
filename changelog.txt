@@ -1,3 +1,6 @@
+.- Desligado el "envío de mensajes" y "parada del server" de la mensajería.
+   Ahora siempre está activado el chequeo aunque no se activen las noticias.
+-------------------------------------------------------------------------------
 .- Nuevas utilidades para enviar mensajes a los clientes y controlar que
    el servidor está pausado. Creando el fichero tmp/nim_mensaje.html
    conseguiremos que salga una ventana en todos los navegadores de los

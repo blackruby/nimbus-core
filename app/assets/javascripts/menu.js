@@ -280,19 +280,13 @@ function set_cookie_emej() {
   document.cookie = cookieEmEj + "=" + empresa_id + ":" + ejercicio_id + ";path=/";
 }
 
-// Funciones para comprobar periódicamente noticias del servidor
-function getNoticias() {
-  $.ajax({
-    url: '/noticias',
-    type: 'POST'
-  });
-}
+// Función para comprobar periódicamente noticias del servidor
 
 var tmo;
 
 function noticias() {
-  getNoticias();
-  tmo = setTimeout("noticias()", 30000);
+  $.ajax({url: '/noticias', type: 'POST'});
+  tmo = setTimeout(noticias, 60000);
 }
 
 function prompTitulo(tit) {
@@ -322,7 +316,7 @@ nimHtmMensaje = null;
 nimServerStop = false;
 
 function nimActData(n, stop, htm) {
-  $("#nim-noticias").attr("data-badge", n == 0 ? null : n);
+  if (nimNoticias) $("#nim-noticias").attr("data-badge", n == 0 ? null : n);
   nimServerStop = stop;
   if (htm && htm != nimHtmMensaje) {
     if (nimWinMensaje) nimWinMensaje.close();
@@ -333,7 +327,8 @@ function nimActData(n, stop, htm) {
 }
 
 $(window).load(function () {
-  if (nimNoticias) noticias();
+  //if (nimNoticias) noticias();
+  noticias();
 
   $("#nim-noticias").click(function (e) {
     if (checkNimServerStop()) return;
