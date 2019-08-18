@@ -1151,16 +1151,26 @@ class ApplicationController < ActionController::Base
         #[:eq,:ne,:lt,:le,:gt,:ge,:bw,:bn,:in,:ni,:ew,:en,:cn,:nc,:nu,:nn]
         op = f[:op].to_sym
 
-        fa = f[:field].split('.')
-        field = fa.map{|c| %Q("#{c.gsub('"', '""')}")}.join('.')
-        if fa[-2] == clm.table_name
-          ty = clm.campos[fa[-1].to_sym][:type]
-        else
-          ty = fa[-2].model.columns_hash[fa[-1]].type
+        begin
+          fa = f[:field].split('.')
+          field = fa.map{|c| %Q("#{c.gsub('"', '""')}")}.join('.')
+          if fa[-2] == clm.table_name
+            ty = clm.campos[fa[-1].to_sym][:type]
+          else
+            ty = fa[-2].model.columns_hash[fa[-1]].type
+          end
+        rescue => e
+          logger.fatal "###### Fallo al parsear #{f[:field]}"
+          logger.fatal "###### Controlador: #{params[:controller]}"
+          logger.fatal e.message
+          logger.fatal e.backtrace.join("\n")
+          render json: {error: "Fallo en la columna #{f[:field]}"}
+          return
         end
 
         if op == :nu or op == :nn
-          add_where w, f[:field]
+          #add_where w, f[:field]
+          add_where w, field
           w << ' IS'
           w << ' NOT' if op == :nn
           w << ' NULL'
