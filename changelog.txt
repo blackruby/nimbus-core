@@ -1,3 +1,6 @@
+.- Nueva carpeta para alojar ficheros de documentación y ejemplos.
+.- Añadido a 'docs' ejemplo de procesamiento de ficheros con un watcher.
+-------------------------------------------------------------------------------
 .- Corregido bug en búsquedas. El efecto eran cláusulas where con expresiones
    del tipo '#xxxxxx#campo' siendo xxxxxx un número.
 .- Corregido bug (posible inyección sql en filtros de grids de mantenimientos)
