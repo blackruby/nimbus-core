@@ -1,0 +1,57 @@
+# Esto debe de ir en el fichero /etc/systemd/system/mi_servicio.path
+#
+[Unit]
+Description=Servicio de observación de nuevos ficheros
+
+[Path]
+PathExistsGlob=/home/ruby/proyectos/nimbus/xml/*.xml
+
+###################################
+
+# Esto debe de ir en el fichero /etc/systemd/system/mi_servicio.service
+#
+[Unit]
+Description=Unidad para lanzar el proceso que procesará los ficheros
+
+[Service]
+Type=oneshot
+ExecStart=/home/ruby/proyectos/nimbus/xml.sh
+
+###################################
+
+# Esto debe de ir en el fichero /home/ruby/proyectos/nimbus/xml.sh
+#
+#!/bin/bash
+
+cd `dirname $0`
+
+export RAILS_ENV=production
+export HOME=/root
+export PG_NIM_USER=postgres
+
+
+RUTA_XML=/home/ruby/proyectos/nimbus/xml
+
+while true
+do
+  export FILES=`ls $RUTA_XML/*.xml 2>/dev/null`
+
+  if [ "$FILES" = '' ]
+  then
+    break
+  fi
+
+  # Esperar a que todos los ficheros estén cerrados
+  lsof +r 5 $FILES >/dev/null 2>&1
+
+  # Invocar a la tarea que procese (y borre o mueva) los ficheros.
+  # La tarea debe acceder a los ficheros a procesar a través de ENV['FILES']
+  rake mi_tarea
+done
+
+#####################################
+
+Para activar el servicio hay que lanzar:    systemctl start mi_servicio.path
+Para desactivar el servicio hay que lanzar: systemctl stop mi_servicio.path
+
+Esto lo ideal sería ponerlo en el production.sh o similar

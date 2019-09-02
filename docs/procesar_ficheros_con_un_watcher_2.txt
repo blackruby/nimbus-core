@@ -1,0 +1,59 @@
+# Alternativa (mejor) sin usar shell intermedio, procesando los ficheros en la tarea rake.
+# Tiene la ventaja de admitir caracteres especiales en los nombres de fichero.
+
+
+# Esto debe de ir en el fichero /etc/systemd/system/mi_servicio.path
+#
+[Unit]
+Description=Servicio de observación de nuevos ficheros
+
+[Path]
+PathExistsGlob=/home/ruby/proyectos/nimbus/xml/*.xml
+
+###################################
+
+# Esto debe de ir en el fichero /etc/systemd/system/mi_servicio.service
+#
+[Unit]
+Description=Procesamiento de ficheros XML
+
+[Service]
+Type=oneshot
+Environment=RAILS_ENV=development
+Environment=HOME=/root
+Environment=PG_NIM_USER=postgres
+WorkingDirectory=/home/ruby/proyectos/nimbus
+ExecStart=/home/ruby/proyectos/nimbus/bin/rake nimbus:importxml
+
+###################################
+
+# Esto debe de ir en el fichero /home/ruby/proyectos/nimbus/lib/tasks/importxml.rake
+#
+namespace :nimbus do
+  desc 'Importar ficheros'
+  task :importxml => :environment do |task|
+    dir_xml = "#{Rails.root}/xml"
+    dir_buenos = "#{dir_xml}/buenos"
+    dir_malos = "#{dir_xml}/malos"
+    loop {
+      fics = Dir.glob("#{dir_xml}/*.xml")
+      break if fics.empty?
+
+      fics.each {|f|
+        # Procesar el fichero 
+        #
+        # .........
+        #
+        # Mover el fichero a la carpeta buenos/malos en función del procesado
+        FileUtils.mv f, dir_buenos
+      }
+    }
+  end
+end
+
+#####################################
+
+Para activar el servicio hay que lanzar:    systemctl start mi_servicio.path
+Para desactivar el servicio hay que lanzar: systemctl stop mi_servicio.path
+
+Esto lo ideal sería ponerlo en el production.sh o similar
