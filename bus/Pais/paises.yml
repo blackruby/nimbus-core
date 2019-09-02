@@ -1,0 +1,29 @@
+---
+:cols:
+  :c01:
+    :label: codigo
+    :w: 90
+    :type: string
+  :c02:
+    :label: nombre
+    :w: 120
+    :type: string
+  :c03:
+    :label: codigo_cr
+    :w: 90
+    :type: string
+  :c04:
+    :label: codigo_iso3
+    :w: 90
+    :type: string
+  :c05:
+    :label: codigo_num
+    :w: 90
+    :type: string
+  :c06:
+    :label: tipo
+    :w: 90
+    :type: string
+:filters:
+  :rules: []
+:order: c01 asc
