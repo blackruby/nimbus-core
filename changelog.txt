@@ -1,3 +1,7 @@
+- Corregido bug por el que la ventana de histórico de borrados salía degenerada.
+- Añadidos debugs en diferentes puntos para controlar mejor los errores.
+- Mejora en el algoritmo que infiere la clave 'index' de la sección :grid en @campos.
+-------------------------------------------------------------------------------
 .- Nueva carpeta para alojar ficheros de documentación y ejemplos.
 .- Añadido a 'docs' ejemplo de procesamiento de ficheros con un watcher.
 -------------------------------------------------------------------------------

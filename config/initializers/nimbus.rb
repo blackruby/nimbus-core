@@ -876,7 +876,8 @@ module MantMod
               pref = ref.table_name
               @refs_ids << ref
             end
-            v[:grid][:index] = pref + '.' + ref.auto_comp_data[:campos][0]
+            #v[:grid][:index] = pref + '.' + ref.auto_comp_data[:campos][0]
+            v[:grid][:index] = pref + '.' + ref.auto_comp_data[:campos][0].scan(/[0-9a-zA-Z_.]*/)[0].split('.')[-1]
           else
             ###v[:grid][:index] = self.superclass.table_name + '.' + campo
             v[:grid][:index] = self.table_name + '.' + campo
@@ -1216,12 +1217,17 @@ module MantMod
   end
 
   def [](cmp)
-    return self.method(cmp).call if self.respond_to?(cmp)
+    begin
+      return self.method(cmp).call if self.respond_to?(cmp)
+    rescue => e
+      raise ArgumentError, "Clase: #{self.class} Campo: #{cmp} No se puede acceder al campo."
+    end
+
     v = @campos[cmp.to_sym]
     return v[:value] if v
     v = @campos[(cmp.to_s + '_id').to_sym]
     return v[:ref].constantize.find_by(id: v[:value]) if v
-    raise ArgumentError, "No existe el campo '#{cmp}'"
+    raise ArgumentError, "Clase: #{self.class} Campo: #{cmp} No existe el campo."
   end
 
   def []=(cmp, val)
@@ -1231,7 +1237,7 @@ module MantMod
       self.method(cmpi).call(val)
     else
       v = @campos[cmp]
-      v ? v[:value] = val_cast_campo(val, v) : raise(ArgumentError, "No existe el campo '#{cmp}'")
+      v ? v[:value] = val_cast_campo(val, v) : raise(ArgumentError, "Clase: #{self.class} Campo: #{cmp} No existe el campo.")
     end
   end
 

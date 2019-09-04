@@ -39,6 +39,9 @@ namespace :nimbus do
       fics = Dir.glob("#{dir_xml}/*.xml")
       break if fics.empty?
 
+      # Esperar a que todos los ficheros estén cerrados
+      `lsof +r 5 #{fics.map{|f| f.to_json}.join(' ')}`
+
       fics.each {|f|
         # Procesar el fichero 
         #

@@ -105,13 +105,21 @@ class BusController < ApplicationController
       end
     end
 
-    modelo_bus = clm.modelo_bus
-    if modelo_bus
-      @mod = modelo_bus
-      @views = ([modelo_bus] + clm.db_views.to_a).uniq
-      clm = modelo_bus.constantize
-    else
-      @views = [@mod] + clm.db_views.to_a
+    begin
+      modelo_bus = clm.modelo_bus
+      if modelo_bus
+        @mod = modelo_bus
+        @views = ([modelo_bus] + clm.db_views.to_a).uniq
+        clm = modelo_bus.constantize
+      else
+        @views = [@mod] + clm.db_views.to_a
+      end
+    rescue => e
+      logger.fatal "Búsqueda: modelo = #{@mod}"
+      logger.fatal e.message
+      logger.fatal e.backtrace.join("\n")
+
+      head :no_content
     end
 
     tabla = clm.table_name
@@ -220,7 +228,7 @@ class BusController < ApplicationController
     @ajax << "empresa='#{ej[0]}';"
     # Si el tipo de búsqueda es histórico de borrados (hb) dar valor adecuado a _autoCompField
     # para que al hacer doble click sobre un registro se haga la acción oportuna.
-    @ajax << '_autoCompField="*hb"' if flash[:tipo] == 'hb'
+    @ajax << '_autoCompField="*hb";' if flash[:tipo] == 'hb'
 
     @ajax << "nimRldServer=#{@dat[:rld] ? 'true' : 'false'};"
 
