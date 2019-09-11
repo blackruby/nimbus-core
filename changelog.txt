@@ -1,3 +1,5 @@
+Corregido bug en entrytime.
+-------------------------------------------------------------------------------
 - Corregido bug por el que la ventana de histórico de borrados salía degenerada.
 - Añadidos debugs en diferentes puntos para controlar mejor los errores.
 - Mejora en el algoritmo que infiere la clave 'index' de la sección :grid en @campos.

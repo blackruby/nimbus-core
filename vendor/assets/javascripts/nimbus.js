@@ -215,6 +215,7 @@ jQuery.fn.entrytime = function(segundos, nil) {
     var ncur = cur;
 
     for (var i = 0, c, valido; c = v[i]; i++) {
+      if (vn.length == lt) break;
       if (c == ':') {
         if (l+1 >= cur) {
           switch (l) {
@@ -222,10 +223,12 @@ jQuery.fn.entrytime = function(segundos, nil) {
             case 3:
             case 6:
               vn += vt[0]; l++;
+              break;
             case 1:
             case 4:
             case 7:
               vn += vt[0]; l++;
+              break;
             case 2:
             case 5:
               if (l == cur) ncur++;
