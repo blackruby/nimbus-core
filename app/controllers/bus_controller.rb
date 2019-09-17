@@ -145,7 +145,8 @@ class BusController < ApplicationController
     # la clave 'tipo' del flash indica algún tipo de acción especial.
     # De momento se contempla 'hb' para histórico de borrados.
     if flash[:tipo] == 'hb'
-      cols = {'c01'=> {label: 'created_by.nombre', w: 200, type: :string}, 'c02' => {label: 'created_at', w: 130, type: :datetime}}
+      #cols = {'c01'=> {label: 'created_by.nombre', w: 200, type: :string}, 'c02' => {label: 'created_at', w: 130, type: :datetime}}
+      cols = {c01: {label: 'created_by.nombre', w: 200, type: :string}, c02: {label: 'created_at', w: 130, type: :datetime}}
       last_col = 'c02'
     else
       cols = {}

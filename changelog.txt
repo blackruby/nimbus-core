@@ -1,4 +1,8 @@
-Corregido bug en entrytime.
+-Corregido bug en histórico de borrados
+Si no había plantilla de búsqueda y se usaba la de por defecto fallaba al 
+intentar ordenar por alguna columna.
+-------------------------------------------------------------------------------
+- Corregido bug en entrytime.
 -------------------------------------------------------------------------------
 - Corregido bug por el que la ventana de histórico de borrados salía degenerada.
 - Añadidos debugs en diferentes puntos para controlar mejor los errores.
