@@ -1,3 +1,11 @@
+// Colores globales
+color_1 = "#673AB7";
+color_1_2 = "#D1C4E9";
+color_1_3 = "#ede7f6";
+color_1_d = "#512DA8";
+color_2 = "#FF4081";
+color_2_2 = "#F8BBD0";
+
 function checkDate(val) {
   if (val == '') return('');
 

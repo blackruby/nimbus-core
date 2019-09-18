@@ -1,3 +1,5 @@
+-Nueva opción para ver las últimas actualizaciones de la gestión.
+-------------------------------------------------------------------------------
 -Corregido bug en histórico de borrados
 Si no había plantilla de búsqueda y se usaba la de por defecto fallaba al 
 intentar ordenar por alguna columna.

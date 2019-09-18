@@ -74,4 +74,10 @@ Rails.application.routes.draw do
     post 'api/login' => 'welcome#api_login'
     post 'api/paises' => 'paises#api_paises'
   end
+
+  get 'updates' => 'updates#index'
+  post 'updates/fon_server' => 'updates#fon_server'
+
+  get 'pdf/draw' => 'nimpdf#draw'
+  post 'pdf/fon_server' => 'nimpdf#fon_server'
 end

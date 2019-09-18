@@ -1,0 +1,9 @@
+<div class="updates-flex">
+<p class="updates-tit">Actualizaciones</p>
+<div class="updates">
+  <% @updates.each {|u| %>
+    <label onclick="getUpdate(this)"><%= u %></label><br>
+  <% } %>
+</div>
+</div>
+<div id="detalle"></div>
