@@ -59,13 +59,13 @@ f_since = get_param('since')
 @commits = {}
 fecha_i = {}
 
-fecha_i[:gestion] = f_since || (Time.parse(`git log -1 --format='%cI'`.chomp) + 1).iso8601
+fecha_i[:gestion] = f_since || (Time.parse(`git log -1 --format='%ci'`) + 1).iso8601
 
 Dir.glob('modulos/*') {|m|
   next if m == 'modulos/idiomas'
 
   Dir.chdir m
-  fecha_i[m.split('/')[1]] = (f_since || (Time.parse(`git log -1 --format='%cI'`.chomp) + 1).iso8601) if File.exist?('.git')
+  fecha_i[m.split('/')[1]] = (f_since || (Time.parse(`git log -1 --format='%ci'`) + 1).iso8601) if File.exist?('.git')
   Dir.chdir '../..'
 }
 
