@@ -42,7 +42,8 @@ class HistoPkController < ApplicationController
     }
 
     if fic
-      wh = modh.pk.map{|k| "#{k} = '#{fic[k]}'"}.join(' AND ')
+      #wh = modh.pk.map{|k| "#{k} = '#{fic[k]}'"}.join(' AND ')
+      wh = modh.pk.map{|k| k.to_s + (fic[k] ? " = '#{fic[k]}'" : ' IS NULL')}.join(' AND ')
       q = modh.where(wh).order(:created_at)
     else
       q = []
