@@ -1,6 +1,6 @@
 require 'time'
 require 'fileutils'
-require 'redcarpet'
+require 'asciidoctor'
 
 unless Dir.exist?('.git') && Dir.exist?('modulos')
   puts 'No se encuentra un proyecto válido.'
@@ -160,8 +160,6 @@ if @commits.empty?
 else
   FileUtils.mkpath('data/_nim_updates')
 
-  markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
-
   nombre = 'data/_nim_updates/' + (get_param('file-name') || Time.now.strftime('%d-%m-%Y %H:%M'))
   File.open(nombre, 'w') {|fp|
     @commits.each {|k, v|
@@ -174,7 +172,7 @@ else
           fp.print '<i class="material-icons expande">expand_more</i>'
         end
         fp.puts %Q(<span>#{c[0]}</span></div>)
-        fp.puts %Q(<div class="cuerpo">#{markdown.render(c[1])}</div>) unless c[1].empty?
+        fp.puts %Q(<div class="cuerpo">#{Asciidoctor.convert(c[1])}</div>) unless c[1].empty?
       }
     }
   }
