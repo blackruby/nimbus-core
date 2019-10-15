@@ -1101,7 +1101,9 @@ nim_subgrid_data = {};
 
 function creaGridLocal(opts, data) {
   var cmp = opts.cmp;
-  $("#" + cmp).html("").append('<table id="g_' + cmp + '"></table>');
+  //$("#" + cmp).html("").append('<table id="g_' + cmp + '"></table>');
+  $("#g_" + cmp).jqGrid('GridDestroy');
+  $("#" + cmp).append('<table id="g_' + cmp + '"></table>');
   var g = $("#g_" + cmp);
 
   var grid = opts.grid;
@@ -1210,7 +1212,7 @@ function creaGridLocal(opts, data) {
   switch(opts.modo) {
     case 'ed':
       g.jqGrid('bindKeys');
-      ht = '<div class="nim-titulo">' + caption + '&nbsp;&nbsp;&nbsp;&nbsp;';
+      var ht = '<div class="nim-titulo">' + caption + '&nbsp;&nbsp;&nbsp;&nbsp;';
       if (opts.ins && !nimRO) {
         ht += creaMdlButton('b_ib_' + cmp, 30, 2, 22, 'vertical_align_bottom', 'Insertar fila al final');
         if (opts.ins == 'pos') {
