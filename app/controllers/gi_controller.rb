@@ -424,7 +424,15 @@ class GiController < ApplicationController
   end
 
   def gi_envia_datos
-    envia_fichero(file: "#{@g[:fns]}.#{@fact.form_type}", file_cli: "#{@fact.form_file}.#{@fact.form_type}", rm: true, disposition: @fact.form_type == 'pdf' ? 'inline' : 'attachment', popup: @g[:go] ? :self : false)
+    #envia_fichero(file: "#{@g[:fns]}.#{@fact.form_type}", file_cli: "#{@fact.form_file}.#{@fact.form_type}", rm: true, disposition: @fact.form_type == 'pdf' ? 'inline' : 'attachment', popup: @g[:go] ? :self : false)
+    envia_fichero(
+      file: "#{@g[:fns]}.#{@fact.form_type}",
+      file_cli: "#{@fact.form_file}.#{@fact.form_type}",
+      rm: true,
+      disposition: @fact.form_type == 'pdf' ? 'inline' : 'attachment',
+      popup: @g[:go] ? :self : false,
+      tit: "#{@g[:info]} (#{@fact.form_type})" 
+    )
   end
 
   def after_save
@@ -453,7 +461,7 @@ class GiController < ApplicationController
         g = GI.new(@fact.form_modulo, @fact.form_file, @usu.codigo, lim)
 
         fns = "/tmp/nim#{@v.id}" #file_name_server
-        fnc = @fact.form_file
+        #fnc = @fact.form_file
         @g[:fns] = fns
 
         p2p label: label << '<br>Formateando datos'

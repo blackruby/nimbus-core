@@ -486,41 +486,66 @@ class ApplicationController < ActionController::Base
   # <i>rm</i> puede valer true o false en función de si queremos que el fichero se borre tras la descarga.<br>
   # <i>disposition</i> puede valer 'attachment' (por defecto) o 'inline' para que el fichero se descargue y se abra.
   # <i>popup</i> Si vale true la ventana donde se muestra el fichero será flotante (solo válido para disposition: 'inline')
+  # <i>tit</i> T´tulo que aparece en la pestaña que muestra el fichero si <i>disposition</i> es inline. si no especifica se usará <i>file_cli</i>.
   # Notar que los argumentos son con nombre. Ejemplo de uso:<br>
   # <pre>envia_fichero file: '/tmp/zombi.pdf', file_cli: 'datos.pdf', rm: false</pre>
   # Si no se especifica <i>file_cli</i> se usará <i>file</i>. Y si no se especifica <i>rm</i> se asume true
   ##
 
-  def envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment', popup: false)
+  def envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment', popup: false, tit: file_cli)
+=begin
     flash[:file] = file
     flash[:file_cli] = file_cli
     flash[:rm] = rm
     flash[:disposition] = disposition
+=end
+    cry = ActiveSupport::MessageEncryptor.new Rails.application.secrets[:secret_key_base]
+    arg = {file: file, file_cli: file_cli, rm: rm, disposition: disposition}.to_json
+    tit = tit ? '/' + tit.gsub('/', '-').gsub(/[?&]/, ' ') : ''
+    url = "/nim_download#{tit}?data=#{cry.encrypt_and_sign(arg)}"
+
     if disposition == 'attachment'
-      @ajax << "window.location.href='/nim_download';"
+      @ajax << "window.location.href='#{url}';"
     else
       if popup
         if popup == :self
-          @ajax << 'window.open("/nim_download", "_self");'
+          @ajax << "window.open('#{url}', '_self');"
         else
-          @ajax << 'window.open("/nim_download", "_blank", "width=700, height=750, left=" + (window.screenLeft + (window.outerWidth - 700)/2) + ", top=10");'
+          @ajax << "window.open('#{url}', '_blank', 'width=700, height=750, left=' + (window.screenLeft + (window.outerWidth - 700)/2) + ', top=10');"
         end
       else
-        @ajax << "window.open('/nim_download');"
+        @ajax << "window.open('#{url}');"
       end
     end
   end
 
   def nim_download
-    if flash[:file]
-      file_name = flash[:file]
+    if params[:data]
+      cry = ActiveSupport::MessageEncryptor.new Rails.application.secrets[:secret_key_base]
+      begin
+        args = JSON.parse(cry.decrypt_and_verify(params[:data])).symbolize_keys
+      rescue
+        render file: '/public/401.html', status: 401, layout: false
+        return
+      end
+    else
+      args = {file: flash[:file], file_cli: flash[:file_cli], disposition: flash[:disposition], rm: flash[:rm]}
+    end
+
+
+    if args[:file]
+      file_name = args[:file]
+      unless File.exist? file_name
+        render file: '/public/404.html', status: 404, layout: false
+        return
+      end
     else
       render file: '/public/401.html', status: 401, layout: false
       return
     end
 
-    send_data File.read(file_name), filename: flash[:file_cli] || file_name.split('/')[-1], disposition: flash[:disposition] || 'attachment'
-    FileUtils.rm_f(file_name) if flash[:rm]
+    send_data File.read(file_name), filename: args[:file_cli] || file_name.split('/')[-1], disposition: args[:disposition] || 'attachment'
+    FileUtils.rm_f(file_name) if args[:rm]
   end
 
   def nim_send_file
@@ -1302,7 +1327,7 @@ class ApplicationController < ActionController::Base
   end
 
   def set_titulo(tit, ecod, jcod, list_ej = false)
-    @titulo = "#{ecod}#{jcod ? '/' : ''}#{jcod} #{tit}"
+    @titulo = "#{ecod}#{jcod ? '/' : ''}#{jcod} #{tit}".strip
     if jcod && list_ej && @dat
       @titulo_htm = "#{ecod}&nbsp;/"
       @titulo_htm << '<select id="sel-nim-ejer" onchange="selNewEjercicio()">'
