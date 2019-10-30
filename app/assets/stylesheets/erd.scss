@@ -1,0 +1,38 @@
+@import 'nimbus_theme';
+
+table, th, td {
+  border: 1px solid gray;
+  border-collapse: collapse;
+}
+
+table {
+  display: inline-block;
+  vertical-align: top;
+  margin: 5px;
+}
+
+th {
+  border: 0;
+  background-color: $color-1;
+  color: white;
+}
+
+td {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.incidencias {
+  background-color: red;
+  color: white;
+  text-align: center;
+}
+
+.modulo {
+  background-color: $color-1-2;
+  text-align: center;
+}
+
+.badasoc {
+  color: red;
+}

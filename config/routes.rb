@@ -79,6 +79,11 @@ Rails.application.routes.draw do
   get 'updates' => 'updates#index'
   post 'updates/fon_server' => 'updates#fon_server'
 
+  get 'erd' => 'erd#edit'
+  post 'erd/validar' => 'erd#validar'
+  post 'erd/grabar' => 'erd#grabar'
+  post 'erd/fon_server' => 'erd#fon_server'
+
   get 'pdf/draw' => 'nimpdf#draw'
   post 'pdf/fon_server' => 'nimpdf#fon_server'
 end
