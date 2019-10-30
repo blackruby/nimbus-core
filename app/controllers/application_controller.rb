@@ -499,7 +499,7 @@ class ApplicationController < ActionController::Base
     flash[:rm] = rm
     flash[:disposition] = disposition
 =end
-    cry = ActiveSupport::MessageEncryptor.new Rails.application.secrets[:secret_key_base]
+    cry = ActiveSupport::MessageEncryptor.new Rails.application.secrets[:secret_key_base][0..31]
     arg = {file: file, file_cli: file_cli, rm: rm, disposition: disposition}.to_json
     tit = tit ? '/' + tit.gsub('/', '-').gsub(/[?&]/, ' ') : ''
     url = "/nim_download#{tit}?data=#{cry.encrypt_and_sign(arg)}"
@@ -521,7 +521,7 @@ class ApplicationController < ActionController::Base
 
   def nim_download
     if params[:data]
-      cry = ActiveSupport::MessageEncryptor.new Rails.application.secrets[:secret_key_base]
+      cry = ActiveSupport::MessageEncryptor.new Rails.application.secrets[:secret_key_base][0..31]
       begin
         args = JSON.parse(cry.decrypt_and_verify(params[:data])).symbolize_keys
       rescue
