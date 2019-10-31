@@ -28,23 +28,25 @@ class ErdController < ApplicationController
       @fp.puts "[#{mod_name}]"
     end
 
-    cols = {n: []}
+    modulo = mod.to_s.split('::')[-2]
+    cols = {modulo => []}
 
     mod.column_names.each {|c|
       next if c == 'id'
 
       org = @adds[mod.table_name + '@' + c]
       if org
+        org.capitalize!
         cols[org] ||= [] 
         cols[org] << c
       else
-        cols[:n] << c
+        cols[modulo] << c
       end
     }
 
     asocs = []
     cols.each {|org, cmps|
-      if org != :n
+      if org != modulo
         @htm_mod << "<tr><td class='modulo' colspan=3>#{org}</td></tr>"
         @fp.puts org + ' {bgcolor: "#D1C4E9", size: "17"}' if @fp
       end
@@ -65,16 +67,19 @@ class ErdController < ApplicationController
             begin
               ref = asoc.class_name.constantize
               asocs << ref unless asocs.include?(ref)
+              modulo_ref = asoc.class_name.split('::')[-2]
+              @htm_mod << ' class="add-asoc"' unless [nil, org, modulo, 'Comun'].include?(modulo_ref)
+
               if @fp && niv < niv_max
                 req = mod.propiedades[c.to_sym] && mod.propiedades[c.to_sym][:req]
                 @fp_asocs << %Q(#{mod_name} *--#{req ? '1' : '?'} #{asoc.class_name.gsub('::', '__')} {label: "#{asoc.name}"}\n)
               end
             rescue
-              @htm_mod << ' class=badasoc'
+              @htm_mod << ' class="bad-asoc"'
             end
             @htm_mod << ">#{asoc.class_name}"
           else
-            @htm_mod << ' class=badasoc>?????'
+            @htm_mod << ' class="no-asoc">?????'
           end
         else
           @htm_mod << '>'
@@ -128,7 +133,7 @@ class ErdController < ApplicationController
       begin
         entity(m.constantize, (@fact.nivel == 0 ? 999 : @fact.nivel), 1)
       rescue
-        incidencias << [m, 'No existe el modelo']
+        incidencias << [m, 'No existe el modelo o no es válido']
       end
     }
 

@@ -33,6 +33,17 @@ td {
   text-align: center;
 }
 
-.badasoc {
+// Para clases inexistentes
+.bad-asoc {
   color: red;
+}
+
+// Para campos id que deberían estar en un "_add"
+.add-asoc {
+  color: blue;
+}
+
+// Para campos id que no tienen asociado un belongs_to
+.no-asoc {
+  color: green;
 }
