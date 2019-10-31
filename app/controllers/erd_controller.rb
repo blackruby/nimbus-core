@@ -122,6 +122,9 @@ class ErdController < ApplicationController
 
     if @fact.erd
       if `which erd`.present?
+        # Para poder generar diagramas erd hay que instalar el paquete: https://github.com/BurntSushi/erd
+        # En el server del repositorio hay una copia del binario en /u/files_nimbus/erd
+        # Instalando el paquete graphViz (con yum) y ese binario debería ser suficiente si la versión del S.O. es adecuada.
         pdf = "/tmp/nim#{@v.id}.pdf"
         @fp = IO.popen("erd -o #{pdf} >log/erd.stdout 2>&1", 'w')
       else
