@@ -109,7 +109,7 @@ class ErdController < ApplicationController
       # modulos/venta/db/migrate_almacen/20170308174733_update_venta_almacen_familias.rb:      add_column :almacen_familias, :bajo_fisico_ped, :string
       la = l.split
       org = la[0].split('/')
-      key = la[2][1..-2] + '@' + la[3][1..-2] + (la[1] == 'add_reference' ? '_id' : '')
+      key = la[2][1..-2] + '@' + la[3][1..(la[3][-1] == ',' ? -2 : -1)] + (la[1] == 'add_reference' ? '_id' : '')
       incidencias << [la[1..3].join(' ').chop, 'Repetido'] if @adds[key]
       incidencias << [la[1..3].join(' ').chop, 'Carpeta errónea'] if org[3].split('_')[1] != la[2].split('_')[0][1..-1]
       @adds[key] = org[1]
