@@ -617,17 +617,6 @@ class GI
   end
 
   def val_campo(c, f=@d)
-=begin
-    if c.is_a? Symbol
-      return f.method(c).call
-    elsif c.is_a? Fixnum
-      # Para el caso de que los datos sea un array y 'c' represente el índice
-    elsif c.is_a? String
-      return eval(c)
-    else
-      return c
-    end
-=end
     if c
       begin
         eval(c)

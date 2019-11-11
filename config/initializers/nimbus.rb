@@ -28,14 +28,14 @@ module Nimbus
 
   # Carga del código ruby de configuración (preferible al yaml anterior, por poderse encriptar)
   #eval(File.read('config/nimbus-core.rb'), binding) if File.exist?('config/nimbus-core.rb')
+
   # Adecuación de p2p
-  case Config[:p2p].class.to_s
-    when 'Fixnum'
-      Config[:p2p] = {tot: Config[:p2p]}
-    when 'Hash'
-      Config[:p2p][:tot] ||= Config[:p2p].values.reduce(:+) + 20
-    else
-      Config[:p2p] = {tot: 50}
+  if Config[:p2p].is_a?(Integer)
+    Config[:p2p] = {tot: Config[:p2p]}
+  elsif Config[:p2p].is_a?(Hash)
+    Config[:p2p][:tot] ||= Config[:p2p].values.reduce(:+) + 20
+  else
+    Config[:p2p] = {tot: 50}
   end
 
   # Nombre de la cookie de empresa/ejercicio
@@ -747,7 +747,7 @@ module MantMod
 
         @grid ||= {}
         @grid[:ew] ||= :w
-        @grid[:gcols].is_a?(Fixnum) ? @grid[:gcols] = [@grid[:gcols]] : @grid[:gcols] ||= [5]
+        @grid[:gcols].is_a?(Integer) ? @grid[:gcols] = [@grid[:gcols]] : @grid[:gcols] ||= [5]
         @grid[:gcols][1] ||= (@grid[:gcols][0] - 1)*7/11 + 1
         @grid[:gcols][2] ||= 4
         @grid[:visible] = true if @grid[:visible].nil?
@@ -1012,7 +1012,7 @@ module MantMod
 
       # Cálculo de la anchura de las columnas
       if hay_grid and v[:grid][:width].nil?
-        m = v[:manti].is_a?(Fixnum) ? v[:manti] : 0
+        m = v[:manti].is_a?(Integer) ? v[:manti] : 0
         w = [m, v[:grid][:label].size].max
         if [:integer, :decimal, :date].include?(v[:type]) or v[:code]
           v[:grid][:width] = w*8
@@ -1311,7 +1311,7 @@ module Modelo
       @propiedades.each {|c, h|
         cpk = h[:pk]
         if cpk != nil
-          if cpk.class == Fixnum and @pk[cpk].nil?
+          if cpk.is_a?(Integer) && @pk[cpk].nil?
             @pk[cpk] = c.to_s
           else
             @pk << c.to_s

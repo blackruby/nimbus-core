@@ -95,7 +95,7 @@ namespace :nimbus do
 
           cpk = cmp[:pk]
           if cpk != nil
-            if cpk.class == Fixnum and pk[cpk].nil?
+            if cpk.is_a?(Integer) && pk[cpk].nil?
               pk[cpk] = cmpn
             else
               pk << cmpn
