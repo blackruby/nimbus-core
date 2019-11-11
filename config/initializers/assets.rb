@@ -16,20 +16,20 @@ Rails.application.config.assets.precompile += ['*.png', '*.gif', '*.jpg', '*.eot
 Dir.glob('app/assets/stylesheets/**/*.{css,scss,erb}').each {|d|
   f = d.split('/')[3..-1].join('/')
   f = f[0..f.index('.')] + 'css'
-  Rails.application.config.assets.precompile += [f] unless f.starts_with?('application.')
+  Rails.application.config.assets.precompile += [f]
 }
 Dir.glob('app/assets/javascripts/**/*.{js,coffee,erb}').each {|d|
   f = d.split('/')[3..-1].join('/')
   f = f[0..f.index('.')] + 'js'
-  Rails.application.config.assets.precompile += [f] unless f.starts_with?('application.')
+  Rails.application.config.assets.precompile += [f]
 }
 Dir.glob('modulos/*/app/assets/stylesheets/**/*.{css,scss,erb}').each {|d|
   f = d.split('/')[5..-1].join('/')
   f = f[0..f.index('.')] + 'css'
-  Rails.application.config.assets.precompile += [f] unless f.starts_with?('application.')
+  Rails.application.config.assets.precompile += [f]
 }
 Dir.glob('modulos/*/app/assets/javascripts/**/*.{js,coffee,erb}').each {|d|
   f = d.split('/')[5..-1].join('/')
   f = f[0..f.index('.')] + 'js'
-  Rails.application.config.assets.precompile += [f] unless f.starts_with?('application.')
+  Rails.application.config.assets.precompile += [f]
 }
