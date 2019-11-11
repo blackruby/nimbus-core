@@ -1,6 +1,6 @@
 class ErdMod
   @campos = {
-    modelos: {tab: 'pre', gcols: 12, manti: 200},
+    modelos: {tab: 'pre', gcols: 12, manti: 200, label: 'Modelos/Módulos', title: 'Los modelos se introducen como se referencia la clase, los módulos en minúsculas.'},
     nivel: {tab: 'pre', gcols: 1, manti: 2, type: :integer},
     erd: {tab: 'pre', gcols: 2, label: 'Diagrama ERD', type: :boolean},
     div: {tab: 'pre', gcols: 12, type: :div, br: true},
@@ -105,13 +105,28 @@ class ErdController < ApplicationController
     # Obtener lista de campos añadidos por otros módulos
     @adds = {}
     `egrep 'add_column|add_reference' modulos/*/db/migrate_*/* | grep -v _h_`.each_line {|l|
-      # ejemplo de línea
-      # modulos/venta/db/migrate_almacen/20170308174733_update_venta_almacen_familias.rb:      add_column :almacen_familias, :bajo_fisico_ped, :string
+      # Las posibles líneas que pueden llegar son:
+      # modulos/mmmm/db/migrate_nnnn/999999_xxxxxxxxxxxxxxxx.rb: add_column    :almacen_familias,        :bajo_fisico_ped, :string
+      # modulos/mmmm/db/migrate_nnnn/999999_xxxxxxxxxxxxxxxx.rb: add_reference :tesoreria_recibocobros, :representante, index: false
+      # modulos/mmmm/db/migrate_nnnn/999999_create_pppp_tttt.rb: t.references  :empresa, index: false
+      # modulos/mmmm/db/migrate_nnnn/999999_create_pppp_tttt.rb: t.xxxxxxxxxx  :codigo
+
       la = l.split
       org = la[0].split('/')
-      key = la[2][1..-2] + '@' + la[3][1..(la[3][-1] == ',' ? -2 : -1)] + (la[1] == 'add_reference' ? '_id' : '')
-      incidencias << [la[1..3].join(' ').chop, 'Repetido'] if @adds[key]
-      incidencias << [la[1..3].join(' ').chop, 'Carpeta errónea'] if org[3].split('_')[1] != la[2].split('_')[0][1..-1]
+      if la[1][0..1] == 't.'
+        ic = org[4].index('create')
+        if ic 
+          key = org[4][(ic + 7)..-4] + '@' + la[2][1..(la[2][-1] == ',' ? -2 : -1)] + (la[1] == 't.references' ? '_id' : '')
+        else
+          inci = [la[0], 'Nombre mal formado']
+          incidencias << inci unless incidencias.include?(inci)
+          next
+        end
+      else
+        key = la[2][1..-2] + '@' + la[3][1..(la[3][-1] == ',' ? -2 : -1)] + (la[1] == 'add_reference' ? '_id' : '')
+        incidencias << [la[1..3].join(' ').chop, 'Carpeta errónea'] if org[3].split('_')[1] != la[2].split('_')[0][1..-1]
+      end
+      incidencias << [l, 'Repetido'] if @adds[key]
       @adds[key] = org[1]
     }
 
@@ -136,7 +151,17 @@ class ErdController < ApplicationController
       begin
         entity(m.constantize, (@fact.nivel == 0 ? 999 : @fact.nivel), 1)
       rescue
-        incidencias << [m, 'No existe el modelo o no es válido']
+        if Dir.exist? "modulos/#{m}"
+          Dir.glob("modulos/#{m}/app/models/#{Dir.exist?('modulos/' + m + '/app/models/' + m) ? m : ''}/*.rb") {|n|
+            begin
+              entity((m.capitalize + '::' + n.split('/')[-1][0..-4].camelize).constantize, (@fact.nivel == 0 ? 999 : @fact.nivel), 1)
+            rescue
+              incidencias << [n, 'Modelo no válido']
+            end
+          }
+        else
+          incidencias << [m, 'No existe el módulo/modelo o no es válido']
+        end
       end
     }
 
