@@ -104,8 +104,7 @@ class ErdController < ApplicationController
 
     # Obtener lista de campos añadidos por otros módulos
     @adds = {}
-    #`egrep 'add_column|add_reference' modulos/*/db/migrate_*/* | grep -v _h_`.each_line {|l|
-    `egrep 'add_column|add_reference| t\.' modulos/*/db/migrate_*/* | egrep -v '_h_|:idid|:created_by|:created_at'`.each_line {|l|
+    `egrep 'add_column|add_reference| t\\.' modulos/*/db/migrate_*/* | egrep -v '_h_|:idid|:created_by|:created_at'`.each_line {|l|
       # Las posibles líneas que pueden llegar son:
       # modulos/mmmm/db/migrate_nnnn/999999_xxxxxxxxxxxxxxxx.rb: add_column    :almacen_familias,        :bajo_fisico_ped, :string
       # modulos/mmmm/db/migrate_nnnn/999999_xxxxxxxxxxxxxxxx.rb: add_reference :tesoreria_recibocobros, :representante, index: false
@@ -113,6 +112,9 @@ class ErdController < ApplicationController
       # modulos/mmmm/db/migrate_nnnn/999999_create_pppp_tttt.rb: t.xxxxxxxxxx  :codigo
 
       la = l.split
+
+      next if la[1][0] == '#'
+      
       org = la[0].split('/')
       if la[1][0..1] == 't.'
         ic = org[4].index('create')
@@ -153,7 +155,9 @@ class ErdController < ApplicationController
         entity(m.constantize, (@fact.nivel == 0 ? 999 : @fact.nivel), 1)
       rescue
         if Dir.exist? "modulos/#{m}"
-          Dir.glob("modulos/#{m}/app/models/#{Dir.exist?('modulos/' + m + '/app/models/' + m) ? m : ''}/*.rb") {|n|
+          modelos = Dir.glob("modulos/#{m}/app/models/#{Dir.exist?('modulos/' + m + '/app/models/' + m) ? m : ''}/*.rb")
+          modelos += Dir.glob("modulos/*/app/models/#{m}/*.rb").select {|n| n[-7..-4] != '_add'}
+          modelos.each {|n|
             begin
               entity((m.capitalize + '::' + n.split('/')[-1][0..-4].camelize).constantize, (@fact.nivel == 0 ? 999 : @fact.nivel), 1)
             rescue
