@@ -104,7 +104,8 @@ class ErdController < ApplicationController
 
     # Obtener lista de campos añadidos por otros módulos
     @adds = {}
-    `egrep 'add_column|add_reference' modulos/*/db/migrate_*/* | grep -v _h_`.each_line {|l|
+    #`egrep 'add_column|add_reference' modulos/*/db/migrate_*/* | grep -v _h_`.each_line {|l|
+    `egrep 'add_column|add_reference| t\.' modulos/*/db/migrate_*/* | egrep -v '_h_|:idid|:created_by|:created_at'`.each_line {|l|
       # Las posibles líneas que pueden llegar son:
       # modulos/mmmm/db/migrate_nnnn/999999_xxxxxxxxxxxxxxxx.rb: add_column    :almacen_familias,        :bajo_fisico_ped, :string
       # modulos/mmmm/db/migrate_nnnn/999999_xxxxxxxxxxxxxxxx.rb: add_reference :tesoreria_recibocobros, :representante, index: false
@@ -116,7 +117,7 @@ class ErdController < ApplicationController
       if la[1][0..1] == 't.'
         ic = org[4].index('create')
         if ic 
-          key = org[4][(ic + 7)..-4] + '@' + la[2][1..(la[2][-1] == ',' ? -2 : -1)] + (la[1] == 't.references' ? '_id' : '')
+          key = org[4][(ic + 7)..-5] + '@' + la[2][1..(la[2][-1] == ',' ? -2 : -1)] + (la[1] == 't.references' ? '_id' : '')
         else
           inci = [la[0], 'Nombre mal formado']
           incidencias << inci unless incidencias.include?(inci)
