@@ -1,7 +1,7 @@
 class ErdMod
   @campos = {
     modelos: {tab: 'pre', gcols: 12, manti: 200, label: 'Modelos/Módulos', title: 'Los modelos se introducen como se referencia la clase, los módulos en minúsculas.'},
-    nivel: {tab: 'pre', gcols: 1, manti: 2, type: :integer},
+    nivel: {tab: 'pre', gcols: 1, manti: 2, type: :integer, title: '0 = Todos los niveles'},
     erd: {tab: 'pre', gcols: 2, label: 'Diagrama ERD', type: :boolean},
     div: {tab: 'pre', gcols: 12, type: :div, br: true},
   }
@@ -21,11 +21,11 @@ class ErdController < ApplicationController
     return if @mod_procesados.include?(mod)
 
     @mod_procesados << mod
-    @htm_mod << "<table><tr><th colspan=3>#{mod}</th></tr>"
+    @htm_mod << "<table#{mod.view? ? ' class=vista' : ''}><tr><th colspan=3>#{mod}</th></tr>"
 
     if @fp
       mod_name = mod.to_s.gsub('::', '__')
-      @fp.puts "[#{mod_name}]"
+      @fp.puts "[#{mod_name}]#{mod.view? ? ' {bgcolor: "wheat"}' : ''}"
     end
 
     modulo = mod.to_s.split('::')[-2]
@@ -70,9 +70,9 @@ class ErdController < ApplicationController
               modulo_ref = asoc.class_name.split('::')[-2]
               @htm_mod << ' class="add-asoc"' unless [nil, org, modulo, 'Comun'].include?(modulo_ref)
 
-              if @fp && niv < niv_max
+              if @fp
                 req = mod.propiedades[c.to_sym] && mod.propiedades[c.to_sym][:req]
-                @fp_asocs << %Q(#{mod_name} *--#{req ? '1' : '?'} #{asoc.class_name.gsub('::', '__')} {label: "#{asoc.name}"}\n)
+                @fp_asocs << {mod_name: mod_name, req: req, asoc: asoc, ref: ref}
               end
             rescue
               @htm_mod << ' class="bad-asoc"'
@@ -95,6 +95,8 @@ class ErdController < ApplicationController
 
   def before_envia_ficha
     @assets_stylesheets = %w(erd)
+
+    @fact.nivel = 1
   end
 
   def after_save
@@ -135,7 +137,7 @@ class ErdController < ApplicationController
 
     @mod_procesados = []
     @htm_mod = ''
-    @fp_asocs = ''
+    @fp_asocs = []
     @fp = nil
 
     if @fact.erd
@@ -171,7 +173,11 @@ class ErdController < ApplicationController
     }
 
     if @fp
-      @fp.print(@fp_asocs) if @fp_asocs.present?
+      @fp_asocs.each {|a|
+        if @mod_procesados.include?(a[:ref])
+          @fp.puts %Q(#{a[:mod_name]} *--#{a[:req] ? '1' : '?'} #{a[:asoc].class_name.gsub('::', '__')} {label: "#{a[:asoc].name}"})
+        end
+      }
       @fp.close
       envia_fichero file: pdf, file_cli: 'erd.pdf', rm: true, disposition: 'inline', popup: true
     end
