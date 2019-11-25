@@ -586,6 +586,24 @@ function callFonServer(fon_s, data, fon_ret, sync) {
   })
 }
 
+// Función más completa para invocar un método del server
+// Una forma de simular sincronía sería:
+// poBusy(); nimAjax('metodo', {}, {timeout: 5000, success: function(){// Mi código}, complete: quitaBusy});
+function nimAjax(fon_s, data, ajax) {
+  if (checkNimServerStop()) return;
+
+  var params = {fon: fon_s};
+  if (typeof(_vista) != "undefined") params.vista = _vista;
+
+  $.ajax($.extend(
+    {
+      url: '/' + _controlador + '/fon_server',
+      type: "POST",
+      data: $.extend(params, data)
+    }, ajax
+  ));
+}
+
 function send_validar(c, v, data) {
   if (nimGrabacionEnCurso || checkNimServerStop()) return;
 
