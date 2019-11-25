@@ -607,11 +607,33 @@ function nimAjax(fon_s, data, ajax) {
 function send_validar(c, v, data) {
   if (nimGrabacionEnCurso || checkNimServerStop()) return;
 
+  $("body").append("<div class='nim-body-modal nim-busy' style='background-color: white;opacity: 0'></div>");
+  nimValidarEnCurso = true;
+  setTimeout(function() {
+    if (nimValidarEnCurso) {
+      $(".nim-body-modal").css("background-color", "#d3d3d3").css("opacity", "0.5");
+      $("body").append("<div class='mdl-spinner mdl-js-spinner nim-busy is-active' style='z-index:100001; position: absolute; left: 50%; top: 50%;'></div>'");
+      componentHandler.upgradeDom();
+    }
+  }, 2000);
+
   $.ajax({
     url: '/' + _controlador + '/validar',
     type: "POST",
-    async: false,
-    data: $.extend(true, {vista: _vista, valor: v, campo: c.attr("id")}, data)
+    timeout: 20000,
+    data: $.extend(true, {vista: _vista, valor: v, campo: c.attr("id")}, data),
+    complete: function() {
+      nimValidarEnCurso = false;
+      quitaBusy();
+    },
+    error: function(xhr, err) {
+      if (err == "timeout")
+        var txt = "El servidor tarda mucho en responder.\nEl cambio de valor no tendrá efecto.";
+      else
+        var txt = "Se ha producido un error.";
+
+      alert(txt + "\nEs posible que los datos no estén sincronizados.\nSe recomienda recargar la ficha.");
+    }
   });
 }
 
