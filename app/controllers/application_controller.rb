@@ -3169,7 +3169,7 @@ class ApplicationController < ActionController::Base
         # Si la cadena de error vale '@' No se pinta nada (y además no se ha grabado el registro). Es un convenio para vali_save
         unless err == '@'
           @ajax << '$("#' + last_c + '").focus();' if last_c
-          mensaje tit: 'Errores en el registro', msg: err
+          mensaje tit: nt('errores_en_el_registro'), msg: err
         end
       end
     rescue ActiveRecord::RecordNotUnique
