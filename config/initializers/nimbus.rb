@@ -114,7 +114,13 @@ module Nimbus
           end
 
           # Hacer include del module "Controller" si existe y añadir las opciones del menú contextual (auto_comp_menu) a v[:menu]
-          add_context_menu(ctr, v) if v[:ref]
+          begin
+            add_context_menu(ctr, v) if v[:ref]
+          rescue => e
+            Rails.logger.fatal "###### Fallo al procesar el campo '#{k}' del controlador #{ctr}"
+            Rails.logger.fatal e.message
+            Rails.logger.fatal e.backtrace.join("\n")
+          end
         }
 
         if post
@@ -126,7 +132,10 @@ module Nimbus
           }
           ctr_mod.campos = cmpa.to_h
         end
-      rescue
+      rescue => e
+        Rails.logger.fatal "###### Fallo al procesar los campos del controlador #{ctr}"
+        Rails.logger.fatal e.message
+        Rails.logger.fatal e.backtrace.join("\n")
       end
     else
       # Tratamientos especiales en el caso de que sea un modelo con histórico (y no sea una vista)
