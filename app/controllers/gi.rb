@@ -761,7 +761,8 @@ class GI
   end
 
   def gen_xls(name=nil, pdf=false)
-    name ||= '/tmp/' + Dir::Tmpname.make_tmpname('nim', '.xlsx')
+    #name ||= '/tmp/' + Dir::Tmpname.make_tmpname('nim', '.xlsx')
+    name ||= '/tmp/' + nim_tmpname('.xlsx')
     name << '.xlsx' unless name.ends_with?('.xlsx')
     @pdf = pdf
 
