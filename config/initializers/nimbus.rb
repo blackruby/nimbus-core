@@ -132,10 +132,10 @@ module Nimbus
           }
           ctr_mod.campos = cmpa.to_h
         end
-      rescue => e
-        Rails.logger.fatal "###### Fallo al procesar los campos del controlador #{ctr}"
-        Rails.logger.fatal e.message
-        Rails.logger.fatal e.backtrace.join("\n")
+      rescue
+        # La única razón para que se produzca la exepción es que no exista la clase xxxMod.
+        # En ese caso no hy que hacer nada, sólo significa que el controlador es autónomo
+        # como es el caso de welcome_controller.
       end
     else
       # Tratamientos especiales en el caso de que sea un modelo con histórico (y no sea una vista)
