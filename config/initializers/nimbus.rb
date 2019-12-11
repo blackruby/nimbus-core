@@ -80,7 +80,7 @@ module Nimbus
 
       ctr_name = f[-1][0..f[-1].index('_controller')-1]
       mod = f[-2] == 'controllers' ? '' : f[-2]
-      ctr = ((mod == '' ? '' : mod.capitalize + '::') + ctr_name.capitalize + 'Controller').constantize
+      ctr = ((mod == '' ? '' : mod.capitalize + '::') + ctr_name.camelize + 'Controller').constantize
 
       def self.procesa_vistas(tipo, rails_root, f, iapp, ctr_name, ctr, mod)
         views = []
