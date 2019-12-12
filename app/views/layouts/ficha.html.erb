@@ -53,6 +53,7 @@
 
     <% if @tabs.size > 0 %>
       <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+        <i class="material-icons nim-tab-lock" style="position: absolute;top: 12px;left: 1px;z-index: 10;cursor: pointer"></i>
         <% @tabs.each_with_index {|t, i| %>
           <a id="h_<%= t %>" href="#t_<%= t %>" class="mdl-layout__tab <%= i==0 ? 'is-active' : '' %>" onclick="tabClick($('#t_<%= t %>'))"> <%= nt(t) %> </a>
         <% } %>

@@ -134,9 +134,8 @@ $(window).load(function () {
   if (parent != self && $.isFunction(parent.redimWindow)) parent.redimWindow();
   $("input,select,textarea").filter(":enabled[readonly!='readonly']").first().focus();
 
-  // Si hay pestañas, reutilizar el botón invisible de la izquierda del contenedor
-  // para bloqueo/desbloqueo de pestañas en sucesivas ediciones.
-  botLockTab = $(".mdl-layout__tab-bar").prev().find("i");
+  // Si hay pestañas, activar el botón de bloqueo/desbloqueo de pestañas en sucesivas ediciones.
+  botLockTab = $(".nim-tab-lock");
   if (botLockTab.length == 1 && parent != self) {
     _activeTab = $(".nim-div-tab section").first();
     botLockTab.click(nimLockTabs);
