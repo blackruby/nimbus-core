@@ -1,0 +1,91 @@
+# Lo primero es configurar el servidor SMTP para enviar correo. En modo "development" deberíamos usar uno nuestro (que ya hemos creado) y en modo "production" debería ser el cliente el que lo proporcione (aunque se podría usar el nuestro). Para ello hay que añadir el siguiente código al fichero config/environments/development.rb (o production.rb según el caso):
+
+# Configuración del mailer
+  config.action_mailer.delivery_method = :smtp
+  # La siguiente línea es por si se quieren procesar los posibles errores al enviar correos (deliver)
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.smtp_settings = {
+    address:              'smtp.serviciodecorreo.es',
+    port:                 587,
+    domain:               'twinnimbus.com',
+    user_name:            'correo@twinnimbus.com',
+    password:             'AmpfxG252s90',
+    authentication:       'plain',
+    enable_starttls_auto: true
+  }
+  config.action_mailer.default_options = {from: '"Nimbus" <correo@twinnimbus.com>'}
+
+# Fichero controlador de mailer (app/controllers/factura_mailer.rb)
+
+class FacturaMailer < ActionMailer::Base
+  def envia(fac, file)
+    @fac = fac
+    attachments["Factura-#{fac.numero}.pdf"] = File.read(file)
+    FileUtils.rm_f(file)
+    # La siguiente línea es opcional. Si no se pone, se usarán los valores de la configuración vista anteriormente. Admite las mismas claves.
+    delivery_options = {address: xxx, port: xxx, domain: xxx, user_name: xxx, password: xxx, ...}
+
+    mail(to: fac.cliente.email, subject: "Factura #{fac.numero}"')
+  end
+end
+
+# Fichero vista de mailer (app/views/factura_mailer/envia.html.erb)
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <h3>Estimado <%= @fac.cliente.nombre %></h3>
+    <p>
+      Ajuntamos la factura <%= @fac.numero %> de fecha <%= fac.fecha %>
+    </p>
+    <p>Atentamente...</p>
+  </body>
+</html>
+
+# Fichero controlador para límites y envío (app/controllers/efactura_controller.rb)
+
+class EfacturaMod
+  @campos = {
+  }
+end
+
+class EfacturaMod
+  include MantMod
+end
+
+class EfacturaController < ApplicationController
+  def after_save
+    label = 'Obteniendo datos'
+    exe_p2p(label: label, width: 400, pbar: :fix, cancel: true, info: 'e-mail facturas', tag: :efac, fin: {label: 'Hecho', met: :final}) {
+=begin
+      query_facturas = Factura.where()
+      nf = query_facturas.length
+      query_facturas.each.with_index(1) {|fac, i|
+        if fac.cliente.email.present?
+          p2p label: label << "<br>Factura #{fac.numero}", pbar: 100*i/nf
+          fic = GI.run modulo: 'radio', formato: 'l_facturas', lim: {eid: @dat[:eid], L1_d: fac.numero, L1_h: fac.numero}
+          begin
+            FacturaMailer.envia(fac, fic).deliver_now
+          rescue StandardError => e
+            # El error está en e.message
+          end
+        }
+      }
+      p2p label: label << '<br><br>Proceso finalizado', pbar: 100
+=end
+      sleep 4
+      (1..60).each {|i|
+        p2p label: label << "<br>Factura #{i}", pbar: 100*i/60
+        sleep 1
+      }
+      p2p label: label << '<br><br>Proceso finalizado', pbar: 100
+    }
+  end
+
+  def final
+    @ajax << 'window.close();'
+  end
+end
