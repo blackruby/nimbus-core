@@ -34,11 +34,11 @@ class ApplicationController < ActionController::Base
     @nimbus_views
   end
 
-  def call_nimbus_hook(fun)
+  def call_nimbus_hook(fun, *ar)
     fun = fun.to_sym
-    method(fun).call if self.respond_to?(fun)
+    method(fun).call(*ar) if self.respond_to?(fun)
     if self.class.nimbus_hooks and self.class.nimbus_hooks[fun]
-      self.class.nimbus_hooks[fun].each {|f| method(f).call}
+      self.class.nimbus_hooks[fun].each {|f| method(f).call(*ar)}
     end
   end
 
