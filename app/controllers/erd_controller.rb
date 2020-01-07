@@ -14,7 +14,7 @@ end
 
 class ErdController < ApplicationController
   def before_edit
-    @usu.codigo == 'admin'
+    @usu.admin
   end
 
   def entity(mod, niv_max, niv)
