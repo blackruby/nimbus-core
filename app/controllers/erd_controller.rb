@@ -14,7 +14,11 @@ end
 
 class ErdController < ApplicationController
   def before_edit
-    @usu.admin
+    if Nimbus::Config[:erd] == :off
+      render file: '/public/404.html', status: 404, layout: false
+    else
+      @usu.codigo == 'admin' || Nimbus::Config[:erd] == :admin && @usu.admin
+    end
   end
 
   def entity(mod, niv_max, niv)

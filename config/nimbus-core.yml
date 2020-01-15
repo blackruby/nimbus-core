@@ -84,3 +84,10 @@
 #  }
 #  config.action_mailer.default_options = {from: 'usuario@gmail.com'}
 :email_password: true
+
+# Control del acceso a ERD
+# Posibles valores:
+# :admin Tienen acceso todos los usuarios admin.
+# :off Nadie tiene acceso (ni el usuario "admin").
+# En cualquier otro caso o si la clave no existe sólo el usuario "admin" tendrá acceso.
+:erd: :admin
