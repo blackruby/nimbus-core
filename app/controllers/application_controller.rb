@@ -2964,6 +2964,11 @@ class ApplicationController < ActionController::Base
       sincro_ficha :ajax => true
     end
 
+    # Damos el foco al campo que ya lo tenía. Esto es para provocar el evento "focus" (como si
+    # entráramos de nuevo a dicho campo) para que se inicialicen los datos oportunos en el caso
+    # de que algún "on" haya modificado el valor del campo con el foco
+    @ajax << '$(":focus").focus();'
+
     @ajax << 'hayCambios=' + @fact.changed?.to_s + ';' if clm.mant?
 
     if cs[:type] == :upload
