@@ -66,10 +66,10 @@ class ApplicationController < ActionController::Base
         rescue JWT::ExpiredSignature
           render json: {st: 'El token ha expirado'}
         rescue
-          render json: ''
+          render json: {st: 'Token inválido'}
         end
       else
-        render json: ''
+        render json: {st: 'No hay token'}
       end
       return
     elsif sesion_invalida
@@ -1989,7 +1989,7 @@ class ApplicationController < ActionController::Base
     case cp[:type]
     when :boolean
       val = false unless val
-      res = "mdlCheck('#{cmp_s}',#{val.to_s});"
+      res = "mdlCheck('#{cmp_s}',#{val});"
     when :div
       if cp[:grid_sel]
         res = "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
