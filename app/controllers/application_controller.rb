@@ -2418,6 +2418,7 @@ class ApplicationController < ActionController::Base
     opts[:del] = true if opts[:del].nil?
 
     opts[:add_prop] ||= []
+    opts[:grid] ||= {}
 
     opts[:cols].each {|c|
       if c[:name].to_s.ends_with?('_id')
@@ -2732,9 +2733,17 @@ class ApplicationController < ActionController::Base
   end
 =end
   def grid_local_select
-    campo = params[:cmp]
-    sel = (params[:sel] == 'true')
-    gs = @fact.campos[campo.to_sym][:grid_sel]
+    begin
+      campo = params[:cmp]
+      sel = (params[:sel] == 'true')
+      gs = @fact.campos[campo.to_sym][:grid_sel]
+    rescue
+      logger.fatal '######## ERROR #############'
+      logger.fatal 'grid_local_select: No existe el campo o no tiene asociados datos :grid_sel'
+      logger.fatal "Usuario: #{@usu.codigo}" if @usu
+      logger.fatal "Parámetros: #{params}"
+      return
+    end
 
     if !gs[:gm] && gs[:sgm].nil?
       # No hay subgrid y la selección es single
@@ -2887,8 +2896,17 @@ class ApplicationController < ActionController::Base
 
     ini_ajax
 
-    campo = params[:campo]
+    campo = params[:campo] || ''
     cs = @fact.campos[campo.to_sym]
+    if cs.nil?
+      logger.fatal '######## ERROR #############'
+      logger.fatal 'Validar: No existe el campo'
+      logger.fatal "Usuario: #{@usu.codigo}" if @usu
+      logger.fatal "Parámetros: #{params}"
+      head :no_content
+      return
+    end
+
     valor = params[:valor]
 
     # Control por si han intentado hackear un campo 'ro' forzando su habilitación desde la consola web
