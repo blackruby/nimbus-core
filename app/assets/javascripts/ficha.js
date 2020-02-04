@@ -65,6 +65,44 @@ function nimLockTabs(def) {
   }
 }
 
+function creaDialogos(dial) {
+  for (var d of dial) {
+    var del = $("#" + d.id);
+    var prop = {
+      autoOpen: false,
+      resizable: false,
+      modal: true,
+      width: d.width ? d.width : '100%',
+      height: d.height ? d.height : 'auto',
+      title: d.titulo
+    };
+    if (d.position) prop.position = d.position;
+    del.dialog(prop);
+
+    if (d.botones) {
+      htm = '';
+      for (var b of d.botones) {
+        htm += '<button class="nim-dialog-button mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">';
+        if (b.icon) htm += '<i class="material-icons">' + b.icon + '</i>'  + (b.label ? '&nbsp;' : '');
+        if (b.label) htm += b.label;
+        htm += '</button>';
+      }
+      del.parent().append('<div class="nim-dialog-div-buttons"><center>' + htm + '</center></div');
+
+      var i = 0;
+      del.parent().last().find(".nim-dialog-button").each(function() {
+        var b = d.botones[i++]; 
+        $(this).click(function() {
+          if (b.busy) ponBusy();
+          del.find(".ui-jqgrid-btable").jqGrid('editCell', 0, 0, false);
+          if (b.accion) nimAjax(b.accion, {}, {complete: function() {if (b.busy) quitaBusy();}});
+          if (b.close == undefined || b.close) del.dialog("close");
+        });
+      });
+    }
+  }
+}
+
 window.onbeforeunload = function(e) {
   if (CambiosPendientesDeGrabar()) {
     parent.fichaLoading = false;
