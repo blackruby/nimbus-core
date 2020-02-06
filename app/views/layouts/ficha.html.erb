@@ -3,7 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= @titulo.nil? ? 'Nimbus' : @titulo %></title>
-  <%= stylesheet_link_tag    "application", *@assets_stylesheets, media: "all", "data-turbolinks-track" => true %>
+  <%= stylesheet_link_tag    "application", 'ficha', *@assets_stylesheets, media: "all", "data-turbolinks-track" => true %>
   <%= javascript_include_tag "application", 'ficha', *@assets_javascripts, "data-turbolinks-track" => true %>
   <%= csrf_meta_tags %>
 </head>
@@ -129,12 +129,6 @@
 
 </body>
 
-<style>
-  body {margin-top: 0px;}
-  .mdl-grid {padding: 0;}
-  .mdl-layout__content::-webkit-scrollbar {display: none;}
-</style>
-
 <script>
   <% if @es_un_mant %>
     _pkCmps = "<%= @fact.class.superclass.pk.map{|k| '#' + k}.join(',')%>";
@@ -152,6 +146,7 @@
     <% } %>
   }
 
+/*
   <% @dialogos.each {|d| %>
   $("#<%= d[:id] %>" ).dialog({
     autoOpen: false,
@@ -177,6 +172,8 @@
     }
   });
   <% } %>
+  */
+  creaDialogos(<%= @dialogos.to_json.html_safe %>);
 
   <%= gen_js %>
   <%= (@ajax + @ajax_post).html_safe %>

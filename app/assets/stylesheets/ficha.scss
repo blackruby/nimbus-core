@@ -1,0 +1,26 @@
+@import 'nimbus_theme';
+
+body {margin-top: 0px;}
+
+.mdl-grid {padding: 0;}
+.mdl-layout__content::-webkit-scrollbar {display: none;}
+
+.nim-dialog-div-buttons {
+  border-top: 1px solid gray;
+}
+
+.nim-dialog-button {
+  margin: 12px 5px;
+}
+
+.nim-bg-blink {
+	background: linear-gradient(-90deg, $color-1-2, $color-1-3);
+	background-size: 400% 400%;
+	animation: gradient 1.5s ease infinite;
+}
+
+@keyframes gradient {
+	0% {background-position: 0% 50%;}
+	50% {background-position: 100% 50%;}
+	100% {background-position: 0% 50%;}
+}

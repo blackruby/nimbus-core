@@ -569,6 +569,28 @@ function nimPopup(texto, pos) {
 
 // Funciones para el mant
 
+// Función que sustituye al ajax de jQuery
+// Su objetivo es sincronizar todas la llamadas ajax en Nimbus
+// Y que todas sean secuenciales (que no empiece una hasta que
+// la otra haya acabado).
+// Para ello se usa una promesa (Promise) que va encadenando
+// la ejecución de las distintas llamadas a _nimAjax
+nimPromise = null;
+
+function _nimAjax(obj) {
+  var nimPromiseOld = nimPromise;
+  var cmpl = obj.complete;
+  nimPromise = new Promise(async function(res) {
+    await nimPromiseOld;
+    $.ajax($.extend(true, obj, {
+      complete: function(xhr, str) {
+        if (typeof cmpl == "function") {cmpl(xhr, str);}
+        res();
+      }
+    }));
+  });
+}
+
 // Función para invocar a una función del servidor (tipo proc_FonC)
 function callFonServer(fon_s, data, fon_ret, sync) {
   if (checkNimServerStop()) return;
@@ -576,18 +598,18 @@ function callFonServer(fon_s, data, fon_ret, sync) {
   var params = {fon: fon_s};
   if (typeof(_vista) != "undefined") params.vista = _vista;
 
-  $.ajax({
+  //$.ajax({
+  _nimAjax({
     url: '/' + _controlador + '/fon_server',
     type: "POST",
     async: !sync,
-    //data: $.extend(true, {vista: _vista, fon: fon_s}, data),
     data: $.extend(true, params, data),
     success: fon_ret
   })
 }
 
 // Función más completa para invocar un método del server
-// Una forma de simular sincronía sería:
+// Una forma de mostrar feedback al usuario de que se está procesando sería:
 // poBusy(); nimAjax('metodo', {}, {timeout: 5000, success: function(){// Mi código}, complete: quitaBusy});
 function nimAjax(fon_s, data, ajax) {
   if (checkNimServerStop()) return;
@@ -595,7 +617,8 @@ function nimAjax(fon_s, data, ajax) {
   var params = {fon: fon_s};
   if (typeof(_vista) != "undefined") params.vista = _vista;
 
-  $.ajax($.extend(
+  //$.ajax($.extend(
+  _nimAjax($.extend(
     {
       url: '/' + _controlador + '/fon_server',
       type: "POST",
@@ -607,24 +630,17 @@ function nimAjax(fon_s, data, ajax) {
 function send_validar(c, v, data) {
   if (nimGrabacionEnCurso || checkNimServerStop()) return;
 
-  $("body").append("<div class='nim-body-modal nim-busy' style='background-color: white;opacity: 0'></div>");
-  nimValidarEnCurso = true;
-  setTimeout(function() {
-    if (nimValidarEnCurso) {
-      $(".nim-body-modal").css("background-color", "#d3d3d3").css("opacity", "0.5");
-      $("body").append("<div class='mdl-spinner mdl-js-spinner nim-busy is-active' style='z-index:100001; position: absolute; left: 50%; top: 50%;'></div>'");
-      componentHandler.upgradeDom();
-    }
-  }, 2000);
+  var nimValidarEnCurso = true;
+  setTimeout(function() {if (nimValidarEnCurso) c.addClass("nim-bg-blink");}, 1000);
 
-  $.ajax({
+  _nimAjax({
     url: '/' + _controlador + '/validar',
     type: "POST",
     timeout: 20000,
     data: $.extend(true, {vista: _vista, valor: v, campo: c.attr("id")}, data),
     complete: function() {
       nimValidarEnCurso = false;
-      quitaBusy();
+      c.removeClass("nim-bg-blink");
     },
     error: function(xhr, err) {
       if (err == "timeout")
@@ -742,11 +758,11 @@ function mant_grabar(nueva) {
   if (nueva) res = $.extend(true, {_new: true}, res);
 
   $("body", context).append('<div class="nim-body-modal"></div>');
-  $.ajax({
+  _nimAjax({
     url: '/' + _controlador + '/grabar',
     type: "POST",
     data: $.extend(true, {vista: _vista}, res),
-    success: function() {
+    complete: function() {
       $(".nim-body-modal", context).remove();
       nimGrabacionEnCurso = false;
     }
@@ -774,7 +790,7 @@ function mant_borrar() {
 function mant_borrar_ok() {
   if (nimGrabacionEnCurso || checkNimServerStop()) return;
 
-  $.ajax({
+  _nimAjax({
     url: '/' + _controlador + '/borrar',
     type: "POST",
     data: {vista: _vista}
@@ -784,19 +800,6 @@ function mant_borrar_ok() {
   head = $(".cl-borrar").length == 0 ? '0' : '1';
   window.location.replace('/' + _controlador + '/0/edit?head=' + head);
   */
-}
-
-function mant_cancelar() {
-  $.ajax({
-    url: '/' + _controlador + '/cancelar',
-    type: "POST",
-    data: {vista: _vista}
-  });
-}
-
-function mant_cerrar() {
-  window.open('', '_parent', '');
-  window.close();
 }
 
 function bus(a) {
@@ -1157,7 +1160,7 @@ function creaGridLocal(opts, data) {
     case 'ed':
       grid_a = {
         cellEdit: !nimRO,
-        afterSaveCell: function(row, col, val) {
+        afterSaveCell: function(row, col, val, rowid, colid) {
           if (col.match('_id$')) {
             if (g.attr("last_autocomp_id") == "") {
               g.jqGrid("setCell", row, col, "", "", "", true);
@@ -1165,7 +1168,17 @@ function creaGridLocal(opts, data) {
             val = g.attr("last_autocomp_id");
             g.jqGrid("getLocalRow", row)['_'+col] = val;
           }
-          callFonServer("validar_local_cell", {cmp: cmp, row: row, col: col, val: val}, null, true);
+          var nimValidarEnCurso = true;
+          var celda = $(this).find(`tr:eq(${rowid})`).find(`td:eq(${colid})`);
+          setTimeout(function() {if (nimValidarEnCurso) celda.addClass("nim-bg-blink");}, 1000);
+          //callFonServer("validar_local_cell", {cmp: cmp, row: row, col: col, val: val}, null);
+          nimAjax(
+            "validar_local_cell",
+            {cmp: cmp, row: row, col: col, val: val},
+            {complete: function() {
+              nimValidarEnCurso = false;
+              celda.removeClass("nim-bg-blink");
+            }});
         },
         onSelectCell: function(r, c, v, ir, ic){
           if (opts.sel && (opts.sel == 'row' && g.attr("last_selected_row") != r || opts.sel == 'cel'))
