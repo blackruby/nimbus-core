@@ -66,8 +66,8 @@ function nimLockTabs(def) {
 }
 
 function creaDialogos(dial) {
-  for (var d of dial) {
-    var del = $("#" + d.id);
+  for (let d of dial) {
+    let del = $("#" + d.id);
     var prop = {
       autoOpen: false,
       resizable: false,
@@ -81,7 +81,7 @@ function creaDialogos(dial) {
 
     if (d.botones) {
       htm = '';
-      for (var b of d.botones) {
+      for (let b of d.botones) {
         htm += '<button class="nim-dialog-button mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">';
         if (b.icon) htm += '<i class="material-icons">' + b.icon + '</i>'  + (b.label ? '&nbsp;' : '');
         if (b.label) htm += b.label;
