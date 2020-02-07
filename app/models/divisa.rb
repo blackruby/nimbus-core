@@ -37,16 +37,6 @@ class Divisa < ActiveRecord::Base
       return cambio_destino.present? ? (1 / cambio_destino.cambio) : 1
     end
   end
-
-  # Retorna la divisa predeterminada del ejercicio, sino del pais, en última instancia buscará por euro y si no la primera que encuentre.
-  def self.obtener_divisa_predeterminada(ejercicio_id)
-    divisa = Ejercicio.find(ejercicio_id).divisa # divisa del ejercicio de la empresa
-    divisa = @e.pais.divisa unless divisa # divisa del pais de la empresa
-    divisa = Divisa.find_by(descripcion: 'EURO') unless divisa # divisa en euros
-    divisa = Divisa.first unless divisa # primera divisa de la tabla divisa
-    return divisa
-  end
-
 end
 
 class Divisa
