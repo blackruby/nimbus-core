@@ -1790,14 +1790,26 @@ class ApplicationController < ActionController::Base
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'set_auto_comp_filter(cmp, wh)'}
-  # Asocia el filtro where <i>wh</i> al campo <i>cmp</i>. Obviamente, el campo tiene que ser de tipo _id
+  # Asocia el filtro where <i>wh</i> al campo <i>cmp</i>. El campo tiene que ser de tipo _id
+  # <i>wh</i> Puede ser:
+  # <ul>
+  # <li>String: En este caso contendrá la cadena del where</li>
+  # <li><pre>Symbol: En este caso se puede referir a otro campo del mantenimiento, en cuyo caso
+  #     se compondrá autómaticamente un where de la forma 'campo = valor_de_ese_campo',
+  #     o a un método de clase del controlador. En ese caso el método será llamado en
+  #     cada ocasión que haya que filtrar, recibirá como argumentos @fact y el hash params,
+  #     y tiene que devolver una cadena con el where (filtro) a aplicar.</pre></li>
+  # </ul>
   ##
 
   def set_auto_comp_filter(cmp, wh)
-    if wh.is_a? Symbol  # En este caso wh es otro campo de @fact
-      #v = @fact.method(wh).call
-      v = @fact[wh]
-      wh = wh.to_s + ' = \'' + (v ? v.to_s : '0') + '\''
+    if wh.is_a? Symbol  # En este caso wh es un método de clase del controlador u otro campo de @fact
+      if self.class.respond_to?(wh) # Es un método de clase del controlador
+        wh = [self.class.to_s, wh]
+      else # Es otro campo
+        v = @fact[wh]
+        wh = wh.to_s + ' = \'' + (v ? v.to_s : '0') + '\''
+      end
     end
     #@ajax << 'set_auto_comp_filter($("#' + cmp.to_s + '"),"' + wh + '");'
     @dat[:auto_comp] ? @dat[:auto_comp][cmp.to_sym] = wh : @dat[:auto_comp] = {cmp.to_sym => wh}
@@ -1817,11 +1829,16 @@ class ApplicationController < ActionController::Base
 
     mod = par[:mod].constantize
 
+    whv = nil
     if @dat
       ac = @dat[:auto_comp]
-      whv = ac ? ac[par[:cmp].to_sym] : nil
-    else
-      whv = nil
+      #whv = ac ? ac[par[:cmp].to_sym] : nil
+      if ac
+        whv = ac[par[:cmp].to_sym]
+        if whv.is_a? Array
+          whv = (whv[0].constantize).send(whv[1], @dat[:fact], params)
+        end
+      end
     end
 
     if par[:type]
