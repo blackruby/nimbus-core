@@ -17,7 +17,10 @@ function editInLine() {
     alert("Seleccione un registro");
 }
 
-function searchBar() {vgrid[0].toggleToolbar();}
+function searchBar() {
+  vgrid[0].toggleToolbar();
+  redimWindow();
+}
 
 function fichaLoaded() {
   fichaLoading = false;
@@ -45,6 +48,7 @@ function editInForm(id) {
   if (id != null) {
     fichaLoading = true;
     $("#ficha").attr('src', varView.url_base + id + '/edit' + varView.arg_edit + hijos);
+    if (varView.grid.gcols[0] == 0) id == 0 ? gridShow() : gridHide();
   } else
     alert("Seleccione un registro");
 }
@@ -54,6 +58,7 @@ function newFicha(lastId) {
 
   if ($("button.cl-crear").attr('disabled') == 'disabled') return;
   $("#ficha").attr('src', varView.url_new + (lastId ? '&last_id=' + lastId : ''));
+  if (varView.grid.gcols[0] == 0) gridHide();
 }
 
 /*
@@ -102,8 +107,12 @@ function gridCollapse() {
   if (displayGrid) {
     $("#cell-grid").css('display', 'none');
     $(".only-grid").attr("disabled", true);
-    classFicha = $("#cell-ficha").attr('class');
-    $("#cell-ficha").attr('class', 'mdl-cell mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-cell--12-col');
+    if (varView.grid.gcols[0] == 0) {
+      $("#cell-ficha").css("display", "block");
+    } else {
+      classFicha = $("#cell-ficha").attr('class');
+      $("#cell-ficha").attr('class', 'mdl-cell mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-cell--12-col');
+    }
     displayGrid = false;
   } else {
     $("#cell-grid").css('display', 'block');
@@ -127,9 +136,9 @@ function redimWindow() {
   if (displayGrid) {
     grid.setGridWidth($("#gbox_grid").parent().width()-2, grid.jqGrid('getGridParam', 'shrinkToFit'));
     var tg = $("#cell-grid").offset().top;
-    if (tg == tf) {
-      var h = $(window).height() - tf - 60;
-      $("#ficha").css("height", h);
+    if (tg == tf || varView.grid.gcols[0] == 0) {
+      var h = $(window).height() - tg - $(".ui-jqgrid-hbox").height() - 10; 
+      if (varView.grid.gcols[0] != 0) $("#ficha").css("height", h);
       grid.setGridHeight(h);
       $("#gbox_grid").css("height", 'auto');
     } else {
@@ -139,7 +148,6 @@ function redimWindow() {
       if (hg < 40 || hg > h) hgn = grid.jqGrid('getGridParam', 'height_def');
       if (hgn > h) hgn = h;
 
-      //if ($("#cell-grid").height() > h) {
       if (hgn != hg) {
         grid.setGridHeight(hgn);
         $("#gbox_grid").css("height", 'auto');
@@ -152,14 +160,17 @@ function redimWindow() {
 }
 
 function mantGrabarGrid() {
+  if (varView.grid.gcols[0] == 0) gridHide();
   $("#ficha")[0].contentWindow.mant_grabar();
 }
 
 function mantBorrarGrid() {
+  if (varView.grid.gcols[0] == 0) gridHide();
   $("#ficha")[0].contentWindow.mant_borrar();
 }
 
 function ospGrid() {
+  if (varView.grid.gcols[0] == 0) gridHide();
   $("#ficha")[0].contentWindow.callFonServer('osp');
 }
 
@@ -268,8 +279,8 @@ $(window).load(function () {
     minLength: 1,
     autoFocus: true,
     select: function (e, ui) {
-      //$("#ficha").attr('src', '<%= @view[:url_base] %>' + ui.item.id + '/edit' + '<%= @view[:arg_edit] %>');
-      $("#ficha").attr('src', varView.url_base + ui.item.id + '/edit' + varView.arg_edit);
+      //$("#ficha").attr('src', varView.url_base + ui.item.id + '/edit' + varView.arg_edit);
+      editInForm(ui.item.id);
       pkBlur();
     }
     //change: function(e, ui){vali_auto_comp(ui, $(this));},
@@ -310,7 +321,11 @@ $(window).load(function () {
 
   eid = varView.eid;
   jid = varView.jid;
-  if (varView.grid.visible) redimWindow(); else gridCollapse();
+  //if (varView.grid.visible) redimWindow(); else gridCollapse();
+  if (varView.grid.visible) {
+    redimWindow();
+    if (varView.grid.gcols[0] == 0) $("#cell-ficha").css("display", "none");
+  } else gridCollapse();
 
   // Acuñar la pestaña por defecto del hijo
   var url = new URL(window.location.href);

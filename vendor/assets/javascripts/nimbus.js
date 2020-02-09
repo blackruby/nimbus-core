@@ -800,6 +800,7 @@ function mant_borrar_ok() {
   head = $(".cl-borrar").length == 0 ? '0' : '1';
   window.location.replace('/' + _controlador + '/0/edit?head=' + head);
   */
+  if (parent != self && $.isFunction(parent.gridShow) && parent.varView.grid.gcols[0] == 0) parent.gridShow();
 }
 
 function bus(a) {

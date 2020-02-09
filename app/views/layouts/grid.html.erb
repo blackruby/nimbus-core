@@ -110,14 +110,19 @@
          gr = '<div id="cell-grid" class="mdl-cell'
          fi = '<div id="cell-ficha" class="mdl-cell'
          c = @view[:grid][:gcols][0]
-         gr << ' mdl-cell--' + c.to_s + '-col'
-         fi << ' mdl-cell--' + (c >= 12 ? 12 : 12-c).to_s + '-col'
-         c = @view[:grid][:gcols][1]
-         gr << ' mdl-cell--' + c.to_s + '-col-tablet'
-         fi << ' mdl-cell--' + (c >= 8 ? 8 : 8-c).to_s + '-col-tablet'
-         c = @view[:grid][:gcols][2]
-         gr << ' mdl-cell--' + c.to_s + '-col-phone'
-         fi << ' mdl-cell--' + (c >= 4 ? 4 : 4-c).to_s + '-col-phone'
+         if c == 0
+           gr << 'mdl-cell mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-cell--12-col'
+           fi << 'mdl-cell mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-cell--12-col'
+         else
+           gr << ' mdl-cell--' + c.to_s + '-col'
+           fi << ' mdl-cell--' + (c >= 12 ? 12 : 12-c).to_s + '-col'
+           c = @view[:grid][:gcols][1]
+           gr << ' mdl-cell--' + c.to_s + '-col-tablet'
+           fi << ' mdl-cell--' + (c >= 8 ? 8 : 8-c).to_s + '-col-tablet'
+           c = @view[:grid][:gcols][2]
+           gr << ' mdl-cell--' + c.to_s + '-col-phone'
+           fi << ' mdl-cell--' + (c >= 4 ? 4 : 4-c).to_s + '-col-phone'
+         end
          gr << '"><table id="grid"></table></div>'
          fi << '"><iframe id="ficha" class="ficha" onLoad="fichaLoaded()"> </iframe></div>'
 
