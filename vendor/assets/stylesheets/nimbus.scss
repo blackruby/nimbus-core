@@ -268,6 +268,13 @@ body {
   border-color: transparent $color-nim-label transparent transparent;
 }
 
+.nim-hr-vertical-left {
+  border-style: solid;
+  border-width: 1px;
+  border-color: transparent transparent transparent $color-nim-label;
+  padding: 0 0 0 5px;
+}
+
 .nim-body-modal {
   position: fixed;
   top: 0px;
