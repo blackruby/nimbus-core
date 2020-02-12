@@ -2,7 +2,7 @@ unless Nimbus::Config[:excluir_divisas]
 
 class Divisa < ActiveRecord::Base
   @propiedades = {
-    codigo: {pk: true, manti: 3, may: true},
+    codigo: {pk: true, manti: 3, may: true, req: true},
     descripcion: {},
     decimales: {manti: 1},
   }

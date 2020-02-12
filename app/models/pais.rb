@@ -2,7 +2,7 @@ unless Nimbus::Config[:excluir_paises]
 
 class Pais < ActiveRecord::Base
   @propiedades = {
-    codigo: {manti: 2, pk: true},
+    codigo: {manti: 2, pk: true, may: true, req: true},
     nombre: {manti: 30},
     tipo: {manti: 8, sel: {N: 'nacional', C: 'cee', R: 'resto'}},
     codigo_iso3: {manti: 3},

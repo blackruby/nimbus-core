@@ -10,7 +10,7 @@ class EmpresasMod < Empresa
     cod_postal: {tab: 'pre', label: 'c_postal', map: :direccion, span: true, inline: true, pw: 20},
     poblacion: {tab: 'pre', map: :direccion, span: true, inline: true, pw: 80, ml: 5},
     provincia: {tab: 'pre', map: :direccion, span: true},
-    pais_id: {tab: 'pre', span: true},
+    pais_id: {tab: 'pre', span: true, req: true},
     telefono: {tab: 'pre', gcols: 3, grid: {}},
     fax: {tab: 'pre', span: true},
     email: {tab: 'pre', rol: :email, span: true},
@@ -38,6 +38,7 @@ class EmpresasMod < Empresa
     }
     self.estilo = :nil unless self.estilo
     self.color = '#000000' if self.color.to_s.empty?
+    self.pais_id = Pais.where(codigo: 'ES').pluck(:id)[0] if self.id.nil?
   end
 
   def graba_param

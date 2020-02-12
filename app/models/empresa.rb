@@ -2,7 +2,7 @@ unless Nimbus::Config[:excluir_empresas]
 
 class Empresa < ActiveRecord::Base
   @propiedades = {
-    codigo: {pk: true, manti: 5},
+    codigo: {pk: true, manti: 5, req: true},
     nombre: {manti: 60},
     nombre_comercial: {manti: 60},
     cif: {manti: 10},
