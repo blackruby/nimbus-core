@@ -235,7 +235,10 @@ $(window).load(function () {
     shrinkToFit: varView.grid.shrinkToFit,
     multiSort: varView.grid.multiSort,
     scroll: varView.grid.scroll,
-    beforeRequest: function() {return !checkNimServerStop()}
+    beforeRequest: function() {return !checkNimServerStop()},
+
+    search: !$.isEmptyObject(varView.grid.reglas),
+    postData: $.isEmptyObject(varView.grid.reglas) ? {} : {filters: JSON.stringify(varView.grid.reglas)}
   });
 
   grid.jqGrid('gridResize', {handles: "s", minHeight: 80});
