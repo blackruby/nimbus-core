@@ -67,7 +67,7 @@ unless Nimbus::Config[:excluir_divisas]
     ['VES', 'Bolívar soberano', 2],
   ]
   divisas.each {|d|
-    Divisa.create(codigo: d[0], descripcion: d[1], decimales: d[2]) rescue nil
+    Divisa.create(codigo: d[0], descripcion: d[1], decimales: d[2], user_id: 1) rescue nil
   }
 end
 
@@ -337,10 +337,10 @@ unless Nimbus::Config[:excluir_paises]
       fp = Pais.new unless fp
 
       fp.codigo = cod
-      fp.nombre = p[0] if fp.nombre.nil? || fp.nombre.empty?
+      fp.nombre ||= p[0]
       fp.codigo_iso3 = p[2]
       fp.codigo_num = p[3]
-      fp.divisa_id = Divisa.where(codigo: p[4]).pluck(:id)[0] if p[4]
+      fp.divisa_id ||= Divisa.where(codigo: p[4]).pluck(:id)[0] if p[4]
       if cod == 'ES'
         fp.tipo = 'N'
       elsif paises_cee.include?(cod)
