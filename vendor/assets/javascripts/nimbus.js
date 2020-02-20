@@ -1114,9 +1114,30 @@ function delDataGridLocal(cmp, id) {
 
 function setDataGridLocal(cmp, data) {
   var c;
+  var edit = false;
   var g = $("#g_" + cmp);
+
+  // Comprobamos si hay alguna celda en edición (lo sabemos porque existe un elemento input)
+  // En ese caso hay que sacarla de edición por si se le asigna un nuevo valor.
+  // Cambiar el valor de una celda en edición no le sienta nada bien a jqGrid.
+  var inp = g.find("input");
+
+  if (inp.length > 0) {
+    // Calculamos la fila y columna de la celda editada y la sacamos de edición
+    var fil = parseInt(inp.attr("id"));
+    var col = inp.parent().index();
+    $("#g_pxa").jqGrid('editCell', fil, col, false);
+    edit = true;
+  }
+
+  // Bucle de asignación de valores a las celdas
   for (var i = 0; c=data[i]; i++)
     g.jqGrid("setCell", c[0], c[1], c[2]);
+
+  if (edit) {
+    // Volvemos a editar la celda que estaba en edición
+    $("#g_pxa").jqGrid('editCell', fil, col, true);
+  }
 }
 
 function setSelectionGridLocal(cmp, data) {
