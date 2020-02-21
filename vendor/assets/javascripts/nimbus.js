@@ -1126,7 +1126,7 @@ function setDataGridLocal(cmp, data) {
     // Calculamos la fila y columna de la celda editada y la sacamos de edición
     var fil = parseInt(inp.attr("id"));
     var col = inp.parent().index();
-    $("#g_pxa").jqGrid('editCell', fil, col, false);
+    g.jqGrid('editCell', fil, col, false);
     edit = true;
   }
 
@@ -1136,7 +1136,7 @@ function setDataGridLocal(cmp, data) {
 
   if (edit) {
     // Volvemos a editar la celda que estaba en edición
-    $("#g_pxa").jqGrid('editCell', fil, col, true);
+    g.jqGrid('editCell', fil, col, true);
   }
 }
 
