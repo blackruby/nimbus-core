@@ -1120,7 +1120,7 @@ function setDataGridLocal(cmp, data) {
   // Comprobamos si hay alguna celda en edición (lo sabemos porque existe un elemento input)
   // En ese caso hay que sacarla de edición por si se le asigna un nuevo valor.
   // Cambiar el valor de una celda en edición no le sienta nada bien a jqGrid.
-  var inp = g.find("input");
+  var inp = g.find("input, select");
 
   if (inp.length > 0) {
     // Calculamos la fila y columna de la celda editada y la sacamos de edición
