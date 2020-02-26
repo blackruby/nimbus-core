@@ -36,6 +36,11 @@ class Ejercicio < ActiveRecord::Base
         self.codigo.to_s + ' ' + self.descripcion
     end
   end
+
+  def contiene_fecha?(fecha)
+    fecha > self.fec_inicio && fecha < self.fec_fin ? true : false
+  end
+
 end
 
 class Ejercicio
