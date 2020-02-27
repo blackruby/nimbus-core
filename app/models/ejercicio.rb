@@ -38,7 +38,7 @@ class Ejercicio < ActiveRecord::Base
   end
 
   def contiene_fecha?(fecha)
-    fecha > self.fec_inicio && fecha < self.fec_fin ? true : false
+    fecha.between? fec_inicio, fec_fin
   end
 
 end
