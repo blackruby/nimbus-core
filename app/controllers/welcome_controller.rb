@@ -188,7 +188,7 @@ class WelcomeController < ApplicationController
   end
 
   def logout
-    @ahora = Time.now
+    @ahora = Nimbus.now
 
     session[:uid] = nil
 
