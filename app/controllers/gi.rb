@@ -781,7 +781,7 @@ class GI
     xls = Axlsx::Package.new
     @wb = xls.workbook
 
-    after_create_worbook if self.respond_to?(:after_create_worbook)
+    after_create_workbook if self.respond_to?(:after_create_workbook)
 
     @sh = nueva_hoja name: 'Uno'
 
