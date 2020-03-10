@@ -163,38 +163,57 @@ class ApplicationController < ActionController::Base
 
   # Funciones para interactuar con el cliente
 
-  ##nim-doc {sec: 'Métodos de usuario', met: 'mensaje(arg)'}
-  # Saca una ventana flotante modal mostrando un mensaje
+  ##nim-doc {sec: 'Métodos de usuario', met: 'mensaje(arg)', mark: :rdoc}
+
+  # Saca una ventana flotante modal mostrando un mensaje.
+  #
+  # <b>Parámetros</b>
+  #
+  # * *arg* (String, Hash) -- Si es un string se usará como texto del mensaje.
+  # 
+  # <b>Opciones Hash (arg):</b>
+  #
+  # * *:msg* (String) -- Texto del mensaje a mostrar.
+  # * *:tit* (String) <em>(Defalut: 'Aviso')</em> -- Título de la ventana del mensaje.
+  # * *:close* (Boolean) <em>(Default: true)</em> -- Indica si se cerrará o no el mensaje al pulsar en alguno de
+  #   sus posibles botones.
+  # * *:js* (String) <em>(Default: nil)</em> -- Contiene código javascript que se ejecutará al cerrar el diálogo.
+  # * *:onload* (Boolean) <em>(Default: false)</em> -- Si es true el mensaje se generará después de cargar la página.
+  #   Esto es útil para mensajes usados en before_envia_ficha.
+  # * *:bot* (Array) <em>(Default: [])</em> -- Cada elemento del array es un hash que define un botón.
+  #   Las posibles opciones del hash son:
+  #   * *:label* (String) <em>(Default: '')</em> -- Es el texto a mostrar en el botón.
+  #   * *:icon* (String) <em>(Default: nil)</em> -- Es el nombre de un icono de
+  #     {material design}[https://material.io/resources/icons].
+  #   * *:close* (Boolean) <em>(Default: hereda la opción _:close_ de _:arg_)</em> -- Indica si se
+  #     cerrarará el diálogo después de ejecutar la acción asociada al botón.
+  #   * *:accion* (Symbol, String) <em>(Default: nil)</em> -- Es el método del controlador que será
+  #     llamado al pulsar el botón.
+  #     Si es una String y comienza por "js:" se interpretará que lo que va a continuación es
+  #     código javascript que se ejecutará al pulsar el botón. En este caso no hay llamada
+  #     al servidor, salvo que el código javascript realice alguna.
+  #   * *:busy* (Boolean) <em>(Default: false)</em> -- Si es true se mostrará una pantalla gris mientras
+  #     dura la acción para prevenir interacciones del usuario.
   ##
 
-  def mensaje(h)
-    h = {msg: h} if h.is_a? String
-    h[:tit] ||= nt('aviso')
-    h[:bot] ||= []
-    h[:close] = true if h[:close].nil?
-    h[:context] ||= 'self' 
-
-=begin
-    @ajax << '$("#dialog-nim-alert").html(' + h[:msg].to_json + ')'
-    @ajax << '.dialog("option", "title", "' + h[:tit] + '")'
-    @ajax << '.dialog("option", "buttons", {'
-    h[:bot].each {|b|
-      b[:close] = h[:close] if b[:close].nil?
-      @ajax << '"' + nt(b[:label]) + '": function(){'
-      @ajax << 'ponBusy();' if b[:busy]
-      @ajax << 'callFonServer("' + b[:accion] + '", {}, quitaBusy);'
-      @ajax << '$("#dialog-nim-alert").dialog("close");' if b[:close]
-      @ajax << '},'
+  def mensaje(arg)
+    arg = arg.is_a?(String) ? {msg: arg} : arg.deep_dup
+    arg[:tit] ||= nt('aviso')
+    arg[:close] = true if arg[:close].nil?
+    arg[:context] ||= 'self' # Solo válido en mensajes sin botones (los botones saldrían sin estilo y las acciones podrían no encontrar el controlador/vista adecuado)
+    arg[:bot] ||= []
+    arg[:bot].each {|b|
+      b[:close] = arg[:close] if b[:close].nil?
+      b[:label] = nt(b[:label])
     }
-    @ajax << '})'
-    @ajax << '.dialog("open");'
-=end
-    @ajax << '$(window).load(function(){' if h[:onload]
-    @ajax << "$('<div></div>', #{h[:context]}).html(#{h[:msg].to_json}).dialog({"
-    @ajax << %Q(resizable: false, modal: true, width: #{h[:width] || '"auto"'},)
-    #@ajax << 'close: function(){$(this).remove();},'
-    @ajax << "close: function(){#{h[:js] ? h[:js] : ''};$(this).remove();},"
-    @ajax << "title: #{h[:tit].to_json},"
+
+    @ajax << '$(window).load(function(){' if arg[:onload]
+    @ajax << "$('<div></div>', #{arg[:context]}).html(#{arg[:msg].to_json}).dialog({"
+    @ajax << "title: #{arg[:tit].to_json},"
+    @ajax << %Q(resizable: false, modal: true, width: #{arg[:width] || '"auto"'},)
+    @ajax << "close: function(){#{arg[:js] ? arg[:js] : ''};$(this).remove();},"
+    @ajax << "create: function(){creaBotonesDialogo(#{arg[:bot].to_json},$(this));}," if arg[:bot].present?
+=begin
     @ajax << 'buttons: {'
     h[:bot].each {|b|
       b[:close] = h[:close] if b[:close].nil?
@@ -207,7 +226,9 @@ class ApplicationController < ActionController::Base
       @ajax << '},'
     }
     @ajax << '}});'
-    @ajax << '});' if h[:onload]
+=end
+    @ajax << '});'
+    @ajax << '});' if arg[:onload]
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'select_options(cmp, val, options)'}
@@ -2280,150 +2301,154 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  ##nim-doc {sec: 'Métodos de usuario', met: 'crea_grid(opts)'}
-  # <pre>
-  # Método para crear un grid dinámicamente
+  ##nim-doc {sec: 'Métodos de usuario', met: 'crea_grid(opts)', mark: :rdoc}
+
+  # Método para crear un grid dinámicamente.
+  # 
+  # <b>Parámetros</b>
   #
-  # opts es un hash con las siguientes claves:
+  # * *opts* (Hash)
+  # 
+  # <b>Opciones Hash (opts):</b>
   #
-  # cmp: es un campo X definido con {type: :div}
+  # * *:cmp* es un campo definido con <tt>{type: :div}</tt>
+  # 
+  # * *:modo* (Symbol) <em>(Default: :sel)</em> -- Los posibles valores son:
+  #   * <b>:sel</b> En este modo no se puede editar, solo seleccionar registros.
+  #     El método, además de crear el grid, sincroniza la seleción de fila (o filas si
+  #     está a _true_ la opción _multiselect_) con el servidor. En el campo asociado
+  #     tendremos siempre disponible el id de la fila seleccionada (o un array de ids
+  #     si hay multiselección). Para acceder lo haremos con <tt>@fact.cmp</tt>
+  #   * <b>:ed</b> El grid será editable. En este modo se pueden definir
+  #     métodos _vali_ y _on_ para cada columna.
+  #     La nomenclatura será <tt>vali_cmp_columna</tt> o <tt>on_cmp_columna</tt>.
+  #     Ambos métodos recibirán como argumentos el id de la fila y el valor
+  #     de la celda correspondiente.
   #
-  # modo: (:ed / :sel) indica si el grid es editable o para selección
-  #       Por defecto :sel
+  #     La sincronización con el servidor se realiza reflejando en tiempo real el
+  #     estado de cada celda. Para acceder a los datos usaremos <tt>@fact.cmp.data(id, col)</tt>
+  #     donde _id_ es el id de la fila y _col_  el nombre de la columna.
+  #     Para dar valor a una celda usaremos <tt>@fact.cmpx.data(id, col, val)</tt>
+  #     Los argumentos son los mismo que antes, más _val_, que es el valor que queremos
+  #     asignar.
   #
-  #       En el modo edición se pueden definir métodos vali y on para cada
-  #       columna. La nomenclatura será vali_campox_columna o on_campox_columna
-  #       Ambos métodos recibirán como argumentos el id de la fila y el valor
-  #       de la celda correspondiente.
-  #
-  # sel: (:row / :cel / nil) Sólo válido en modo edición (:ed). Indica si
-  #      el servidor es notificado cuando se selecciona una fila nueva o una
-  #      celda. Se llamará al método sel_campox que recibirá como argumentos
-  #      el id de la fila y el nombre de la columna. Por defecto vale nil
-  #
-  # del: (true / false) Sólo válido en modo edición (:ed). Indica si
-  #      se permiten borrar filas. En caso afirmativo antes del borrado se
-  #      llamará al método vali_borra_campox que recibirá como argumento el
-  #      id de la fila a borrar y retornará una cadena con un error si no se
-  #      permite el borrado o nil si se permite. Si no existe el método se
-  #      entiende que se permite borrar cualquier fila sin condiciones.
-  #      Por defecto vale true.
-  #
-  # ins: (:pos / :end / nil|false) Sólo válido en modo edición (:ed). Indica si
-  #      se permite la inserción de nuevas filas. El valor :pos indica que
-  #      la inserción puede ser posicional (entre dos filas), en este caso no
-  #      se permitirá la ordenación por columnas. El valor :end indica que
-  #      la inserción sólo se permite al final. Por defecto vale :end.
-  #      Cuando se solicite la inserción de una nueva fila se llamará al método
-  #      new_campox y recibirá como argumento la posición física donde se
-  #      va a insertar la fila. Como valor de retorno debe devolver un array
-  #      con los valores de la fila a insertar. Si no existe el método, la
-  #      fila se inertará con todas las celdas vacías y con id igual al
-  #      máximo de los existentes más uno (o el siguiente en orden alfabético
-  #      si los ids son cadenas).
-  #
-  # search: (true/false) indica si aparece o no por defecto la barra
-  #         de búsqueda en el grid. Por defecto vale false.
-  #
-  # bsearch: (true/false) indica si aparece o no un botón para mostrar/ocultar
-  #          la barra de búsqueda en el grid. Por defecto vale false.
-  #
-  # bcollapse: (true/false) indica si aparece o no un botón para mostrar/ocultar
-  #            el grid cmpleto. Por defecto vale false.
-  #
-  # cols: Es un array de hashes conteniendo información de cada columna.
-  #       Las posibles claves del hash de cada columna son:
-  #       name: el nombre de la columna. Si una columna es de tipo id
-  #             haciendo referencia a otra tabla, su nombre debe acabar por '_id'
-  #             y especificar el nombre del modelo con la clave :ref
-  #             Si no se especifica :ref se asumirá el nombre de la columna
-  #             sin el id. Si se quieren poner filtros a este tipo de campos
-  #             se usará el mismo método que para campos normales (set_auto_comp_filter)
-  #             con la salvedad de que como nombre de campo le pasaremos:
-  #             campox_id_columna (siendo id el 'id' de la fila y 'columna' el
-  #             nombre de la columna). Por ejemplo en una fila con id=123 y con una
-  #             columna llamada pais_id (haciendo referencia a la tabla de países)
-  #             usaríamos set_auto_comp_filter('campox_123_pais_id', 'el_filtro_que_sea')
-  #       ref:  Explicada en el apartado anterior. (Sólo válida para campos _id)
-  #       label: el título de la columna. Si no existe se usará 'name'
-  #       type: el tipo (:boolean, :string, :integer, :decimal, :date, :time)
-  #             Si no se especifica se asume string. Los campos de tipo _id no
-  #             necesitan tipo explícito (no hace falta usar esta clave)
-  #       manti: Sólo para tipos numéricos, indica la mantisa (defecto 7)
-  #       signo: Sólo para tipos numéricos, indica si se admiten negativos
-  #              Por defecto vale false
-  #       dec: Sólo para el type :decimal indica el número de decimales.
-  #            Por defecto 2.
-  #       align: Posibles valores: 'left', 'center', 'right'
-  #              Por defecto se adapta al 'type' por lo que no sería necesario
-  #              darle valor, salvo que queramos un comportamiento especial.
-  #       width: Anchura de la columna. Por defecto 150.
-  #
-  #       Cualquier clave admitida por jqGrid en colModel
-  #       ver: <a href="http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options" target="_blank">colmodel_options</a>
-  #
-  # grid: Es un hash con opciones específicas para el grid. Admite todas las
-  #       referidas en: <a href="http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options" target="_blank">grid_options</a>
-  #       Las más interesantes serían:
-  #       caption: Es una string con un título para el grid. Añade una barra
-  #                de título con dicha string y un botón para colapsar el grid.
-  #       height: Indica la altura del grid. Por defecto 150.
-  #       hidegrid: (true/false) Establece si aparece o no el botón de colapsar
-  #                 Sólo válido si hay caption.
-  #       multiselect: (true/false) Permite seleccionar múltiples filas.
-  #                    En este caso se añade al grid una primera columna con
-  #                    checks para indicar la selección. Por defecto false.
-  #       multiSort: (true/false) Permite ordenar por varias columnas.
-  #       shrinkToFit: (true/false) Si se pone a true se ajustarán las anchuras
-  #                    de las columnas para caber en la anchura del grid. Por
-  #                    defecto false.
-  #
-  # data: Es un array de arrays con los datos (puede ser un array simple si sólo
-  #       hay una fila de datos). Cada array contendrá n+1 elementos, donde n es
-  #       número de columnas que se han definido en 'cols'. El elemento adicional,
-  #       que tiene que ser el primero del array, contendrá el id de la fila.
-  #       Este id es el que se devolverá al campo X en caso de que la fila sea
-  #       seleccionada.
-  #
-  # En el caso de que el modo sea :sel (selección sin edición)
-  # El método, además de crear el grid, sincroniza la seleción de fila (o filas si
-  # está a true la opción multiselect) con el servidor. En el campo X asociado
-  # tendremos siempre disponible el id de la fila seleccionada (o un array de ids
-  # si hay multiselección). Para acceder lo haremos con @fact.cmp (donde cmp es el
-  # campo X referido).
-  #
-  # En el caso de que el modo sea :ed (edición) La sincronización con el servidor
-  # se realiza reflejando en tiempo real el estado de cada celda. Para acceder a
-  # los datos usaremos @fact.campox.data(id, col) donde 'id' es el id de la fila y 'col'
-  # el nombre de la columna. Para dar valor a una celda usaremos
-  # @fact.campox.data(id, col, val) igual que antes más 'val' que es el valor que queremos
-  # asignar.
-  # Para insertar una nueva fila por código, o bien lo hacemos con el valor de retorno
-  # del método new_campox o, si queremos insertar filas en otros métodos tendremos
-  # que usar el método grid_add_row(cmp, pos, data) donde cmp es el campox, pos es la
-  # posición donde queremos insertar la fila (-1 para insertar por el final) y 'data'
-  # un array con los valores de fila a insertar.
-  # Igualmente, para borrar una fila por código se puede usar el método grid_del_row(id)
-  # donde 'id' es el id de la fila a borrar. Esto sería para borrar filas 'a traición',
-  # las filas que borra el usuario y que se nos notifican en vali_borra_campox se borran
-  # solas (sin necesidad de usar este método) en el caso de que vali_borra_campox
-  # devuelva nil.
-  # Para barrer los datos habría que hacer:
-  # @fact.campox.each_row {|fila, new, edit, i|
-      # 'fila' es un array con los datos de la fila que toque
-      # 'ins' es un booleano que indica si la fila es nueva (insertada)
-      # 'edit' es un booleano que indica si la fila ha sido editada (alguna de sus celdas)
-      # 'i' es el índice de la fila (0,1,2...)
-  # }
-  #
-  # Y para barrer los registros borrados:
-  # @fact.campox.each_del {|fila, new, edit, i|
-      # 'fila' es un array con los datos de la fila que toque
-      # 'ins' es un booleano que indica si la fila es nueva (insertada)
-      # 'edit' es un booleano que indica si la fila ha sido editada (alguna de sus celdas)
-      # 'i' es el índice de la fila (0,1,2...)
-  # }
-  # </pre>
+  #     Para insertar una nueva fila por código, o bien lo hacemos con el valor de retorno
+  #     del método new_cmp (que es llamado al pulsar el botón de inertar nueva fila) o,
+  #     si queremos insertar filas en otros métodos tendremos que usar el método
+  #     <tt>grid_add_row(cmp, pos, data)</tt> donde _cmp_ es el campo, _pos_ es la
+  #     posición donde queremos insertar la fila (-1 para insertar por el final) y _data_ es
+  #     un array con los valores de fila a insertar.
+  #     Igualmente, para borrar una fila por código se puede usar el método <tt>grid_del_row(id)</tt>
+  #     donde _id_ es el id de la fila a borrar. Esto sería para borrar filas 'a traición',
+  #     las filas que borra el usuario y que se nos notifican en <tt>vali_borra_cmp</tt> se borran
+  #     automáticamente (sin necesidad de usar este método) en el caso de que vali_borra_cmp
+  #     devuelva nil.
+  #     
+  #     Para barrer los datos habría que hacer:
+  #       @fact.cmp.each_row {|fila, new, edit, i|
+  #         # 'fila' es un array con los datos de la fila que toque
+  #         # 'new' es un booleano que indica si la fila es nueva (insertada)
+  #         # 'edit' es un booleano que indica si la fila ha sido editada (alguna de sus celdas)
+  #         # 'i' es el índice de la fila (0,1,2...)
+  #       }
+  # 
+  #     Y para barrer los registros borrados:
+  #       @fact.cmp.each_del {|fila, new, edit, i|
+  #         # 'fila' es un array con los datos de la fila que toque
+  #         # 'new' es un booleano que indica si la fila es nueva (insertada)
+  #         # 'edit' es un booleano que indica si la fila ha sido editada (alguna de sus celdas)
+  #         # 'i' es el índice de la fila (0,1,2...)
+  #       }
+  # 
+  # * *:sel* (Symbol, nil) <em>(Default: nil)</em> -- Solo válido en modo edición.
+  #   Los posibles valores son:
+  #   * <b>:row</b> El servidor será notificado al seleccionar una fila.
+  #   * <b>:cel</b> El servidor será notificado al seleccionar una celda.
+  #   * <b>nil</b> El servidor no será notificado en ninguna selección.
+  #   La notificación se pasará al método <tt>sel_cmp</tt> que recibirá
+  #   como argumentos el id de la fila y el nombre de la columna.
+  # 
+  # * *:del* (Boolean) <em>(Default: true)</em> -- Sólo válido en modo edición. Indica si
+  #   se permiten borrar filas. En caso afirmativo antes del borrado se
+  #   llamará al método <tt>vali_borra_cmp</tt> que recibirá como argumento el
+  #   id de la fila a borrar y retornará una cadena con un error si no se
+  #   permite el borrado o nil si se permite. Si no existe el método se
+  #   entiende que se permite borrar cualquier fila sin condiciones.
+  # 
+  # * *:ins* (Symbol, nil) <em>(Deafault: :end)</em> -- Sólo válido en modo edición.
+  #   Sirve para permitir la inserción de nuevas filas. Los posibles valores son:
+  #   * <b>:pos</b> La inserción será posicional (entre dos filas), en este caso no
+  #     se permitirá la ordenación por columnas.
+  #   * <b>:end</b> La inserción sólo se permitirá al final del grid.
+  #   * <b>nil</b> No se permitirá insertar nuevas filas.
+  #   Cuando se solicite la inserción de una nueva fila se llamará al método
+  #   <tt>new_cmp</tt> y recibirá como argumento la posición física donde se
+  #   va a insertar la fila. Como valor de retorno debe devolver un array
+  #   con los valores de la fila a insertar. Si no existe el método, la
+  #   fila se inertará con todas las celdas vacías y con id igual al
+  #   máximo de los existentes más uno (o el siguiente en orden alfabético
+  #   si los ids son cadenas).
+  # 
+  # * *:search* (Boolean) <em>(Default: false)</em> -- Indica si aparece o no
+  #   por defecto la barra de búsqueda en el grid.
+  # 
+  # * *:bsearch* (Boolean)  <em>(Default: false)</em> -- Indica si aparece o no
+  #   un botón para mostrar/ocultar la barra de búsqueda en el grid.
+  # 
+  # * *:bcollapse* (Boolean) <em>(Default: false)</em> -- Indica si aparece o no
+  #   un botón para mostrar/ocultar el grid cmpleto.
+  # 
+  # * *:cols* (Array) -- Es un array de hashes conteniendo información de cada columna.
+  #   Cada hash admite todas las claves soportadas por jqGrid en
+  #   colModel[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options].
+  #   Las más importantes, y las añadidas por nimbus son:
+  # 
+  #   * *:name* (String) -- Es el nombre de la columna. Si una columna es de tipo _id_
+  #     haciendo referencia a otra tabla, su nombre debe acabar por "_id"
+  #     y especificar el nombre del modelo con la clave _:ref_.
+  #     Si no se especifica _:ref_ se asumirá como modelo el nombre de la columna
+  #     sin el _id_ final capitalizado. Para poner filtros a este tipo de campos
+  #     se usará el mismo método que para campos normales (set_auto_comp_filter)
+  #     con la salvedad de que como nombre de campo le pasaremos:
+  #     cmp_id_columna (siendo _id_ el id de la fila y _columna_ el
+  #     nombre de la columna). Por ejemplo en una fila con id=123 y con una
+  #     columna llamada pais_id (haciendo referencia a la tabla de países)
+  #     usaríamos <tt>set_auto_comp_filter('cmp_123_pais_id', 'el_filtro_que_sea')</tt>
+  #   * *:ref* (String) -- Explicada en el apartado anterior. (Sólo válida para campos _id_)
+  #   * *:label* (String) -- El título de la columna. Si no existe se usará <em>:name</em>.
+  #   * *:type* (Symbol) <em>(Default: :string)</em> -- Es el tipo de dato
+  #     (:boolean, :string, :integer, :decimal, :date, :time, :datetime).
+  #     Los campos de tipo _id_ no necesitan tipo explícito (no hace falta usar esta clave)
+  #   * *:manti* (Integer) <em>(Default: 7)</em> -- Sólo para tipos numéricos. Indica la mantisa.
+  #   * *:signo* (Boolean) <em>(Default: false)</em> -- Sólo para tipos numéricos.
+  #     Indica si se admiten negativos.
+  #   * *:dec* (Integer) <em>(Default: 2)</em> -- Sólo para el type :decimal.
+  #     Indica el número de decimales.
+  #   * *:align* (String) -- Posibles valores: 'left', 'center', 'right'
+  #     Por defecto se adapta al _type_ por lo que no sería necesario
+  #     darle valor, salvo que queramos un comportamiento especial.
+  #   * *:width* (Integer) <em>(Default: 150)</em> -- Anchura de la columna.
+  # 
+  # 
+  # * *:grid* (Hash) -- Opciones específicas para el grid. Admite todas las
+  #   referidas en grid_options[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options].
+  #   Las más interesantes serían:
+  #   * *:caption* (String) -- Título del grid. Añade una barra
+  #     de título y un botón para colapsar el grid.
+  #   * *:height* (Integer) <em>(Default: 150)</em> -- Indica la altura del grid.
+  #   * *:hidegrid* (Boolean) -- Establece si aparece o no el botón de colapsar.
+  #     Sólo válido si hay _:caption_.
+  #   * *:multiselect* (Boolean) <em>(Default: false)</em> --  Permite seleccionar múltiples filas.
+  #     En este caso se añade al grid una primera columna con
+  #     checks para indicar la selección.
+  #   * *:multiSort* (Boolean) <em>(Default: false)</em> -- Permite ordenar por varias columnas.
+  #   * *:shrinkToFit* (Boolean) <em>(Default: false)</em> -- Si es true, se ajustarán las anchuras
+  #     de las columnas para caber en la anchura del grid.
+  # 
+  # * *:data* (Array) -- Es un array de arrays con los datos (puede ser un array simple si sólo
+  #   hay una fila de datos). Cada array contendrá n+1 elementos, donde n es
+  #   número de columnas que se han definido en _:cols_. El elemento adicional,
+  #   que tiene que ser el primero del array, contendrá el id de la fila.
   ##
 
   def crea_grid(opts)

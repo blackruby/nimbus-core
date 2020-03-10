@@ -65,9 +65,37 @@ function nimLockTabs(def) {
   }
 }
 
+function creaBotonesDialogo(bot, dlg) {
+  var htm = '';
+  for (let b of bot) {
+    htm += '<button class="nim-dialog-button mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">';
+    if (b.icon) htm += '<i class="material-icons">' + b.icon + '</i>'  + (b.label ? '&nbsp;' : '');
+    if (b.label) htm += b.label;
+    htm += '</button>';
+  }
+  dlg.parent().append('<div class="nim-dialog-div-buttons"><center>' + htm + '</center></div>');
+
+  var i = 0;
+  dlg.parent().last().find(".nim-dialog-button").each(function() {
+    var b = bot[i++]; 
+    $(this).click(function() {
+      if (b.busy) ponBusy();
+      dlg.find(".ui-jqgrid-btable").jqGrid('editCell', 0, 0, false);
+      if (b.accion) {
+        if (b.accion.startsWith("js:")) {
+          eval(b.accion.slice(3));
+          quitaBusy();
+        } else
+          nimAjax(b.accion, {}, {complete: function() {if (b.busy) quitaBusy();}});
+      }
+      if (b.close == undefined || b.close) dlg.dialog("close");
+    });
+  });
+}
+
 function creaDialogos(dial) {
   for (let d of dial) {
-    let del = $("#" + d.id);
+    let dlg = $("#" + d.id);
     var prop = {
       autoOpen: false,
       resizable: false,
@@ -77,8 +105,9 @@ function creaDialogos(dial) {
       title: d.titulo
     };
     if (d.position) prop.position = d.position;
-    del.dialog(prop);
+    dlg.dialog(prop);
 
+    /*
     if (d.botones) {
       htm = '';
       for (let b of d.botones) {
@@ -87,19 +116,21 @@ function creaDialogos(dial) {
         if (b.label) htm += b.label;
         htm += '</button>';
       }
-      del.parent().append('<div class="nim-dialog-div-buttons"><center>' + htm + '</center></div');
+      dlg.parent().append('<div class="nim-dialog-div-buttons"><center>' + htm + '</center></div');
 
       var i = 0;
-      del.parent().last().find(".nim-dialog-button").each(function() {
+      dlg.parent().last().find(".nim-dialog-button").each(function() {
         var b = d.botones[i++]; 
         $(this).click(function() {
           if (b.busy) ponBusy();
-          del.find(".ui-jqgrid-btable").jqGrid('editCell', 0, 0, false);
+          dlg.find(".ui-jqgrid-btable").jqGrid('editCell', 0, 0, false);
           if (b.accion) nimAjax(b.accion, {}, {complete: function() {if (b.busy) quitaBusy();}});
-          if (b.close == undefined || b.close) del.dialog("close");
+          if (b.close == undefined || b.close) dlg.dialog("close");
         });
       });
     }
+    */
+    if (d.botones) creaBotonesDialogo(d.botones, dlg);
   }
 }
 

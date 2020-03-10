@@ -1,16 +1,36 @@
 <style>
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    display: flex;
+  }
+
   #indice {
-    position: fixed;
-    top: 0;
-    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 300px;
+    max-width: 300px;
     padding-right: 20px;
     background-color: #D1C4E9;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: auto;
   }
 
   #contenido {
-    position: absolute;
+    overflow: auto;
+    height: 100vh;
+    padding-top: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  #indice span {
+    cursor: pointer;
+  }
+
+  #indice ul li {
+    margin-left: -15px;
   }
 
   .capitulo {
@@ -25,24 +45,58 @@
   .metodo {
     color: #512DA8;
   }
+
+  .descripcion {
+    overflow: auto;
+    background-color: #f3f3f3;
+    padding: 3px;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: max-content auto;
+  }
+  dt {
+    grid-column-start: 1;
+  }
+  dd {
+    grid-column-start: 2;
+    margin-left: 15px;
+  }
+  p {
+    margin-top: 0;
+    margin-bottom: 5px;
+  }
+  li p:last-child {
+    margin-bottom: 0;
+  }
+  ul {
+    margin: 5px 0px;
+    padding-left: 35px;
+  }
+
+  .hdlist1 {
+    vertical-align: top;
+    font-weight: 500;
+  }
 </style>
 
 <div id="indice">
   <ul>
     <% @cap.each_with_index {|c, i| %>
-      <li><a href="#c<%= i %>"><%= c[0] %>
+      <li><span destino="c<%= i %>"><%= c[0] %></span>
         <ul>
           <% c[1].each_with_index {|s, j| %>
-            <li><a href="#c<%= i %>s<%= j %>"><%= s[0] %>
+            <li><span destino="c<%= i %>s<%= j %>"><%= s[0] %></span>
               <ul>
                 <% s[1].each_with_index {|m, k| %>
-                  <li><a href="#c<%= i %>s<%= j %>m<%= k %>"><%= m[0][0..m[0].index('(').to_i-1] %></a></li>
+                  <li><span destino="c<%= i %>s<%= j %>m<%= k %>"><%= m[0][0..m[0].index('(').to_i-1] %></span></li>
                 <% } %>
               </ul>
-            </a></li>
+            </li>
           <% } %>
         </ul>
-      </a></li>
+      </li>
     <% } %>
   </ul>
 </div>
@@ -53,13 +107,15 @@
     <% c[1].each_with_index {|s, j| %>
       <div id=c<%= i %>s<%= j %> class="seccion"><h3><%= s[0] %></h3></div>
       <% s[1].each_with_index {|m, k| %>
-        <h4 class="metodo"><%= m[0] %></h4>
-        <p id=c<%= i %>s<%= j %>m<%= k %>><%= m[1].html_safe %></p>
+        <h4 class="metodo" id=c<%= i %>s<%= j %>m<%= k %>><%= m[0] %></h4>
+        <div class="descripcion"><%= m[1].html_safe %></div>
       <% } %>
     <% } %>
   <% } %>
 </div>
 
 <script>
-  $("#contenido").css("left", $("#indice").width()+30+'px');
+  $("#indice").on("click", "span", function() {
+    document.getElementById($(this).attr("destino")).scrollIntoView();
+  });
 </script>

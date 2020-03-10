@@ -5,28 +5,48 @@ class NimbusHelpController < ApplicationController
       return
     end
 
+    require 'rdoc'
+    @rdoc_th = RDoc::Markup::ToHtml.new(RDoc::Options.new)
+
     @cap = {}
 
     procesa_file('Controladores', 'app/controllers/application_controller.rb')
     procesa_file('GI', 'app/controllers/gi.rb')
     procesa_file('General', 'app/controllers/nimbus_help_controller.rb')
+
+    @cap.each {|c, s| s.each {|k, m| m.sort!}}
   end
 
   def procesa_file(cap, fi)
     @cap[cap] = {}
 
     met = nil
+    h = nil
     File.readlines('modulos/nimbus-core/' + fi).each {|l|
       ls = l.strip
       if ls.starts_with?('##nim-doc')
         h = eval(ls[10..-1])
         @cap[cap][h[:sec]] ||= []
-        @cap[cap][h[:sec]] << [h[:met], '']
-        met = @cap[cap][h[:sec]][-1][1]
+        met = ''
       else
         next unless met
 
-        ls.starts_with?('##') ? met = nil : met << "#{ls[0] == '#' ? ls[1..-1] : l.rstrip}\n"
+        if ls.starts_with?('##') 
+          if h[:mark] == :asciidoc
+            met = Asciidoctor.convert(met)
+          elsif h[:mark] == :rdoc
+            met = @rdoc_th.convert(met)
+          end
+          @cap[cap][h[:sec]] << [h[:met], met]
+          met = nil
+        else 
+          l = "#{ls[0] == '#' ? ls[1..-1] : l.rstrip}\n"
+          if l[0] != "\n"
+            l = l[1..-1] if h[:mark] == :rdoc
+            l.lstrip! if h[:mark] == :asciidoc
+          end
+          met << l
+        end
       end
     }
   end
