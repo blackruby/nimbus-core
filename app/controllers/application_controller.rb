@@ -1197,21 +1197,24 @@ class ApplicationController < ActionController::Base
         #[:eq,:ne,:lt,:le,:gt,:ge,:bw,:bn,:in,:ni,:ew,:en,:cn,:nc,:nu,:nn]
         op = f[:op].to_sym
 
-        begin
-          fa = f[:field].split('.')
-          field = fa.map{|c| %Q("#{c.gsub('"', '""')}")}.join('.')
-          if fa[-2] == clm.table_name
-            ty = clm.campos[fa[-1].to_sym][:type]
-          else
+        fa = f[:field].split('.')
+        field = fa.map{|c| %Q("#{c.gsub('"', '""')}")}.join('.')
+        if fa[-2] == clm.table_name
+          ty = clm.campos[fa[-1].to_sym][:type]
+        else
+          begin
             ty = fa[-2].model.columns_hash[fa[-1]].type
+          rescue
+            # Esto sería el caso en el que no se puede inferir el modelo
+            # final, por ejemplo si hay dos campos id en un grid que
+            # apuntan al mismo modelo, ya que, el método joins de 
+            # ActiveRecord usa una nomenclatura para estos casos en la
+            # que no es inferible el nombre del modelo final.
+            # A falta de una solución precisa (guardando el tipo final
+            # en una clave nueva de @campos), suponemos que el tipo
+            # será :string (válido en el 99% de los casos).
+            ty = :string
           end
-        rescue => e
-          logger.fatal "###### Fallo al parsear #{f[:field]}"
-          logger.fatal "###### Controlador: #{params[:controller]}"
-          logger.fatal e.message
-          logger.fatal e.backtrace.join("\n")
-          render json: {error: "Fallo en la columna #{f[:field]}"}
-          return
         end
 
         if op == :nu or op == :nn
