@@ -76,13 +76,13 @@ module Nimbus
     if f[iapp + 1] == 'controllers'
       # Tratamientos especiales en el caso de que sea un controlador
 
-      # Cálculo de las vistas
+      # Cálculo de las vistas (sobrecarga de ficha y grid)
 
       ctr_name = f[-1][0..f[-1].index('_controller')-1]
       mod = f[-2] == 'controllers' ? '' : f[-2]
       ctr = ((mod == '' ? '' : mod.capitalize + '::') + ctr_name.camelize + 'Controller').constantize
 
-      def self.procesa_vistas(tipo, rails_root, f, iapp, ctr_name, ctr, mod)
+      procesa_vistas = ->(tipo) {
         views = []
         ruta = "/app/views/#{mod}/#{ctr_name}/#{tipo}.html.erb"
 
@@ -96,10 +96,10 @@ module Nimbus
         }
 
         ctr.set_nimbus_views tipo, views
-      end
+      }
 
-      procesa_vistas(:ficha, rails_root, f, iapp, ctr_name, ctr, mod)
-      procesa_vistas(:grid, rails_root, f, iapp, ctr_name, ctr, mod)
+      procesa_vistas.call(:ficha)
+      procesa_vistas.call(:grid)
 
       # Reordenamiento del hash de campos (@campos) para posicionar los tags 'post'
       begin
@@ -133,8 +133,8 @@ module Nimbus
           ctr_mod.campos = cmpa.to_h
         end
       rescue
-        # La única razón para que se produzca la exepción es que no exista la clase xxxMod.
-        # En ese caso no hy que hacer nada, sólo significa que el controlador es autónomo
+        # La única razón para que se produzca la excepción es que no exista la clase xxxMod.
+        # En ese caso no hay que hacer nada, sólo significa que el controlador es autónomo
         # como es el caso de welcome_controller.
       end
     else
@@ -144,7 +144,10 @@ module Nimbus
       modelo = ((modulo == '' ? '' : modulo.capitalize + '::') + f[-1][0..-4].capitalize).constantize
       histo = modelo.modelo_histo
       if !modelo.view? && histo
-        # Desactivar los callbacks al grabar registros (save) del histórico
+        # Desactivar los callbacks del histórico
+        histo.reset_callbacks(:initialize)
+        histo.reset_callbacks(:validate)
+        histo.reset_callbacks(:create)
         histo.reset_callbacks(:save)
 
         # Añadir los belongs_to nuevos definidos en el add al modelo histórico.
@@ -1665,7 +1668,12 @@ module Historico
         @auto_comp_mselect = self.superclass.auto_comp_mselect
         @auto_comp_menu = self.superclass.auto_comp_menu
 
-        # Desactivar los callbacks al grabar registros (save), para que no se disparen al grabar la ficha del histórico
+        # Desactivar los callbacks (también se desactivan en load_adds.
+        # Sería redundante, pero lo mantenemos para los modelos que no
+        # admiten sobrecarga)
+        self.reset_callbacks(:initialize)
+        self.reset_callbacks(:validate)
+        self.reset_callbacks(:create)
         self.reset_callbacks(:save)
       end
     end
