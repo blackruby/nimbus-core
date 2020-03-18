@@ -1065,8 +1065,6 @@ class ApplicationController < ActionController::Base
       @view[:arg_edit] << padre
     end
 
-    #@titulo = ''
-
     arg_ej = ''
     arg_ej << '&eid=' + eid if eid
     arg_ej << '&jid=' + jid if jid
@@ -1074,15 +1072,17 @@ class ApplicationController < ActionController::Base
     if clm.respond_to?('ejercicio_path')
       @j = Ejercicio.find_by id: jid
       @e = @j.empresa
-      #@titulo << @e.codigo + '/' + @j.codigo
     elsif clm.to_s != 'EjerciciosMod' and clm.respond_to?('empresa_path')
       @e = Empresa.find_by id: eid
-      #@titulo << @e.codigo
     end
 
     @view[:arg_auto] = @v ? "&vista=#{@v.id}&cmp=_pk_input" : arg_ej
-    #@titulo << ' ' + clm.titulo
-    set_titulo(clm.titulo, @e&.codigo, @j&.codigo, true) unless @titulo
+    #set_titulo(clm.titulo, @e&.codigo, @j&.codigo, true) unless @titulo
+    if @titulo
+      @titulo_htm ||= @titulo
+    else
+      set_titulo(clm.titulo, @e&.codigo, @j&.codigo, clm.column_names.include?('ejercicio_id'))
+    end
 
     @view[:url_list] << arg_list_new + arg_ej + (@v ? "&vista=#{@v.id}" : '')
     @view[:url_new] << arg_list_new + arg_ej
