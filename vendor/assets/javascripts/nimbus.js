@@ -297,252 +297,262 @@ jQuery.fn.entrytime = function(segundos, nil) {
   return $(this);
 };
 
-jQuery.fn.entryn = function (manti, decim, signo) {
-  var lastKey, old_value;
+// entryn y funciones asociadas
 
-  $(this).on("focus", function(e) {
-    old_value = $(this).val();
-    $(this).select();
-  });
-
-  $(this).on("blur", function(e) {
-    if (old_value != $(this).val()) $(this).trigger("change");
-  });
-
-  $(this).on("keydown", function(e) {
-    lastKey = e.keyCode;
-    if (lastKey == 46) lastKey = 7;
-    if (lastKey == 8 || lastKey == 7) {
-      $(this).trigger("keypress");
-      e.preventDefault();
+function entrynArregla(val, decim, signo) {
+  var pc = val.length;
+  var i = 0;
+  if (val[0] == '-' && signo) i++;
+  while (i < pc) {
+    if (val[i] == ',') {
+      pc = i;
+      break;
     }
-  });
-
-  $(this).on("keypress", function(e) {
-    c = e.which;
-    if (c == undefined)
-      c = lastKey;
-    else if (c == 0)
-      return;
+    if (val[i] == '.' || (val[i] >= '0' && val[i] <= '9'))
+      i++;
     else {
-      if (e.ctrlKey || e.altKey || e.shiftKey) {
-        e.preventDefault();
+      val = val.substr(0, i) + val.substr(i+1);
+      pc--;
+    }
+  }
+  /** para no poder dejar en blanco con <DEL>
+   if (i == 0) {
+        val = '0' + val;
+        i++;
+        pc++;
+      }
+    ******/
+
+  if (decim > 0) {
+    if (pc < val.length) {
+      i++;
+      while (i < val.length) {
+        if (val[i] >= '0' && val[i] <= '9')
+          i++;
+        else
+          val = val.substr(0, i) + val.substr(i+1);
+
+      }
+    }
+    if (pc >= val.length) val += ','
+
+    if (pc + decim + 1 < val.length)
+      val = val.substr(0, pc+decim);
+
+    i = pc + decim - val.length;
+    if (i >= 0) {
+      for (; i >= 0; i--) val += '0';
+    }
+  } else {
+    if (pc < val.length) val = val.substr(0, pc);
+  }
+
+  return(val);
+};
+
+function entrynFormatea(t, val, cur) {
+  if (val == "") {
+    t.val("");
+    return;
+  }
+
+  var pc = val.indexOf(',');
+  if (pc < 0) pc = val.length;
+
+  if (cur < 0) cur = pc;
+
+  for (var pri = 0; pri < pc; pri++) {
+    if (val[pri] >= '1' && val[pri] <= '9') break;
+    if (val[pri] == '0') cur--;
+  }
+
+  var num = "";
+  var pp = 3;
+  for (var i = pc-1; i >= pri; i--) {
+    if (val[i] < '0' || val[i] > '9') {
+      if (i > 0) cur--;
+      continue;
+    }
+    if (pp == 0) {
+      num = '.' + num;
+      pp = 3;
+      cur++;
+    }
+    num = val[i] + num;
+    pp--;
+  }
+  if (num == "") {num = "0"; cur++;}
+  if (val[0] == '-') num = '-' + num;
+  num = num + val.substr(pc);
+
+  t.val(num);
+  t.caret(cur);
+};
+
+function entryn_focus(e) {
+  var th = $(this);
+  var val = th.select().val();
+  th.data('entryn_old_value', val);
+};
+
+function entryn_blur(e) {
+  var th = $(this);
+  if (th.data('entryn_old_value') != th.val()) th.trigger("change");
+};
+
+function entryn_keydown(e) {
+  var th = $(this);
+  var lastKey = e.keyCode;
+  th.data('lastKey', lastKey);
+  if (lastKey == 46) lastKey = 7;
+  if (lastKey == 8 || lastKey == 7) {
+    th.trigger("keypress");
+    e.preventDefault();
+  }
+};
+
+function entryn_keypress(e) {
+  var th = $(this);
+  var lastKey = th.data('lastKey');
+
+  var c = e.which;
+  if (c == undefined)
+    c = lastKey;
+  else if (c == 0)
+    return;
+  else {
+    if (e.ctrlKey || e.altKey || e.shiftKey) {
+      e.preventDefault();
+      return;
+    }
+  }
+
+  var manti = e.data.manti;
+  var decim = e.data.decim;
+  var signo = e.data.signo;
+
+  var valac = th.val();
+  var begin = th.caret().begin;
+  var end   = th.caret().end;
+
+  if (begin < end) {
+    var pc = valac.indexOf(',');
+
+    if (pc >= begin && pc < end)
+      valac = valac.substr(0, begin) + ',' + valac.substr(end);
+    else
+      valac = valac.substr(0, begin) + valac.substr(end);
+    if (c == 8 || c == 7) {
+      if (pc >= 0 && valac == ",") valac = "";
+      if (valac == "") {
+        th.val("");
         return;
       }
+      c = 0;
     }
+  }
 
-    valac = $(this).val();
-    begin = $(this).caret().begin;
-    end   = $(this).caret().end;
+  var val = entrynArregla(valac, decim, signo);
+  var pc = val.indexOf(',');
+  if (pc < 0) pc = val.length;
 
-    if (begin < end) {
-      pc = valac.indexOf(',');
+  if (val != valac)
+    var cur = pc;
+  else
+    var cur = begin;
 
-      if (pc >= begin && pc < end)
-        valac = valac.substr(0, begin) + ',' + valac.substr(end);
-      else
-        valac = valac.substr(0, begin) + valac.substr(end);
-      if (c == 8 || c == 7) {
-        if (pc >= 0 && valac == ",") valac = "";
-        if (valac == "") {
-          $(this).val("");
-          return;
-        }
-        c = 0;
-      }
-    }
+  switch (c >= 48 && c <= 57 ? 48 : c) {
+    case 44:
+    case 46:
+      cur = val.indexOf(',');
+      if (cur < 0) cur = val.length; else cur++;
+      break;
 
-    val = arreglaN(valac);
-    pc = val.indexOf(',');
-    if (pc < 0) pc = val.length;
-
-    if (val != valac)
-      cur = pc;
-    else
-      cur = begin;
-
-    switch (c >= 48 && c <= 57 ? 48 : c) {
-      case 44:
-      case 46:
-        cur = val.indexOf(',');
-        if (cur < 0) cur = val.length; else cur++;
-        break;
-
-      case 45:
-        if (signo) {
-          if (val[0] == '-') {
-            val = val.substring(1);
-            cur--;
-          } else {
-            if (pc == 0) {
-              val = "0" + val;
-              cur++;
-              //	pc++;
-            }
-            val = "-" + val;
-            cur++;
-          }
-        }
-        break;
-
-      case 48:
-        if (cur <= pc) {
-          pp = 0;
-          for (i = 0; i < pc; i++) {
-            //if (val[i] == '0' && i >= cur) pp++;
-            //if (val[i] >= '1' && val[i] <= '9') pp++;
-            if (val[i] >= '0' && val[i] <= '9') pp++;
-          }
-          if (pp < manti) {
-            val = val.substr(0, cur) + String.fromCharCode(c) + val.substr(cur);
-            cur++;
-          }
+    case 45:
+      if (signo) {
+        if (val[0] == '-') {
+          val = val.substring(1);
+          cur--;
         } else {
-          if (cur < val.length) {
-            val = val.substr(0, cur) + String.fromCharCode(c) + val.substr(cur+1);
+          if (pc == 0) {
+            val = "0" + val;
             cur++;
+            //	pc++;
           }
+          val = "-" + val;
+          cur++;
         }
-        break;
+      }
+      break;
 
-      case 8:
-        if (cur > 0) {
-          do {
-            cur--;
-          } while (val[cur] == '.' || val[cur] == ',');
-          if (cur <= pc)
-            val = val.substr(0, cur) + val.substr(cur + 1);
-          else
-            val = val.substr(0, cur) + '0' + val.substr(cur + 1);
+    case 48:
+      if (cur <= pc) {
+        var pp = 0;
+        for (var i = 0; i < pc; i++) {
+          //if (val[i] == '0' && i >= cur) pp++;
+          //if (val[i] >= '1' && val[i] <= '9') pp++;
+          if (val[i] >= '0' && val[i] <= '9') pp++;
         }
-        break;
-
-      case 7:
+        if (pp < manti) {
+          val = val.substr(0, cur) + String.fromCharCode(c) + val.substr(cur);
+          cur++;
+        }
+      } else {
         if (cur < val.length) {
-          while (val[cur] == '.' || val[cur] == ',') cur++;
-          if (cur <= pc)
-            val = val.substr(0, cur) + val.substr(cur + 1);
-          else {
-            val = val.substr(0, cur) + '0' + val.substr(cur + 1);
-            cur++;
-          }
-        }
-        break;
-    }
-
-    formateaN($(this), val, cur);
-    e.preventDefault();
-  });
-
-
-  function arreglaN(val) {
-    pc = val.length;
-    var i = 0;
-    if (val[0] == '-' && signo) i++;
-    while (i < pc) {
-      if (val[i] == ',') {
-        pc = i;
-        break;
-      }
-      if (val[i] == '.' || (val[i] >= '0' && val[i] <= '9'))
-        i++;
-      else {
-        val = val.substr(0, i) + val.substr(i+1);
-        pc--;
-      }
-    }
-    /** para no poder dejar en blanco con <DEL>
-     if (i == 0) {
-					val = '0' + val;
-					i++;
-					pc++;
-				}
-     ******/
-
-    if (decim > 0) {
-      if (pc < val.length) {
-        i++;
-        while (i < val.length) {
-          if (val[i] >= '0' && val[i] <= '9')
-            i++;
-          else
-            val = val.substr(0, i) + val.substr(i+1);
-
+          val = val.substr(0, cur) + String.fromCharCode(c) + val.substr(cur+1);
+          cur++;
         }
       }
-      if (pc >= val.length) val += ','
+      break;
 
-      if (pc + decim + 1 < val.length)
-        val = val.substr(0, pc+decim);
-
-      i = pc + decim - val.length;
-      if (i >= 0) {
-        for (; i >= 0; i--) val += '0';
+    case 8:
+      if (cur > 0) {
+        do {
+          cur--;
+        } while (val[cur] == '.' || val[cur] == ',');
+        if (cur <= pc)
+          val = val.substr(0, cur) + val.substr(cur + 1);
+        else
+          val = val.substr(0, cur) + '0' + val.substr(cur + 1);
       }
-    } else {
-      if (pc < val.length) val = val.substr(0, pc);
-    }
+      break;
 
-    return(val);
-  };
-
-  formateaN = function(t, val, cur) {
-    if (val == "") {
-      t.val("");
-      return;
-    }
-
-    pc = val.indexOf(',');
-    if (pc < 0) pc = val.length;
-
-    if (cur < 0) cur = pc;
-
-    for (pri = 0; pri < pc; pri++) {
-      if (val[pri] >= '1' && val[pri] <= '9') break;
-      if (val[pri] == '0') cur--;
-    }
-
-    num = "";
-    pp = 3;
-    for (i = pc-1; i >= pri; i--) {
-      if (val[i] < '0' || val[i] > '9') {
-        if (i > 0) cur--;
-        continue;
+    case 7:
+      if (cur < val.length) {
+        while (val[cur] == '.' || val[cur] == ',') cur++;
+        if (cur <= pc)
+          val = val.substr(0, cur) + val.substr(cur + 1);
+        else {
+          val = val.substr(0, cur) + '0' + val.substr(cur + 1);
+          cur++;
+        }
       }
-      if (pp == 0) {
-        num = '.' + num;
-        pp = 3;
-        cur++;
-      }
-      num = val[i] + num;
-      pp--;
-    }
-    if (num == "") {num = "0"; cur++;}
-    if (val[0] == '-') num = '-' + num;
-    num = num + val.substr(pc);
+      break;
+  }
 
-    t.val(num);
-    t.caret(cur);
-  };
+  entrynFormatea(th, val, cur);
+  e.preventDefault();
+};
 
-  $(this).on("paste", function(e) {
-    t = $(this);
+function entryn_paste(e) {
+  var th = $(this);
 
-    setTimeout(function() {
-      val = arreglaN(t.val());
-      formateaN(t, val, -1);
-    }, 100);
+  setTimeout(function() {
+    var val = entrynArregla(th.val(), e,data.decim, e.data.signo);
+    entrynFormatea(th, val, -1);
+  }, 100);
+};
 
-  });
+jQuery.fn.entryn = function (manti, decim, signo) {
+  var th = $(this);
 
-  /*** psa ***
+  th.off("focus", entryn_focus).on("focus", entryn_focus);
+  th.off("blur", entryn_blur).on("blur", entryn_blur);
+  th.off("keydown", entryn_keydown).on("keydown", entryn_keydown);
+  th.off("keypress", entryn_keypress).on("keypress", undefined, {manti: manti, decim: decim, signo: signo}, entryn_keypress);
+  th.off("paste", entryn_paste).on("paste", undefined, {manti: manti, decim: decim, signo: signo}, entryn_paste);
 
-   $(this).on("keyup", function(e) {
-				// No sé si será necesario tratar este evento para algún caso raro.
-			});
-   ***/
-
-  return $(this);
+  return th;
 };
 
 // Función para conseguir el próximo elemento en la rueda de focos
