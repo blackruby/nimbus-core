@@ -1516,6 +1516,53 @@ function checkNimServerStop() {
     return false;
 }
 
+function creaBotonesDialogo(bot, dlg) {
+  var htm = '';
+  for (let b of bot) {
+    htm += '<button class="nim-dialog-button mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">';
+    if (b.icon) htm += '<i class="material-icons">' + b.icon + '</i>'  + (b.label ? '&nbsp;' : '');
+    if (b.label) htm += b.label;
+    htm += '</button>';
+  }
+  //dlg.parent().append('<div class="nim-dialog-div-buttons"><center>' + htm + '</center></div>');
+  dlg.parent().append('<div class="nim-dialog-div-buttons">' + htm + '</div>');
+
+  var i = 0;
+  dlg.parent().last().find(".nim-dialog-button").each(function() {
+    var b = bot[i++]; 
+    $(this).click(function() {
+      if (b.busy) ponBusy();
+      dlg.find(".ui-jqgrid-btable").jqGrid('editCell', 0, 0, false);
+      if (b.accion) {
+        if (b.accion.startsWith("js:")) {
+          eval(b.accion.slice(3));
+          quitaBusy();
+        } else
+          nimAjax(b.accion, {}, {complete: function() {if (b.busy) quitaBusy();}});
+      }
+      if (b.close == undefined || b.close) dlg.dialog("close");
+    });
+  });
+}
+
+function creaDialogos(dial) {
+  for (let d of dial) {
+    let dlg = $("#" + d.id);
+    var prop = {
+      autoOpen: false,
+      resizable: false,
+      modal: true,
+      width: d.width ? d.width : '100%',
+      height: d.height ? d.height : 'auto',
+      title: d.titulo
+    };
+    if (d.position) prop.position = d.position;
+    dlg.dialog(prop);
+
+    if (d.botones) creaBotonesDialogo(d.botones, dlg);
+  }
+}
+
 $(window).load(function() {
   var _auto_comp_menu_;
 
