@@ -33,7 +33,7 @@
 
 #bandas {
   position: absolute;
-  width: 540px;
+  width: 600px;
 }
 
 .t_banda, #t_estilos, #t_lim, #t_config, #t_formulas, #t_select, #t_where, #t_having, #t_asist_lim, #t_grabar {
@@ -77,4 +77,25 @@ textarea {
 
 .no-close .ui-dialog-titlebar-close {
   display: none;
+}
+
+.altura-filas {
+  width: 30px;
+}
+
+.altura-filas input {
+  background-color: bisque;
+  text-align: right;
+  width: 30px;
+}
+
+.anchura-columnas {
+  text-align: center;
+  background-color: #f0f0f0;
+}
+
+.anchura-columnas input {
+  background-color: bisque;
+  text-align: right;
+  width: 30px;
 }

@@ -87,17 +87,19 @@
     <button id="swp_w" class="b_banda">Mover a la izquierda</button>
     <button id="swp_e" class="b_banda">Mover a la derecha</button>
     <button id="swp_n" class="b_banda">Mover arriba</button>
-    <button id="swp_s" class="b_banda">Mover abajo fila</button>
+    <button id="swp_s" class="b_banda">Mover abajo</button>
     <button id="add_cw" class="b_banda">Añadir columna a la izquierda</button>
     <button id="add_ce" class="b_banda">Añadir columna a la derecha</button>
     <button id="add_rn" class="b_banda">Añadir fila por arriba</button>
     <button id="add_rs" class="b_banda">Añadir fila por abajo</button>
     <button id="del_r" class="b_banda">Borrar fila</button>
     <button id="del_c" class="b_banda">Borrar columna</button>
-    <button id="add_rup" title="Añadir bandas de ruptura">R+</button>
-    <button id="del_rup" title="Borrar bandas de ruptura " class="b_banda">R-</button>
+    <button id="add_rup" title="Añadir banda de ruptura">R+</button>
+    <button id="del_rup" title="Borrar banda de ruptura " class="b_banda">R-</button>
     <button id="add_busu" title="Añadir banda de usuario">B+</button>
   </div>
+  <p class="tit_band tit ui-widget-header ui-corner-all"> Anchuras de columnas </p>
+  <table id="t_width" class="t_banda"> <tbody><tr></tr></tbody> </table>
   <p class="tit_band tit ui-widget-header ui-corner-all"> Cabecera </p>
   <table id="t_cab" class="t_banda"> <tbody></tbody> </table>
   <p id="tt_det" class="tit_band tit ui-widget-header ui-corner-all"> Detalle </p>
@@ -123,7 +125,12 @@
     <tr><td class="subtit"><label for="pie_c">Pie centro:</label></td> <td><input id="pie_c" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="pie_d">Pie derecha:</label></td> <td><input id="pie_d" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="page_setup">Config. Página:</label></td> <td><textarea id="page_setup" class="i_cmp">paper_width: '210mm', paper_height: '297mm', fit_to_width: 1, fit_to_height: 0</textarea></td></tr>
-    <tr><td class="subtit"><label for="col_widths">Ancho columnas:</label></td> <td><input id="col_widths" class="i_cmp"/></td></tr>
+    <!--
+      Mantenemos la entrada de col_widths, aunque oculta. Ahora las anchuras se recogen en inputs para cada columna
+      pero para mantener compatibilidad, a la hora de grabar el informe, asignamos al input col_widths una cadena
+      con todas las anchuras y así el comportamiento es como antes.
+    -->
+    <tr style="display: none"><td class="subtit"><label for="col_widths">Ancho columnas:</label></td> <td><input id="col_widths" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="row_height">Altura filas:</label></td> <td><input type="number" min=1 id="row_height" class="i_cmp"/></td></tr>
     <tr><td class="subtit"><label for="page_margins">Márgenes:</label></td> <td><textarea id="page_margins" class="i_cmp">left: 0.39, right: 0.39, bottom: 0.39</textarea></td></tr>
     <tr><td class="subtit"><label for="print_options">Opciones de impresión:</label></td> <td><textarea id="print_options" class="i_cmp"></textarea></td></tr>

@@ -37,8 +37,12 @@ function genArrayBan(rows) {
   var ar = [], r;
   rows.each(function() {
     r = [];
-    $(this).children().each(function() {
-      r.push($(this).data("prop"));
+    //$(this).children().each(function() {
+    var altura_fila = $(this).find("input").val();
+    $(this).find(".celda").each(function() {
+      //r.push($(this).data("prop"));
+      r.push($.extend((altura_fila == "" ? {} : {height: altura_fila}), $(this).data("prop")));
+      altura_fila = "";
     });
     ar.push(r);
   });
@@ -49,6 +53,18 @@ function genArrayBan(rows) {
 function grabaFic() {
   var data = {modelo: modelo};
   var th, cl, h, trup;
+
+  // Generamos la cadena de anchuras de columnas en el input col_widthd
+  // para que se siga grabando como en la versión anterior
+  var cw = [];
+  $("#t_width input").each(function() {
+    var val = $(this).val();
+    cw.push(val == "" ? 0 : val);
+  });
+  var numCerosFinales = 0;
+  for (let i = cw.length - 1; i >= 0; i--) if (cw[i] == 0) numCerosFinales++; else break;
+  cw.length = cw.length - numCerosFinales;
+  $("#col_widths").val(cw.join(','));
 
   $("#config :input").each(function() {
     th =$(this);
@@ -460,7 +476,8 @@ function fullCampo(node) {
 function bBandaStatus() {
   $(".b_banda").button("enable");
   if (celda.prev().length == 0) $("#swp_w").button("disable");
-  if (celda.next().length == 0) $("#swp_e").button("disable");
+  //if (celda.next().length == 0) $("#swp_e").button("disable");
+  if (!celda.next().hasClass("celda")) $("#swp_e").button("disable");
   if (celda.parent().prev().length == 0) $("#swp_n").button("disable");
   if (celda.parent().next().length == 0) $("#swp_s").button("disable");
   if (nCol == 1) $("#del_c").button("disable");
@@ -468,7 +485,8 @@ function bBandaStatus() {
 
 function setCell(c) {
   celda = c;
-  $(".t_banda td").css("background-color", "#ffffff");
+  //$(".t_banda td").css("background-color", "#ffffff");
+  $(".t_banda .celda").css("background-color", "#ffffff");
   celda.css("background-color", "#d3d3d3");
   bBandaStatus();
   var prop = celda.data('prop');
@@ -498,19 +516,30 @@ function iniPropCell() {
   $(".cell-new").removeClass('cell-new');
 }
 
+function genColWidth(val = "") {
+  setTimeout(function() {$(".anchura-columnas input").entryn(3, 0);}, 0);
+  return `<td class='anchura-columnas'><input value='${val}' /></td>`;
+}
+
 function genCell() {
   nCel += 1;
-  return('<td class="cell-new">&nbsp;</td>');
+  return('<td class="celda cell-new">&nbsp;</td>');
 }
 
 function genCol(ew) {
   var i = celda.index() + 1;
   $(".t_banda td:nth-child(" + i + ")").each(function () {
-    (ew == 'w') ? $(this).before(genCell()) : $(this).after(genCell());
+    var ia = $(this).hasClass("anchura-columnas");
+    (ew == 'w') ? $(this).before(ia ? genColWidth() : genCell()) : $(this).after(ia ? genColWidth() : genCell());
   });
   nCol += 1;
   bBandaStatus();
   iniPropCell();
+}
+
+function genRowHeight(val = "") {
+  setTimeout(function() {$(".altura-filas input").entryn(3, 0);}, 0);
+  return `<td class='altura-filas'><input value='${val}' title='Altura de la fila' /></td>`;
 }
 
 function genCadRow() {
@@ -518,6 +547,7 @@ function genCadRow() {
   for (var i = 0; i < nCol; i++) {
     cad += genCell();
   }
+  cad += genRowHeight();
   cad += '</tr>';
 
   return cad;
@@ -588,10 +618,11 @@ function leeFormBanda(tabla, arr_ban) {
     $("#" + tabla + " tbody").append("<tr></tr>");
     var el = $("#" + tabla + " tr").last();
     $.each(ban, function(j, cel) {
-      el.append("<td>" + (cel.alias ? cel.alias : "&nbsp;") + "</td>");
+      el.append("<td class='celda'>" + (cel.alias ? cel.alias : "&nbsp;") + "</td>");
       el.find("td").last().attr('title', cel.campo).data('prop', cel);
       nCol = Math.max(nCol, j+1);
     });
+    el.append(genRowHeight(ban[0].height));
   });
 }
 
@@ -617,8 +648,6 @@ $(window).load(function () {
     modal: true,
     width: 400,
     resizable: false,
-    show: {effect: "blind", duration: 500},
-    hide: {effect: "explode", duration: 500},
     buttons: [{
       id: 'b_grabar',
       text: "Aceptar",
@@ -659,8 +688,6 @@ $(window).load(function () {
     modal: true,
     width: 400,
     resizable: false,
-    show: {effect: "blind", duration: 500},
-    hide: {effect: "explode", duration: 500},
     buttons: [{
       id: 'b_busu',
       text: "Aceptar",
@@ -690,8 +717,6 @@ $(window).load(function () {
   $("#config").dialog({
     autoOpen: false,
     width: 600,
-    show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300},
     resizeStop: function () {
       $(this).dialog('option', 'height', 'auto')
     }
@@ -703,8 +728,6 @@ $(window).load(function () {
     autoOpen: false,
     width: 650,
     position: {my: "left top", at: "left+90 bottom+120", of: "#bandas"},
-    show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300},
     resizeStop: function () {
       $(this).dialog('option', 'height', 'auto')
     }
@@ -722,8 +745,6 @@ $(window).load(function () {
     width: 500,
     position: {my: "left top", at: "left+90 top+120", of: "#bandas"},
     resizable: false,
-    show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300},
     buttons: {
       "Generar": function () {
         var ali = $("#asist_lim_alias").val();
@@ -780,8 +801,6 @@ $(window).load(function () {
     autoOpen: false,
     width: 600,
     position: {my: "left top", at: "left+100 bottom+150", of: "#bandas"},
-    show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300},
     resizeStop: function () {
       $(this).dialog('option', 'height', 'auto')
     }
@@ -810,8 +829,6 @@ $(window).load(function () {
     autoOpen: false,
     width: 400,
     position: {my: "left top", at: "left+10 bottom+10", of: "#bandas"},
-    show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300},
     resizeStop: function () {
       $(this).dialog('option', 'height', 'auto')
     }
@@ -839,8 +856,6 @@ $(window).load(function () {
     autoOpen: false,
     width: 600,
     position: {my: "left top", at: "left+30 bottom+40", of: "#bandas"},
-    show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300},
     resizeStop: function () {
       $(this).dialog('option', 'height', 'auto')
     }
@@ -859,8 +874,6 @@ $(window).load(function () {
     autoOpen: false,
     width: 400,
     position: {my: "left top", at: "left+50 bottom+70", of: "#bandas"},
-    show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300},
     resizeStop: function () {
       $(this).dialog('option', 'height', 'auto')
     }
@@ -872,8 +885,6 @@ $(window).load(function () {
     autoOpen: false,
     width: 400,
     position: {my: "left top", at: "left+70 bottom+100", of: "#bandas"},
-    show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300},
     resizeStop: function () {
       $(this).dialog('option', 'height', 'auto')
     }
@@ -885,8 +896,6 @@ $(window).load(function () {
     autoOpen: false,
     width: 600,
     position: {my: "left top", at: "left+30 bottom+70", of: "#bandas"},
-    show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300},
     resizeStop: function () {
       $(this).dialog('option', 'height', 'auto')
     }
@@ -904,8 +913,6 @@ $(window).load(function () {
     autoOpen: false,
     width: 400,
     position: {my: "left top", at: "left+75 bottom+90", of: "#bandas"},
-    show: {effect: "blind", duration: 300},
-    hide: {effect: "explode", duration: 300},
     resizeStop: function () {
       $(this).dialog('option', 'height', 'auto')
     }
@@ -916,8 +923,6 @@ $(window).load(function () {
   $("#estilos").dialog({
     autoOpen: false,
     width: 650,
-    show: {effect: "blind", duration: 500},
-    hide: {effect: "explode", duration: 500},
     resizeStop: function () {
       $(this).dialog('option', 'height', 'auto')
     }
@@ -942,8 +947,6 @@ $(window).load(function () {
     autoOpen: false,
     width: 800,
     height: 800,
-    show: {effect: "blind", duration: 500},
-    hide: {effect: "explode", duration: 500}
   });
 
   /*
@@ -954,7 +957,8 @@ $(window).load(function () {
    });
    */
 
-  $("#bandas").on('click', 'td', function () {
+  //$("#bandas").on('click', 'td', function () {
+  $("#bandas").on('click', '.celda', function () {
     if (window.event.ctrlKey) {
       if (lastCmp.is("#campo")) {
         var ban_click = $(this).parentsUntil('div').last().attr('id');
@@ -1128,13 +1132,15 @@ $(window).load(function () {
           // Celda de cabecera
           if (celda.is("#t_det td")) {
             var cc = $("#t_cab tr").last().children().eq(celda.index());
-            prop = cc.data('prop');
-            if (prop.alias == undefined || prop.alias == "") {
-              prop.campo = "nt('" + event.node.name + "')";
-              prop.alias = name;
-              prop.estilo = "tit" + (event.node.ali == "i" ? "" : "_" + event.node.ali);
-              cc.attr('title', prop.campo);
-              cc.html(name);
+            if (cc.length > 0) {
+              prop = cc.data('prop');
+              if (prop.alias == undefined || prop.alias == "") {
+                prop.campo = "nt('" + event.node.name + "')";
+                prop.alias = name;
+                prop.estilo = "tit" + (event.node.ali == "i" ? "" : "_" + event.node.ali);
+                cc.attr('title', prop.campo);
+                cc.html(name);
+              }
             }
           }
         }
@@ -1258,6 +1264,14 @@ $(window).load(function () {
     $("#t_det tbody").append(genCadRow());
     iniPropCell();
   }
+
+  // Generar los inputs de las anchuras de cada columna
+  var cw = formato.col_widths.split(",");
+  for (var i = 0; i < nCol; i++) {
+    $("#t_width tr").append(genColWidth(cw[i] == 0 ? "" : cw[i]));
+  }
+  // Generar celda vacía al final de las anchuras para compensar la columna de las alturas de filas
+  $("#t_width tr").append("<td class='altura-filas anchura-columnas'></td>");
 
   // Deshabilitar lo que proceda
   if ($("#linxpag").val() == '') {

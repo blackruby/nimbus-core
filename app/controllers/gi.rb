@@ -679,8 +679,10 @@ class GI
       }
       sty = r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}
       typ = r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}
-      #sheet.add_row res, style: sty, types: typ, height: @form[:row_height]
-      sheet.add_row res, style: sty, types: typ, height: (num_rows == 0 ? @form[:row_height] : 13 * (num_rows+1))
+      altura = r[0][:height].to_i
+      altura = @form[:row_height] if altura == 0
+      #sheet.add_row res, style: sty, types: typ, height: (num_rows == 0 ? @form[:row_height] : 13 * (num_rows+1))
+      sheet.add_row res, style: sty, types: typ, height: (num_rows == 0 ? altura : (altura ? altura : 13) * (num_rows+1))
       @ris[sheet] += 1
       @ri_act += 1
       @ri += 1 if sheet == @sh
