@@ -1199,7 +1199,7 @@ class ApplicationController < ActionController::Base
 
         fa = f[:field].split('.')
         field = fa.map{|c| %Q("#{c.gsub('"', '""')}")}.join('.')
-        if fa[-2] == clm.table_name
+        if fa[-2].nil? || fa[-2] == clm.table_name
           ty = clm.campos[fa[-1].to_sym][:type]
         else
           begin
