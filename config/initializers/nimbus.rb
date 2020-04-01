@@ -763,6 +763,7 @@ module MantMod
         @grid[:gcols][1] ||= (@grid[:gcols][0] - 1)*7/11 + 1
         @grid[:gcols][2] ||= 4
         @grid[:visible] = true if @grid[:visible].nil?
+        @grid[:altRows] = true if @grid[:altRows].nil?
         @grid[:height] ||= 250
         @grid[:cellEdit] = false if @grid[:cellEdit].nil?
         @grid[:shrinkToFit] = true if @grid[:shrinkToFit].nil?

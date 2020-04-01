@@ -226,7 +226,7 @@ $(window).load(function () {
 
     toppager: !varView.grid.scroll,
     rowList:[10,20,30,50,100,500,1000],
-    altRows: true,
+    altRows: varView.grid.altRows,
     sortable: true,
     viewrecords: true,
 
