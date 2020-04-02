@@ -93,8 +93,10 @@ class UsuariosController < ApplicationController
       prf_a = Perfil.all.pluck(:id, :codigo, :descripcion).map {|e| {id: e[0], nom: e[1] + ' ' + e[2]}}
       usu_a = Usuario.where('admin != true AND id != ? AND id != ?', @usu.id, @fact.id).pluck(:id, :codigo, :nombre).map {|e| {id: e[0], nom: e[1] + ' ' + e[2]}}
 
-      emp_a << {id: 0, nom: 'Sin empresa'}
-      emp_a << {id: -1, nom: 'Nuevas empresas'}
+      # De momento desactivamos estas dos opciones, ya que no funcionaban
+      # y no está claro cuál debe ser su función.
+      #emp_a << {id: 0, nom: 'Sin empresa'}
+      #emp_a << {id: -1, nom: 'Nuevas empresas'}
 
       prf_a << {id: 0, nom: 'Sin perfil'}
 
