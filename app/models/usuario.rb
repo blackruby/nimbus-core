@@ -198,6 +198,10 @@ class Usuario < ActiveRecord::Base
       Empresa.where('id in (?)', ids).pluck(*cmps.flatten.compact)
     end
   end
+
+  def permiso(tag, eid)
+    pref[:permisos][:ctr][tag.to_s][eid.to_i]
+  end
 end
 
 class Usuario
