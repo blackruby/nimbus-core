@@ -37,11 +37,10 @@ function genArrayBan(rows) {
   var ar = [], r;
   rows.each(function() {
     r = [];
-    //$(this).children().each(function() {
     var altura_fila = $(this).find("input").val();
     $(this).find(".celda").each(function() {
-      //r.push($(this).data("prop"));
-      r.push($.extend((altura_fila == "" ? {} : {height: altura_fila}), $(this).data("prop")));
+      altura_fila == "" ? delete $(this).data('prop').height : $(this).data('prop').height = altura_fila;
+      r.push($(this).data("prop"));
       altura_fila = "";
     });
     ar.push(r);
