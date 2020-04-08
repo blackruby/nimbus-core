@@ -1999,9 +1999,9 @@ class ApplicationController < ActionController::Base
         when :date
           tipo == :lgrid ? val : val.to_s(:sp)
         when :time
-          val.strftime('%H:%M' + (cp[:seg] ? ':%S' : ''))
+          val.is_a?(String) ? val : val.strftime('%H:%M' + (cp[:seg] ? ':%S' : ''))
         when :datetime
-          val.strftime('%d-%m-%Y %H:%M' + (cp[:seg] ? ':%S' : ''))
+          val.is_a?(String) ? val : val.strftime('%d-%m-%Y %H:%M' + (cp[:seg] ? ':%S' : ''))
         else
           if cp[:rol] == :origen
             nt(val)
@@ -2673,7 +2673,7 @@ class ApplicationController < ActionController::Base
     cmp = cmp.to_sym
     h = {}
     @fact[cmp][:cols].each_with_index {|c, i|
-      h[c[:name]] = _forma_campo(:form, c, c[:name], data[i + 1])
+      h[c[:name]] = _forma_campo(:lgrid, c, c[:name], data[i + 1])
       h['_' + c[:name]] = data[i + 1] if c[:name].ends_with?('_id')
     }
     @ajax << "$('#g_#{cmp}').jqGrid('addRowData','#{data[0]}',#{h.to_json}"
