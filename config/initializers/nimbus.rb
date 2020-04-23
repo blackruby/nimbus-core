@@ -547,7 +547,10 @@ class ActiveRecord::Base
     nueva_ficha.save
     ficha.class.reflect_on_all_associations(:has_many).each do |hijo|
       cl = hijo.options[:class_name].constantize
-      cl.where("#{cl.pk[0]} = #{ficha.id}").each {|f| _dup_with_has_many(f, {cl.pk[0] => nueva_ficha.id})}
+      cl.where("#{cl.pk[0]} = #{ficha.id}").each {|f|
+        f.user_id = ficha.user_id
+        _dup_with_has_many(f, {cl.pk[0] => nueva_ficha.id})
+      }
     end
     nueva_ficha.id
   end
