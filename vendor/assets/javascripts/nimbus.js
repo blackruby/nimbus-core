@@ -620,7 +620,7 @@ function callFonServer(fon_s, data, fon_ret, sync) {
 
 // Función más completa para invocar un método del server
 // Una forma de mostrar feedback al usuario de que se está procesando sería:
-// poBusy(); nimAjax('metodo', {}, {timeout: 5000, success: function(){// Mi código}, complete: quitaBusy});
+// ponBusy(); nimAjax('metodo', {}, {timeout: 5000, success: function(){// Mi código}, complete: quitaBusy});
 function nimAjax(fon_s, data, ajax) {
   if (checkNimServerStop()) return;
 
