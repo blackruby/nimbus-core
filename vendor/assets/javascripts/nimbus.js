@@ -1028,6 +1028,13 @@ if (self != top)
   });
 */
 
+function setAutoCompEmpeje(cmp, id, empeje) {
+  var el = $("#" + cmp);
+  url = new URL("http:/" + el.autocomplete("option", "source"));
+  url.searchParams.set((empeje == "j" ? "jid" : "eid"), id);
+  el.autocomplete("option", "source", url.href.slice(6));
+}
+
 function autoCompBuscar() {
   bus_input_selected = $("#_auto_comp_button_").parent().find("input");
   var cmp = bus_input_selected.attr('cmp');

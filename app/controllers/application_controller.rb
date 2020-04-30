@@ -1839,6 +1839,34 @@ class ApplicationController < ActionController::Base
     @dat[:auto_comp] ? @dat[:auto_comp][cmp.to_sym] = wh : @dat[:auto_comp] = {cmp.to_sym => wh}
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'set_auto_comp_empresa(cmp, eid)', mark: :rdoc}
+
+  # Cambia la empresa por la que se filtran los registros de un campo references (_id)
+  #
+  # <b>Parámetros</b>
+  #
+  # * *cmp* (Symbol, String) -- Campo al que queremos cambiar el filtro
+  # * *eid* (Integer) -- id de la empresa por la que queremos filtrar
+  ## 
+
+  def set_auto_comp_empresa(cmp, eid)
+    @ajax << "setAutoCompEmpeje('#{cmp}', #{eid}, 'e');"
+  end
+
+  ##nim-doc {sec: 'Métodos de usuario', met: 'set_auto_comp_ejercicio(cmp, jid)', mark: :rdoc}
+
+  # Cambia el ejercicio por el que se filtran los registros de un campo references (_id)
+  #
+  # <b>Parámetros</b>
+  #
+  # * *cmp* (Symbol, String) -- Campo al que queremos cambiar el filtro
+  # * *jid* (Integer) -- id del ejercicio por el que queremos filtrar
+  ## 
+
+  def set_auto_comp_ejercicio(cmp, jid)
+    @ajax << "setAutoCompEmpeje('#{cmp}', #{jid}, 'j');"
+  end
+
   def _auto(par)
     unless request.xhr? # Si la petición no es Ajax... ¡Puerta! (para evitar accesos desde la barra de direcciones)
       #render json: ''
