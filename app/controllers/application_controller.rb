@@ -569,10 +569,28 @@ class ApplicationController < ActionController::Base
     FileUtils.rm_f(file_name) if args[:rm]
   end
 
+  # Método para poder solicitar archivos del servidor a través de GET
+  # Sólo se admiten ficheros que si empiezan por "/" se refieran a "/tmp..."
+  # No se admiten ficheros que contengan en su path ".." 
+  # Si el fichero comienza por "~/" se asume que es un path que arranca del home del proyecto (sólo válido para el usuario "admin")
+  # En cualquier otro caso se supone que el path es relativo a la carpeta "data" del proyecto
+
   def nim_send_file
     f = params[:file]
-    return if f.include?('..')
-    send_file (f.starts_with?('/tmp') || f.starts_with?('/var') ? f : "data/#{f}"), disposition: :inline
+    if f.nil? || f.include?('..') || f[0] == '/' && !f.starts_with?('/tmp/') || f[0..1] == '~/' && @usu.codigo != 'admin'
+      head :no_content
+      return
+    end
+    if f[0..1] == '~/'
+      f = f[2..-1]
+    elsif f[0] != '/'
+      f = "data/#{f}"
+    end
+    if File.exist? f
+      send_file f, disposition: :inline
+    else
+      head :no_content
+    end
   end
 
   def nim_path_image(modelo, id, tag)
@@ -3000,7 +3018,7 @@ class ApplicationController < ActionController::Base
         `cp #{params[campo].tempfile.path} #{@fact[campo]}`
         render html: %Q(
           <script>
-            $(window).load(function(){$("##{campo}_img",parent.document).attr('src', '/nim_send_file?file=#{params[campo].tempfile.path}')})
+            $(window).load(function(){$("##{campo}_img",parent.document).attr('src', '/nim_send_file?file=#{@fact[campo]}')})
           </script>
         ).html_safe, layout: 'basico'
       end
