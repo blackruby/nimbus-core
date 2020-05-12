@@ -586,7 +586,7 @@ class ApplicationController < ActionController::Base
     elsif f[0] != '/'
       f = "data/#{f}"
     end
-    if File.exist? f
+    if File.file? f
       send_file f, disposition: :inline
     else
       head :no_content
