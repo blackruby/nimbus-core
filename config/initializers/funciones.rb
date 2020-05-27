@@ -301,7 +301,7 @@ def iban_mask(pais = 'ES')
   pais == 'ES' ? '?**99-9999-9999-9999-9999-9999' : '?**********************************'
 end
 
-def nim_tmpname(sufijo = '')
+def nim_tmpname(prefijo = '', sufijo = '')
   t = Time.now.strftime("%Y%m%d%H%M%S")
-  "nim-#{t}-#{$$}-#{rand(0x100000000).to_s(36)}#{sufijo}"
+  "#{prefijo}nim-#{t}-#{$$}-#{rand(0x100000000).to_s(36)}#{sufijo}"
 end
