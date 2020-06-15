@@ -1,13 +1,12 @@
+/*
+  La librería de iconos hay que descargarla de:
+  https://github.com/google/material-design-icons/blob/master/iconfont/MaterialIcons-Regular.woff2
+*/
 @font-face {
   font-family: 'Material Icons';
   font-style: normal;
   font-weight: 400;
-  src: asset-url('mdl/iconfont/MaterialIcons-Regular.eot'); /* For IE6-8 */
-  src: local('Material Icons'),
-  local('MaterialIcons-Regular'),
-  asset-url('mdl/iconfont/MaterialIcons-Regular.woff2') format('woff2'),
-  asset-url('mdl/iconfont/MaterialIcons-Regular.woff') format('woff'),
-  asset-url('mdl/iconfont/MaterialIcons-Regular.ttf') format('truetype');
+  src: asset-url('mdl/iconfont/MaterialIcons-Regular.woff2');
 }
 
 .material-icons {
