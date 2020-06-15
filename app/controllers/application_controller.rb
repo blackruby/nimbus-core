@@ -1423,6 +1423,19 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'call_metodo_parent(metodo, nivel = 0)', mark: :rdoc}
+
+  # Llama al método _metodo_ del mantenimiento padre, abuelo, etc, según el _nivel_ indicado.
+  #
+  # <b>Parámetros</b>
+  # * *metodo* (Symbol, String) -- Método al que se quiere llamar.
+  # * *nivel* (Integer) <em>(Default: 0)</em> -- Indica el nivel de profundidad: padre (0), abuelo (1), etc.
+  ## 
+  
+  def call_metodo_parent(metodo, nivel = 0)
+    @ajax << 'parent.' * 2 * (nivel + 1) + "nimAjax('#{metodo}');"
+  end
+
   def set_parent
     if params[:padre]
       @dat[:pid] = params[:padre]
@@ -1445,6 +1458,14 @@ class ApplicationController < ActionController::Base
     h ? h.data[:fact] : nil
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'fact_parent(nivel = 0)', mark: :rdoc}
+
+  # Devuelve la ficha @fact del mantenimiento padre, abuelo, etc, según el _nivel_ indicado.
+  #
+  # <b>Parámetros</b>
+  # * *nivel* (Integer) <em>(Default: 0)</em> -- Indica el nivel de profundidad: padre (0), abuelo (1), etc.
+  ## 
+  
   def fact_parent(nivel = 0)
     #@v_parent = Vista.find(@dat[:pid]) if @dat[:pid] && @v_parent.nil?
     #@v_parent ? @v_parent.data[:fact] : nil
@@ -1459,14 +1480,21 @@ class ApplicationController < ActionController::Base
     @v_parent[nivel].data[:fact]
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'sincro_parent(nivel = 0)', mark: :rdoc}
+
+  # Sincroniza los cambios hechos en la ficha @fact del mantenimiento padre, abuelo, etc, según el _nivel_ indicado.
+  #
+  # <b>Parámetros</b>
+  # * *nivel* (Integer) <em>(Default: 0)</em> -- Indica el nivel de profundidad: padre (0), abuelo (1), etc.
+  ## 
+  
   def sincro_parent(nivel = 0)
     #@v_parent ? @v_parent.save : @dat[:vp].save
     #@ajax << 'parent.parent.callFonServer("envia_ficha");'
     if @v_parent
       if @v_parent[nivel]
         @v_parent[nivel].save
-        @ajax << 'parent.parent.callFonServer("envia_ficha");'
-        @ajax << 'parent.' * 2 * (nivel + 1) + 'nimAjax("envia_ficha");'
+        call_metodo_parent :envia_ficha, nivel
       end
     else
       @dat[:vp].save
