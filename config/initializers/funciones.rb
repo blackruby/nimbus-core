@@ -305,3 +305,13 @@ def nim_tmpname(prefijo = '', sufijo = '')
   t = Time.now.strftime("%Y%m%d%H%M%S")
   "#{prefijo}nim-#{t}-#{$$}-#{rand(0x100000000).to_s(36)}#{sufijo}"
 end
+
+# Se debe recibir un código string y devuelve el dígito de control
+def obtener_dc_codigobarras(ean13)
+  checksum    = 0
+  ean13_array = ean13.reverse.split('') # invertimos la cadena y convertimos en array
+  ean13_array.each_with_index { |value, index|
+    checksum    += value.to_i * (3 - 2 * (index.to_i % 2))
+  }
+  return ((10 - (checksum % 10)) % 10).to_s
+end
