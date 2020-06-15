@@ -1423,20 +1423,6 @@ class ApplicationController < ActionController::Base
     end
   end
 
-=begin
-  def set_parent(vid = false)
-    if params[:padre]
-      @dat[:vp] = Vista.find(params[:padre].to_i)
-      @fact.parent = @dat[:vp].data[:fact]
-      unless vid == false
-        @dat[:vp].data[:hijos] ||= {}
-        @dat[:vp].data[:hijos][params[:controller]] = vid
-        @dat[:vp].save
-      end
-    end
-  end
-=end
-
   def set_parent
     if params[:padre]
       @dat[:pid] = params[:padre]
@@ -1459,14 +1445,33 @@ class ApplicationController < ActionController::Base
     h ? h.data[:fact] : nil
   end
 
-  def fact_parent
-    @v_parent = Vista.find(@dat[:pid]) if @dat[:pid] && @v_parent.nil?
-    @v_parent ? @v_parent.data[:fact] : nil
+  def fact_parent(nivel = 0)
+    #@v_parent = Vista.find(@dat[:pid]) if @dat[:pid] && @v_parent.nil?
+    #@v_parent ? @v_parent.data[:fact] : nil
+    @v_parent ||= []
+    return @v_parent[nivel].data[:fact] if @v_parent[nivel]
+    pid = @dat[:pid]
+    (0..nivel).each {|n|
+      return nil unless pid
+      @v_parent[n] ||= Vista.find(pid)
+      pid = @v_parent[n].data[:pid]
+    }
+    @v_parent[nivel].data[:fact]
   end
 
-  def sincro_parent
-    @v_parent ? @v_parent.save : @dat[:vp].save
-    @ajax << 'parent.parent.callFonServer("envia_ficha");'
+  def sincro_parent(nivel = 0)
+    #@v_parent ? @v_parent.save : @dat[:vp].save
+    #@ajax << 'parent.parent.callFonServer("envia_ficha");'
+    if @v_parent
+      if @v_parent[nivel]
+        @v_parent[nivel].save
+        @ajax << 'parent.parent.callFonServer("envia_ficha");'
+        @ajax << 'parent.' * 2 * (nivel + 1) + 'nimAjax("envia_ficha");'
+      end
+    else
+      @dat[:vp].save
+      @ajax << 'parent.parent.callFonServer("envia_ficha");'
+    end
   end
 
   def render_before_ine(r)
