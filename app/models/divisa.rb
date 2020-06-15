@@ -8,6 +8,7 @@ class Divisa < ActiveRecord::Base
   }
 
   has_many :divisalineas, dependent: :destroy
+  has_many :paises, -> {order(:codigo)}
 
   #after_initialize :ini_campos
 
