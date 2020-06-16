@@ -638,6 +638,43 @@ class ApplicationController < ActionController::Base
     @ajax << %Q($('##{cmp}').html('<iframe src="#{src}" style="height: #{height}px"></iframe>');)
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: 'crea_boton(cmp:, label: nil, icon: nil, title: nil, mdl: false, accion: nil, busy: false)', mark: :rdoc}
+
+  # Crea un botón sobre un campo de tipo :div (definido con "type: :div" en @campos)
+  #
+  # <b>Parámetros</b>
+  #
+  # * *cmp* (Symbol, String) -- Indica el campo sobre el que se construirá el botón.
+  # * *label* (String) <em>(Default: nil)</em> -- Es el texto a mostrar en el botón (solo se aplica si _mdl_ es true).
+  # * *icon* (String) <em>(Default: nil)</em> -- Es el nombre de un icono de
+  #   {material design}[https://material.io/resources/icons].
+  # * *title* (String) <em>(Default: nil)</em> -- Es el texto a mostrar en el tooltip al posar el ratón encima.
+  # * *mdl* (Boolean) <em>(Default: false)</em> -- Indica el aspecto del botón. Si es _true_ el botón tendrá el aspecto
+  #   de los botones "favoritos" de material design: Redondos y del color secundario (como los de las cabeceras de los
+  #   mantenimientos); en este caso solo se usa el icono (_icon_) y se ignorará la _label_. Si es false, el botón será
+  #   un rectángulo del color primario, aceptando _icon_ y _label_ (como los botones de los diálogos). 
+  # * *accion* (Symbol, String) <em>(Default: nil)</em> -- Es el método del controlador que será
+  #   llamado al pulsar el botón.
+  #   Si es una String y comienza por "js:" se interpretará que lo que va a continuación es
+  #   código javascript que se ejecutará al pulsar el botón. En este caso no hay llamada
+  #   al servidor, salvo que el código javascript realice alguna.
+  # * *busy* (Boolean) <em>(Default: false)</em> -- Si es true se mostrará una pantalla gris mientras
+  #   dura la acción para prevenir interacciones del usuario.
+  ##
+
+  def crea_boton(cmp:, label: nil, icon: nil, title: nil, mdl: false, accion: nil, busy: false)
+    if mdl
+      @ajax << %Q(#{cmp}.innerHTML = creaMdlButton("b_#{cmp}", 36, 0, 24, '#{icon}', '#{title}');)
+    else
+      htm = %Q(<button id="b_#{cmp}" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" title="#{title}">)
+      htm += '<i class="material-icons">' + icon + '</i>'  + (label ? '&nbsp;' : '') if icon
+      htm += "#{label}</button>"
+      @ajax << %Q(#{cmp}.innerHTML = #{htm.to_json};)
+    end
+
+    @ajax << "$('#b_#{cmp}').click(function(){clickNimButton('#{accion}', #{busy ? 'true' : 'false'})});" if accion
+  end
+
   # Métodos para ejecutar procesos en segundo plano con seguimiento
 
   #class P2PSysCancel < StandardError

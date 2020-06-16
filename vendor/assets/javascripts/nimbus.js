@@ -1523,6 +1523,16 @@ function checkNimServerStop() {
     return false;
 }
 
+function clickNimButton(accion, busy) {
+  if (busy) ponBusy();
+    $(".ui-jqgrid-btable").jqGrid('editCell', 0, 0, false);
+    if (accion.startsWith("js:")) {
+      eval(accion.slice(3));
+      quitaBusy();
+    } else
+      nimAjax(accion, {}, {complete: function() {if (busy) quitaBusy();}});
+}
+
 function creaBotonesDialogo(bot, dlg) {
   var htm = '';
   for (let b of bot) {
