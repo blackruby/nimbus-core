@@ -1044,20 +1044,9 @@ function autoCompBuscar() {
     callFonServer("bus_call", {cmp: cmp, col: col, id: cmp + '_' + rowid + '_' + col});
   } else
     callFonServer("bus_call", {id: bus_input_selected.attr("id"), cmpid: bus_input_selected.attr("cmpid")});
-  /*
-  var inp = $("#_auto_comp_button_").parent().find("input");
-  var w = window.open('/bus?mod=' + inp.attr("modelo") + '&eid=' + eid + '&jid=' + jid, "_blank", "width=700, height=500");
-  w._autoCompField = inp
-  */
 }
 
 function autoCompIrAFicha() {
-  /*
-  var inp = $("#_auto_comp_button_").parent().find("input");
-  var si = inp.autocomplete("instance").selectedItem;
-  if (si == undefined) return;
-  window.open('/' + inp.attr("controller") + '/' + si.id + '/edit', '_blank', '');
-  */
   if (checkNimServerStop()) return;
 
   var inp = $("#_auto_comp_button_").parent().find("input");
@@ -1076,20 +1065,17 @@ function autoCompNuevaFicha() {
   var inp = $("#_auto_comp_button_").parent().find("input");
   var nw = inp.attr("new");
   if (nw == undefined) {
-    //window.open('/' + inp.attr("controller") + '?hidegrid=1&id_edit=-1', '_blank', '');
     window.open('/' + inp.attr("controller") + '?hidegrid=1&id_edit=-1' + (typeof(eid) != "undefined" && eid != "" ? "&eid=" + eid : "") + (typeof(jid) != "undefined" && jid != "" ? "&jid=" + jid : ""), '_blank', '');
   } else
     callFonServer(nw);
 }
 
 function ponBusy() {
-  //$("body").append('<div class="mdl-spinner mdl-js-spinner nim-busy is-active" style="z-index:100001; position: absolute; left: 50%; top: 50%;"></div>');
   $("body").append("<div class='nim-body-modal nim-busy'></div><div class='mdl-spinner mdl-js-spinner nim-busy is-active' style='z-index:100001; position: absolute; left: 50%; top: 50%;'></div>'");
   componentHandler.upgradeDom();
 }
 
 function quitaBusy() {
-  //$(".mdl-spinner").remove();
   $(".nim-busy").remove();
 }
 
@@ -1410,6 +1396,7 @@ function autoCompGridLocal(el, modelo, ctrl, cmp, col) {
   }).addClass("auto_comp").attr('controller', ctrl).attr('cmp', cmp).attr('col',  col).attr('dbid', g.jqGrid('getLocalRow', rowid)['_'+col]);
 }
 
+/*
 function addRolButton(el, label, icon, fon) {
   el.parent().append(
     '<button id="_nim_rol_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" title="' + label + '" style="position: absolute;top: -4px;right: -4px" tabindex=-1>' +
@@ -1418,6 +1405,7 @@ function addRolButton(el, label, icon, fon) {
   );
   $('#_nim_rol_button_').on('click', fon);
 }
+*/
 
 function p2p(tit, label, pb, cancel, width, mant, fin) {
   p2pStatus = 1;  // Variable global indicando el estado del proceso (1=activo, 0=finalizado, 2=Error)
@@ -1629,9 +1617,7 @@ $(window).load(function() {
     }
   });
 
-  //$("body").on("focus", ".nim-input", function (e) {
-  $("body").on("focus", "input", function (e) {
-    //$("#_auto_comp_button_").remove();
+  $("body").on("focus", "input, select, textarea", function (e) {
     $(".nim-remove-on-input").remove();
   }).on("click", function() {
     $(".nim-context-menu").css("display", "none");
@@ -1640,7 +1626,6 @@ $(window).load(function() {
 
     $(this).parent().append(
       '<button id="_auto_comp_button_" class="mdl-button mdl-js-button mdl-button--icon nim-remove-on-input" style="position: absolute;top: -4px;right: -4px" tabindex=-1>'+
-      //'<i class="material-icons" style="background-color: #eeeeee">more_vert</i>'+
       '<i class="material-icons">more_vert</i>'+
       '</button>'
     );
@@ -1673,31 +1658,46 @@ $(window).load(function() {
     });
 
     componentHandler.upgradeDom();
+/*
+  }).on("focus", ".nim-input-custom", function (e) {
+    var th = this;
+    addRolButton($(th), th.getAttribute("rol-title"), th.getAttribute("rol-icon"), function() {
+      nimAjax(th.getAttribute("rol-accion"));
+    });
   }).on("focus", ".nim-input-origen", function (e) {
+    var th = this;
     addRolButton($(this), 'Abrir ficha asociada', 'exit_to_app', function() {
-      var cmp = $(this).parent().find('input');
-      var v = cmp.val().trim();
-      if (v != '') callFonServer('ir_a_origen', {cmp: cmp.attr('id')});
+      //var cmp = $(this).parent().find('input');
+      var v = th.value.trim();
+      //if (v != '') callFonServer('ir_a_origen', {cmp: cmp.attr('id')});
+      if (v != '') callFonServer('ir_a_origen', {cmp: th.getAttribute('id')});
     });
   }).on("focus", ".nim-input-email", function (e) {
+    var th = this;
     addRolButton($(this), 'Enviar correo', 'message', function() {
-      var v = $(this).parent().find('input').val().trim();
+      //var v = $(this).parent().find('input').val().trim();
+      var v = th.value.trim();
       if (v != '') window.open('mailto:' + v);
     });
   }).on("focus", ".nim-input-url", function (e) {
+    var th = this;
     addRolButton($(this), 'Seguir enlace', 'link', function() {
-      var v = $(this).parent().find('input').val().trim();
+      //var v = $(this).parent().find('input').val().trim();
+      var v = th.value.trim();
       if (v != '') {
         if (v.indexOf('://') == -1) v = 'http://' + v;
         window.open(v);
       }
     });
   }).on("focus", ".nim-input-map", function (e) {
+    var th = this;
     addRolButton($(this), 'Abrir en google maps', 'location_on', function() {
-      var cl = $(this).parent().find('input').attr("map");
+      //var cl = $(this).parent().find('input').attr("map");
+      var cl = th.getAttribute("map");
       var place = '';
       $("." + cl).each(function() {
-        var v = $(this).val().replace(/c\//gi, '').replace(/nº/gi, '');
+        //var v = $(this).val().replace(/c\//gi, '').replace(/nº/gi, '');
+        var v = this.value.replace(/c\//gi, '').replace(/nº/gi, '');
         var i, l = v.length;
         for (i = 0; i < l; i++) if (v[i] >= '0' && v[i] <= '9') break;
         for (;i < l; i++) if (v[i] < '0' || v[i] > '9') break;
@@ -1708,6 +1708,7 @@ $(window).load(function() {
       });
       window.open('http://www.google.com/maps/place/' + place);
     });
+*/
   }).on("contextmenu", ".nim-label-img", function(e) {
     e.preventDefault();
     var cmp = $(this).attr("for");

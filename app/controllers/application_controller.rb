@@ -3525,18 +3525,10 @@ class ApplicationController < ActionController::Base
 
       sal << '<div class="mdl-grid">' if prim || !v[:span] && (v[:hr] || v[:br])
       sal << '<br>' if v[:span] and v[:inline] and v[:br]
-=begin
-      if prim or v[:hr] or v[:br]
-        sal << '</div>' unless prim # Cerrar el div mdl-grid si procede
-        sal << '<hr>' if v[:hr]
-        sal << '<div class="mdl-grid">'
-        prim = false
-      end
-=end
 
-      #div_class = v[:span] ? 'nim-group-span' : 'nim-group'
-      #div_class << '-inline' if v[:inline]
-      div_attr = 'class="nim-group'
+      # La clase nim-grupo sólo es a efectos de poder seleccionar todos estos elementos (no afecta al estilo)
+      # Las clases nim-group, nim-group-span, nim-group-inline y nim-group-span-inline son las que definen el estilo
+      div_attr = 'class="nim-grupo nim-group'
       div_attr << '-span' if v[:span]
       div_attr << '-inline' if v[:inline]
       div_attr << ' nim-datetime' if v[:type] == :datetime
@@ -3550,7 +3542,6 @@ class ApplicationController < ActionController::Base
         div_attr << '"'
       end
 
-      #sal << '<div class="mdl-cell mdl-cell--' + v[:gcols].to_s + '-col">' if prim or !v[:span]
       if prim or !v[:span]
         sal << (v[:gcols] == 0 ? '<div style="display: none">' : "<div class='mdl-cell mdl-cell--#{v[:gcols]}-col #{v[:class]}'>")
       end
@@ -3657,17 +3648,43 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
       else
         clase = 'nim-input'
-        case v[:rol]
-          when :origen
-            clase << ' nim-input-origen'
-          when :email
-            clase << ' nim-input-email'
-          when :url
-            clase << ' nim-input-url'
-          when :map
-            clase << ' nim-input-map'
-            v[:map] ||= cs
-            plus << " map='nim-map-#{v[:map]}'"
+=begin
+        if v[:rol]
+          if v[:rol].is_a? Hash
+            clase << ' nim-input-custom'
+            plus << " rol-icon='#{v[:rol][:icon]}'"
+            plus << " rol-title='#{v[:rol][:title]}'"
+            plus << " rol-accion='#{v[:rol][:accion]}'"
+          else
+            case v[:rol]
+              when :origen
+                clase << ' nim-input-origen'
+              when :email
+                clase << ' nim-input-email'
+              when :url
+                clase << ' nim-input-url'
+              when :map
+                clase << ' nim-input-map'
+                v[:map] ||= cs
+                plus << " map='nim-map-#{v[:map]}'"
+            end
+          end
+        end
+=end
+        if v[:rol]
+          clase << ' nim-rol'
+          if v[:rol].is_a? Hash
+            plus << ' rol="custom"'
+            plus << " rol-icon='#{v[:rol][:icon]}'"
+            plus << " rol-title='#{v[:rol][:title]}'"
+            plus << " rol-accion='#{v[:rol][:accion]}'"
+          else
+            plus << " rol='#{v[:rol]}'"
+            if v[:rol] == :map
+              v[:map] ||= cs
+              plus << " map='nim-map-#{v[:map]}'"
+            end
+          end
         end
         clase << " nim-map-#{v[:map]}" if v[:map]
         clase << ' nim-may' if v[:may]

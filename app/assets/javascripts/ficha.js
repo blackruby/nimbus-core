@@ -73,58 +73,139 @@ window.onbeforeunload = function(e) {
 };
 
 $(window).load(function () {
-  $("#dialog-borrar").dialog({
-    autoOpen: false,
-    resizable: false,
-    //height:170,
-    //width: 350,
-    modal: true,
-    buttons: {
-      "Sí": function() {
-        $(this).dialog("close");
-        mant_borrar_ok();
-      },
-      No: function() {
-        $(this).dialog("close");
-      }
-    }
-  });
+  if (_factId != 0) {
+    // Todo este bloque solo tiene sentido si estamos editando una ficha o es un alta
 
-  // Ctr-k Habilita los campos clave
-  $(document).keydown(function(e) {
-    if (nimGrabacionEnCurso) return;
-
-    if (_pkCmps) {
-      // Es el caso de un mantenimiento
-      if (e.ctrlKey && e.which == 75) {
-        e.preventDefault();
-        $(_pkCmps).attr("disabled", false);
-      } else if (e.altKey) {
-        if (e.which == 70) { // Alt-f
-          if (parent != self && $.isFunction(parent.searchBar)) {e.preventDefault(); parent.searchBar();}
-        } else if (e.which == 86) { // Alt-v
-          if (parent != self && $.isFunction(parent.gridCollapse)) {e.preventDefault(); parent.gridCollapse();}
-        } else if (e.which == 78) { // Alt-n
-          if (parent != self && $.isFunction(parent.newFicha)) {e.preventDefault(); parent.newFicha();}
-        } else if (e.which == 66) { // Alt-b
-          if (parent != self && $.isFunction(parent.pkSearch)) {e.preventDefault(); parent.pkSearch();}
-        } else if (e.which == 68) { // Alt-d
-          if (parent != self && $.isFunction(parent.ospGrid)) {e.preventDefault(); parent.ospGrid();}
-        } else if (e.which == 65) { // Alt-a
-          if (parent != self && $.isFunction(parent.newFicha)) {
-            e.preventDefault();
-            $(":focus").blur();
-            mant_grabar(true);
-          }
-        } else if (e.which == 71) { // Alt-g
-          grabarConTecla(e);
+    $("#dialog-borrar").dialog({
+      autoOpen: false,
+      resizable: false,
+      modal: true,
+      buttons: {
+        "Sí": function() {
+          $(this).dialog("close");
+          mant_borrar_ok();
+        },
+        No: function() {
+          $(this).dialog("close");
         }
       }
-    } else {
-      // Es el caso de un proc
-      if (e.altKey && e.which == 71) grabarConTecla(e); // Alt-g
-    }
-  });
+    });
+
+    // Creación de botones de los campos de tipo "rol"
+    $(".nim-rol").each(function() {
+      var el = $(this);
+      var icon, title;
+      switch (el.attr("rol")) {
+        case "custom":
+          icon = el.attr("rol-icon");
+          title = el.attr("rol-title");
+          break;
+        case "origin":
+          icon = "exit_to_app";
+          title = "Abrir ficha asociada";
+          break;
+        case "email":
+          icon = "message";
+          title = "Enviar correo";
+          break;
+        case "url":
+          icon = "link";
+          title = "Seguir enlace";
+          break;
+        case "map":
+          icon = "location_on";
+          title = "Abrir en google maps";
+          break;
+      }
+      el.parent().append(
+        '<button class="mdl-button mdl-js-button mdl-button--icon nim-rol-button" tabindex=-1 title="' + title + '">' +
+        '<i class="material-icons nim-color-2">' + icon + '</i>' +
+        '</button>'
+      );
+    });
+
+    $("body").on("keypress", ".nim-rol", function(e) {
+      if (e.ctrlKey && (e.keyCode == 10 || e.keyCode == 13)) {
+        // Lanzar el click del botón de rol asociado
+        e.preventDefault();
+        $(this).nextAll("button").trigger("click");
+      }
+    });
+
+    // Asociación del evento "click" a los botones de los campos de tipo "rol"
+    $("body").on("click", ".nim-rol-button", function() {
+      var el = $(this).prevAll("input");
+      var v = el.val().trim();
+      switch (el.attr("rol")) {
+        case "custom":
+          nimAjax(el.attr("rol-accion"));
+          break;
+        case "origin":
+          if (v != "") nimAjax('ir_a_origen', {cmp: el.attr("id")});
+          break;
+        case "email":
+          if (v != '') window.open('mailto:' + v);
+          break;
+        case "url":
+          if (v != '') {
+            if (v.indexOf('://') == -1) v = 'http://' + v;
+            window.open(v);
+          }
+          break;
+        case "map":
+          var place = '';
+          $("." + el.attr("map")).each(function() {
+            var v = this.value.replace(/c\//gi, '').replace(/nº/gi, '');
+            var l = v.length;
+            for (var i = 0; i < l; i++) if (v[i] >= '0' && v[i] <= '9') break;
+            for (;i < l; i++) if (v[i] < '0' || v[i] > '9') break;
+            v = v.substr(0, i);
+
+            if (place != '') place += ',';
+            place += v;
+          });
+          window.open('http://www.google.com/maps/place/' + place);
+          break;
+      }
+      el.focus();
+    });
+
+    $(document).keydown(function(e) {
+      if (nimGrabacionEnCurso) return;
+
+      if (_pkCmps) {
+        // Es el caso de un mantenimiento
+        if (e.ctrlKey && e.which == 75) {
+          // Ctr-k Habilita los campos clave
+          e.preventDefault();
+          $(_pkCmps).attr("disabled", false);
+        } else if (e.altKey) {
+          if (e.which == 70) { // Alt-f
+            if (parent != self && $.isFunction(parent.searchBar)) {e.preventDefault(); parent.searchBar();}
+          } else if (e.which == 86) { // Alt-v
+            if (parent != self && $.isFunction(parent.gridCollapse)) {e.preventDefault(); parent.gridCollapse();}
+          } else if (e.which == 78) { // Alt-n
+            if (parent != self && $.isFunction(parent.newFicha)) {e.preventDefault(); parent.newFicha();}
+          } else if (e.which == 66) { // Alt-b
+            if (parent != self && $.isFunction(parent.pkSearch)) {e.preventDefault(); parent.pkSearch();}
+          } else if (e.which == 68) { // Alt-d
+            if (parent != self && $.isFunction(parent.ospGrid)) {e.preventDefault(); parent.ospGrid();}
+          } else if (e.which == 65) { // Alt-a
+            if (parent != self && $.isFunction(parent.newFicha)) {
+              e.preventDefault();
+              $(":focus").blur();
+              mant_grabar(true);
+            }
+          } else if (e.which == 71) { // Alt-g
+            grabarConTecla(e);
+          }
+        }
+      } else {
+        // Es el caso de un proc
+        if (e.altKey && e.which == 71) grabarConTecla(e); // Alt-g
+      }
+    });
+  }
 
   $(window).resize(redimWindow);
 
