@@ -208,7 +208,7 @@ class ApplicationController < ActionController::Base
     }
 
     @ajax << '$(window).load(function(){' if arg[:onload]
-    @ajax << "$('<div></div>', #{arg[:context]}).html(#{arg[:msg].to_json}).dialog({"
+    @ajax << %Q[$('<div class="nim-dialogo"></div>', #{arg[:context]}).html(#{arg[:msg].to_json}).dialog({]
     @ajax << "title: #{arg[:tit].to_json},"
     @ajax << %Q(resizable: false, modal: true, width: #{arg[:width] || '"auto"'},)
     @ajax << "close: function(){#{arg[:js] ? arg[:js] : ''};$(this).remove();},"

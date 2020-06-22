@@ -589,12 +589,20 @@ nimPromise = null;
 
 function _nimAjax(obj) {
   var nimPromiseOld = nimPromise;
+  var bfsn = obj.beforeSend;
   var cmpl = obj.complete;
   nimPromise = new Promise(async function(res) {
     await nimPromiseOld;
     $.ajax($.extend(true, obj, {
+      beforeSend: function(xhr, str) {
+        if (typeof bfsn == "function" && !bfsn(xhr, str)) {
+          res();
+          return false;
+        }
+        return true;
+      },
       complete: function(xhr, str) {
-        if (typeof cmpl == "function") {cmpl(xhr, str);}
+        if (typeof cmpl == "function") cmpl(xhr, str);
         res();
       }
     }));
@@ -739,22 +747,16 @@ nimGrabacionEnCurso = false;
 function mant_grabar(nueva) {
   if (nimGrabacionEnCurso || checkNimServerStop()) return;
 
-  nimGrabacionEnCurso = true;
-
-  var res;
-  /**
-  if (parent == self) {
-    if ($("button.cl-grabar").attr('disabled') == 'disabled') return;
-  } else {
-    if ($("button.cl-grabar", parent.document).attr('disabled') == 'disabled') return;
-  }
-   **/
   var context = $(".cl-grabar").length > 0 ? document : parent.document;
   var bg = $("button.cl-grabar", context);
   if (bg.length == 0 || bg.attr('disabled') == 'disabled') return;
 
+  nimGrabacionEnCurso = true;
+
   // Para forzar la salida de edición de cualquier celda en cualquier grid editable que haya
   $(".ui-jqgrid-btable").jqGrid('editCell', 0, 0, false);
+
+  var res;
 
   if (typeof jsGrabar == "function") {
     res = jsGrabar();
@@ -772,6 +774,15 @@ function mant_grabar(nueva) {
     url: '/' + _controlador + '/grabar',
     type: "POST",
     data: $.extend(true, {vista: _vista}, res),
+    beforeSend: function() {
+      if ($(".nim-dialogo").length > 0) {
+        $(".nim-body-modal", context).remove();
+        nimGrabacionEnCurso = false;
+        setTimeout(alert, 0, "\nGRABACIÓN CANCELADA.\n\nAtienda primero los mensajes pendientes.");
+        return false;
+      }
+      return true;
+    },
     complete: function() {
       $(".nim-body-modal", context).remove();
       nimGrabacionEnCurso = false;
