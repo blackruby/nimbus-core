@@ -778,7 +778,7 @@ function mant_grabar(nueva) {
       if ($(".nim-dialogo").length > 0) {
         $(".nim-body-modal", context).remove();
         nimGrabacionEnCurso = false;
-        setTimeout(alert, 0, "\nGRABACIÓN CANCELADA.\n\nAtienda primero los mensajes pendientes.");
+        setTimeout(alert, 0, "\nGRABACIÓN CANCELADA.\n\nAtienda primero los diálogos en curso.");
         return false;
       }
       return true;
