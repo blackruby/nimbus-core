@@ -775,7 +775,14 @@ function mant_grabar(nueva) {
     type: "POST",
     data: $.extend(true, {vista: _vista}, res),
     beforeSend: function() {
-      if ($(".nim-dialogo").length > 0) {
+      var stop = false;
+      for (var d of $(".nim-dialogo")) {
+        if ($(d).dialog("isOpen")) {
+          stop = true;
+          break;
+        }
+      };
+      if (stop) {
         $(".nim-body-modal", context).remove();
         nimGrabacionEnCurso = false;
         setTimeout(alert, 0, "\nGRABACIÓN CANCELADA.\n\nAtienda primero los diálogos en curso.");
