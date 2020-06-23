@@ -73,7 +73,7 @@ window.onbeforeunload = function(e) {
 };
 
 $(window).load(function () {
-  if (_factId != 0) {
+  if (typeof(_factId) == "undefined" || _factId != 0) {
     // Todo este bloque solo tiene sentido si estamos editando una ficha o es un alta
 
     $("#dialog-borrar").dialog({
