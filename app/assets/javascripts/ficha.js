@@ -100,7 +100,7 @@ $(window).load(function () {
           icon = el.attr("rol-icon");
           title = el.attr("rol-title");
           break;
-        case "origin":
+        case "origen":
           icon = "exit_to_app";
           title = "Abrir ficha asociada";
           break;
@@ -140,7 +140,7 @@ $(window).load(function () {
         case "custom":
           nimAjax(el.attr("rol-accion"));
           break;
-        case "origin":
+        case "origen":
           if (v != "") nimAjax('ir_a_origen', {cmp: el.attr("id")});
           break;
         case "email":
