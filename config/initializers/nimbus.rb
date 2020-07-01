@@ -543,7 +543,7 @@ class ActiveRecord::Base
   # el de segundo nivel "detalles" accesible desde "lineas" de primer nivel,
   # usaríamos: dup_with_has_many({campo: valor}, %w(apuntes lineas:detalles))
   # Si sólo se desea excluir un has_many no es necesario pasar un array,
-  # bastaría con pasra una cadena o symbol con el nombre del has_many.
+  # bastaría con pasar una cadena o symbol con el nombre del has_many.
   def dup_with_has_many(campos={}, hijos_excl=[])
     id = nil
     ActiveRecord::Base.connection.transaction {id = _dup_with_has_many(self, campos, '', (hijos_excl.is_a?(Array) ? hijos_excl.map(&:to_s) : [hijos_excl.to_s]))}
