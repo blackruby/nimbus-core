@@ -532,24 +532,37 @@ class ActiveRecord::Base
   end
 
   # Método para duplicar un registro incluyendo los hijos recursivamente
-  # (nietos, bisnietos, etc.) según los has_many declarados en el modelo.
-  # La duplicación se hace en rails por lo que todos los call_backs
-  # serán llamados.
-  def dup_with_has_many(campos={})
+  # (nietos, bisnietos, etc.) según los has_many declarados en los modelos.
+  # La duplicación se hace en rails por lo que todos los call_backs serán llamados.
+  # "campos" es un hash cuyas claves son campos y sus valores los nuevos
+  # datos que se asignarán al duplicar la ficha.
+  # "hijos_excl" es un array con los hijos que se desean excluir de la
+  # duplicación. La notación es, para el primer nivel, el nombre del has_many
+  # y para niveles más profundos, la lista de has_many separados por ":".
+  # P.ej, si quisiéramos excluir el has_many de primer nivel "apuntes" y
+  # el de segundo nivel "detalles" accesible desde "lineas" de primer nivel,
+  # usaríamos: dup_with_has_many({campo: valor}, %w(apuntes lineas:detalles))
+  # Si sólo se desea excluir un has_many no es necesario pasar un array,
+  # bastaría con pasra una cadena o symbol con el nombre del has_many.
+  def dup_with_has_many(campos={}, hijos_excl=[])
     id = nil
-    ActiveRecord::Base.connection.transaction {id = _dup_with_has_many(self, campos)}
+    ActiveRecord::Base.connection.transaction {id = _dup_with_has_many(self, campos, '', (hijos_excl.is_a?(Array) ? hijos_excl.map(&:to_s) : [hijos_excl.to_s]))}
     id
   end
 
-  private def _dup_with_has_many(ficha, campos={})
+  private def _dup_with_has_many(ficha, campos, nivel, hijos_excl)
     nueva_ficha = ficha.dup
     campos.each {|k, v| nueva_ficha[k] = v}
     nueva_ficha.save
     ficha.class.reflect_on_all_associations(:has_many).each do |hijo|
-      cl = hijo.options[:class_name].constantize
-      cl.where("#{cl.pk[0]} = #{ficha.id}").each {|f|
+      next if hijos_excl.include?(nivel + hijo.name.to_s)
+      #cl = hijo.options[:class_name].constantize
+      cl = hijo.klass
+      #cl.where("#{cl.pk[0]} = #{ficha.id}").each {|f|
+      cl.where("#{hijo.foreign_key} = #{ficha.id}").each {|f|
         f.user_id = ficha.user_id
-        _dup_with_has_many(f, {cl.pk[0] => nueva_ficha.id})
+        #_dup_with_has_many(f, {cl.pk[0] => nueva_ficha.id})
+        _dup_with_has_many(f, {hijo.foreign_key => nueva_ficha.id}, nivel + hijo.name.to_s + ':', hijos_excl)
       }
     end
     nueva_ficha.id
