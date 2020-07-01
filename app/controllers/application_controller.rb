@@ -82,7 +82,6 @@ class ApplicationController < ActionController::Base
 
         case params[:action]
         when 'auto'
-          #render json: [{error: 1}]
           render json: [{error: 'no_session'}]
         when 'list'
           render json: {error: 'no_session'}
@@ -125,18 +124,6 @@ class ApplicationController < ActionController::Base
     end
   end
 
-=begin
-  # Elegir layout
-
-  layout :choose_layout
-
-  def choose_layout
-    params[:lay].nil? ? 'application' : params[:lay]
-  end
-=end
-
-  #$h = {}
-
   # Clase del modelo ampliado para este mantenimiento (con campos X etc.)
   def class_mant
     if self.class.superclass.to_s == 'GiController'
@@ -152,8 +139,6 @@ class ApplicationController < ActionController::Base
 
   # Clase del modelo original
   def class_modelo
-    #cm = class_mant.superclass
-    #cm.modelo_base || cm
     class_mant.modelo_base
   end
 
@@ -904,7 +889,6 @@ class ApplicationController < ActionController::Base
     @url_edit = '/'
     @url_edit << (params[:modulo] ? params[:modulo] + '/' : '')
     @url_edit << params[:tabla]
-    #render 'shared/histo'
     render html: '', layout: 'histo'
   end
 
@@ -3047,10 +3031,16 @@ class ApplicationController < ActionController::Base
     @fact.class.new
   end
 
-  def validar
-    clm = class_mant
+  def fix_formulario
+    # Damos el foco al campo que ya lo tenía. Esto es para provocar el evento "focus" (como si
+    # entráramos de nuevo a dicho campo) para que se inicialicen los datos oportunos en el caso
+    # de que algún "on" haya modificado el valor del campo con el foco
+    @ajax << '$(":focus").focus();'
 
-    #@dat = $h[params[:vista].to_i]
+    @ajax << 'hayCambios=' + @fact.changed?.to_s + ';' if class_mant.mant?
+  end
+
+  def validar
     get_fact_from_marshal
     @g = @dat[:persistencia]
     fact_clone
@@ -3143,12 +3133,7 @@ class ApplicationController < ActionController::Base
       sincro_ficha :ajax => true
     end
 
-    # Damos el foco al campo que ya lo tenía. Esto es para provocar el evento "focus" (como si
-    # entráramos de nuevo a dicho campo) para que se inicialicen los datos oportunos en el caso
-    # de que algún "on" haya modificado el valor del campo con el foco
-    @ajax << '$(":focus").focus();'
-
-    @ajax << 'hayCambios=' + @fact.changed?.to_s + ';' if clm.mant?
+    fix_formulario
 
     if cs[:type] == :upload
       # Si el tipo es upload el render se realiza en el iframe asociado y por lo tanto
@@ -3167,7 +3152,6 @@ class ApplicationController < ActionController::Base
 
   def fon_server
     unless params[:fon] && self.respond_to?(params[:fon])
-      #render nothing: true
       head :no_content
       return
     end
@@ -3182,16 +3166,12 @@ class ApplicationController < ActionController::Base
     end
     method(params[:fon]).call
     sincro_ficha :ajax => true if @fact
-    begin
+    unless performed?
+      fix_formulario
       render_ajax
-    rescue
     end
-=begin
-    begin
-      render nothing: true  # Por si no existe el método o por si éste no hace un render explícito
-    rescue
-    end
-=end
+
+
     @v.save if @v
   end
 
@@ -3206,7 +3186,6 @@ class ApplicationController < ActionController::Base
 
   def borrar
     if @dat[:prm] != 'p'
-      #render nothing: true
       head :no_content
       return
     end
@@ -3241,7 +3220,6 @@ class ApplicationController < ActionController::Base
 
   def grabar(ajx = true)
     if @dat[:prm] == 'c'
-      #render nothing: true
       head :no_content
       return
     end
