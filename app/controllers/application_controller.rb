@@ -160,6 +160,9 @@ class ApplicationController < ActionController::Base
   #
   # * *:msg* (String) -- Texto del mensaje a mostrar.
   # * *:tit* (String) <em>(Defalut: 'Aviso')</em> -- Título de la ventana del mensaje.
+  # * *:hide_close* (Boolean) <em>(Default: false)</em> -- Si es _true_ no aparecerá el botón para cerrar
+  #   el diálogo ni se podrá cerrar con <ESC>. En este caso es necesario que haya algún botón definido, ya
+  #   que, si no, el mensaje se quedaría permanentemente.
   # * *:close* (Boolean) <em>(Default: true)</em> -- Indica si se cerrará o no el mensaje al pulsar en alguno de
   #   sus posibles botones.
   # * *:js* (String) <em>(Default: nil)</em> -- Contiene código javascript que se ejecutará al cerrar el diálogo.
@@ -192,26 +195,18 @@ class ApplicationController < ActionController::Base
       b[:label] = nt(b[:label])
     }
 
+    f_open = ''
+    f_open << "$(this).parent().find('.ui-dialog-titlebar-close').css('display', 'none');" if arg[:hide_close]
+    f_open << "$(this).parent().find('.nim-dialog-button').first().focus();" if arg[:bot].present?
+
     @ajax << '$(window).load(function(){' if arg[:onload]
     @ajax << %Q[$('<div class="nim-dialogo"></div>', #{arg[:context]}).html(#{arg[:msg].to_json}).dialog({]
     @ajax << "title: #{arg[:tit].to_json},"
     @ajax << %Q(resizable: false, modal: true, width: #{arg[:width] || '"auto"'},)
+    @ajax << "closeOnEscape: false," if arg[:hide_close]
     @ajax << "close: function(){#{arg[:js] ? arg[:js] : ''};$(this).remove();},"
-    @ajax << "create: function(){creaBotonesDialogo(#{arg[:bot].to_json},$(this));}," if arg[:bot].present?
-=begin
-    @ajax << 'buttons: {'
-    h[:bot].each {|b|
-      b[:close] = h[:close] if b[:close].nil?
-      @ajax << "#{nt(b[:label]).to_json}: function(){"
-      if b[:accion]
-        @ajax << 'ponBusy();' if b[:busy]
-        @ajax << "callFonServer(#{b[:accion].to_json}, {}, quitaBusy);"
-      end
-      @ajax << '$(this).dialog("close");' if b[:close]
-      @ajax << '},'
-    }
-    @ajax << '}});'
-=end
+    @ajax << "open: function(){#{f_open}}," if f_open.present?
+    @ajax << "create: function(){creaBotonesDialogo(#{arg[:bot].to_json},$(this))}" if arg[:bot].present?
     @ajax << '});'
     @ajax << '});' if arg[:onload]
   end
