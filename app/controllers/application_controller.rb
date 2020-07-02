@@ -3720,7 +3720,6 @@ class ApplicationController < ActionController::Base
         #sal << '$("#' + cs + '").mask("' + v[:mask] + '",{placeholder: " "});'
         sal << '$("#' + cs + '").mask("' + v[:mask] + '");'
       elsif v[:type] == :date
-        #sal << 'date_pick("#' + cs + '",' + (date_opts == {} ? '{showOn: "button"}' : date_opts.to_json) + ');'
         sal << 'date_pick("#' + cs + '",' + v[:date_opts].to_json + ');'
         sal << "$('##{cs}').datepicker('disable');" if v[:ro] == :all or v[:ro] == params[:action].to_sym
       elsif v[:type] == :time
@@ -3729,10 +3728,8 @@ class ApplicationController < ActionController::Base
         sal << 'date_pick("#_f_' + cs + '",' + v[:date_opts].to_json + ');'
         sal << "$('#_f_#{cs}').datepicker('disable');" if v[:ro] == :all or v[:ro] == params[:action].to_sym
         sal << '$("#_h_' + cs + '").entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true);' : 'false);')
-        #sal << "$('#_f_#{cs}, #_h_#{cs}').on('focus', ''');"
       elsif (v[:type] == :integer or v[:type] == :decimal) and !v[:sel]
-        #sal << "numero('##{cs}',#{manti},#{decim},#{signo});"
-        sal << "numero('##{cs}',#{v[:manti]},#{v[:decim]},#{v[:signo]});"
+        sal << "numero('##{cs}',#{v[:manti]},#{v[:decim]},#{v[:signo]},#{v[:nil]});"
       end
     }
 

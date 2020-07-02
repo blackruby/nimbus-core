@@ -397,6 +397,7 @@ function entryn_focus(e) {
 
 function entryn_blur(e) {
   var th = $(this);
+  if (!e.data.nil && th.val() == "") th.val("0" + (e.data.decim == 0 ? "" : "," + "0".repeat(e.data.decim)));
   if (th.data('entryn_old_value') != th.val()) th.trigger("change");
 };
 
@@ -538,16 +539,16 @@ function entryn_paste(e) {
   var th = $(this);
 
   setTimeout(function() {
-    var val = entrynArregla(th.val(), e,data.decim, e.data.signo);
+    var val = entrynArregla(th.val(), e.data.decim, e.data.signo);
     entrynFormatea(th, val, -1);
   }, 100);
 };
 
-jQuery.fn.entryn = function (manti, decim, signo) {
+jQuery.fn.entryn = function (manti, decim, signo, nil) {
   var th = $(this);
 
   th.off("focus", entryn_focus).on("focus", entryn_focus);
-  th.off("blur", entryn_blur).on("blur", entryn_blur);
+  th.off("blur", entryn_blur).on("blur", undefined, {decim: decim, nil: nil}, entryn_blur);
   th.off("keydown", entryn_keydown).on("keydown", entryn_keydown);
   th.off("keypress", entryn_keypress).on("keypress", undefined, {manti: manti, decim: decim, signo: signo}, entryn_keypress);
   th.off("paste", entryn_paste).on("paste", undefined, {manti: manti, decim: decim, signo: signo}, entryn_paste);
@@ -924,9 +925,9 @@ function sortDate(a, b, d) {
   return 0;
 }
 
-function numero(elem, manti, decim, signo) {
+function numero(elem, manti, decim, signo, nil) {
   $(elem).addClass('numero');
-  $(elem).entryn(manti, decim, signo);
+  $(elem).entryn(manti, decim, signo, nil);
 }
 
 function unformatNumero(num) {
