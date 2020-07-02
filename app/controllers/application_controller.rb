@@ -3032,7 +3032,7 @@ class ApplicationController < ActionController::Base
     # de que algún "on" haya modificado el valor del campo con el foco
     @ajax << '$(":focus").focus();'
 
-    @ajax << 'hayCambios=' + @fact.changed?.to_s + ';' if class_mant.mant?
+    @ajax << 'hayCambios=' + @fact.changed?.to_s + ';' if @fact && class_mant.mant?
   end
 
   def validar
