@@ -2430,6 +2430,11 @@ class ApplicationController < ActionController::Base
   #     Los argumentos son los mismo que antes, más _val_, que es el valor que queremos
   #     asignar.
   #
+  #     Asociados a @fact.cmp tenemos dos métodos más: <tt>@fact.cmp.col(col)</tt> que nos devuelve
+  #     el hash de la definición de la columna _col_ y <tt>@fact.cmp.max_id</tt> que nos devuelve
+  #     el máximo id usado en la colección de datos. Esto es útil para poder generar nuevos
+  #     ids en el caso de insertar nuevas filas.
+  #
   #     Para insertar una nueva fila por código, o bien lo hacemos con el valor de retorno
   #     del método new_cmp (que es llamado al pulsar el botón de inertar nueva fila) o,
   #     si queremos insertar filas en otros métodos tendremos que usar el método
@@ -2461,10 +2466,24 @@ class ApplicationController < ActionController::Base
   # * *:sel* (Symbol, nil) <em>(Default: nil)</em> -- Solo válido en modo edición.
   #   Los posibles valores son:
   #   * <b>:row</b> El servidor será notificado al seleccionar una fila.
-  #   * <b>:cel</b> El servidor será notificado al seleccionar una celda.
+  #   * <b>:cel</b> El servidor será notificado al seleccionar una celda. Por defecto todas
+  #     las celdas dispararán la notificación. Se pueden excluir celdas poniendo en la
+  #     definición de su columna "sel: false" o restringir que una celda (columna) sólo
+  #     notifique ante un determinado evento. En este caso tendríamos que poner en la
+  #     definición de la columna: "sel: '<evento>'" para que sólo se notifique en el evento <evento>.  
+  #     Por ejemplo: "sel: 'click'" o "sel: 'keydown'".
+  #   * <b>:celx</b> El servidor será notificado al seleccionar una celda. Por defecto ninguna
+  #     celda disparará la notificación salvo aquellas que lo indiquen explícitamente
+  #     en la definición de su columna. Así, "sel: true" en una columna indicará que notifica
+  #     su selección ante cualquier evento. Como en el caso anterior, se puede restringir la
+  #     notificación sólo a eventos concretos: "sel: '<evento>'".
   #   * <b>nil</b> El servidor no será notificado en ninguna selección.
   #   La notificación se pasará al método <tt>sel_cmp</tt> que recibirá
-  #   como argumentos el id de la fila y el nombre de la columna.
+  #   como argumentos el id de la fila, el nombre de la columna y el evento
+  #   que ha provocado la selección. Este último puede valer: "prog" si la
+  #   la selección se ha hecho programáticamente, "click" si ha sido por la
+  #   pulsación del ratón o por la tecla <ENTER>, "keydown" si ha sido con el teclado, pero
+  #   no con <ENTER> (cursores, tabulador, etc.).
   # 
   # * *:del* (Boolean) <em>(Default: true)</em> -- Sólo válido en modo edición. Indica si
   #   se permiten borrar filas. En caso afirmativo antes del borrado se
@@ -2526,6 +2545,11 @@ class ApplicationController < ActionController::Base
   #     Por defecto se adapta al _type_ por lo que no sería necesario
   #     darle valor, salvo que queramos un comportamiento especial.
   #   * *:width* (Integer) <em>(Default: 150)</em> -- Anchura de la columna.
+  #   * *:sel* (Boolean, String) -- Indica el comportamiento ante la notificación que
+  #     recibirá el servidor al seleccionar una celda de esta columna. Para los detalles,
+  #     ver la ayuda de la opción _sel_ del nivel anterior. Sus posibles valores son:
+  #     _true_, _false_, 'click', 'keydown', 'prog'. Notar que la pulsación de la
+  #     tecla <ENTER> se notificará como evento 'click'.
   # 
   # 
   # * *:grid* (Hash) -- Opciones específicas para el grid. Admite todas las
@@ -2761,7 +2785,19 @@ class ApplicationController < ActionController::Base
 
   def grid_local_ed_select
     fun = "sel_#{params[:cmp]}"
-    self.method(fun).call(params[:row], params[:col]) if self.respond_to?(fun)
+    #self.method(fun).call(params[:row], params[:col]) if self.respond_to?(fun)
+    if respond_to?(fun)
+      case  method(fun).arity
+      when 0
+        method(fun).call
+      when 1
+        method(fun).call(params[:row])
+      when 2
+        method(fun).call(params[:row], params[:col])
+      else
+        method(fun).call(params[:row], params[:col], params[:event])
+      end
+    end
   end
 
   def grid_add_row(cmp, pos, data)

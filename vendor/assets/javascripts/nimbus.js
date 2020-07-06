@@ -1193,6 +1193,27 @@ function creaGridLocal(opts, data) {
   $("#" + cmp).append('<table id="g_' + cmp + '"></table>');
   var g = $("#g_" + cmp);
 
+
+  function onSelectCellGridLocal(r, c, v, ir, ic) {
+    // Consideramos el <ENTER> como si fuera un evento "click"
+    var ev = event == undefined ? "prog" : (event.keyCode == 13 || event.keyCode == 10 ? "click" : event.type);
+    // Rechazar el caso de este evento (se produce dos veces al editar una celda pasando con tabulador de otra)
+    if (ev == "readystatechange") return;
+
+    var sc = g.jqGrid("getGridParam", "colModel")[ic].sel;
+    if (
+      opts.sel == 'row' && g.attr("last_selected_row") != r ||
+      opts.sel == 'cel' && (sc == undefined || ev == sc) ||
+      opts.sel == 'celx' && (sc == true || ev == sc)
+      ) {
+      nimAjax("grid_local_ed_select", {cmp: cmp, row: r, col: c, event: ev});
+    }
+
+    g.attr("last_selected_row", r);
+  }
+
+
+
   var grid = opts.grid;
   if (grid == undefined) grid = {};
 
@@ -1224,19 +1245,10 @@ function creaGridLocal(opts, data) {
               celda.removeClass("nim-bg-blink");
             }});
         },
-        onSelectCell: function(r, c, v, ir, ic){
-          if (opts.sel && (opts.sel == 'row' && g.attr("last_selected_row") != r || opts.sel == 'cel'))
-            callFonServer("grid_local_ed_select", {cmp: cmp, row: r, col: c});
-
-          g.attr("last_selected_row", r);
-        },
-        beforeEditCell: function(r, c, v, ir, ic){
+        onSelectCell: onSelectCellGridLocal,
+        beforeEditCell: function(r, c, v, ir, ic) {
           g.attr("last_autocomp_id", "");
-
-          if (opts.sel && (opts.sel == 'row' && g.attr("last_selected_row") != r || opts.sel == 'cel'))
-            callFonServer("grid_local_ed_select", {cmp: cmp, row: r, col: c});
-
-          g.attr("last_selected_row", r);
+          onSelectCellGridLocal(r, c, v, ir, ic);
         }
       };
       break;
@@ -1397,7 +1409,6 @@ function creaGridLocal(opts, data) {
     if (!opts.search) vg[0].toggleToolbar();
   }
 
-  //g.setGridWidth(g.width());
   g.setGridWidth(grid.width ? grid.width : g.width());
 }
 
