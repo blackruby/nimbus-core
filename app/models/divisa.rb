@@ -15,6 +15,15 @@ class Divisa < ActiveRecord::Base
   #def ini_campos
   #end
 
+    @auto_comp_data = { campos: %w[codigo descripcion], orden: 'codigo' }
+    def auto_comp_label(tipo)
+      codigo + ' - ' + descripcion
+    end
+
+    def auto_comp_value(tipo)
+      codigo + ' - ' + descripcion
+    end
+
   def self.convertir_a_divisa(divisaorigen, divisadestino, ejercicio, importe, fecha, decimales_extra = 0)
     return 0.00 if importe.to_f.zero?
     divisaorigen = divisaorigen.present? ? divisaorigen : ejercicio.divisa
