@@ -1612,7 +1612,7 @@ class ApplicationController < ActionController::Base
     @ajax << 'setMenuR(false);'
 
     call_nimbus_hook :before_envia_ficha
-    envia_ficha
+    envia_ficha true
 
     #@v.save
     graba_v
@@ -1867,11 +1867,10 @@ class ApplicationController < ActionController::Base
     call_nimbus_hook :before_envia_ficha
 
     unless clm.mant? and @fact.id == 0
+      envia_ficha true
       graba_v
       @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
-      envia_ficha
       sincro_hijos(true, blq ? true : false) if clm.mant?
-      #@v.save
     end
 
     mi_render if self.respond_to?(:mi_render)
@@ -2247,10 +2246,10 @@ class ApplicationController < ActionController::Base
     @ajax_post << "setDataGridLocal('#{cmp}',#{celdas.to_json});" unless celdas.empty?
   end
 
-  def envia_ficha
+  def envia_ficha(dirty = false)
     @fact.campos.each {|c, v|
-      #envia_campo(c, @fact.method(c.to_s).call) if v[:form]
       envia_campo(c, @fact[c]) if v[:form]
+      v[:val_ini] = @fact[c] if dirty && v[:dirty] && v[:type] != :div
     }
   end
 
@@ -2344,7 +2343,7 @@ class ApplicationController < ActionController::Base
       @fant[cmp].data(row, col, val)
     end
 
-    @ajax << 'hayCambios=true;'
+    #@ajax << 'hayCambios=true;'
   end
 
   def validar_cell
@@ -2751,6 +2750,7 @@ class ApplicationController < ActionController::Base
       else
         #@fact.campos[cmp][:grid_sel] = true
         @fact.campos[cmp][:grid_sel] = {sgm: (opts[:subgrid] ? (opts[:subgrid][:grid][:multiselect] ? true : false) : nil), gm: opts[:grid][:multiselect]}
+        @fact.campos[cmp][:val_ini] = @fact[cmp].deep_dup
         @ajax_post << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
     end
   end
@@ -2813,7 +2813,7 @@ class ApplicationController < ActionController::Base
 
     @ajax << "$('##{cmp} .ui-jqgrid-bdiv').scrollTop(1000000);" if pos == -1
 
-    @ajax << 'hayCambios=true;'
+    #@ajax << 'hayCambios=true;'
 
     @fact[cmp].add_row(pos, data)
     @fant[cmp].add_row(pos, data) if @fant
@@ -2853,7 +2853,7 @@ class ApplicationController < ActionController::Base
     #@ajax << "$('#g_#{cmp}').jqGrid('resetSelection');"
     @ajax << "$('#g_#{cmp}').trigger('reloadGrid', [{current:true}]);"
 
-    @ajax << 'hayCambios=true;'
+    #@ajax << 'hayCambios=true;'
 
     @fact[cmp].del_row(row)
     @fant[cmp].del_row(row) if @fant
@@ -3068,7 +3068,33 @@ class ApplicationController < ActionController::Base
     # de que algún "on" haya modificado el valor del campo con el foco
     @ajax << '$(":focus").focus();'
 
-    @ajax << 'hayCambios=' + @fact.changed?.to_s + ';' if @fact && class_mant.mant?
+    if @fact && class_mant.mant?
+      dirty = false
+      @fact.campos.each {|c, v|
+        val = @fact[c]
+        if val.is_a? HashForGrids
+          if val[:data] != val[:data_ini]
+            dirty = true
+            break
+          end
+        elsif v[:dirty]
+          if v[:type] == :div 
+            # Se pueden ocasionar falsos positivos si hay subgrids, pero no es importante.
+            v1 = val.is_a?(Array) ? val.flatten.sort : [val].compact
+            v2 = v[:val_ini].is_a?(Array) ? v[:val_ini].flatten.sort : [v[:val_ini]].compact
+            if v1 != v2
+              dirty = true
+              break
+            end
+          elsif val != v[:val_ini]
+            dirty = true
+            break
+          end
+        end
+      }
+
+      @ajax << "hayCambios=#{dirty || @fact.changed?};"
+    end
   end
 
   def validar
@@ -3247,7 +3273,19 @@ class ApplicationController < ActionController::Base
     @v.save
   end
 
-  #### GRABAR
+  def reponer_dirty
+    @fact.campos.each {|c, v|
+      val = @fact[c]
+      if val.is_a? HashForGrids
+        val[:data_ini] = val[:data].deep_dup
+      elsif val.is_a? Array # Es el caso de los grid de selección
+        v[:val_ini] = val.deep_dup if v[:dirty]
+      else
+        v[:val_ini] = val if v[:dirty]
+      end
+    }
+    @ajax << 'hayCambios=false;'
+  end
 
   def grabar(ajx = true)
     if @dat[:prm] == 'c'
@@ -3329,7 +3367,7 @@ class ApplicationController < ActionController::Base
           @fact[c] = nil
         }
 
-        @ajax << 'hayCambios=false;'
+        reponer_dirty
 
         if clm.mant?
           #Refrescar el grid si procede
@@ -3386,7 +3424,7 @@ class ApplicationController < ActionController::Base
     grid_reload
     #@ajax << 'statusBotones({borrar: true});'
     status_botones borrar: true, osp: true
-    @ajax << 'hayCambios=false;'
+    reponer_dirty
   end
 
   def add_nim_lock

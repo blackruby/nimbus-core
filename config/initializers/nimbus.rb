@@ -621,6 +621,7 @@ class HashForGrids < Hash
   def initialize(cols, data)
     self[:cols] = cols
     self[:data] = data
+    self[:data_ini] = data.deep_dup
     self[:new_edit] = Array.new(data.size) {[nil, nil]}
     self[:borrados] = []
     self[:bor_status] = []
@@ -1188,7 +1189,7 @@ module MantMod
     @campos = self.class.campos.deep_dup
 
     # Inicialización de los campos X a valores razonables cuando no pueden ser nil
-    @campos.each {|c, v| val_campo(c, v)}
+    @campos.each {|c, v| val_campo(c, v) unless v[:value]}
 
     ini_campos_ctrl if self.respond_to?(:ini_campos_ctrl)
   end
