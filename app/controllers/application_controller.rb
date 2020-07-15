@@ -1493,6 +1493,7 @@ class ApplicationController < ActionController::Base
       @v_parent[n] ||= Vista.find(pid)
       pid = @v_parent[n].data[:pid]
     }
+    @v_parent[nivel].data[:fact].class.new  # Ver comentario en get_fact_from_marshal
     @v_parent[nivel].data[:fact]
   end
 
