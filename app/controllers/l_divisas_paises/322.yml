@@ -1,0 +1,34 @@
+---
+:pag:
+  :fondo: 322.png
+:cab:
+  :codigo:
+    :at:
+    - '108.47'
+    - '718.81'
+    :width: '93.21'
+    :height: '11.22'
+    :size: '11.00'
+  :descripcion:
+    :at:
+    - '229.28'
+    - '718.81'
+    :width: '316.31'
+    :height: '11.92'
+    :size: '11.00'
+  :n_paises:
+    :at:
+    - '438.42'
+    - '590.20'
+    :width: '105.55'
+    :height: '11.77'
+    :align: right
+    :size: '11.00'
+  :actividad:
+    :at:
+    - '172.05'
+    - '44.21'
+    :width: '13.62'
+    :height: '14.64'
+    :align: center
+    :size: '13.00'

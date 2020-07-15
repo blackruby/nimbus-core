@@ -1,0 +1,186 @@
+---
+:def:
+  :grosor_linea: '1.30'
+:pag:
+  :size: A4
+  :layout: landscape
+  :top_margin: '344.64'
+  :bottom_margin: '85.97'
+:cab:
+  :logo:
+    :at:
+    - '46.57'
+    - '566.02'
+    :width: '179.13'
+    :height: '154.65'
+    :imagen: ruby.png
+  :divisa:
+    :at:
+    - '270.48'
+    - '502.13'
+    :width: '328.99'
+    :height: '53.74'
+    :align: center
+    :overflow: shrink_to_fit
+    :borde: '2.00'
+    :brcolor: "#0000ff"
+    :size: '13.00'
+  :pagina:
+    :at:
+    - '692.47'
+    - '549.88'
+    :width: '91.35'
+    :height: '35.83'
+    :font: Times-Roman
+  :lorem:
+    :at:
+    - '569.70'
+    - '411.13'
+    :width: '220.92'
+    :height: '95.53'
+    :overflow: shrink_to_fit
+    :borde: '1.00'
+    :pad_l: '5.00'
+    :pad_r: '5.00'
+    :pad_t: '5.00'
+    :pad_b: '5.00'
+    :leading: '1.00'
+  :codigo:
+    :at:
+    - '62.37'
+    - '275.10'
+    :width: '77.81'
+    :height: '17.29'
+    :texto: Código
+    :align: center
+    :color: "#ffffff"
+    :bgcolor: "#505050"
+  :descripcion:
+    :at:
+    - '146.06'
+    - '275.10'
+    :width: '517.26'
+    :height: '17.29'
+    :texto: Descripción
+    :align: center
+    :color: "#ffffff"
+    :bgcolor: "#505050"
+  :codigo_iso:
+    :at:
+    - '669.54'
+    - '275.32'
+    :width: '118.17'
+    :height: '17.29'
+    :texto: Código ISO
+    :align: center
+    :color: "#ffffff"
+    :bgcolor: "#505050"
+:pie:
+  :fecha:
+    :at:
+    - '59.11'
+    - '58.50'
+    :width: '127.18'
+    :height: '22.69'
+    :font: Times-Roman
+    :size: '10.00'
+  :pagina_doc:
+    :at:
+    - '546.93'
+    - '58.50'
+    :width: '122.40'
+    :height: '22.94'
+    :render: manual
+    :size: '11.00'
+  :pagina_inf:
+    :at:
+    - '678.29'
+    - '58.50'
+    :width: '114.64'
+    :height: '22.94'
+    :render: manual
+    :size: '11.00'
+  :total:
+    :at:
+    - '195.84'
+    - '58.50'
+    :width: '339.74'
+    :height: '22.69'
+    :align: center
+    :style: bold
+    :bgcolor: "#c8c8c8"
+:draw:
+  :e_1:
+    :at:
+    - '59.11'
+    - '279.42'
+    :width: '732.03'
+    :height: '1.30'
+  :e_2:
+    :at:
+    - '59.11'
+    - '85.97'
+    :width: '732.03'
+    :height: '1.30'
+  :margen_i:
+    :at:
+    - '59.11'
+    - '279.42'
+    :width: '1.30'
+    :height: '194.65'
+  :e_4:
+    :at:
+    - '142.67'
+    - '279.45'
+    :width: '1.30'
+    :height: '194.65'
+  :e_5:
+    :at:
+    - '665.75'
+    - '279.42'
+    :width: '1.30'
+    :height: '194.65'
+  :margen_d:
+    :at:
+    - '789.94'
+    - '279.42'
+    :width: '1.30'
+    :height: '194.65'
+  :e_7:
+    :at:
+    - '59.11'
+    - '254.94'
+    :width: '732.03'
+    :height: '1.30'
+:ban:
+  :detalle:
+    :codigo:
+      :at:
+      - '62.69'
+      - '250.76'
+      :width: '75.83'
+      :align: center
+    :descripcion:
+      :at:
+      - '159.85'
+      - '250.76'
+      :width: '491.49'
+      :align: justify
+      :font: Times-Roman
+      :leading: '1.00'
+    :codigo_iso:
+      :at:
+      - '670.13'
+      - '250.76'
+      :width: '117.43'
+      :align: center
+  :total:
+    :total:
+      :at:
+      - '161.81'
+      - '227.25'
+      :width: '488.91'
+      :align: center
+      :style: bold
+      :color: "#0000ff"
+      :size: '14.00'

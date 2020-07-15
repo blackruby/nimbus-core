@@ -1,0 +1,11 @@
+<style>
+.codebox {
+  height: 300px;
+  overflow: auto;
+}
+
+.codebox-ruby {
+  height: 400px;
+  overflow: auto;
+}
+</style>

@@ -1,0 +1,179 @@
+<div id="tit-bandas">
+  <label>Bandas</label>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <i class="material-icons boton" title="Añadir nueva banda de detalle (Alt+b)" onclick="addBanda()">playlist_add</i>
+  <i class="material-icons boton" title="Eliminar banda (Ctrl+<SUPR>)" onclick="delBanda">delete_outline</i>
+  &nbsp;
+  <i class="material-icons boton" id="b_view_bandas" onclick="viewBandas()">visibility</i>
+</div>
+
+<div id="barra_herramientas">
+  <i id="b_help" class="material-icons boton" title="Ayuda (Alt+h)" onclick="ayuda()">help</i>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <i class="material-icons boton" title="Nuevo documento (Alt+n)" onclick="newDoc()">crop_portrait</i>
+  <i class="material-icons boton" title="Abrir documento (Alt+a)" onclick="openDoc()">folder_open</i>
+  <i class="material-icons boton" onclick="grabarDoc()" id="b_grabar">save</i>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <i class="material-icons boton" title="Configurar página (Alt+p)" onclick="dialogOpenClose('d_pag')">settings</i>
+  &nbsp;
+  <i class="material-icons boton" title="Reducir (Alt+-)" onclick="ajustaCanvas(zoom-0.05)">zoom_out</i>
+  <i class="material-icons boton" title="Ajustar al ancho de página (Alt+1)" onclick="ajustaCanvas(1)">settings_ethernet</i>
+  <i class="material-icons boton" title="Ajustar ancho y alto (Alt+0)" onclick="ajustaCanvas(0)">settings_overscan</i>
+  <i class="material-icons boton" title="Ampliar (Alt++)" onclick="ajustaCanvas(zoom+0.05)">zoom_in</i>
+  &nbsp; &nbsp;
+  <label>X:</label>
+  <label id="pos_x" style="width: 35px">-----</label>
+  &nbsp;&nbsp;&nbsp;
+  <label>Y:</label>
+  <label id="pos_y" style="width: 35px">-----</label>
+  &nbsp; &nbsp;&nbsp;
+  <i id="b_clonar" class="material-icons boton" title="Activar clonación (Alt+c)" onclick="modoClonar()">low_priority</i>
+  &nbsp;&nbsp;
+  <i id="b_fondo" class="material-icons boton" onclick="modoFondo()">visibility</i>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <i id="b_eliminar_elemento" class="material-icons boton" title="Eliminar elemento (Alt+<SUPR>)" style="display: none" onclick="delElemento()">delete</i>
+</div>
+
+<div id="tit-propiedades">Propiedades</div>
+
+<div id="bandas">
+    <select id="i_banda" style="width: 185px;height: 26px;font-size: 18px;font-weight: bold">
+      <option value="cab">Cabecera</option>
+      <option value="pie">Pie</option>
+      <option value="draw">Dibujo</option>
+      <option disabled>&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;</option>
+    </select>
+  <div id="bandas_cont">
+  </div>
+</div>
+
+<div id="cont_canvas">
+  <div id="canvas">
+    <div id="margen_top" class="arrow-right"></div>
+    <div id="margen_top_guia" class="margen-guia"></div>
+    <div id="margen_bottom" class="arrow-right"></div>
+    <div id="margen_bottom_guia" class="margen-guia"></div>
+
+    <div id="div_contorno"></div>
+  </div>
+</div>
+
+<div id="propiedades">
+  <table class="tprop" style="display: none">
+    <tr><td><label for="i_alias">Alias:</label></td><td><input id="i_alias" style="width: 150px" /></td></tr>
+    <tr><td><label for="i_x">X:</label></td><td><input id="i_x" class="coord" type="number" min="0" step="0.1" /></td></tr>
+    <tr class="tr-hide-det"><td><label for="i_y">Y:</label></td><td><input id="i_y" class="coord" type="number" min="0" step="0.1" /></td></tr>
+    <tr><td><label for="i_ancho">Anchura:</label></td><td><input class="coord" id="i_ancho" type="number" min="1" step="0.1" /></td></tr>
+    <tr class="tr-hide-det"><td><label for="i_alto">Altura:</label></td><td><input class="coord" id="i_alto" type="number" min="1" step="0.1" /></td></tr>
+    <tr class="tr-hide-det tr-hide-draw"><td><label for="i_texto">Texto:</label></td><td><textarea id="i_texto" style="width: 150px"></textarea></td></tr>
+    <tr class="tr-hide-draw">
+      <td><label for="i_alineacion_h">Alineación H:</label></td>
+      <td>
+        <select id="i_alineacion_h">
+          <option value="left">Izquierda</option>
+          <option value="right">Derecha</option>
+          <option value="center">Centrado</option>
+          <option value="justify">Justificado</option>
+        </select>
+      </td
+    ></tr>
+    <tr class="tr-hide-det tr-hide-draw">
+      <td><label for="i_alineacion_v">Alineación V:</label></td>
+      <td>
+        <select id="i_alineacion_v">
+          <option value="top">Arriba</option>
+          <option value="center">Centro</option>
+          <option value="bottom">Abajo</option>
+        </select>
+      </td
+    ></tr>
+    <tr class="tr-hide-draw"><td><label for="i_font">Font:</label></td><td><input id="i_font" style="width: 100px"></td></tr>
+    <tr class="tr-hide-draw">
+      <td><label for="i_estilo">Estilo:</label></td>
+      <td>
+        <select id="i_estilo">
+          <option value="normal">Normal</option>
+          <option value="bold">Negrita</option>
+          <option value="italic">Cursiva</option>
+          <option value="bold_italic">Negrita+Cursiva</option>
+        </select>
+      </td>
+    </tr>
+    <tr class="tr-hide-draw"><td><label for="i_font_size">Tamaño:</label></td><td><input id="i_font_size" class="coord" type="number" min="1" step="0.5" style="width: 70px"/></td></tr>
+    <tr class="tr-hide-det tr-hide-draw">
+      <td><label for="i_overflow">Desbordamiento:</label></td>
+      <td>
+        <select id="i_overflow">
+          <option value="truncate">Truncar</option>
+          <option value="shrink_to_fit">Ajustar font</option>
+          <option value="expand">Expandir</option>
+        </select>
+      </td>
+    </tr>
+    <tr class="tr-hide-det tr-hide-draw"><td><label for="i_min_font_size">Font mínimo:</label></td><td><input id="i_min_font_size" class="coord" type="number" min="1" step="0.5" style="width: 70px"/></td></tr>
+    <tr class="tr-hide-draw"><td><label for="i_interlineado">Interlineado:</label></td><td><input id="i_interlineado" class="coord" type="number" min="0" step="0.1" style="width: 70px"/></td></tr>
+    <tr class="tr-hide-det tr-hide-draw"><td><label for="i_imagen">Imagen:</label></td><td><input id="i_imagen" style="width: 150px" /></td></tr>
+    <tr><td><label for="i_color">Color:</label></td><td><input id="i_color" type="color" /></td></tr>
+    <tr class="tr-hide-det tr-hide-draw"><td><label for="i_bgcolor">Color fondo:</label></td><td><input id="i_bgcolor" type="color" /></td></tr>
+    <tr class="tr-hide-det tr-hide-draw"><td><label for="i_borde">Borde:</label></td><td><input id="i_borde" class="coord" type="number" min="0" step="0.5" style="width: 70px"/></td></tr>
+    <tr class="tr-hide-det tr-hide-draw"><td><label for="i_brcolor">Color borde:</label></td><td><input id="i_brcolor" type="color" /></td></tr>
+    <tr class="tr-hide-det tr-hide-draw"><td><label for="i_pad_l">Relleno Izq.:</label></td><td><input id="i_pad_l" class="coord" type="number" min="0" step="0.5" style="width: 70px"/></td></tr>
+    <tr class="tr-hide-det tr-hide-draw"><td><label for="i_pad_r">Relleno Der.:</label></td><td><input id="i_pad_r" class="coord" type="number" min="0" step="0.5" style="width: 70px"/></td></tr>
+    <tr class="tr-hide-det tr-hide-draw"><td><label for="i_pad_t">Relleno Arr.:</label></td><td><input id="i_pad_t" class="coord" type="number" min="0" step="0.5" style="width: 70px"/></td></tr>
+    <tr class="tr-hide-det tr-hide-draw"><td><label for="i_pad_b">Relleno Abj.:</label></td><td><input id="i_pad_b" class="coord" type="number" min="0" step="0.5" style="width: 70px"/></td></tr>
+    <tr class="tr-hide-det tr-hide-draw">
+      <td><label for="i_render">Render:</label></td>
+      <td>
+        <select id="i_render">
+          <option value="auto">Automático</option>
+          <option value="manual">Manual</option>
+        </select>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div id="d_pag" class="dialogo">
+  <div class="dialogo-tit">Configuración de página
+    <i class="material-icons dialogo-close" onclick="d_pag.style.display = 'none'">close</i>
+  </div>
+  <div class="dialogo-cont">
+    <table class="tprop">
+      <tr><td><label for="i_formato_pag">Formato:</label></td><td><select id="i_formato_pag"></select></td></tr>
+      <tr><td><label for="i_orientacion_pag">Orientacion:</label></td><td><select id="i_orientacion_pag"><option value="portrait">Vertical</option><option value="landscape">Horizontal</option></select></td></tr>
+      <tr><td><label for="i_ancho_pag">Ancho:</label></td><td><input id="i_ancho_pag" class="coord" type="number" min="0" step="0.01"/></td></tr>
+      <tr><td><label for="i_alto_pag">Alto:</label></td><td><input id="i_alto_pag" class="coord" type="number" min="0" step="0.01"/></td></tr>
+      <tr><td><label for="i_top_margin">Margen superior:</label></td><td><input id="i_top_margin" class="coord" type="number" min="0" step="0.1"/></td></tr>
+      <tr><td><label for="i_bottom_margin">Margen inferior:</label></td><td><input id="i_bottom_margin" class="coord" type="number" min="0" step="0.1"/></td></tr>
+      <tr><td><label for="i_fondo">Imagen de fondo:</label></td><td><input id="i_fondo"/></td></tr>
+    </table>
+  </div>
+  <div class="dialogo-tit">Valores por defecto</div>
+  <div class="dialogo-cont">
+    <table class="tprop">
+      <tr><td><label for="i_font">Font:</label></td><td><input id="i_font_def" style="width: 100px"></td></tr>
+      <tr><td><label for="i_font_size_def">Tamaño:</label></td><td><input id="i_font_size_def" class="coord" type="number" min="1" step="0.5" style="width: 70px"/></td></tr>
+      <tr><td><label for="i_interlineado_def">Interlineado:</label></td><td><input id="i_interlineado_def" class="coord" type="number" min="0" step="0.1" style="width: 70px"/></td></tr>
+      <tr><td><label for="i_grosor_linea">Grosor línea:</label></td><td><input id="i_grosor_linea" class="coord" type="number" min="1" step="0.1" style="width: 70px"/></td></tr>
+      <tr><td><label for="i_color_linea">Color línea:</label></td><td><input id="i_color_linea" type="color" /></td></tr>
+    </table>
+  </div>
+</div>
+
+<div id="d_confirmacion" class="dialogo">
+  <div class="dialogo-tit">Confirmación</div>
+  <div class="dialogo-cont">
+    <label id="l_confirmacion"></label>
+  </div>
+  <hr>
+  <div class="dialogo-bot">
+    <button onclick="confirmarBorrado()">Eliminar</button>
+    &nbsp;&nbsp;
+    <button onclick="closeDialogoConfirmacion()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+  var formato = <%= @yml.html_safe %>;
+  var ymlFile = "<%= @yml_file ? @yml_file.html_safe : '' %>";
+</script>

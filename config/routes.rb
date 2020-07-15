@@ -11,6 +11,13 @@ Rails.application.routes.draw do
 
   root 'welcome#index'
 
+  unless Nimbus::Config[:excluir_divisas]
+    get "l_divisas_paises" => "l_divisas_paises#edit"
+    ['validar', 'grabar', 'fon_server'].each {|m|
+      post "l_divisas_paises/#{m}" => "l_divisas_paises##{m}"
+    }
+  end
+
   unless Nimbus::Config[:excluir_historicos]
     get 'histo/:modulo/:tabla/:id' => 'application#histo'
     get 'histo/:tabla/:id' => 'application#histo'
@@ -46,6 +53,12 @@ Rails.application.routes.draw do
     post 'gi/validar' => 'gi#validar'
     post 'gi/grabar' => 'gi#grabar'
     post 'gi/fon_server' => 'gi#fon_server'
+  end
+
+  unless Nimbus::Config[:excluir_nimbus_pdf]
+    get 'nimpdf' => 'nimbus_pdf#index'
+    get 'nimpdf_help' => 'nimbus_pdf#help'
+    post 'nimpdf/fon_server' => 'nimbus_pdf#fon_server'
   end
 
   get 'application/auto' => 'application#auto'
