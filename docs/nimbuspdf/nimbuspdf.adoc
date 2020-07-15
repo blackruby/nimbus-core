@@ -94,6 +94,8 @@ A continuación pasaremos a describir lo que hacen las líneas más significativ
 
 == Diseñador gráfico
 
+Para acceder al diseñador gráfico lo haremos a través de la URL: link:nimpdf[/nimpdf^]
+
 === Bandas
 
 image::bandas.png[]
@@ -101,7 +103,7 @@ image::bandas.png[]
 1. Añade una nueva banda de detalle.
 2. Elimina todos los elementos de la banda y la propia banda si ésta
    es de detalle.
-3. Mustra/Oculta los elementos del resto de bandas.
+3. Muestra/Oculta los elementos del resto de bandas.
 
 === Toolbar
 
