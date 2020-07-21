@@ -247,7 +247,7 @@ class String
 end
 
 # Método para traducir personalizado
-def nt(tex, h={})
+def nt(tex, h={}, mis = false)
   return('') if tex.nil? or tex == ''
 
   begin
@@ -263,7 +263,13 @@ def nt(tex, h={})
       end
     end
 
-    return((Nimbus::Debug ? '#' : '') + tex.humanize) if r.start_with?('translation missing')
+    if r.start_with?('translation missing')
+      if mis
+        return nil
+      else
+        return((Nimbus::Debug ? '#' : '') + tex.humanize)
+      end
+    end
     r[0] == '#' ? r[1..-1] : r
   rescue
     return '####'

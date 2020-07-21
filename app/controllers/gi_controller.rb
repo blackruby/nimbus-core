@@ -27,26 +27,14 @@ class GiController < ApplicationController
   end
 
   def nuevo_mod(mod, path)
-    if File.directory?(path + '/' + mod)
-      # Esto es el caso de módulos con module rails asociado
-      path = path + '/' + mod
-      modulo = "#{mod.capitalize}::"
-    else
-      modulo = ''
-    end
+    models = Dir.glob(path + '/**/*.rb').
+      select {|f| !(f.ends_with?('_add.rb') || f == 'modulos/nimbus-core/app/models/vista.rb' || f == "modulos/#{mod}/app/models/#{mod}.rb")}.
+      map {|f|
+        a = f.split('/')
+        (a.size == 6 ? a[4].capitalize + '::' : '') + Pathname(f).basename.to_s[0..-4].capitalize
+       }.sort
 
-    Dir.glob(path + '/*').sort.each {|fic|
-      ficb = Pathname(fic).basename.to_s
-
-      next if File.directory?(fic)
-      next if ficb == 'vista.rb'
-      next unless ficb.ends_with?('.rb')
-
-      ficb = ficb[0..-4].capitalize
-
-      @tablas[mod] ||= []
-      @tablas[mod] << [ficb, modulo + ficb]
-    }
+    @tablas[mod] = models if models.present?
   end
 
   def nuevo_form(mod, path, ext=true)
@@ -80,7 +68,8 @@ class GiController < ApplicationController
       nuevo_form(Rails.app_class.to_s.split(':')[0].downcase, 'formatos', ext)
 
       Dir.glob('modulos/*').sort.each {|mod|
-        nuevo_form(mod.split('/')[1], mod + '/formatos', ext) unless mod.ends_with?('/idiomas') or mod.ends_with?('/nimbus-core')
+        #nuevo_form(mod.split('/')[1], mod + '/formatos', ext) unless mod.ends_with?('/idiomas') or mod.ends_with?('/nimbus-core')
+        nuevo_form(mod.split('/')[1], mod + '/formatos', ext)
       }
     end
   end
@@ -160,7 +149,7 @@ class GiController < ApplicationController
 
       nuevo_mod(Rails.app_class.to_s.split(':')[0].downcase, 'app/models')
 
-      Dir.glob('modulos/*').each {|mod|
+      Dir.glob('modulos/*').sort.each {|mod|
         nuevo_mod(mod.split('/')[1], mod + '/app/models')
       }
     end

@@ -516,7 +516,7 @@ function iniPropCell() {
 }
 
 function genColWidth(val = "") {
-  setTimeout(function() {$(".anchura-columnas input").entryn(3, 0);}, 0);
+  setTimeout(function() {$(".anchura-columnas input").entryn(3, 0, false, true);}, 0);
   return `<td class='anchura-columnas'><input value='${val}' /></td>`;
 }
 
@@ -537,7 +537,7 @@ function genCol(ew) {
 }
 
 function genRowHeight(val = "") {
-  setTimeout(function() {$(".altura-filas input").entryn(3, 0);}, 0);
+  setTimeout(function() {$(".altura-filas input").entryn(3, 0, false, true);}, 0);
   return `<td class='altura-filas'><input value='${val}' title='Altura de la fila' /></td>`;
 }
 
@@ -1184,6 +1184,10 @@ $(window).load(function () {
     }
   });
 
+  $("body").on("change", ".anchura-columnas input, .altura-filas input", function () {
+    if (this.value == "0") this.value = "";
+  });
+
   // A partir de aquí es ya inicialización
 
   $(window).resize(redimWindow);
@@ -1265,7 +1269,7 @@ $(window).load(function () {
   }
 
   // Generar los inputs de las anchuras de cada columna
-  var cw = formato.col_widths.split(",");
+  var cw = formato.col_widths ? formato.col_widths.split(",") : [];
   for (var i = 0; i < nCol; i++) {
     $("#t_width tr").append(genColWidth(cw[i] == 0 ? "" : cw[i]));
   }
