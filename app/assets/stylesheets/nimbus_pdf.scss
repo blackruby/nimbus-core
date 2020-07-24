@@ -215,6 +215,8 @@ option:disabled {
   border-width: 1px;
   border-style: solid;
   border-color: #aaaaaa;
+  z-index: 1;
+  opacity: 0.90;
 }
 .elemento label {
   cursor: inherit;
@@ -225,14 +227,17 @@ option:disabled {
   background-color: transparent !important;
   border-color: black;
   border-width: 0;
+  z-index: 0;
 }
 .activo {
   background-color: blue !important;
   border-color: blue;
   color: white;
+  z-index: 2;
 }
 .activo-draw {
   border-color: blue;
+  z-index: 2;
 }
 .activo-banda {
   background-color: blue;

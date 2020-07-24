@@ -241,7 +241,7 @@ function marcarElementoBanda() {
 
 function selElemento(elemento) {
   if (activo) {
-    activo.removeClass(activo.attr("banda") == "draw" ? "activo-draw" : "activo").css("z-index", 0);
+    activo.removeClass(activo.attr("banda") == "draw" ? "activo-draw" : "activo")
     $(".activo-banda").removeClass("activo-banda");
   }
 
@@ -255,7 +255,7 @@ function selElemento(elemento) {
 
   b_eliminar_elemento.style.display = "";
 
-  activo.addClass(activo.attr("banda") == "draw" ? "activo-draw" : "activo").css("z-index", 1);
+  activo.addClass(activo.attr("banda") == "draw" ? "activo-draw" : "activo");
 
   // Pasar todos los valores de data a los inputs
 
