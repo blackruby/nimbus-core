@@ -496,7 +496,7 @@ El comando pdftoppm es parte de la suite poppler-utils. Si no está instalado ha
 <div class="ulist">
 <ul>
 <li>
-<p><strong>at</strong>: Es un array con dos elementos. La coordenada X (referida desde el borde izquierdo) y la coordenada Y (referida desde el borde inferior).</p>
+<p><strong>at</strong>: Es un array con dos elementos. La coordenada X (referida desde el borde izquierdo) y la coordenada Y (referida desde el borde inferior). Las coordenadas se refieren al vértice superior izquierdo del elemento,</p>
 </li>
 <li>
 <p><strong>width</strong>: Anchura del elemento.</p>
@@ -584,7 +584,7 @@ El comando pdftoppm es parte de la suite poppler-utils. Si no está instalado ha
 <p><strong>draw</strong>: Es una banda especial que contiene sólo líneas horizontales y/o verticales. Se pintará en cada página del documento. Es un hash donde cada clave es el nombre (alias) de un elemento y su valor es otro hash con sus propiedades. Éstas son un subconjunto de las de la banda de cabecera: <em>at</em>, <em>width</em>, <em>height</em> y <em>color</em>.</p>
 </li>
 <li>
-<p><strong>ban</strong>: Es un hash, conteniendo bandas de detalle. Cada clave es el nombre de una banda y su valor es similar al de las bandas de cabecera o pie. El subconjunto de propiedades permitidas es el siguiente: <em>at</em> (en este caso sólo se hará uso de la coordena X), <em>width</em>, <em>align, _font</em>, <em>style</em>, <em>size</em>, <em>leading</em> y <em>color</em>. Las bandas de detalle se irán añadiendo entre los márgenes superior e inferior y cada uno de sus elementos se expandirá en altura para acomodar el texto.</p>
+<p><strong>ban</strong>: Es un hash, conteniendo bandas de detalle. Cada clave es el nombre de una banda y su valor es similar al de las bandas de cabecera o pie. El subconjunto de propiedades permitidas es el siguiente: <em>at</em> (en este caso sólo se hará uso de la coordena X), <em>width</em>, <em>align</em>, <em>font</em>, <em>style</em>, <em>size</em>, <em>leading</em> y <em>color</em>. Las bandas de detalle se irán añadiendo entre los márgenes superior e inferior y cada uno de sus elementos se expandirá en altura para acomodar el texto.</p>
 </li>
 </ul>
 </div>
@@ -598,7 +598,7 @@ El comando pdftoppm es parte de la suite poppler-utils. Si no está instalado ha
 <div class="sectionbody">
 <div class="paragraph">
 <p>Para ilustrar el funcionamiento nos vamos a basar en el informe "modulos/nimbus-core/app/controllers/l_divisas_paises_controller.rb". Para hacer un informe hay que hacer un controlador como si se tratara de un proceso más (con sus rutas correspondientes). Aquí definiremos nuestro <em>@campos</em> con los campos que queramos recoger (principalmente límites y filtros) y, luego, en el método <em>after_save</em>, que es el llamado al confirmar la página construiremos el informe (PDF) y lo enviaremos al navegador.<br>
-En este ejemplo pintaremos para cada divisa seleccionada un documento con la lista de todos los países que usan dicha divisa y a continuación otro documento (totalmente artificial y sólo a modo de ejemplo) rellenando un formulario preimpreso. Puesto que el informe se compone de dos documentos, necesitaremos dos plantillas (YAML). Como norma general, lo ideal es crear una carpeta en el mismo nivel donde reside el controlador y con el nombre del mismo sin el sufijo <em>_controller.rb</em> y dejar allí tanto las plantillas (yml) como las imágenes que se pudieran usar. Así no necesitaremos indicar ningún path apra referirnos a ellas.<br>
+En este ejemplo pintaremos para cada divisa seleccionada un documento con la lista de todos los países que usan dicha divisa y a continuación otro documento (totalmente artificial y sólo a modo de ejemplo) rellenando un formulario preimpreso. Puesto que el informe se compone de dos documentos, necesitaremos dos plantillas (YAML). Como norma general, lo ideal es crear una carpeta en el mismo nivel donde reside el controlador y con el nombre del mismo sin el sufijo <em>_controller.rb</em> y dejar allí tanto las plantillas (yml) como las imágenes que se pudieran usar. Así no necesitaremos indicar ningún path para referirnos a ellas.<br>
 Las dos plantillas que usaremos son:</p>
 </div>
 <div class="paragraph">
@@ -836,7 +836,7 @@ Las dos plantillas que usaremos son:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Además de las plantillas de los documentos en la carpeta se encuentran dos imágenes: "ruby.png" usada como fondo de un elemento en la primera plantilla, y "322.png", usada como fondo de página en la segunda.</p>
+<p>Además de las plantillas de los documentos, en la carpeta se encuentran dos imágenes: "ruby.png" usada como fondo de un elemento en la primera plantilla, y "322.png", usada como fondo de página en la segunda.</p>
 </div>
 <div class="paragraph">
 <p>El código fuente del controlador es el siguiente:</p>
@@ -908,6 +908,10 @@ Las dos plantillas que usaremos son:</p>
 62
 63
 64
+65
+66
+67
+68
 </pre></td>
   <td class="code"><pre><span class="keyword">class</span> <span class="class">LDivisasPaisesMod</span>
   <span class="instance-variable">@campos</span> = {
@@ -923,6 +927,10 @@ Las dos plantillas que usaremos son:</p>
 <span class="keyword">class</span> <span class="class">LDivisasPaisesController</span> &lt; <span class="constant">ApplicationController</span>
   <span class="keyword">def</span> <span class="function">before_index</span>
     <span class="instance-variable">@usu</span>.admin
+  <span class="keyword">end</span>
+
+  <span class="keyword">def</span> <span class="function">before_envia_ficha</span>
+    params2fact
   <span class="keyword">end</span>
 
   <span class="keyword">def</span> <span class="function">after_save</span>
@@ -982,16 +990,62 @@ Las dos plantillas que usaremos son:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>20</strong> Generamos un nombre temporal para el fichero.</p>
+<p><strong>18</strong> El método <em>params2fact</em> procesa los parámetros recibidos en la URL y los asigna a los campos de @fact si coinciden los nombres, además si se recibe el parámetro especial <em>go</em>, se llamará directamente a <em>after_save</em>. Sería una forma de emular las características del <em>gi</em>.</p>
 </li>
 <li>
-<p><strong>22-30</strong> Creamos una hash con metadatos para incluir en el PDF.</p>
+<p><strong>24</strong> Generamos un nombre temporal para el fichero.</p>
 </li>
 <li>
-<p><strong>32-33</strong> Obtención de los datos según el filtro de divisa.</p>
+<p><strong>26-34</strong> Creamos una hash con metadatos para incluir en el PDF.</p>
 </li>
 <li>
-<p><strong>35</strong> Generación del PDF.</p>
+<p><strong>36-37</strong> Obtención de los datos según el filtro de divisa.</p>
+</li>
+<li>
+<p><strong>39</strong> Generación del PDF. Para generar el informe (pdf) tenemos tres opciones:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Instanciar un nuevo objeto de la clase NimbusPDF, aplicar todos los métodos sobre él y después renderizar el pdf.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="ruby">   pdf = <span class="constant">NimbusPDF</span>.new
+   <span class="comment"># Usar todos los métos de NimbusPDF y de Prawn asociándolos a 'pdf'</span>
+   <span class="comment"># (pdf.cabecera, pdf.pie, pdf.nuevo_doc, pdf.move_down, etc.)</span>
+   pdf.render_file tmp_file</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Usar directamente el método <em>generate</em> con el parámetro <em>pdf</em>.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="ruby">    <span class="constant">NimbusPDF</span>.generate(tmp_file) {|pdf|
+      <span class="comment"># Usar todos los métos de NimbusPDF y de Prawn asociándolos a 'pdf'</span>
+      <span class="comment"># (pdf.cabecera, pdf.pie, pdf.nuevo_doc, pdf.move_down, etc.).</span>
+      <span class="comment"># El bloque se evaluará en el ámbito local y por tanto tendremos</span>
+      <span class="comment"># acceso a nuestras variables locales y de instancia (@fact, etc.)</span>
+    }</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Usar directamente el método <em>generate</em> sin parámetros</p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="ruby">    <span class="constant">NimbusPDF</span>.generate(tmp_file) {
+      <span class="comment"># Usar todos los métos de NimbusPDF y de Prawn directamente.</span>
+      <span class="comment"># El bloque se evaluará en el ámbito de NimbusPDF. Tendremos</span>
+      <span class="comment"># acceso a nuestras variables locales, pero no a las de instancia (@fact, etc.)</span>
+    }</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Tanto NimbusPDF.new en su primer argumento, como NimbusPDF.generate en su segundo, admiten un hash con las opciones <em>info</em> y <em>compress</em> (como está usado en el ejemplo).</p>
+</div>
 </li>
 </ul>
 </div>

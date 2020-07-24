@@ -28,7 +28,7 @@ El comando pdftoppm es parte de la suite poppler-utils. Si no está instalado ha
 `+yum -y install poppler-utils+`
 
 * *cab*: Es la banda de cabecera. Aquí se declaran todos los elementos de la banda. Esta banda se pintará la primera en todas las páginas del documento. Es un hash donde cada clave es el nombre (alias) de un elemento y su valor es otro hash con sus propiedades. Éstas son:
-  ** *at*: Es un array con dos elementos. La coordenada X (referida desde el borde izquierdo) y la coordenada Y (referida desde el borde inferior).
+  ** *at*: Es un array con dos elementos. La coordenada X (referida desde el borde izquierdo) y la coordenada Y (referida desde el borde inferior). Las coordenadas se refieren al vértice superior izquierdo del elemento,
   ** *width*: Anchura del elemento.
   ** *height*: Altura del elemento.
   ** *texto*: Texto a mostrar en el elemento. Lo normal es darle valor por programa, pero también se puede asignar aquí uno estático.
@@ -55,14 +55,14 @@ El comando pdftoppm es parte de la suite poppler-utils. Si no está instalado ha
   ** *render*: Si vale "auto" (Default) el elemento se renderizará normalmente al añadirse la banda. Si vale "manual", no se renderizará, salvo que lo forcemos explícitamente con el método _pon_elementos_. La utilidad de esto es para evitar que se rendericen elementos que contienen información que no se conoce en el momento de ir generando el documento, y que se conoce y se renderiza a posteriori (como por ejemplo el número total de páginas del documento o del informe).
 * *pie*: Banda de pie. Esta banda se pintará después de renderizar cada página del documento. Es un hash donde cada clave es el nombre (alias) de un elemento y su valor es otro hash con sus propiedades. Éstas son las mismas que en la banda de cabecera.
 * *draw*: Es una banda especial que contiene sólo líneas horizontales y/o verticales. Se pintará en cada página del documento. Es un hash donde cada clave es el nombre (alias) de un elemento y su valor es otro hash con sus propiedades. Éstas son un subconjunto de las de la banda de cabecera: _at_, _width_, _height_ y _color_.
-* *ban*: Es un hash, conteniendo bandas de detalle. Cada clave es el nombre de una banda y su valor es similar al de las bandas de cabecera o pie. El subconjunto de propiedades permitidas es el siguiente: _at_ (en este caso sólo se hará uso de la coordena X), _width_, _align, _font_, _style_, _size_, _leading_ y _color_. Las bandas de detalle se irán añadiendo entre los márgenes superior e inferior y cada uno de sus elementos se expandirá en altura para acomodar el texto.
+* *ban*: Es un hash, conteniendo bandas de detalle. Cada clave es el nombre de una banda y su valor es similar al de las bandas de cabecera o pie. El subconjunto de propiedades permitidas es el siguiente: _at_ (en este caso sólo se hará uso de la coordena X), _width_, _align_, _font_, _style_, _size_, _leading_ y _color_. Las bandas de detalle se irán añadiendo entre los márgenes superior e inferior y cada uno de sus elementos se expandirá en altura para acomodar el texto.
 
 Todas las medidas (posición, grosor, tamaño de fuente, etc.) se expresan en "puntos". Un punto equivale a 1/72 de pulgada.
 
 == Ejemplo práctico
 
 Para ilustrar el funcionamiento nos vamos a basar en el informe "modulos/nimbus-core/app/controllers/l_divisas_paises_controller.rb". Para hacer un informe hay que hacer un controlador como si se tratara de un proceso más (con sus rutas correspondientes). Aquí definiremos nuestro _@campos_ con los campos que queramos recoger (principalmente límites y filtros) y, luego, en el método _after_save_, que es el llamado al confirmar la página construiremos el informe (PDF) y lo enviaremos al navegador. +
-En este ejemplo pintaremos para cada divisa seleccionada un documento con la lista de todos los países que usan dicha divisa y a continuación otro documento (totalmente artificial y sólo a modo de ejemplo) rellenando un formulario preimpreso. Puesto que el informe se compone de dos documentos, necesitaremos dos plantillas (YAML). Como norma general, lo ideal es crear una carpeta en el mismo nivel donde reside el controlador y con el nombre del mismo sin el sufijo __controller.rb_ y dejar allí tanto las plantillas (yml) como las imágenes que se pudieran usar. Así no necesitaremos indicar ningún path apra referirnos a ellas. +
+En este ejemplo pintaremos para cada divisa seleccionada un documento con la lista de todos los países que usan dicha divisa y a continuación otro documento (totalmente artificial y sólo a modo de ejemplo) rellenando un formulario preimpreso. Puesto que el informe se compone de dos documentos, necesitaremos dos plantillas (YAML). Como norma general, lo ideal es crear una carpeta en el mismo nivel donde reside el controlador y con el nombre del mismo sin el sufijo __controller.rb_ y dejar allí tanto las plantillas (yml) como las imágenes que se pudieran usar. Así no necesitaremos indicar ningún path para referirnos a ellas. +
 Las dos plantillas que usaremos son:
 
 _l_divisas_paises.yml_
@@ -75,7 +75,7 @@ _322.yml_
 [source,yaml]
 include::../../app/controllers/l_divisas_paises/322.yml[]
 
-Además de las plantillas de los documentos en la carpeta se encuentran dos imágenes: "ruby.png" usada como fondo de un elemento en la primera plantilla, y "322.png", usada como fondo de página en la segunda.
+Además de las plantillas de los documentos, en la carpeta se encuentran dos imágenes: "ruby.png" usada como fondo de un elemento en la primera plantilla, y "322.png", usada como fondo de página en la segunda.
 
 El código fuente del controlador es el siguiente:
 
@@ -87,10 +87,44 @@ include::../../app/controllers/l_divisas_paises_controller.rb[]
 
 A continuación pasaremos a describir lo que hacen las líneas más significativas del código.
 
-* *20* Generamos un nombre temporal para el fichero.
-* *22-30* Creamos una hash con metadatos para incluir en el PDF.
-* *32-33* Obtención de los datos según el filtro de divisa.
-* *35* Generación del PDF.
+* *18* El método _params2fact_ procesa los parámetros recibidos en la URL y los asigna a los campos de @fact si coinciden los nombres, además si se recibe el parámetro especial _go_, se llamará directamente a _after_save_. Sería una forma de emular las características del _gi_.
+* *24* Generamos un nombre temporal para el fichero.
+* *26-34* Creamos una hash con metadatos para incluir en el PDF.
+* *36-37* Obtención de los datos según el filtro de divisa.
+* *39* Generación del PDF. Para generar el informe (pdf) tenemos tres opciones:
+** Instanciar un nuevo objeto de la clase NimbusPDF, aplicar todos los métodos sobre él y después renderizar el pdf.
++
+[source%nowrap,ruby]
+----
+   pdf = NimbusPDF.new
+   # Usar todos los métos de NimbusPDF y de Prawn asociándolos a 'pdf'
+   # (pdf.cabecera, pdf.pie, pdf.nuevo_doc, pdf.move_down, etc.)
+   pdf.render_file tmp_file
+----
+** Usar directamente el método _generate_ con el parámetro _pdf_.
++
+[source%nowrap,ruby]
+----
+    NimbusPDF.generate(tmp_file) {|pdf|
+      # Usar todos los métos de NimbusPDF y de Prawn asociándolos a 'pdf'
+      # (pdf.cabecera, pdf.pie, pdf.nuevo_doc, pdf.move_down, etc.).
+      # El bloque se evaluará en el ámbito local y por tanto tendremos
+      # acceso a nuestras variables locales y de instancia (@fact, etc.)
+    }
+----
+** Usar directamente el método _generate_ sin parámetros
++
+[source%nowrap,ruby]
+----
+    NimbusPDF.generate(tmp_file) {
+      # Usar todos los métos de NimbusPDF y de Prawn directamente.
+      # El bloque se evaluará en el ámbito de NimbusPDF. Tendremos
+      # acceso a nuestras variables locales, pero no a las de instancia (@fact, etc.)
+    }
+----
+
++
+Tanto NimbusPDF.new en su primer argumento, como NimbusPDF.generate en su segundo, admiten un hash con las opciones _info_ y _compress_ (como está usado en el ejemplo).
 
 == Diseñador gráfico
 

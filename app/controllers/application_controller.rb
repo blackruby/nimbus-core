@@ -148,8 +148,23 @@ class ApplicationController < ActionController::Base
 
   # Funciones para interactuar con el cliente
 
-  ##nim-doc {sec: 'Métodos de usuario', met: 'mensaje(arg)', mark: :rdoc}
+  ##nim-doc {sec: 'Métodos de usuario', met: 'params2fact(go = true)', mark: :rdoc}
+  #
+  # Asigna valores a los campos de @fact si se han pasado como parámetros en la URL.
+  # Si el parámetro _go_ es _true_ (que es su valor por defecto) y se ha recibido también
+  # el parámetro _go_ en la URL, se llamará directamente al método <em>after_save</em>
+  # al acabar <em>before_envia_ficha</em>, así el proceso se ejecuta inmediatamente.
+  # Este método sólo tiene sentido usarlo en <em>before_envia_ficha</em>.
+  #
+  ##
 
+  def params2fact(go = true)
+    @fact.campos.each_key {|c| @fact[c] = params[c] if params[c]}
+    @nimbus_go = true if go && params[:go]
+  end
+
+  ##nim-doc {sec: 'Métodos de usuario', met: 'mensaje(arg)', mark: :rdoc}
+  #
   # Saca una ventana flotante modal mostrando un mensaje.
   #
   # <b>Parámetros</b>
@@ -481,16 +496,24 @@ class ApplicationController < ActionController::Base
     @ajax << "statusBotones(#{h.to_json});"
   end
 
-  ##nim-doc {sec: 'Métodos de usuario', met: "envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment')"}
-  # Método para hacer download del fichero <i>file</i><br>
-  # <i>file_cli</i> es el nombre que se propondrá para la descarga<br>
-  # <i>rm</i> puede valer true o false en función de si queremos que el fichero se borre tras la descarga.<br>
-  # <i>disposition</i> puede valer 'attachment' (por defecto) o 'inline' para que el fichero se descargue y se abra.
-  # <i>popup</i> Si vale true la ventana donde se muestra el fichero será flotante (solo válido para disposition: 'inline')
-  # <i>tit</i> T´tulo que aparece en la pestaña que muestra el fichero si <i>disposition</i> es inline. si no especifica se usará <i>file_cli</i>.
-  # Notar que los argumentos son con nombre. Ejemplo de uso:<br>
-  # <pre>envia_fichero file: '/tmp/zombi.pdf', file_cli: 'datos.pdf', rm: false</pre>
-  # Si no se especifica <i>file_cli</i> se usará <i>file</i>. Y si no se especifica <i>rm</i> se asume true
+  ##nim-doc {sec: 'Métodos de usuario', met: "envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment', popup: false, tit: file_cli)", mark: :rdoc}
+  #
+  # Método para hacer download de un fichero.
+  #
+  # <b>Parámetros</b>
+  #
+  # * *file* (String) -- Path del fichero a descargar.
+  # * *file_cli* (String) <em>(Default: el "basename" de file)</em> -- Es el nombre que se propondrá para almacenar la descarga.
+  # * *rm* (Boolean) <em>(Default: true)</em> -- Si vale _true_ el fichero se borrará tras la descarga.
+  # * *disposition* (String) <em>(Default: 'attachment')</em> -- Puede valer 'attachment' para que el fichero se descargue, o 'inline' para que
+  #   se muestre directamente en el navegador si éste es capaz de visualizar el contenido.
+  # * *popup* (Boolean, Symbol) <em>(Default: false)</em> -- Si vale _true_ la ventana donde se muestra el fichero será flotante
+  #   (solo válido para disposition: 'inline'). Si vale _false_ se abrirá en una ventana nueva. Si vale :self se abrirá en la ventana
+  #   que ha hecho la llamada reemplazando el contenido de ésta.
+  # * *tit* (String) <em>(Default: file_cli)</em> -- Título que aparecerá en la pestaña que muestra el fichero si _disposition_
+  #   es 'inline'.
+  # Ejemplo de uso:
+  #   envia_fichero file: '/tmp/zombi.pdf', file_cli: 'datos.pdf', rm: false
   ##
 
   def envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment', popup: false, tit: file_cli)
@@ -504,6 +527,8 @@ class ApplicationController < ActionController::Base
     arg = {file: file, file_cli: file_cli, rm: rm, disposition: disposition}.to_json
     tit = tit ? '/' + tit.gsub('/', '-').gsub(/[?&]/, ' ') : ''
     url = "/nim_download#{tit}?data=#{cry.encrypt_and_sign(arg)}"
+
+    popup = :self if @nimbus_go && !popup
 
     if disposition == 'attachment'
       @ajax << "window.location.href='#{url}';"
@@ -1876,8 +1901,14 @@ class ApplicationController < ActionController::Base
 
     mi_render if self.respond_to?(:mi_render)
 
-    #(clm.mant? ? pag_render('ficha') : pag_render('ficha', 'proc')) unless r
-    pag_render('ficha') unless performed?
+    unless performed?
+      if @nimbus_go && self.respond_to?(:after_save)
+        after_save
+        render html: '', layout: 'basico_ajax'
+      else
+        pag_render('ficha')
+      end
+    end
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'set_auto_comp_filter(cmp, wh)'}
