@@ -3298,6 +3298,7 @@ class ApplicationController < ActionController::Base
       call_nimbus_hook :after_borra
 
       grid_reload
+      @ajax << 'hayCambios=false;'
       @ajax << "window.location.replace('/' + _controlador + '/0/edit?head=#{@dat[:head]}');"
     end
 
