@@ -130,7 +130,8 @@ class Usuario < ActiveRecord::Base
             }
             # Asignación de permisos a los hijos
             cl.hijos.each {|h|
-              asigna_permiso('/' + h[:url], st, emp, dest)
+              #asigna_permiso('/' + h[:url], st, emp, dest)
+              _calcula_permisos({'' => '/' + h[:url]}, path, emp, st, prf, dest)
             }
           end
         rescue
