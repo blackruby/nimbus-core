@@ -898,14 +898,6 @@ function auto_comp(e, s, modelo, cntr) {
   el.keydown(function(e) {bus(e);});
 }
 
-/*
-function date_pick(e, opt) {
-  if (opt == undefined)
-    $(e).datepicker({onClose: function(){$(this).focus();}});
-  else
-    $(e).datepicker($.extend(true, {onClose: function(){$(this).focusNextInputField();}}, opt));
-}
-*/
 function date_pick(e, opt) {
   $(e).entrydate().datepicker($.extend(true, {showOn: 'none', onSelect: function(){
     if ($(this).data('ov') != $(this).val()) $(this).trigger("change");
@@ -1056,6 +1048,7 @@ function setAutoCompEmpeje(cmp, id, empeje) {
 
 function autoCompBuscar() {
   bus_input_selected = $("#_auto_comp_button_").parent().find("input");
+  bus_input_selected.focus();
   var cmp = bus_input_selected.attr('cmp');
   if (cmp) {
     var rowid = $("#g_" + cmp).jqGrid('getGridParam', 'selrow');
