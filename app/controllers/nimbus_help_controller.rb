@@ -53,6 +53,10 @@ class NimbusHelpController < ApplicationController
 end
 
 =begin
+##nim-doc {sec: 'NimbusPDF', met: 'Ayuda'}
+# Para consultar la ayuda seguir el siguiente enlace: <a href="/nimpdf_help" target="_blank">NimbusPDF</a>
+##
+
 ##nim-doc {sec: 'Controladores', met: 'Imágenes'}
 <pre>
 Las imágenes en Nimbus pueden ser de tres tipos:

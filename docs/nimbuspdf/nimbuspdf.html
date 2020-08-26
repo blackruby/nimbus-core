@@ -990,7 +990,9 @@ Las dos plantillas que usaremos son:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>18</strong> El método <em>params2fact</em> procesa los parámetros recibidos en la URL y los asigna a los campos de @fact si coinciden los nombres, además si se recibe el parámetro especial <em>go</em>, se llamará directamente a <em>after_save</em>. Sería una forma de emular las características del <em>gi</em>.</p>
+<p><strong>18</strong> El método <em>params2fact</em> procesa los parámetros recibidos en la URL y los asigna
+a los campos de @fact si coinciden los nombres, además si se recibe el parámetro
+especial <em>go</em>, se llamará directamente a <em>after_save</em>. Sería una forma de emular las características del <em>gi</em>.</p>
 </li>
 <li>
 <p><strong>24</strong> Generamos un nombre temporal para el fichero.</p>
@@ -1044,8 +1046,23 @@ Las dos plantillas que usaremos son:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Tanto NimbusPDF.new en su primer argumento, como NimbusPDF.generate en su segundo, admiten un hash con las opciones <em>info</em> y <em>compress</em> (como está usado en el ejemplo).</p>
+<p>Tanto NimbusPDF.new en su primer argumento, como NimbusPDF.generate en su segundo, admiten un hash con las
+opciones <em>info</em> y <em>compress</em> (como está usado en el ejemplo).</p>
 </div>
+</li>
+<li>
+<p><strong>44</strong> El método <em>cabecera</em> recibe un argumento que puede ser un hash conteniendo los valores de
+los elementos de la banda <em>cabecera</em>, o un lambda que devuelva un hash igual al anterior. La banda de cabecera
+se pinta en todas las páginas del documento. La diferencia entre asignar a este método un hash o un lambda es
+que el hash sería "estático" (igual en todas las páginas) y el lambda se evaluaría al comenzar cada nueva página.
+Si, por ejemplo, asignáramos a algún campo valores dinámicos, como el número de página o algún acumulado que
+llevemos en alguna variable local, deberíamos de usar un lambda.</p>
+</li>
+<li>
+<p><strong>45</strong> Igual al anterior pero con la banda de <em>pie</em>. En el lambda que se le puede pasar a este método se puede
+declarar opcionalmente un argumento (<em>fin</em> en el ejemplo) que valdrá <em>true</em> o <em>false</em> en función de si es
+la última página del documento o no. Esto es útil para si, en documentos tipo factura, se quiere pintar los
+valores del pie sólo en la última página.</p>
 </li>
 </ul>
 </div>
@@ -1146,7 +1163,7 @@ simplemente lo moveremos.</p>
 <div class="sect2">
 <h3 id="_creación_y_manipulación_de_elementos">Creación y manipulación de elementos</h3>
 <div class="paragraph">
-<p>Para añadir un nuevo elemento a una banda hay que hacer dos <em>clicks</em>, el primero nos definirá un vértice y el segundo definirá el vértice opuesto, generándose así un rectángulo. En el caso de las bandas de detalle el rectángulo siempre tendrás una altura prefijada, ya que ésta es dinámica y se irá ajustando según el contenido que le asociemos por programa. En el caso de la banda de dibujo (draw) los rectángulos se sustituyen por líneas con un grosor predeterminado en la configuración del documento.</p>
+<p>Para añadir un nuevo elemento a una banda hay que hacer dos <em>clicks</em>, el primero nos definirá un vértice y el segundo definirá el vértice opuesto, generándose así un rectángulo. En el caso de las bandas de detalle el rectángulo siempre tendrá una altura prefijada, ya que ésta es dinámica y se irá ajustando según el contenido que le asociemos por programa. En el caso de la banda de dibujo (draw) los rectángulos se sustituyen por líneas con un grosor predeterminado en la configuración del documento.</p>
 </div>
 <div class="paragraph">
 <p>Dependiendo de si está activado o no el modo "clonación", al arrastrar un elemento, éste se desplazará o se hará una copia del mismo. En ambos casos, si al arrastrar se pulsa la tecla &lt;SHIFT&gt;, el desplazamiento se restringirá al eje horizontal, y si se pulsa la tecla &lt;CTRL&gt; se restringirá al vertical. Si pulsamos la tecla &lt;ALT&gt; se activará el modo "magnético" y la posición del elemento se intentará ajustar a los bordes o vértices de elementos ya existentes. La tecla &lt;ALT&gt; se puede usar en conjunción con &lt;SHIFT&gt; o &lt;CTRL&gt;.</p>
