@@ -1147,7 +1147,7 @@ function setDataGridLocal(cmp, data) {
 
   // Bucle de asignación de valores a las celdas
   for (var i = 0; c=data[i]; i++)
-    g.jqGrid("setCell", c[0], c[1], c[2]);
+    g.jqGrid("setCell", c[0], c[1], c[2], false, false, true);
 
   if (edit) {
     // Volvemos a editar la celda que estaba en edición
