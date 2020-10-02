@@ -3400,9 +3400,9 @@ class ApplicationController < ActionController::Base
           @fact[c] = nil
         }
 
-        reponer_dirty
-
         if clm.mant?
+          reponer_dirty
+
           #Refrescar el grid si procede
           grid_reload
 
