@@ -15,3 +15,6 @@ es:
   leido: Leído
   log_ej_actual: Iniciar sesión con ejercicio actual
   p2p: Procesos en segundo plano
+  auditoria: Auditoría de usuarios
+  accion: Acción
+  acciones_audit: "A: Alta de nuevo registro\nB: Borrado de registro\nE: Edición/Entrada en registro/proceso\nG: Grabación/Ejecución de registro/proceso" 

@@ -85,9 +85,13 @@
 #  config.action_mailer.default_options = {from: 'usuario@gmail.com'}
 :email_password: true
 
-# Control del acceso a ERD
+# Control del acceso a ERD (Diagramas entidad-relación de los modelos)
 # Posibles valores:
 # :admin Tienen acceso todos los usuarios admin.
 # :off Nadie tiene acceso (ni el usuario "admin").
 # En cualquier otro caso o si la clave no existe sólo el usuario "admin" tendrá acceso.
 :erd: :admin
+
+# Control de auditoría de usuarios.
+# Permite habilitar por usuario el seguimiento de la actividad del mismo.
+:audit: true 

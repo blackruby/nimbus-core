@@ -980,6 +980,8 @@ class ApplicationController < ActionController::Base
     id_hijos = params[:hijos] ? JSON.parse('{' + params[:hijos] + '}').symbolize_keys : {}
     @ajax << '$(window).load(function(){' if posponer
     hijos.each_with_index {|h, i|
+      next unless h[:url]
+
       @ajax << '$("#hijo_' + i.to_s + '").attr("src", "/' + h[:url]
       @ajax << '?mod=' + class_modelo.to_s
       @ajax << '&id=' + @fact.id.to_s
@@ -1640,7 +1642,11 @@ class ApplicationController < ActionController::Base
     call_nimbus_hook :before_envia_ficha
     envia_ficha true
 
-    #@v.save
+    if @usu.audit
+      @dat[:audit_ctrl] = params[:controller]
+      Auditoria.create usuario_id: @usu.id, fecha: Nimbus.now, controlador: params[:controller], accion: 'A'
+    end
+
     graba_v
     @ajax << '_vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
 
@@ -1892,7 +1898,12 @@ class ApplicationController < ActionController::Base
     #before_envia_ficha if self.respond_to?(:before_envia_ficha)
     call_nimbus_hook :before_envia_ficha
 
-    unless clm.mant? and @fact.id == 0
+    unless clm.mant? && @fact.id == 0
+      if @usu.audit
+        @dat[:audit_ctrl] = (params[:controller] == 'gi' ? 'gi/run/' + params[:modulo] + '/' + params[:formato] : params[:controller])
+        Auditoria.create usuario_id: @usu.id, fecha: Nimbus.now, controlador: @dat[:audit_ctrl], accion: 'E', rid: (clm.mant? ? @fact.id : nil)
+      end
+
       envia_ficha true
       graba_v
       @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
@@ -3292,6 +3303,10 @@ class ApplicationController < ActionController::Base
       #class_mant.view? ? class_modelo.destroy(@fact.id) : @fact.destroy
       @fact.destroy
 
+      if @usu.audit
+        Auditoria.create usuario_id: @usu.id, fecha: Nimbus.now, controlador: params[:controller], accion: 'B', rid: @fact.id
+      end
+
       # Borrar los datos asociados
       `rm -rf data/#{class_modelo}/#{@fact.id}`
 
@@ -3382,6 +3397,10 @@ class ApplicationController < ActionController::Base
         call_nimbus_hook :before_save
 
         @fact.save if @fact.respond_to?('save') # El if es por los 'procs' (que no tienen modelo subyacente)
+
+        if @usu.audit
+          Auditoria.create usuario_id: @usu.id, fecha: Nimbus.now, controlador: @dat[:audit_ctrl], accion: 'G', rid: (clm.mant? ? @fact.id : nil)
+        end
 
         # Tratar campos imagen
         cmps_img.each {|c|

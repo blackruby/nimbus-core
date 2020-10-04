@@ -34,6 +34,14 @@ class Usuario < ActiveRecord::Base
     end
   end
 
+  def auto_comp_label(_tipo)
+    "#{self.nombre} (#{self.codigo})"
+  end
+
+  def auto_comp_value(_tipo)
+    "#{self.nombre} (#{self.codigo})"
+  end
+
   def self.add_menu(hm, menu)
     hm.deep_merge!(YAML.load(ERB.new(File.read(menu)).result(binding)))
   end

@@ -9,6 +9,7 @@ class UsuariosMod < Usuario
     foto: {tab: 'pre', gcols: 2, img: {height: 120}},
     admin: {tab: 'general', gcols: 2, br: true, grid: {}},
     api: {tab: 'general', label: 'Usuario API', gcols: 2, visible: api, grid: {hidden: !api}},
+    audit: {tab: 'general', label: 'Auditar', gcols: 2, visible: Nimbus::Config[:audit], grid: {}},
     timeout: {tab: 'general', gcols: 4},
     locale: {tab: 'general', gcols: 2, sel:{es: 'espanol', en: 'ingles'}, pref: true},
     password: {tab: 'general', hr: true, gcols: 3, attr: 'autocomplete="new-password" type="password"'},

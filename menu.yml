@@ -15,4 +15,7 @@ General:
   ctraccess: /bus?mod=Acceso&ctr=no&help=accesos/help
   p2p: /p2p
   actualizaciones: /updates
+  <% if Nimbus::Config[:audit] %>
+  auditoria: /auditorias
+  <% end %>
   <% end %>
