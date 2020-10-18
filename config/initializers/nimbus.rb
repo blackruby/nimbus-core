@@ -960,7 +960,6 @@ module MantMod
 
           if hay_grid
             v[:grid][:editoptions][:maxlength] ||= v[:manti]
-            v[:grid][:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
 
             if campo.ends_with?('_id')
               v[:grid][:editoptions][:dataInit] ||= "~function(e){auto_comp_grid(e,'" + v[:ref] + "');}~"
@@ -969,7 +968,20 @@ module MantMod
               v[:grid][:edittype] ||= 'select'
               v[:grid][:editoptions][:value] ||= v[:sel]
               v[:grid][:align] ||= 'center'
-              v[:grid][:searchoptions][:sopt] ||= ['eq', 'ne', 'in', 'ni', 'nu', 'nn']
+
+              if v[:grid][:nim_sel] == false
+                # La búsqueda se hará con una entrada de texto normal
+                # Incluimos las operaciones 'in' y 'ni' para poder buscar
+                # varias opciones separadas por comas.
+                v[:grid][:searchoptions][:sopt] ||= ['eq', 'ne', 'in', 'ni', 'nu', 'nn']
+              else
+                # La búsqueda se hará con una select. Es más intuitivo para
+                # el usuario pero perdemos las operaciones 'in' y 'ni'.
+                # Es la opción por defecto
+                v[:grid][:stype] ||= 'select'
+                v[:grid][:searchoptions][:sopt] ||= ['eq', 'ne', 'nu', 'nn']
+                v[:grid][:searchoptions][:value] ||= {'' => 'todo'}.merge(v[:sel])
+              end
             elsif v[:mask] or v[:code] or v[:may]
               #v[:grid][:editoptions][:dataInit] ||= "~function(e){mask({elem: e,mask:'" + v[:mask] + "',may:" + v[:may].to_s + "});}~"
               v[:grid][:edittype] ||= 'custom'
@@ -983,6 +995,8 @@ module MantMod
               v[:grid][:search] = false
               v[:editable] = false
             end
+
+            v[:grid][:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
           end
         when :integer, :decimal
           v[:manti] ||= 7

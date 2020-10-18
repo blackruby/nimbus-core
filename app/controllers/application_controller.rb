@@ -1087,7 +1087,7 @@ class ApplicationController < ActionController::Base
     @g = @dat[:persistencia]
 
     grid = clm.grid.deep_dup
-    grid_conf(grid) if self.respond_to?(:grid_conf)
+    call_nimbus_hook :grid_conf
 
     grid[:cellEdit] = false if prm == 'c'
     grid[:visible] = false if params[:hidegrid]
@@ -1178,11 +1178,17 @@ class ApplicationController < ActionController::Base
             h[:editoptions][:value][c] = nt(v)
           }
         end
+        if h[:stype] == 'select' && h[:searchoptions][:value] && h[:searchoptions][:value].is_a?(Hash)
+          h[:searchoptions][:value].each{|c, v|
+            h[:searchoptions][:value][c] = nt(v)
+          }
+        end
       }
+      call_nimbus_hook :grid_col_model, cm
       @view[:col_model] = eval_cad(clm.col_model_html(cm))
     end
 
-    after_index if self.respond_to?('after_index')
+    call_nimbus_hook :after_index
 
     @v.save
     @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
