@@ -1087,7 +1087,7 @@ class ApplicationController < ActionController::Base
     @g = @dat[:persistencia]
 
     grid = clm.grid.deep_dup
-    call_nimbus_hook :grid_conf
+    call_nimbus_hook :grid_conf, grid
 
     grid[:cellEdit] = false if prm == 'c'
     grid[:visible] = false if params[:hidegrid]
