@@ -212,6 +212,7 @@ class UsuariosController < ApplicationController
     unless @usu.admin
       disable(:admin)
       disable(:api)
+      disable(:audit)
       status_botones(borrar: false) if @usu.id == @fact.id
     end
 
