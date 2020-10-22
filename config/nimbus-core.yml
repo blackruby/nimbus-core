@@ -94,4 +94,13 @@
 
 # Control de auditoría de usuarios.
 # Permite habilitar por usuario el seguimiento de la actividad del mismo.
+# Si vale true, está habilitada la auditoría y todos los usuarios admin
+# podrán editar la check correspondiente de cada usuario.
+# Si su valor es un array, se considerará que sólo los códigos de usuario
+# contenidos en el array (que además tienen que ser admin) podrán editar la check.
 :audit: true 
+# Con array de usuarios:
+:audit:
+- admin
+- pepe
+- juan

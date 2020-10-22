@@ -212,8 +212,12 @@ class UsuariosController < ApplicationController
     unless @usu.admin
       disable(:admin)
       disable(:api)
-      disable(:audit)
       status_botones(borrar: false) if @usu.id == @fact.id
+    end
+
+    # Controlar si debe estar habilitada la check de auditoría
+    unless @usu.admin && (Nimbus::Config[:audit] == true || Nimbus::Config[:audit].is_a?(Array) && Nimbus::Config[:audit].include?(@usu.codigo))
+      disable(:audit)
     end
 
     unless @usu.admin or @usu.id != @fact.id
