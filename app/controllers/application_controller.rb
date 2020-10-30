@@ -3320,7 +3320,8 @@ class ApplicationController < ActionController::Base
 
       grid_reload
       @ajax << 'hayCambios=false;'
-      @ajax << "window.location.replace('/' + _controlador + '/0/edit?head=#{@dat[:head]}');"
+      #@ajax << "window.location.replace('/' + _controlador + '/0/edit?head=#{@dat[:head]}');"
+      @ajax << 'if(parent == self){window.close();location.replace("about:blank")}else parent.editInForm(0);'
     end
 
     render_ajax
