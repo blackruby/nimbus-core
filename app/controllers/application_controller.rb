@@ -2022,7 +2022,14 @@ class ApplicationController < ActionController::Base
       r = nil
     end
 
+    orden = nil
     if r.nil?
+      # Si el texto introducido acaba en ^ revertir el orden de búsqueda.
+      if p[-1] == '^'
+        orden = data[:orden].upcase.ends_with?(' DESC') ? data[:orden][0..-6] : data[:orden] + ' DESC'
+        p = p[0..-2]
+      end
+
       if p[0] == '-'
         patron = p[1..-1]
       else
@@ -2081,7 +2088,7 @@ class ApplicationController < ActionController::Base
       msel = mselect_parse(mod, mod.auto_comp_mselect)
     end
 
-    mod.select(msel[:cad_sel]).joins(msel[:cad_join]).where(wh).where(whv).order(data[:orden]).limit(15).map {|r|
+    mod.select(msel[:cad_sel]).joins(msel[:cad_join]).where(wh).where(whv).order(orden || data[:orden]).limit(15).map {|r|
       {value: r.auto_comp_value(type), id: r[:id], label: r.auto_comp_label(type)}
     }
   end
