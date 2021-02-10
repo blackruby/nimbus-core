@@ -103,7 +103,7 @@ module Nimbus
 
       # Reordenamiento del hash de campos (@campos) para posicionar los tags 'post'
       begin
-        ctr_mod = ((mod == '' ? '' : mod.capitalize + '::') + ctr_name.capitalize + 'Mod').constantize
+        ctr_mod = ((mod == '' ? '' : mod.capitalize + '::') + ctr_name.camelize + 'Mod').constantize
         cmpa = []
         post = false
         ctr_mod.campos.each {|k, v|
