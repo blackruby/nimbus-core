@@ -3749,7 +3749,7 @@ class ApplicationController < ActionController::Base
       elsif v[:type] == :datetime
         sal << "<div id='#{cs}' #{div_attr}>"
         sal << '<div style="display: inline-block">'
-        sal << '<input class="nim-input" id="_f_' + cs + '" autocomplete="nope" required style="max-width: ' + size + 'em"'
+        sal << '<input class="nim-input" id="_f_' + cs + '" autocomplete="off" required style="max-width: ' + size + 'em"'
         sal << plus + '/>'
         sal << '<label class="nim-label" for="_f_' + cs + '">' + nt(v[:label]) + '</label>'
         sal << '</div>'
@@ -3805,8 +3805,7 @@ class ApplicationController < ActionController::Base
         sal << "<div #{div_attr}>"
         sal << '<input class="' + clase + '" id="' + cs + '" required onchange="validar($(this))" style="max-width: ' + size + 'em"'
         sal << " maxlength=#{size}" if v[:type] == :string
-        #sal << ' autocomplete="nope"' if v[:type] == :date
-        sal << ' autocomplete="nope"'
+        sal << ' autocomplete="off"'
         sal << plus + '/>'
         sal << '<label class="nim-label" for="' + cs + '">' + nt(v[:label]) + '</label>'
         sal << '</div>'

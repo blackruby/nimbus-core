@@ -891,7 +891,7 @@ function auto_comp(e, s, modelo, cntr) {
     }
   });
 
-  el.attr('modelo', modelo).attr('controller', cntr).attr('autocomplete', 'nope').addClass('auto_comp');
+  el.attr('modelo', modelo).attr('controller', cntr).attr('autocomplete', 'off').addClass('auto_comp');
 
   if (dlg) el.autocomplete('widget').insertAfter(dlg.parent());
 
