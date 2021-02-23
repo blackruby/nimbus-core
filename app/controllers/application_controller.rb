@@ -3280,7 +3280,7 @@ class ApplicationController < ActionController::Base
     method(params[:fon]).call
     sincro_ficha :ajax => true if @fact
     unless performed?
-      fix_formulario
+      fix_formulario unless params[:nofix]
       render_ajax
     end
 
