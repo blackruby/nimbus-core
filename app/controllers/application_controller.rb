@@ -639,8 +639,8 @@ class ApplicationController < ActionController::Base
   ##
 
   def crea_iframe(cmp:, src:, height: 300)
-    @fact[cmp] = src
-    @ajax << %Q($('##{cmp}').html('<iframe src="#{src}" style="height: #{height}px"></iframe>');)
+    @fact[cmp] = add_empeje_to_url(src)
+    @ajax << %Q($('##{cmp}').html('<iframe src="#{@fact[cmp]}" style="height: #{height}px"></iframe>');)
   end
 
   ##nim-doc {sec: 'Métodos de usuario', met: 'crea_boton(cmp:, label: nil, icon: nil, title: nil, mdl: false, accion: nil, busy: false)', mark: :rdoc}
