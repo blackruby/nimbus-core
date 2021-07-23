@@ -4,6 +4,7 @@
 def redondea_grupo(tot:, nums:, decimales:)
   tot = tot.round(decimales).to_d
   suma = nums.reduce(:+)
+  return nums if suma == 0
   mindif = [99, 0]
   maxdif = [-99, 0]
   nsuma = 0.to_d
