@@ -517,7 +517,10 @@ class BusController < ApplicationController
   def change_table_in_view(view)
     tabla = view.table_name
 
-    @dat[:who].gsub!(@dat[:view].table_name + '.', tabla + '.')
+    #@dat[:who].gsub!(@dat[:view].table_name + '.', tabla + '.')
+    @dat[:who] = '(' + @dat[:who] + ')' if @dat[:who].present? && @dat[:who][0] != '('
+    @dat[:who].gsub!(/\W#{@dat[:view].table_name}\./) {|a| a[0] + tabla + '.'}
+
     @dat[:wh] = @dat[:who].dup
 
     if view.respond_to?('ejercicio_path')
