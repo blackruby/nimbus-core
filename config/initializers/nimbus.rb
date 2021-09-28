@@ -163,7 +163,7 @@ module Nimbus
   end
 
   # Array con los parámetros de los campos de un mantenimiento que necesitan doble eval (integer, boolean, symbol)
-  ParamsDobleEval = [:manti, :decim, :visible, :ro]
+  ParamsDobleEval = [:manti, :decim, :visible, :ro, :signo]
 
   def self.contexto(hsh, cntxt)
     hsh.each {|k, v|
