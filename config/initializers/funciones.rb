@@ -225,7 +225,7 @@ class String
     control
   end
 
-  # Método para decidir si un número (n) está dentro de la cadena self (con la notación: a,b,c-d,e...)
+  # Método para decidir si un número (n) está dentro de algún rango definido en la cadena self (con la notación: a,b,c-d,e...)
 	def rango(n)
 		n = n.to_i
 		self.tr(' ', '').split(',').each {|r|
@@ -286,6 +286,28 @@ class String
     else
       ns
     end
+  end
+
+  # Método para decidir si una cadena (t) está dentro de algún rango definido en la cadena self (con la notación: a,b,c-d,e...)
+
+  def rango_a(t)
+    self.split(',').each {|r|
+      s = r.split '-'
+      return true if t.between?(s[0].strip, s[-1].strip)
+    }
+    false
+  end
+
+  # Devuelve una sentencia SQL con las comparaciones necesarias para determinar si el campo cmp está incluido en algún rango
+  # de los definidos en self (con la notación: a,b,c-d,e...)
+
+  def rango_to_sql(cmp)
+    sql = []
+    self.gsub("'", "''").split(',').each {|r|
+      s = r.split '-'
+      sql << (s.size == 1 ? "#{cmp} = '#{r.strip}'" : "#{cmp} BETWEEN '#{s[0].strip}' AND '#{s[-1].strip}'")
+    }
+    sql.join(' OR ')
   end
 end
 
