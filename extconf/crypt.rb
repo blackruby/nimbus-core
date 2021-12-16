@@ -75,7 +75,7 @@ Dir.glob('modulos/**/*.rb') { |f|
 FileUtils.rm_rf '.git'
 
 # Borrar assets
-FileUtils.rm_rf %w(app/assets vendor)
+FileUtils.rm_rf %w(app/assets/images app/assets/javascripts app/assets/stylesheets vendor)
 FileUtils.rm_rf Dir.glob('modulos/*/app/assets')
 FileUtils.rm_rf Dir.glob('modulos/*/vendor')
 
