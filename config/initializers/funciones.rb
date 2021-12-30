@@ -291,7 +291,7 @@ class String
   # Método para decidir si una cadena (t) está dentro de algún rango definido en la cadena self (con la notación: a,b,c-d,e...)
 
   def rango_a(t)
-    return true if t.blank?
+    return true if self.blank?
     self.split(',').each {|r|
       s = r.split '-'
       return true if t.between?(s[0].strip, s[-1].strip)
