@@ -138,7 +138,7 @@ $(window).load(function () {
       var v = el.val().trim();
       switch (el.attr("rol")) {
         case "custom":
-          nimAjax(el.attr("rol-accion"));
+          nimAjax(el.attr("rol-accion"), {cmp: el.attr("id")});
           break;
         case "origen":
           if (v != "") nimAjax('ir_a_origen', {cmp: el.attr("id")});
