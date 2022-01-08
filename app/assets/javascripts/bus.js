@@ -182,9 +182,15 @@ function gridSelect(id) {
       //if (_controlador_edit != 'no') window.open("/" + _controlador_edit + "/" + id + "/edit");
       if (_controlador_edit != 'no') window.open("/" + _controlador_edit + "?id_edit=" + id);
       break;
-    case '*hb':
-      // histórico de borrados
-      callFonServer("histo_borrados_sel", {mod: modelo, ctr: _controlador_edit, id: id});
+    case '*':
+      if (_busTipo == "hb") {
+        // histórico de borrados
+        callFonServer("histo_borrados_sel", {mod: modelo, ctr: _controlador_edit, id: id});
+      } else if (_busTipo.startsWith("metodo:")) {
+        // Llamada a un método del controlador que ha originado la búsqueda (puede ser que sea una ventana
+        // independiente, en cuyo caso habría que usar opener o estar embebida en un iframe, en ese caso hay que usar parent)
+        (window.opener || window.parent).callFonServer(_busTipo.split(":")[1].trim(), {id: id});
+      }
       break;
     default:
       callFonServer("bus_value", {id: id, type: _autoCompField.data("type")}, null, true);

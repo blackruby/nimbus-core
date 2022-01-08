@@ -227,9 +227,9 @@ class BusController < ApplicationController
     @ajax << "fic_pref=#{fic_pref.to_json};"
     @ajax << "view='#{clm}';"
     @ajax << "empresa='#{ej[0]}';"
-    # Si el tipo de búsqueda es histórico de borrados (hb) dar valor adecuado a _autoCompField
-    # para que al hacer doble click sobre un registro se haga la acción oportuna.
-    @ajax << '_autoCompField="*hb";' if flash[:tipo] == 'hb'
+    # Si hay definido un tipo especial de búsqueda (p.ej. histórico de borrados (hb)) dar valor "*" a _autoCompField
+    # y almacenar el tipo en la variable busTipo para que al hacer doble click sobre un registro se haga la acción oportuna.
+    @ajax << "_autoCompField='*';_busTipo=#{flash[:tipo].to_json};" if flash[:tipo]
 
     @ajax << "nimRldServer=#{@dat[:rld] ? 'true' : 'false'};"
 
@@ -253,7 +253,6 @@ class BusController < ApplicationController
     
     #clm = @dat[:mod]
     clm = @dat[:view]
-    clm_s = clm.to_s
     tabla = clm.table_name
 
     w = @dat[:wh].dup
@@ -320,7 +319,6 @@ class BusController < ApplicationController
           tot_records = 0
         else
           tot_records = clm.joins(@dat[:cad_join]).where(w)
-          #tot_records = tot_records.fonargs(*@dat[:fonargs][clm_s]) if @dat[:fonargs][clm_s]
           tot_records = tot_records.fonargs(*clm.nim_fon_args(@dat[:eid], @dat[:jid], @usu)) if clm.respond_to?(:nim_fon_args)
           tot_records = tot_records.size
         end
@@ -335,7 +333,6 @@ class BusController < ApplicationController
           sql = []
         else
           sql = clm.select(tabla + '.id,' + @dat[:cad_sel]).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
-          #sql = sql.fonargs(*@dat[:fonargs][clm_s]) if @dat[:fonargs][clm_s]
           sql = sql.fonargs(*clm.nim_fon_args(@dat[:eid], @dat[:jid], @usu)) if clm.respond_to?(:nim_fon_args)
         end
 
@@ -491,11 +488,8 @@ class BusController < ApplicationController
 
     #mod =  @dat[:mod]
     mod =  @dat[:view]
-    mod_s =  mod.to_s
     ty = params[:type] ? params[:type].to_sym : :form
-    #val =  mod.mselect(mod.auto_comp_mselect).where("#{mod.table_name}.id = #{params[:id]}")[0].auto_comp_value(ty)
     val =  mod.mselect(mod.auto_comp_mselect).where("#{mod.table_name}.id = #{params[:id]}")
-    #val = val.fonargs(*@dat[:fonargs][mod_s]) if @dat[:fonargs][mod_s]
     val = val.fonargs(*mod.nim_fon_args(@dat[:eid], @dat[:jid], @usu)) if mod.respond_to?(:nim_fon_args)
     val =  val[0].auto_comp_value(ty)
     @ajax << "_autoCompField.val('#{val}');"
@@ -505,7 +499,6 @@ class BusController < ApplicationController
   def bus_save
     return unless @v
 
-    #arg = eval(params[:dat])
     arg = JSON.parse(params[:dat]).deep_symbolize_keys
 
     h = {view: @dat[:view].to_s, cols: arg[:cols], filters: @dat[:filters], order: @dat[:order], rows: @dat[:rows]}
@@ -517,7 +510,6 @@ class BusController < ApplicationController
   def change_table_in_view(view)
     tabla = view.table_name
 
-    #@dat[:who].gsub!(@dat[:view].table_name + '.', tabla + '.')
     @dat[:who] = '(' + @dat[:who] + ')' if @dat[:who].present? && @dat[:who][0] != '('
     @dat[:who].gsub!(/\W#{@dat[:view].table_name}\./) {|a| a[0] + tabla + '.'}
 

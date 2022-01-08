@@ -830,6 +830,47 @@ class ApplicationController < ActionController::Base
     @ajax << "p2p(#{tit.to_json}, #{label.to_s.to_json}, #{pbar.to_json}, #{cancel.to_json}, #{width.to_json}, #{mant.to_json}, #{fin.to_json});"
   end
 
+  ##nim-doc {sec: 'Métodos de usuario', met: "abre_bus(mod:, tit: nil, met: nil, wh: nil, pref: nil, div: nil, w: 700, h: 500, x: 0, y: 0)", mark: :rdoc}
+  #
+  # Método para sacar una ventana de búsqueda
+  #
+  # <b>Parámetros</b>
+  #
+  # * *met* (ActiveRecord::Base, String) -- Modelo sobre el que realizar la búsqueda.
+  # * *tit* (String) <em>(Default: nil)</em> -- Título de la ventana de búsqueda. Si _nil_ se usará el nombre del modelo.
+  # * *met* (Symbol, String) <em>(Default: nil)</em> -- Método que se llamará al seleccionar un registro en la ventana de búsqueda.
+  #   En el método tendremos disponible el _id_ del registro seleccionado a través de la clave _:id_ del hash _params_.
+  #   Si vale _nil_, al seleccionar un registro se editará en el controlador asociado al modelo de la búsqueda.
+  # * *wh* (String) <em>(Default: nil)</em> -- Es una cadena que puede contener una cláusula _where_ para limitar la búsqueda.
+  # * *pref* (String) <em>(Default: nil)</em> -- Indica un fichero _yml_ de preferencias para la búsqueda.
+  #   El path tiene que ser completo desde la raíz del proyecto. 
+  # * *div* (Symbol, String) <em>(Default: nil)</em> -- Indica un campo (de @campos) cuyo _type_ tiene que ser _:div_
+  #   donde embeber la ventana de búsqueda. Si vale _nil_ la búsqueda aparecerá en una ventana flotante independiente.
+  # * *w* (Integer) <em>(Default: 700)</em> -- Indica la anchura de la ventana de búsqueda. Si _div_ es distinto de _nil_
+  #   este parámetro se ignorará y la anchura del _div_ será la correspondiente a su _gcols_.
+  # * *h* (Integer) <em>(Default: 500)</em> -- Indica la altura de la ventana/div de búsqueda.
+  # * *x* (Integer) <em>(Default: 0)</em> -- Indica la posición X (desde el borde izquierdo de la pantalla) de la ventana de búsqueda.
+  #   Si _div_ es distinto de _nil_ este parámetro se ignorará.
+  # * *y* (Integer) <em>(Default: 0)</em> -- Indica la posición Y (desde el borde superior de la pantalla) de la ventana de búsqueda.
+  #   Si _div_ es distinto de _nil_ este parámetro se ignorará.
+  ##
+
+  def abre_bus(mod:, tit: nil, met: nil, wh: nil, pref: nil, div: nil, w: 700, h: 500, x: 0, y: 0)
+    flash[:mod] = mod.to_s
+    flash[:tit] = tit if tit
+    flash[:eid] = @dat[:eid]
+    flash[:jid] = @dat[:jid]
+    flash[:wh] = wh if wh
+    flash[:tipo] = "metodo: #{met}" if met
+    flash[:pref] = pref if pref
+
+    if div
+      crea_iframe cmp: div, src: '/bus', height: h
+    else
+      @ajax << "window.open('/bus', 'bus_met', 'width=#{w}, height=#{h}, left=#{x}, top=#{y}');"
+    end
+  end
+
   # Método para invocar al explorador de documentos asociados (oficina sin papeles: osp)
   def osp
     if @usu.admin
