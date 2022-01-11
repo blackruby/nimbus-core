@@ -836,7 +836,7 @@ class ApplicationController < ActionController::Base
   #
   # <b>Parámetros</b>
   #
-  # * *met* (ActiveRecord::Base, String) -- Modelo sobre el que realizar la búsqueda.
+  # * *mod* (ActiveRecord::Base, String) -- Modelo sobre el que realizar la búsqueda.
   # * *tit* (String) <em>(Default: nil)</em> -- Título de la ventana de búsqueda. Si _nil_ se usará el nombre del modelo.
   # * *met* (Symbol, String) <em>(Default: nil)</em> -- Método que se llamará al seleccionar un registro en la ventana de búsqueda.
   #   En el método tendremos disponible el _id_ del registro seleccionado a través de la clave _:id_ del hash _params_.
