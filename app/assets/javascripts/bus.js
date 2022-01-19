@@ -174,16 +174,15 @@ function gridSelect(id) {
   if (typeof(_autoCompField) == "undefined") _autoCompField = 'auto';
 
   switch (_autoCompField) {
-    case 'mant':
-      window.opener.editInForm(id);
-      if (!$("#no_cerrar").is(":checked")) window.close();
-      break;
     case 'auto':
       //if (_controlador_edit != 'no') window.open("/" + _controlador_edit + "/" + id + "/edit");
       if (_controlador_edit != 'no') window.open("/" + _controlador_edit + "?id_edit=" + id);
       break;
     case '*':
-      if (_busTipo == "hb") {
+      if (_busTipo.startsWith("mant")) {
+        window.opener.editInForm(id);
+        if (!$("#no_cerrar").is(":checked")) window.close();
+      } else if (_busTipo == "hb") {
         // histórico de borrados
         callFonServer("histo_borrados_sel", {mod: modelo, ctr: _controlador_edit, id: id});
       } else if (_busTipo.startsWith("metodo:")) {
@@ -415,7 +414,7 @@ $(window).load(function() {
   });
 
   $(window).unload(function() {
-    if (_autoCompField == 'mant') opener.winBus = null;
+    if (_busTipo.startsWith("mant")) opener.winBus = null;
   });
 
   $(window).resize(redimWindow);
