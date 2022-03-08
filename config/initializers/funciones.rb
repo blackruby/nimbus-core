@@ -2,7 +2,7 @@ class String
   def letra_dni
     return nil if !/^[XYZ\d]\d{7,7}$/.match(self.upcase)
     n = "XYZ".index(self[0].upcase)
-    num = (n ? (n.to_s+self[1..-1]).to_i : num = self.to_i)
+    num = (n ? (n.to_s+self[1..-1]).to_i : self.to_i)
     'TRWAGMYFPDXBNJZSQVHLCKE'[num % 23]
   end
   def cp2provincia
@@ -65,7 +65,10 @@ class String
   end
 #=begin
 
-  def dni?
+  def dni?(pais = nil)
+    pais = Pais.find_by(id: pais) if pais.is_a? Numeric
+    return true if pais && pais.tipo != 'N'
+
     return true if self.length == 0
     return false unless self.length == 9
     value = self.clone
