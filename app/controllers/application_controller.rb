@@ -2158,7 +2158,7 @@ class ApplicationController < ActionController::Base
   def forma_campo_axlsx(cp, cmp, val)
     if cmp.ends_with?('_id')
       forma_campo_id(cp[:ref], val, :form)
-    elsif cp[:sel]
+    elsif cp[:sel].is_a? Hash
       (val.class == String) ? cp[:sel][val.to_sym] || cp[:sel][val] : cp[:sel][val]
     else
       Nimbus.nimval(val)
