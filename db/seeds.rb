@@ -336,7 +336,7 @@ unless Nimbus::Config[:excluir_paises]
       fp = Pais.new unless fp
 
       fp.codigo = cod
-      fp.nombre ||= p[0]
+      fp.nombre = p[0] unless fp.nombre.present?
       fp.codigo_iso3 = p[2]
       fp.codigo_num = p[3]
       fp.divisa_id ||= Divisa.where(codigo: p[4]).pluck(:id)[0] if p[4]
