@@ -31,7 +31,7 @@ class NimbusHelpController < ApplicationController
       else
         next unless met
 
-        if ls.starts_with?('##') 
+        if ls.starts_with?('##')
           if h[:mark] == :asciidoc
             met = Asciidoctor.convert(met)
           elsif h[:mark] == :rdoc
@@ -39,7 +39,7 @@ class NimbusHelpController < ApplicationController
           end
           @cap[cap][h[:sec]] << [h[:met], met]
           met = nil
-        else 
+        else
           l = "#{ls[0] == '#' ? ls[1..-1] : l.rstrip}\n"
           if l[0] != "\n"
             l = l[1..-1] if h[:mark] == :rdoc
@@ -70,7 +70,7 @@ Las imágenes en Nimbus pueden ser de tres tipos:
            prefijo para cada uno de ellos. Así, si tuviéramos en el módulo de bodega una
            imagen para depósitos, convendría llamarla:
            "modulos/bodega/app/assets/images/bodega_deposito.svg".
-           Para usarlas en un controlador usaríamos el método "nim_asset_image". 
+           Para usarlas en un controlador usaríamos el método "nim_asset_image".
            El método admite cuatro argumentos con nombre:
              img: Es el nombre de la imagen (sin path).
              w: Anchura de la imagen (opcional).
@@ -84,7 +84,7 @@ Las imágenes en Nimbus pueden ser de tres tipos:
            siempre que añadamos un nuevo asset.
 .- Propias: son las imágenes que se pueden asociar en un mantenimiento. Van ligadas al modelo
             y al id de la ficha que se esté editando. Residen en la carpeta data/Modelo/id/_imgs
-            Para usarlas en un controlador usaríamos el método "nim_image". 
+            Para usarlas en un controlador usaríamos el método "nim_image".
             El método admite seis argumentos con nombre:
               mod: Modelo al que pertenece la imagen.
               id: id del registro.
@@ -130,7 +130,7 @@ filas salgan con la misma altura. Si no se especifica ninguna medida (ni anchura
 se tomará pordefecto "h: 25" (o "hg: 25" para el grid). Esto para el grid está bien, pero
 para la ficha es un poco escaso.
 
-También se puede personalizar la imagen que queramos. Si existiera en el controlador un 
+También se puede personalizar la imagen que queramos. Si existiera en el controlador un
 método con el mismo nombre que el campo, se usará lo que devuelva este método para generar
 la imagen (y se ignorará el hash "img" de @campos). Por ejemplo:
 
@@ -140,7 +140,7 @@ def foto1
     nim_asset_image img: 'img1.svg', h: (request.xhr? ? 25 : 120)
   when 2
     nim_asset_image img: 'img2.svg', h: (request.xhr? ? 25 : 120)
-  else 
+  else
     nim_asset_image img: 'default.png', h: (request.xhr? ? 25 : 120)
   end
 end

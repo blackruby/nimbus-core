@@ -1,22 +1,3 @@
-class AuditoriasMod < Auditoria
-  @campos = {
-    usuario_id: {tab: 'pre', gcols: 3, label: 'usuario', grid: {width: 70}},
-    fecha: {tab: 'pre', gcols: 3, grid: {width: 40}},
-    controlador: {tab: 'pre', gcols: 3, grid: {width: 60}},
-    accion: {tab: 'pre', gcols: 1, title: :acciones_audit, grid: {width: 15}},
-    rid:{tab: 'pre', gcols: 2, label: 'Id del registro', grid: {width: 18}},
-    texto:{tab: 'pre', gcols: 12, type: :div},
-  }
-
-  @grid = {
-    gcols: [4,8],
-  }
-
-  @hijos = [{tab: 'post'}]
-
-  include MantMod
-end
-
 class AuditoriasController < ApplicationController
   def before_index
     status_botones crear: nil, grabar: nil, osp: nil, borrar: nil
@@ -38,7 +19,7 @@ class AuditoriasController < ApplicationController
       else
         texto = 'Debajo se muestra el proceso al que se accedió'
         url = "/#{@fact.controlador}"
-      end 
+      end
     when 'G'
       if @fact.rid
         texto = 'Debajo se muestra el registro grabado'
@@ -46,7 +27,7 @@ class AuditoriasController < ApplicationController
       else
         texto = 'Debajo se muestra el proceso que se ejecutó'
         url = "/#{@fact.controlador}"
-      end 
+      end
     when 'A'
       texto = 'Debajo se muestra el mantenimiento en el que se comenzó un nuevo registro'
       url = "/#{@fact.controlador}"
@@ -63,5 +44,3 @@ class AuditoriasController < ApplicationController
     @ajax << "$(hijo_0).attr('src', '#{url}');" if url
   end
 end
-
-Nimbus.load_adds __FILE__

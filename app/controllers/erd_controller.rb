@@ -1,17 +1,3 @@
-class ErdMod
-  @campos = {
-    modelos: {tab: 'pre', gcols: 12, manti: 200, label: 'Modelos/Módulos', title: 'Los modelos se introducen como se referencia la clase, los módulos en minúsculas.'},
-    nivel: {tab: 'pre', gcols: 1, manti: 2, type: :integer, title: '0 = Todos los niveles'},
-    erd: {tab: 'pre', gcols: 2, label: 'Diagrama ERD', type: :boolean},
-    div: {tab: 'pre', gcols: 12, type: :div, br: true},
-  }
-
-  @titulo = 'Diagramas Entidad-Relación'
-  @nivel = :g
-
-  include MantMod
-end
-
 class ErdController < ApplicationController
   def before_edit
     if Nimbus::Config[:erd] == :off
@@ -41,7 +27,7 @@ class ErdController < ApplicationController
       org = @adds[mod.table_name + '@' + c]
       if org
         org.capitalize!
-        cols[org] ||= [] 
+        cols[org] ||= []
         cols[org] << c
       else
         cols[modulo] << c
@@ -120,11 +106,11 @@ class ErdController < ApplicationController
       la = l.split
 
       next if la[1][0] == '#'
-      
+
       org = la[0].split('/')
       if la[1][0..1] == 't.'
         ic = org[4].index('create')
-        if ic 
+        if ic
           key = org[4][(ic + 7)..-5] + '@' + la[2][1..(la[2][-1] == ',' ? -2 : -1)] + (la[1] == 't.references' ? '_id' : '')
         else
           inci = [la[0], 'Nombre mal formado']

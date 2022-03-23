@@ -170,7 +170,7 @@ class ApplicationController < ActionController::Base
   # <b>Parámetros</b>
   #
   # * *arg* (String, Hash) -- Si es un string se usará como texto del mensaje.
-  # 
+  #
   # <b>Opciones Hash (arg):</b>
   #
   # * *:msg* (String) -- Texto del mensaje a mostrar.
@@ -558,7 +558,6 @@ class ApplicationController < ActionController::Base
       args = {file: flash[:file], file_cli: flash[:file_cli], disposition: flash[:disposition], rm: flash[:rm]}
     end
 
-
     if args[:file]
       file_name = args[:file]
       unless File.exist? file_name
@@ -576,7 +575,7 @@ class ApplicationController < ActionController::Base
 
   # Método para poder solicitar archivos del servidor a través de GET
   # Sólo se admiten ficheros que si empiezan por "/" se refieran a "/tmp..."
-  # No se admiten ficheros que contengan en su path ".." 
+  # No se admiten ficheros que contengan en su path ".."
   # Si el fichero comienza por "~/" se asume que es un path que arranca del home del proyecto (sólo válido para el usuario "admin")
   # En cualquier otro caso se supone que el path es relativo a la carpeta "data" del proyecto
 
@@ -657,7 +656,7 @@ class ApplicationController < ActionController::Base
   # * *mdl* (Boolean) <em>(Default: false)</em> -- Indica el aspecto del botón. Si es _true_ el botón tendrá el aspecto
   #   de los botones "favoritos" de material design: Redondos y del color secundario (como los de las cabeceras de los
   #   mantenimientos); en este caso solo se usa el icono (_icon_) y se ignorará la _label_. Si es false, el botón será
-  #   un rectángulo del color primario, aceptando _icon_ y _label_ (como los botones de los diálogos). 
+  #   un rectángulo del color primario, aceptando _icon_ y _label_ (como los botones de los diálogos).
   # * *accion* (Symbol, String) <em>(Default: nil)</em> -- Es el método del controlador que será
   #   llamado al pulsar el botón.
   #   Si es una String y comienza por "js:" se interpretará que lo que va a continuación es
@@ -822,7 +821,7 @@ class ApplicationController < ActionController::Base
     # Restablecer la conexión con la base de datos
     # Restablecer sólo en el caso de que antes del fork se haya cerrado (remove_connection)
     ActiveRecord::Base.establish_connection(config)
-    
+
     # No hacer seguimiento del status del hijo (para que no quede zombi al terminar)
     Process.detach(h)
 
@@ -843,7 +842,7 @@ class ApplicationController < ActionController::Base
   #   Si vale _nil_, al seleccionar un registro se editará en el controlador asociado al modelo de la búsqueda.
   # * *wh* (String) <em>(Default: nil)</em> -- Es una cadena que puede contener una cláusula _where_ para limitar la búsqueda.
   # * *pref* (String) <em>(Default: nil)</em> -- Indica un fichero _yml_ de preferencias para la búsqueda.
-  #   El path tiene que ser completo desde la raíz del proyecto. 
+  #   El path tiene que ser completo desde la raíz del proyecto.
   # * *div* (Symbol, String) <em>(Default: nil)</em> -- Indica un campo (de @campos) cuyo _type_ tiene que ser _:div_
   #   donde embeber la ventana de búsqueda. Si vale _nil_ la búsqueda aparecerá en una ventana flotante independiente.
   # * *w* (Integer) <em>(Default: 700)</em> -- Indica la anchura de la ventana de búsqueda. Si _div_ es distinto de _nil_
@@ -1315,7 +1314,7 @@ class ApplicationController < ActionController::Base
           rescue
             # Esto sería el caso en el que no se puede inferir el modelo
             # final, por ejemplo si hay dos campos id en un grid que
-            # apuntan al mismo modelo, ya que, el método joins de 
+            # apuntan al mismo modelo, ya que, el método joins de
             # ActiveRecord usa una nomenclatura para estos casos en la
             # que no es inferible el nombre del modelo final.
             # A falta de una solución precisa (guardando el tipo final
@@ -1520,8 +1519,8 @@ class ApplicationController < ActionController::Base
   # <b>Parámetros</b>
   # * *metodo* (Symbol, String) -- Método al que se quiere llamar.
   # * *nivel* (Integer) <em>(Default: 0)</em> -- Indica el nivel de profundidad: padre (0), abuelo (1), etc.
-  ## 
-  
+  ##
+
   def call_metodo_parent(metodo, nivel = 0)
     @ajax << 'parent.' * 2 * (nivel + 1) + "nimAjax('#{metodo}');"
   end
@@ -1554,8 +1553,8 @@ class ApplicationController < ActionController::Base
   #
   # <b>Parámetros</b>
   # * *nivel* (Integer) <em>(Default: 0)</em> -- Indica el nivel de profundidad: padre (0), abuelo (1), etc.
-  ## 
-  
+  ##
+
   def fact_parent(nivel = 0)
     #@v_parent = Vista.find(@dat[:pid]) if @dat[:pid] && @v_parent.nil?
     #@v_parent ? @v_parent.data[:fact] : nil
@@ -1577,8 +1576,8 @@ class ApplicationController < ActionController::Base
   #
   # <b>Parámetros</b>
   # * *nivel* (Integer) <em>(Default: 0)</em> -- Indica el nivel de profundidad: padre (0), abuelo (1), etc.
-  ## 
-  
+  ##
+
   def sincro_parent(nivel = 0)
     #@v_parent ? @v_parent.save : @dat[:vp].save
     #@ajax << 'parent.parent.callFonServer("envia_ficha");'
@@ -2003,7 +2002,7 @@ class ApplicationController < ActionController::Base
   #
   # * *cmp* (Symbol, String) -- Campo al que queremos cambiar el filtro
   # * *eid* (Integer) -- id de la empresa por la que queremos filtrar
-  ## 
+  ##
 
   def set_auto_comp_empresa(cmp, eid)
     @ajax << "setAutoCompEmpeje('#{cmp}', #{eid}, 'e');"
@@ -2017,7 +2016,7 @@ class ApplicationController < ActionController::Base
   #
   # * *cmp* (Symbol, String) -- Campo al que queremos cambiar el filtro
   # * *jid* (Integer) -- id del ejercicio por el que queremos filtrar
-  ## 
+  ##
 
   def set_auto_comp_ejercicio(cmp, jid)
     @ajax << "setAutoCompEmpeje('#{cmp}', #{jid}, 'j');"
@@ -2498,15 +2497,15 @@ class ApplicationController < ActionController::Base
   ##nim-doc {sec: 'Métodos de usuario', met: 'crea_grid(opts)', mark: :rdoc}
 
   # Método para crear un grid dinámicamente.
-  # 
+  #
   # <b>Parámetros</b>
   #
   # * *opts* (Hash)
-  # 
+  #
   # <b>Opciones Hash (opts):</b>
   #
   # * *:cmp* es un campo definido con <tt>{type: :div}</tt>
-  # 
+  #
   # * *:modo* (Symbol) <em>(Default: :sel)</em> -- Los posibles valores son:
   #   * <b>:sel</b> En este modo no se puede editar, solo seleccionar registros.
   #     El método, además de crear el grid, sincroniza la seleción de fila (o filas si
@@ -2542,7 +2541,7 @@ class ApplicationController < ActionController::Base
   #     las filas que borra el usuario y que se nos notifican en <tt>vali_borra_cmp</tt> se borran
   #     automáticamente (sin necesidad de usar este método) en el caso de que vali_borra_cmp
   #     devuelva nil.
-  #     
+  #
   #     Para barrer los datos habría que hacer:
   #       @fact.cmp.each_row {|fila, new, edit, i|
   #         # 'fila' es un array con los datos de la fila que toque
@@ -2550,7 +2549,7 @@ class ApplicationController < ActionController::Base
   #         # 'edit' es un booleano que indica si la fila ha sido editada (alguna de sus celdas)
   #         # 'i' es el índice de la fila (0,1,2...)
   #       }
-  # 
+  #
   #     Y para barrer los registros borrados:
   #       @fact.cmp.each_del {|fila, new, edit, i|
   #         # 'fila' es un array con los datos de la fila que toque
@@ -2558,7 +2557,7 @@ class ApplicationController < ActionController::Base
   #         # 'edit' es un booleano que indica si la fila ha sido editada (alguna de sus celdas)
   #         # 'i' es el índice de la fila (0,1,2...)
   #       }
-  # 
+  #
   # * *:sel* (Symbol, nil) <em>(Default: nil)</em> -- Solo válido en modo edición.
   #   Los posibles valores son:
   #   * <b>:row</b> El servidor será notificado al seleccionar una fila.
@@ -2566,7 +2565,7 @@ class ApplicationController < ActionController::Base
   #     las celdas dispararán la notificación. Se pueden excluir celdas poniendo en la
   #     definición de su columna "sel: false" o restringir que una celda (columna) sólo
   #     notifique ante un determinado evento. En este caso tendríamos que poner en la
-  #     definición de la columna: "sel: '<evento>'" para que sólo se notifique en el evento <evento>.  
+  #     definición de la columna: "sel: '<evento>'" para que sólo se notifique en el evento <evento>.
   #     Por ejemplo: "sel: 'click'" o "sel: 'keydown'".
   #   * <b>:celx</b> El servidor será notificado al seleccionar una celda. Por defecto ninguna
   #     celda disparará la notificación salvo aquellas que lo indiquen explícitamente
@@ -2580,14 +2579,14 @@ class ApplicationController < ActionController::Base
   #   la selección se ha hecho programáticamente, "click" si ha sido por la
   #   pulsación del ratón o por la tecla <ENTER>, "keydown" si ha sido con el teclado, pero
   #   no con <ENTER> (cursores, tabulador, etc.).
-  # 
+  #
   # * *:del* (Boolean) <em>(Default: true)</em> -- Sólo válido en modo edición. Indica si
   #   se permiten borrar filas. En caso afirmativo antes del borrado se
   #   llamará al método <tt>vali_borra_cmp</tt> que recibirá como argumento el
   #   id de la fila a borrar y retornará una cadena con un error si no se
   #   permite el borrado o nil si se permite. Si no existe el método se
   #   entiende que se permite borrar cualquier fila sin condiciones.
-  # 
+  #
   # * *:ins* (Symbol, nil) <em>(Deafault: :end)</em> -- Sólo válido en modo edición.
   #   Sirve para permitir la inserción de nuevas filas. Los posibles valores son:
   #   * <b>:pos</b> La inserción será posicional (entre dos filas), en este caso no
@@ -2601,21 +2600,21 @@ class ApplicationController < ActionController::Base
   #   fila se inertará con todas las celdas vacías y con id igual al
   #   máximo de los existentes más uno (o el siguiente en orden alfabético
   #   si los ids son cadenas).
-  # 
+  #
   # * *:search* (Boolean) <em>(Default: false)</em> -- Indica si aparece o no
   #   por defecto la barra de búsqueda en el grid.
-  # 
+  #
   # * *:bsearch* (Boolean)  <em>(Default: false)</em> -- Indica si aparece o no
   #   un botón para mostrar/ocultar la barra de búsqueda en el grid.
-  # 
+  #
   # * *:bcollapse* (Boolean) <em>(Default: false)</em> -- Indica si aparece o no
   #   un botón para mostrar/ocultar el grid cmpleto.
-  # 
+  #
   # * *:cols* (Array) -- Es un array de hashes conteniendo información de cada columna.
   #   Cada hash admite todas las claves soportadas por jqGrid en
   #   colModel[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:colmodel_options].
   #   Las más importantes, y las añadidas por nimbus son:
-  # 
+  #
   #   * *:name* (String) -- Es el nombre de la columna. Si una columna es de tipo _id_
   #     haciendo referencia a otra tabla, su nombre debe acabar por "_id"
   #     y especificar el nombre del modelo con la clave _:ref_.
@@ -2646,8 +2645,8 @@ class ApplicationController < ActionController::Base
   #     ver la ayuda de la opción _sel_ del nivel anterior. Sus posibles valores son:
   #     _true_, _false_, 'click', 'keydown', 'prog'. Notar que la pulsación de la
   #     tecla <ENTER> se notificará como evento 'click'.
-  # 
-  # 
+  #
+  #
   # * *:grid* (Hash) -- Opciones específicas para el grid. Admite todas las
   #   referidas en grid_options[http://www.trirand.com/jqgridwiki/doku.php?id=wiki:options].
   #   Las más interesantes serían:
@@ -2662,7 +2661,7 @@ class ApplicationController < ActionController::Base
   #   * *:multiSort* (Boolean) <em>(Default: false)</em> -- Permite ordenar por varias columnas.
   #   * *:shrinkToFit* (Boolean) <em>(Default: false)</em> -- Si es true, se ajustarán las anchuras
   #     de las columnas para caber en la anchura del grid.
-  # 
+  #
   # * *:data* (Array) -- Es un array de arrays con los datos (puede ser un array simple si sólo
   #   hay una fila de datos). Cada array contendrá n+1 elementos, donde n es
   #   número de columnas que se han definido en _:cols_. El elemento adicional,
@@ -2923,7 +2922,7 @@ class ApplicationController < ActionController::Base
         break
       end
     }
-    
+
     @ajax << "$('#g_#{cmp}').jqGrid('editCell',#{pos == -1 ? @fact[cmp][:data].size : pos + 1},#{fce},true);"
   end
 
@@ -3175,7 +3174,7 @@ class ApplicationController < ActionController::Base
             break
           end
         elsif v[:dirty]
-          if v[:type] == :div 
+          if v[:type] == :div
             # Se pueden ocasionar falsos positivos si hay subgrids, pero no es importante.
             v1 = val.is_a?(Array) ? val.flatten.sort : [val].compact
             v2 = v[:val_ini].is_a?(Array) ? v[:val_ini].flatten.sort : [v[:val_ini]].compact
@@ -3324,7 +3323,6 @@ class ApplicationController < ActionController::Base
       fix_formulario unless params[:nofix]
       render_ajax
     end
-
 
     @v.save if @v
   end
@@ -3488,7 +3486,7 @@ class ApplicationController < ActionController::Base
               add_nim_lock if clm.nim_lock
               #Actualizar id para el acceso al histórico
               @ajax << "_factId=#{@fact.id};"
-    
+
               sincro_hijos
             end
 

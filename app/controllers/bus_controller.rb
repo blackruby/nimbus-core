@@ -72,7 +72,6 @@
 # como predeterminada, en el fichero de preferencias figuraría como:
 # _: path_al_fichero_de_búsqueda
 
-
 class BusController < ApplicationController
   def bus
     @assets_stylesheets = %w(bus)
@@ -250,7 +249,7 @@ class BusController < ApplicationController
       head :no_content
       return
     end
-    
+
     #clm = @dat[:mod]
     clm = @dat[:view]
     tabla = clm.table_name
@@ -644,7 +643,7 @@ class BusController < ApplicationController
     @dat[:filters] = {rules: []}
 
     @ajax << "$('#l-titulo').text(#{(view.respond_to?(:nim_bus_tit) ? view.nim_bus_tit(@dat[:eid], @dat[:jid], @usu) : @dat[:tit]).to_json});"
-    
+
     genera_grid(false, false)
   end
 

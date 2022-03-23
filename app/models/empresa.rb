@@ -29,14 +29,4 @@ class Empresa < ActiveRecord::Base
   end
 end
 
-class Empresa
-  include Modelo
-end
-
-class HEmpresa < Empresa
-  include Historico
-end
-
-Nimbus.load_adds __FILE__
-
 end

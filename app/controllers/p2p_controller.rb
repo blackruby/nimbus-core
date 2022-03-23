@@ -1,11 +1,3 @@
-class P2pMod
-  @campos = {
-    panel: {type: :div, tab: 'pre', gcols: 12},
-  }
-
-  include MantMod
-end
-
 class P2pController < ApplicationController
   def before_edit
     @usu.admin

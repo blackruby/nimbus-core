@@ -2,7 +2,7 @@
 #
 # OSP proporciona un nuevo botón (una grapa) en cada ficha de todos
 # los mantenimientos. Al pulsarlo se abrirá una carpeta en la que podemos
-# subir archivos que quedarán asociados a la ficha en curso. También se 
+# subir archivos que quedarán asociados a la ficha en curso. También se
 # pueden crear subcarpetas. En cada archivo tenemos un menú contextual
 # desde el que podemos descargar el archivo (si éste es susceptible de
 # vista previa se mostrará ésta y desde ella se podrá descargar); borrarlo;
@@ -20,7 +20,7 @@
 #   :upload:
 #     :pdf: :pre|:post|:version(*)
 #     :version: :new(*)|:old|:no
-# 
+#
 # Explicación de las posibles opciones:
 #
 # :pdf_add_rm: indica si después de añadir un pdf a otro (desde el menú

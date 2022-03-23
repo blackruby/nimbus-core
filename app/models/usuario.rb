@@ -213,14 +213,4 @@ class Usuario < ActiveRecord::Base
   end
 end
 
-class Usuario
-  include Modelo
-end
-
-class HUsuario < Usuario
-  include Historico
-end
-
-Nimbus.load_adds __FILE__
-
 end

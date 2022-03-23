@@ -1,11 +1,3 @@
-class HistoPkMod
-  @campos = {
-    panel: {type: :div, tab: 'pre', gcols: 12},
-  }
-
-  include MantMod
-end
-
 class HistoPkController < ApplicationController
   def before_edit
     flash[:mod].nil? || flash[:mod].constantize.modelo_histo.nil? ? {msg: 'No hay histórico'} : true

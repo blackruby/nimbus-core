@@ -43,14 +43,4 @@ class Ejercicio < ActiveRecord::Base
 
 end
 
-class Ejercicio
-  include Modelo
-end
-
-class HEjercicio < Ejercicio
-  include Historico
-end
-
-Nimbus.load_adds __FILE__
-
 end

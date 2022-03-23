@@ -1,23 +1,3 @@
-class MensajesMod < Mensaje
-  @campos = {
-    fecha: {tab: 'pre', manti: 6, gcols: 3, ro: :edit, grid:{width: 120}},
-    from_id: {tab: 'pre', manti: 40, gcols: 4, ro: :all, grid:{}},
-    to_id: {tab: 'pre', manti: 40, gcols: 4, grid:{}},
-    leido: {tab: 'pre', gcols: 1, grid:{width: 50}},
-    texto: {tab: 'pre', gcols: 12, grid:{}},
-  }
-
-  @grid = {
-    cellEdit: false,
-    sortname: 'fecha',
-    sortorder: 'desc',
-  }
-end
-
-class MensajesMod
-  include MantMod
-end
-
 class MensajesController < ApplicationController
   def before_index
     Nimbus::Config[:noticias]
@@ -86,5 +66,3 @@ class MensajesController < ApplicationController
     params[:uids].each {|uid| Mensaje.create(from_id: @usu.id, to_id: uid, fecha: Nimbus.now, texto: params[:msg], leido: false)}
   end
 end
-
-Nimbus.load_adds __FILE__

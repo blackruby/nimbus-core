@@ -350,6 +350,4 @@ class WelcomeController < ApplicationController
   end
 end
 
-Nimbus.load_adds __FILE__
-
 end

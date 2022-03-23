@@ -13,14 +13,4 @@ class Divisalinea < ActiveRecord::Base
 
 end
 
-class Divisalinea
-  include Modelo
-end
-
-class HDivisalinea < Divisalinea
-  include Historico
-end
-
-Nimbus.load_adds __FILE__
-
 end

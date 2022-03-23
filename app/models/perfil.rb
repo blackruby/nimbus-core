@@ -32,10 +32,4 @@ class Perfil < ActiveRecord::Base
   end
 end
 
-class Perfil
-  include Modelo
-end
-
-Nimbus.load_adds __FILE__
-
 end

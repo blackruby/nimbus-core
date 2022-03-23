@@ -10,19 +10,14 @@ class Divisa < ActiveRecord::Base
   has_many :divisalineas, dependent: :destroy
   has_many :paises, -> {order(:codigo)}
 
-  #after_initialize :ini_campos
+  @auto_comp_data = { campos: %w[codigo descripcion], orden: 'codigo' }
+  def auto_comp_label(tipo)
+    codigo + ' - ' + descripcion
+  end
 
-  #def ini_campos
-  #end
-
-    @auto_comp_data = { campos: %w[codigo descripcion], orden: 'codigo' }
-    def auto_comp_label(tipo)
-      codigo + ' - ' + descripcion
-    end
-
-    def auto_comp_value(tipo)
-      codigo + ' - ' + descripcion
-    end
+  def auto_comp_value(tipo)
+    codigo + ' - ' + descripcion
+  end
 
   def self.convertir_a_divisa(divisaorigen, divisadestino, ejercicio, importe, fecha, decimales_extra = 0)
     return 0.00 if importe.to_f.zero?
@@ -48,15 +43,5 @@ class Divisa < ActiveRecord::Base
     end
   end
 end
-
-class Divisa
-  include Modelo
-end
-
-class HDivisa < Divisa
-  include Historico
-end
-
-Nimbus.load_adds __FILE__
 
 end

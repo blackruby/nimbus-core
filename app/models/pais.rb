@@ -22,14 +22,4 @@ class Pais < ActiveRecord::Base
   end
 end
 
-class Pais
-  include Modelo
-end
-
-class HPais < Pais
-  include Historico
-end
-
-Nimbus.load_adds __FILE__
-
 end

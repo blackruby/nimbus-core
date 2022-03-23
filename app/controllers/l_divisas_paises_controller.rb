@@ -1,14 +1,3 @@
-class LDivisasPaisesMod
-  @campos = {
-    divisa_id: {tab: 'pre', gcols: 3, title: 'Si no se especifica una divisa se mostrarán todas'}
-  }
-
-  @titulo = 'Listado de países por divisa'
-  @nivel = ''
-
-  include MantMod
-end
-
 class LDivisasPaisesController < ApplicationController
   def before_index
     @usu.admin
@@ -43,7 +32,7 @@ class LDivisasPaisesController < ApplicationController
         # Lambdas de cabecera y pie
         cabecera -> {{divisa: div.codigo + ' ' + div.descripcion, lorem: st, pagina: "Página: #{page_number}"}}
         pie ->(fin) {{fecha: fecha, total: fin ? "#{div.descripcion} (#{div.codigo})   Tot.Países: #{tot}" : ''}}
-        
+
         nuevo_doc(tit: div.descripcion) {
           div.paises.each {|p|
             p.nombre += ": \n#{st * 2}" if p.codigo == 'DE'

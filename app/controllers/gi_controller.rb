@@ -1,15 +1,3 @@
-class GiMod
-  @campos = {
-    form_type: {sel: {pdf: 'pdf', xlsx: 'excel', xls: 'excel_old'}, tab: 'post', hr: true},
-    form_modulo: {},
-    form_file: {},
-  }
-end
-
-class GiMod
-  include MantMod
-end
-
 class GiController < ApplicationController
   # Método para contantizar un modelo y, si es un histórico, constantizar antes el modelo original para que se carguen las clases correctamente
   def h_constantize(mod)
@@ -420,7 +408,7 @@ class GiController < ApplicationController
       rm: true,
       disposition: @fact.form_type == 'pdf' ? 'inline' : 'attachment',
       popup: @g[:go] ? :self : false,
-      tit: "#{@g[:info]} (#{@fact.form_type})" 
+      tit: "#{@g[:info]} (#{@fact.form_type})"
     )
   end
 
