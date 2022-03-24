@@ -1,6 +1,6 @@
-SESSION_EXPIRATION_TIME = 30.minutes
-
 class ApplicationController < ActionController::Base
+  SESSION_EXPIRATION_TIME = 30.minutes
+
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception, unless: -> {
@@ -25,9 +25,9 @@ class ApplicationController < ActionController::Base
     @nimbus_hooks
   end
 
-  def self.set_nimbus_views(tipo, path)
+  def self.set_nimbus_views(tipo, paths)
     @nimbus_views ||= {}
-    @nimbus_views[tipo] = path
+    @nimbus_views[tipo] = paths
   end
 
   def self.nimbus_views
@@ -526,7 +526,7 @@ class ApplicationController < ActionController::Base
     cry = ActiveSupport::MessageEncryptor.new Rails.application.secrets[:secret_key_base][0..31]
     arg = {file: file, file_cli: file_cli, rm: rm, disposition: disposition}.to_json
     tit = tit ? '/' + tit.gsub('/', '-').gsub(/[?&]/, ' ') : ''
-    url = "/nim_download#{tit}?data=#{cry.encrypt_and_sign(arg)}"
+    url = "/nim_download#{tit}?#{URI.encode_www_form({data: cry.encrypt_and_sign(arg)})}"
 
     popup = :self if @nimbus_go && !popup
 
@@ -551,7 +551,7 @@ class ApplicationController < ActionController::Base
       begin
         args = JSON.parse(cry.decrypt_and_verify(params[:data])).symbolize_keys
       rescue
-        render file: 'public/401.html', status: 401, layout: false
+        render file: 'public/500.html', status: 500, layout: false
         return
       end
     else
@@ -569,7 +569,11 @@ class ApplicationController < ActionController::Base
       return
     end
 
-    send_data File.read(file_name), filename: args[:file_cli] || file_name.split('/')[-1], disposition: args[:disposition] || 'attachment'
+    if file_name.split('.')[-1].upcase == 'TXT'
+      send_data File.read(file_name), filename: args[:file_cli] || file_name.split('/')[-1], type: 'text/plain; charset=utf-8', disposition: args[:disposition] || 'attachment'
+    else
+      send_data File.read(file_name), filename: args[:file_cli] || file_name.split('/')[-1], disposition: args[:disposition] || 'attachment'
+    end
     FileUtils.rm_f(file_name) if args[:rm]
   end
 
@@ -759,11 +763,11 @@ class ApplicationController < ActionController::Base
         raise ArgumentError, 'El argumento <fin> de exe_p2p tiene que ser String, Symbol, Nil o Hash'
     end
 
-    # Cerrar las conexiones con la base de datos para que el hijo no herede descriptores
-    # Parece que no es necesario...
-    config = ActiveRecord::Base.connection_config
-    #config = ActiveRecord::Base.remove_connection
-    ActiveRecord::Base.connection.disconnect!
+    if Rails.version < '6'
+      config = ActiveRecord::Base.connection_config
+    else
+      config = ActiveRecord::Base.connection_db_config.configuration_hash.dup
+    end
 
     clm = class_mant
     mant = clm ? class_mant.mant? : false
@@ -817,10 +821,6 @@ class ApplicationController < ActionController::Base
     }
 
     # Código específico del padre...
-
-    # Restablecer la conexión con la base de datos
-    # Restablecer sólo en el caso de que antes del fork se haya cerrado (remove_connection)
-    ActiveRecord::Base.establish_connection(config)
 
     # No hacer seguimiento del status del hijo (para que no quede zombi al terminar)
     Process.detach(h)
@@ -1009,6 +1009,7 @@ class ApplicationController < ActionController::Base
     flash[:mod] = class_modelo.to_s
     flash[:id] = @fact.id
     flash[:head] = 0
+    flash[:nivel] = @nivel || class_mant.nivel
     open_url '/histo_pk'
   end
 
@@ -1441,10 +1442,10 @@ class ApplicationController < ActionController::Base
   end
 
   def pag_render(pag, lay=pag)
-    if self.class.nimbus_views
+    if self.class.nimbus_views && self.class.nimbus_views[pag.to_sym]
       r = ''
       self.class.nimbus_views[pag.to_sym].each {|v|
-        r << "<%= render file: '#{v}' %>"
+        r << File.read(v)
       }
 
       render inline: r, layout: lay

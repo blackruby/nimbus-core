@@ -1,5 +1,6 @@
 class HistoPkController < ApplicationController
   def before_edit
+    @nivel = flash[:nivel]
     flash[:mod].nil? || flash[:mod].constantize.modelo_histo.nil? ? {msg: 'No hay histórico'} : true
   end
 

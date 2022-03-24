@@ -590,8 +590,10 @@ class GI
       @form[:join] = alias_cmp_db(@form[:join], ms[:alias_cmp])
 
       # Obtener la query
-      #@data = @form[:modelo].joins(@join).joins(@form[:join]).where(@where, lim).group(@form[:group]).having(@having, lim).order(@form[:order]).limit(200).pluck(*@vpluck)
-      @data = @form[:modelo].joins(@join).joins(@form[:join]).where(@where, lim).group(@form[:group]).having(@having, lim).order(@form[:order]).pluck(*@vpluck)
+      @data = @form[:modelo].joins(@join).joins(@form[:join]).group(@form[:group]).order(@form[:order])
+      @data.where(@where, lim) if @where.present?
+      @data.having(@having, lim) if @having.present?
+      @data = @data.pluck(*@vpluck)
     end
   end
 
