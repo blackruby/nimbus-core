@@ -23,13 +23,11 @@ module Nimbus
   # Constante global para activar/desactivar mensajes de debug
   Debug = false
 
-  # Lectura del hash de configuración
-  Config = File.exist?('config/nimbus-core.yml') ? YAML.load(ERB.new(File.read('config/nimbus-core.yml')).result) : {}
+  # Nombre de la cookie de empresa/ejercicio
+  CookieEmEj = ('_' + Rails.app_class.to_s.split(':')[0].downcase + '_emej').to_sym
 
-  # Carga del código ruby de configuración (preferible al yaml anterior, por poderse encriptar)
-  #eval(File.read('config/nimbus-core.rb'), binding) if File.exist?('config/nimbus-core.rb')
+  # Adecuación de valores de configuración
 
-  # Adecuación de p2p
   if Config[:p2p].is_a?(Integer)
     Config[:p2p] = {tot: Config[:p2p]}
   elsif Config[:p2p].is_a?(Hash)
@@ -38,12 +36,7 @@ module Nimbus
     Config[:p2p] = {tot: 50}
   end
 
-  # Nombre de la cookie de empresa/ejercicio
-  CookieEmEj = ('_' + Rails.app_class.to_s.split(':')[0].downcase + '_emej').to_sym
-
-  # Cálculo de los módulos 'puros' disponibles
-  Modulos = Dir.glob('modulos/*').select{|m| m != 'modulos/idiomas' and m != 'modulos/nimbus-core'} + ['.']
-
+  # Obtención de un hash de los meses para campos tipo 'select'
   def self.mes_sel
     I18n.t('date.month_names')[1..-1].map.with_index {|m,i| [i+1, m.capitalize]}.to_h
   end
@@ -60,50 +53,57 @@ module Nimbus
     end
   end
 
-  def self.load_adds(fi)
+  Home = Rails.root.to_s
+
+  def self.const_loaded(cl, fi)
     f = fi.split('/')
     iapp = f.index('app')
-    fic = '/' + f[iapp..-1].join('/')[0..-4] + '_add.rb'
-    rails_root = Rails.root.to_s
-
+    return unless iapp
+    
+    # Cargar _adds
+    add = '/' + f[iapp..-1].join('/')[0..-4] + '_add.rb'
     Modulos.each {|m|
-      p = rails_root + '/' + m + fic
-      if File.exist? p
-        Rails.env == 'development' ? require_dependency(p) : load(p)
-      end
+      p = Home + '/' + m + add
+      load(p) if File.exist? p
     }
 
-    if f[iapp + 1] == 'controllers'
-      # Tratamientos especiales en el caso de que sea un controlador
+    case f[iapp + 1]
+    when 'models'
+      # Hacer el include sólo en las clases que correspondan a modelos puros.
+      cl.class_eval('include Modelo') if cl < ActiveRecord::Base && cl.superclass == ActiveRecord::Base && !cl.include?(Modelo)
+    when 'models_h'
+      cl.class_eval('include Historico') unless cl.include?(Historico)
+    when 'controllers_mod'
+      cl.class_eval('include MantMod') unless cl.include? MantMod
+    when 'controllers'
+      return unless f[-1].ends_with? '_controller.rb'
 
-      # Cálculo de las vistas (sobrecarga de ficha y grid)
-
-      ctr_name = f[-1][0..f[-1].index('_controller')-1]
-      mod = f[-2] == 'controllers' ? '' : f[-2]
-      ctr = ((mod == '' ? '' : mod.capitalize + '::') + ctr_name.camelize + 'Controller').constantize
+      ruta_v = '/' + f[iapp..-1].join('/').sub('/controllers/', '/views/').sub('_controller.rb', '')
 
       procesa_vistas = ->(tipo) {
         views = []
-        ruta = "/app/views/#{mod}/#{ctr_name}/#{tipo}.html.erb"
-
-        fic = f[0..iapp-1].join('/') + '/' + ruta
-        views << fic if File.exist?(fic)
+        ruta = "#{ruta_v}/#{tipo}.html.erb"
 
         Modulos.each {|m|
           next if m == f[iapp-2] + '/' + f[iapp-1]
-          fic = rails_root + '/' + m + ruta
+          fic = Home + '/' + m + ruta
           views << fic if File.exist?(fic)
         }
 
-        ctr.set_nimbus_views tipo, views
+        if views.present?
+          fic = f[0..iapp-1].join('/') + '/' + ruta
+          views.unshift(fic) if File.exist?(fic)
+          cl.set_nimbus_views(tipo, views)
+        end
       }
 
       procesa_vistas.call(:ficha)
       procesa_vistas.call(:grid)
 
       # Reordenamiento del hash de campos (@campos) para posicionar los tags 'post'
-      begin
-        ctr_mod = ((mod == '' ? '' : mod.capitalize + '::') + ctr_name.camelize + 'Mod').constantize
+      ctr_mod = cl.to_s.sub('Controller', 'Mod')
+      if const_defined?(ctr_mod)
+        ctr_mod = ctr_mod.constantize
         cmpa = []
         post = false
         ctr_mod.campos.each {|k, v|
@@ -115,9 +115,9 @@ module Nimbus
 
           # Hacer include del module "Controller" si existe y añadir las opciones del menú contextual (auto_comp_menu) a v[:menu]
           begin
-            add_context_menu(ctr, v) if v[:ref]
+            add_context_menu(cl, v) if v[:ref]
           rescue => e
-            Rails.logger.fatal "###### Fallo al procesar el campo '#{k}' del controlador #{ctr}"
+            Rails.logger.fatal "###### Fallo al procesar el campo '#{k}' del controlador #{cl}"
             Rails.logger.fatal e.message
             Rails.logger.fatal e.backtrace.join("\n")
           end
@@ -132,34 +132,12 @@ module Nimbus
           }
           ctr_mod.campos = cmpa.to_h
         end
-      rescue
-        # La única razón para que se produzca la excepción es que no exista la clase xxxMod.
-        # En ese caso no hay que hacer nada, sólo significa que el controlador es autónomo
-        # como es el caso de welcome_controller.
-      end
-    else
-      # Tratamientos especiales en el caso de que sea un modelo con histórico (y no sea una vista)
-
-      modulo = f[-2] == 'models' ? '' : f[-2]
-      modelo = ((modulo == '' ? '' : modulo.capitalize + '::') + f[-1][0..-4].capitalize).constantize
-      histo = modelo.modelo_histo
-      if !modelo.view? && histo
-        # Desactivar los callbacks del histórico
-        histo.reset_callbacks(:initialize)
-        histo.reset_callbacks(:validate)
-        histo.reset_callbacks(:create)
-        histo.reset_callbacks(:save)
-
-        # Añadir los belongs_to nuevos definidos en el add al modelo histórico.
-        # Parece ser que aunque el histórico herede del modelo base, las nuevas
-        # asociaciones que se añaden a éste no las ve el histórico.
-        modelo.reflect_on_all_associations(:belongs_to).each {|a|
-          unless histo.reflect_on_all_associations(:belongs_to).index{|h| h.name == a.name}
-            histo.instance_eval("belongs_to :#{a.name}, class_name: '#{a.options[:class_name]}'")
-          end
-        }
       end
     end
+  end
+
+  def self.load_adds(fi)
+    # Mantenemos el método por si hay alguna llamada "legacy"
   end
 
   # Array con los parámetros de los campos de un mantenimiento que necesitan doble eval (integer, boolean, symbol)
@@ -251,14 +229,14 @@ def nt(tex, h={}, mis = false)
   return('') if tex.nil? or tex == ''
 
   begin
-    r = I18n.t(tex, h)
+    r = I18n.t(tex)
     if r.start_with?('translation missing')
-      r = I18n.t(tex.downcase, h)
+      r = I18n.t(tex.downcase)
       if r.start_with?('translation missing')
         if tex[-1] == 's'
-          r = I18n.t(tex.singularize, h).pluralize(I18n.locale)
+          r = I18n.t(tex.singularize).pluralize(I18n.locale)
         elsif tex.ends_with?('_id')
-          r = I18n.t(tex[0..-4], h)
+          r = I18n.t(tex[0..-4])
         end
       end
     end
@@ -1706,9 +1684,7 @@ module Historico
         @auto_comp_mselect = self.superclass.auto_comp_mselect
         @auto_comp_menu = self.superclass.auto_comp_menu
 
-        # Desactivar los callbacks (también se desactivan en load_adds.
-        # Sería redundante, pero lo mantenemos para los modelos que no
-        # admiten sobrecarga)
+        # Desactivar los callbacks
         self.reset_callbacks(:initialize)
         self.reset_callbacks(:validate)
         self.reset_callbacks(:create)
