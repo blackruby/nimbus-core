@@ -55,8 +55,7 @@ class GiController < ApplicationController
     if (@usu.codigo == 'admin')
       nuevo_form(Rails.app_class.to_s.split(':')[0].downcase, 'formatos', ext)
 
-      Dir.glob('modulos/*').sort.each {|mod|
-        #nuevo_form(mod.split('/')[1], mod + '/formatos', ext) unless mod.ends_with?('/idiomas') or mod.ends_with?('/nimbus-core')
+      Dir.glob(Nimbus::ModulosGlob).sort.each {|mod|
         nuevo_form(mod.split('/')[1], mod + '/formatos', ext)
       }
     end
@@ -137,7 +136,7 @@ class GiController < ApplicationController
 
       nuevo_mod(Rails.app_class.to_s.split(':')[0].downcase, 'app/models')
 
-      Dir.glob('modulos/*').sort.each {|mod|
+      Dir.glob(Nimbus::ModulosGlob).sort.each {|mod|
         nuevo_mod(mod.split('/')[1], mod + '/app/models')
       }
     end

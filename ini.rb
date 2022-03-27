@@ -14,10 +14,11 @@ module ::Nimbus
       mod = "modulos/#{m}"
       Modulos << mod if m != 'idiomas' && m != 'nimbus-core' && Dir.exist?(mod)
     }
-    Modulos << '.'
   else
-    Modulos = Dir.glob('modulos/*').select{|m| m != 'modulos/idiomas' && m != 'modulos/nimbus-core'} + ['.']
+    Modulos = Dir.glob('modulos/*').select{|m| m != 'modulos/idiomas' && m != 'modulos/nimbus-core'}
   end
+  ModulosGlob = '{' + Modulos.join(',') + ',modulos/nimbus-core}'
+  Modulos << '.'
 end
 
 modulos = ::Nimbus::Modulos[0..-2]
@@ -91,5 +92,5 @@ end
 
 $nim_origenes = {}
 
-nim_ext_conf = "#{Rails.root}/modulos/nimbus-core/extconf/nimbus"
+nim_ext_conf = "#{rr}/modulos/nimbus-core/extconf/nimbus"
 require nim_ext_conf unless Dir.glob("#{nim_ext_conf}*").empty?

@@ -146,12 +146,13 @@ class ErdController < ApplicationController
       begin
         entity(m.constantize, (@fact.nivel == 0 ? 999 : @fact.nivel), 1)
       rescue
-        if Dir.exist? "modulos/#{m}"
-          modelos = Dir.glob("modulos/#{m}/app/models/#{Dir.exist?('modulos/' + m + '/app/models/' + m) ? m : ''}/*.rb")
-          modelos += Dir.glob("modulos/*/app/models/#{m}/*.rb").select {|n| n[-7..-4] != '_add'}
+        if Nimbus::ModulosGlob.include? "modulos/#{m}"
+          modulo_puro = Dir.exist?('modulos/' + m + '/app/models/' + m)
+          modelos = Dir.glob("modulos/#{m}/app/models/#{modulo_puro ? m : ''}/*.rb")
+          modelos += Dir.glob("#{Nimbus::ModulosGlob}/app/models/#{m}/*.rb").select {|n| n[-7..-4] != '_add'}
           modelos.each {|n|
             begin
-              entity((m.capitalize + '::' + n.split('/')[-1][0..-4].camelize).constantize, (@fact.nivel == 0 ? 999 : @fact.nivel), 1)
+              entity(((modulo_puro ? m.capitalize + '::' : '') + n.split('/')[-1][0..-4].camelize).constantize, (@fact.nivel == 0 ? 999 : @fact.nivel), 1)
             rescue
               incidencias << [n, 'Modelo no válido']
             end

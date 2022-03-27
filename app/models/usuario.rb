@@ -67,13 +67,13 @@ class Usuario < ActiveRecord::Base
     add_menu(hmenu, 'modulos/nimbus-core/menu.yml')
     # Mezclar el menú de cada módulo y obtener un array con los módulos disponibles
     modulos = []
-    Dir.glob('modulos/*/menu.yml').each {|m|
+    Dir.glob(Nimbus::ModulosGlob + '/menu.yml').each {|m|
       next if m == 'modulos/nimbus-core/menu.yml'
       add_menu(hmenu, m)
       modulos << m.split('/')[1]
     }
     # Mezclar los menús de sobrecarga de módulos de cada módulo si el módulo a sobrecargar existe
-    Dir.glob('modulos/*/menu_*.yml').each {|m|
+    Dir.glob(Nimbus::ModulosGlob + '/menu_*.yml').each {|m|
       add_menu(hmenu, m) if modulos.include?(m.scan(/_\w*\.yml/)[0][1..-5])
     }
     # Mezclar el menú principal de la gestión

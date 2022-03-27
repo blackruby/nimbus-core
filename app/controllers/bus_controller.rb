@@ -203,7 +203,7 @@ class BusController < ApplicationController
       fic_pref ||= f if f[f.rindex('/')+1..-5] == @mod
     }
 
-    Dir.glob("modulos/*/bus/#{@mod}").each {|m|
+    Dir.glob("#{Nimbus::ModulosGlob}/bus/#{@mod}").each {|m|
       k = m.split('/')[1]
       Dir.glob(m + '/*.yml').each_with_index {|f, i|
         i == 0 ? @sel[k] = [f] : @sel[k] << f
