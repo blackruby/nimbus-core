@@ -81,7 +81,7 @@ class BusController < ApplicationController
 
     @mod = flash[:mod] || params[:mod]
     if @mod.nil? || @mod == 'Usuario' && !@usu.admin
-      render file: '/public/404.html', status: 404, layout: false
+      render file: 'public/404.html', status: 404, layout: false
       return
     end
 
@@ -90,7 +90,7 @@ class BusController < ApplicationController
     begin
       clm = @mod.constantize
     rescue
-      render file: '/public/404.html', status: 404, layout: false
+      render file: 'public/404.html', status: 404, layout: false
       return
     end
 
@@ -99,7 +99,7 @@ class BusController < ApplicationController
       ctrl_perm = clm.ctrl_for_perms
       #unless @usu.pref[:permisos][:ctr][ctrl_perm] && @usu.pref[:permisos][:ctr][ctrl_perm][ej[0].to_i]
       if !@usu.pref.dig(:permisos, :ctr, ctrl_perm, ej[0].to_i) || clm.historico? && !@usu.pref.dig(:permisos, :ctr, '_acc_hist_', ej[0].to_i)
-        render file: '/public/401.html', status: 401, layout: false
+        render file: 'public/401.html', status: 401, layout: false
         return
       end
     end
@@ -173,7 +173,8 @@ class BusController < ApplicationController
       jid: ej[1],
       rows: 50,
       tit: flash[:tit] || (clm.respond_to?(:nim_bus_tit) ? clm.nim_bus_tit(@dat[:eid], @dat[:jid], @usu) : nil) || "Búsqueda de #{nt(tabla)}",
-      rld: flash[:rld] || params[:rld]
+      rld: flash[:rld] || params[:rld],
+      home: Nimbus::BusPath + "/_usuarios/#{@usu.codigo}/#{@mod}"
     }
     @titulo = @dat[:tit]
 
@@ -182,7 +183,7 @@ class BusController < ApplicationController
     fic_pref = nil unless File.exist?(fic_pref.to_s)
 
     unless fic_pref
-      pref = "bus/_usuarios/#{@usu.codigo}/#{@mod}/_preferencias"
+      pref = "#{@dat[:home]}/_preferencias"
       if File.exist?(pref)
         fic_pref = YAML.load(File.read(pref))[ctr]
         fic_pref = nil unless File.exist?(fic_pref.to_s)
@@ -193,12 +194,12 @@ class BusController < ApplicationController
     @sel = {}
 
     k = @usu.codigo
-    Dir.glob("bus/_usuarios/#{k}/#{@mod}/*.yml").each_with_index {|f, i|
+    Dir.glob("#{@dat[:home]}/*.yml").each_with_index {|f, i|
       i == 0 ? @sel[k] = [f] : @sel[k] << f
     }
 
-    k = Rails.app_class.to_s.split(':')[0]
-    Dir.glob("bus/#{@mod}/*.yml").each_with_index {|f, i|
+    k = Nimbus::Gestion
+    Dir.glob("#{Nimbus::BusPath}/#{@mod}/*.yml").each_with_index {|f, i|
       i == 0 ? @sel[k] = [f] : @sel[k] << f
       fic_pref ||= f if f[f.rindex('/')+1..-5] == @mod
     }
@@ -501,9 +502,8 @@ class BusController < ApplicationController
     arg = JSON.parse(params[:dat]).deep_symbolize_keys
 
     h = {view: @dat[:view].to_s, cols: arg[:cols], filters: @dat[:filters], order: @dat[:order], rows: @dat[:rows]}
-    path = "bus/_usuarios/#{@usu.codigo}/#{@dat[:mod]}"
-    FileUtils.mkdir_p(path)
-    File.write("#{path}/#{params[:fic]}.yml", h.to_yaml)
+    FileUtils.mkdir_p(@dat[:home])
+    File.write("#{@dat[:home]}/#{params[:fic]}.yml", h.to_yaml)
   end
 
   def change_table_in_view(view)
@@ -548,23 +548,6 @@ class BusController < ApplicationController
     @dat[:last_col] = @dat[:cols].map{|k, v| k}.max.to_s
   end
 
-=begin
-  def bus_send
-    vid = flash[:vista]
-    @v = Vista.find_by id: vid
-    if @v
-      dat = @v.data
-    else
-      render file: '/public/401.html', status: 401, layout: false
-      return
-    end
-
-    send_data File.read("/tmp/nim#{vid}.#{dat[:file_type]}"), filename: "#{dat[:mod].table_name}.#{dat[:file_type]}"
-    FileUtils.rm "/tmp/nim#{vid}.xlsx", force: true
-    FileUtils.rm "/tmp/nim#{vid}.pdf", force: true if dat[:file_type] == 'pdf'
-  end
-=end
-
   def bus_send
     envia_fichero(file: "/tmp/nim#{@v.id}.#{@dat[:file_type]}", file_cli: "#{@dat[:mod].table_name}.#{@dat[:file_type]}", rm: true, disposition: @dat[:file_type] == 'pdf' ? 'inline' : 'attachment')
   end
@@ -602,8 +585,6 @@ class BusController < ApplicationController
           FileUtils.rm_rf %W(/tmp/nim#{@v.id}.xlsx /tmp/nim#{@v.id}_lo_dir)
         end
         @dat[:file_type] = params[:tipo]
-        #@ajax << "window.location.href='/bus/send';"
-        #flash[:vista] = @v.id
       rescue => e
         FileUtils.rm_rf Dir.glob("/tmp/nim#{@v.id}*")
         raise e
@@ -614,14 +595,13 @@ class BusController < ApplicationController
   def bus_pref
     return unless @v
 
-    path = "bus/_usuarios/#{@usu.codigo}/#{@dat[:mod]}"
-    pref = path + '/_preferencias'
+    pref = @dat[:home] + '/_preferencias'
     if File.exist?(pref)
       hpref = YAML.load(File.read(pref))
       hpref[@dat[:ctr]] = params[:fic]
     else
       hpref = {@dat[:ctr] => params[:fic]}
-      FileUtils.mkdir_p(path)
+      FileUtils.mkdir_p(@dat[:home])
     end
 
     File.write(pref, hpref.to_yaml)
@@ -629,7 +609,7 @@ class BusController < ApplicationController
 
   def bus_del
     f = params[:fic]
-    FileUtils.rm(f, {force: true}) if f.starts_with?("bus/_usuarios/#{@usu.codigo}/")
+    FileUtils.rm(f, {force: true}) if f.starts_with?(@dat[:home]) && !f.include?('..')
   end
 
   def view_sel

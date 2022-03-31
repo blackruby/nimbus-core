@@ -86,7 +86,7 @@ namespace :nimbus do
     }
 
     mods = []
-    Dir.glob([Nimbus::ModulosGlob + '/app/models/**/*.rb', 'app/models/*.rb']) {|f|
+    Dir.glob(Nimbus::ModulosCliGlob + '/app/models/**/*.rb') {|f|
       next if f[-7, 4] == '_add'
       begin
         fa = f.split('/')

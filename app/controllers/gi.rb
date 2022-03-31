@@ -268,12 +268,12 @@ class GI
 
   def self.formato_read(modulo, file, user, cl=nil)
     case modulo
-      when '', '_', Rails.app_class.to_s.split(':')[0].downcase
-        path = 'formatos/'
+      when '', '_', Nimbus::Gestion
+        path = "#{Nimbus::GiPath}/"
       when 'publico'
-        path = 'formatos/_publico/'
+        path = "#{Nimbus::GiPath}/_publico/"
       when 'privado'
-        path = "formatos/_usuarios/#{user}/"
+        path = "#{Nimbus::GiPath}/_usuarios/#{user}/"
       else
         path = "modulos/#{modulo}/formatos/"
     end

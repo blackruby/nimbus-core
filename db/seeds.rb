@@ -353,3 +353,9 @@ unless Nimbus::Config[:excluir_paises]
     }
   }
 end
+
+# Cargar seeds del resto de módulos
+Nimbus::ModulosCli.each {|m|
+  s = Nimbus::Home + '/' + m + '/db/seeds.rb'
+  require(s) if File.exist?(s)
+}

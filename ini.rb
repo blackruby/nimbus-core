@@ -1,11 +1,9 @@
 # Lectura del hash de configuración
 module ::Nimbus
-  file = 'config/nimbus-core.yml'
-  Config = File.exist?(file) ? YAML.load(ERB.new(File.read(file)).result) : {}
-  if ENV['NIMBUS_CLI']
-    file = "config/clientes/#{ENV['NIMBUS_CLI']}.yml"
+  Config = {}
+  %W(config/nimbus-core.yml config/nimbus.yml clientes/#{ENV['NIMBUS_CLI']}/config/nimbus.yml).each {|file|
     Config.merge! File.exist?(file) ? YAML.load(ERB.new(File.read(file)).result) : {}
-  end
+  }
 
   # Cálculo de los módulos 'puros' disponibles
   if Config[:modulos]
@@ -19,51 +17,60 @@ module ::Nimbus
   end
   ModulosGlob = '{' + Modulos.join(',') + ',modulos/nimbus-core}'
   Modulos << '.'
+  ModulosCli = Modulos + ["clientes/#{ENV['NIMBUS_CLI']}"] 
+  ModulosCliGlob = '{' + ModulosCli.join('/') + ',modulos/nimbus-core}'
 end
 
 modulos = ::Nimbus::Modulos[0..-2]
 modulos_nc = modulos + ['modulos/nimbus-core']
+modulos_cli = modulos_nc + ["clientes/#{ENV['NIMBUS_CLI']}"] 
 
 ############# locales
 
-['config/locales'].each {|r|
-  modulos.each {|d| config.paths[r].unshift("#{d}/#{r}")}
-
-  d = 'modulos/nimbus-core/' + r
-  config.paths[r].unshift(d) if File.directory?(d)
-  d = 'modulos/idiomas/' + r
-  config.paths[r].unshift(d) if File.directory?(d)
+r = 'config/locales'
+(modulos_nc + %w(modulos/idiomas)).each {|m|
+  d = m + '/' + r
+  config.paths[r].unshift(d) if Dir.exist?(d)
 }
+d = modulos_cli[-1] + '/' + r
+config.paths[r] << d if Dir.exist?(d)
 
 ############# initializers
 
-['config/initializers'].each {|r|
-  modulos.each {|d| config.paths[r].unshift("#{d}/#{r}")}
-
-  d = 'modulos/nimbus-core/' + r
-  config.paths[r].unshift(d) if File.directory?(d)
+r = 'config/initializers'
+modulos_nc.each {|m|
+  d = m + '/' + r
+  config.paths[r].unshift(d) if Dir.exist?(d)
 }
+d = modulos_cli[-1] + '/' + r
+config.paths[r] << d if Dir.exist?(d)
 
 ############# Resto de carpetas con precedencia fifo
 
 %w(app/models app/models_h app/controllers app/controllers_mod app/views app/assets vendor/assets lib/tasks).each {|r|
-  modulos_nc.each {|d| config.paths[r.split('_')[0]] << "#{d}/#{r}"}
+  modulos_cli.each {|m|
+    d = m + '/' + r
+    config.paths[r.split('_')[0]] << d if Dir.exist?(d)
+  }
 }
+  
+############# Seeds
 
-############# Resto de ficheros con precedencia fifo
+r = 'db/seeds.rb'
+config.paths[r] = ['modulos/nimbus-core/db/seeds.rb']
 
-['config/routes.rb'].each {|r|
-  modulos.each {|d| config.paths[r] << "#{d}/#{r}"}
+############# Rutas
 
-  d = 'modulos/nimbus-core/' + r
-  config.paths[r] << d if File.exist?(d)
-}
+r = 'config/routes.rb'
+d = modulos_cli[-1] + '/' + r
+config.paths[r].unshift(d) if File.exist?(d)
+modulos_nc.each {|d| config.paths[r] << "#{d}/#{r}"}
 
 ############# carpetas de migraciones
 
 r = 'db/migrate'
 mods = modulos_nc.map{|m| m.split('/')[1]}
-modulos_nc.each {|d|
+modulos_cli.each {|d|
   s = "#{d}/db/migrate"
   config.paths[r] << s if File.exist?(s)
   mods.each {|m|

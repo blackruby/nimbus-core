@@ -592,7 +592,7 @@ class ApplicationController < ActionController::Base
     if f[0..1] == '~/'
       f = f[2..-1]
     elsif f[0] != '/'
-      f = "data/#{f}"
+      f = "#{Nimbus::DataPath}/#{f}"
     end
     if File.file? f
       send_file f, disposition: :inline
@@ -602,8 +602,8 @@ class ApplicationController < ActionController::Base
   end
 
   def nim_path_image(modelo, id, tag)
-    src = Dir.glob("data/#{modelo}/#{id}/_imgs/#{tag}.*")
-    src.size > 0 ? "src='/nim_send_file?file=#{src[0][5..-1]}'" : ''
+    src = Dir.glob("#{Nimbus::DataPath}/#{modelo}/#{id}/_imgs/#{tag}.*")
+    src.size > 0 ? "src='/nim_send_file?file=#{src[0][Nimbus::DataPath.size+1..-1]}'" : ''
   end
 
   def nim_image(mod: class_modelo, id: @fact.id, tag:, hid: nil, w: nil, h: nil)
@@ -883,9 +883,9 @@ class ApplicationController < ActionController::Base
       cms = class_modelo.to_s
       flash[:tit] = "#{nt(cms)}: #{forma_campo_id(cms, @fact.id, :osp)}"
       if @fact.respond_to?(:osp_ruta)
-        flash[:ruta] = "data/#{@fact.osp_ruta}"
+        flash[:ruta] = "#{Nimbus::DataPath}/#{@fact.osp_ruta}"
       else
-        flash[:ruta] = "data/#{cms}/#{@fact.id}/osp"
+        flash[:ruta] = "#{Nimbus::DataPath}/#{cms}/#{@fact.id}/osp"
       end
       #flash[:prm] = @dat[:prm]
       if @dat[:prm] == 'c' || prm_osp == 'c'
@@ -3361,7 +3361,7 @@ class ApplicationController < ActionController::Base
       end
 
       # Borrar los datos asociados
-      `rm -rf data/#{class_modelo}/#{@fact.id}`
+      `rm -rf #{Nimbus::DataPath}/#{class_modelo}/#{@fact.id}`
 
       call_nimbus_hook :after_borra
 
@@ -3459,7 +3459,7 @@ class ApplicationController < ActionController::Base
         # Tratar campos imagen
         cmps_img.each {|c|
           v = @fact.campos[c][:img]
-          path = "data/#{clmod}/#{@fact.id}/_imgs"
+          path = "#{Nimbus::DataPath}/#{clmod}/#{@fact.id}/_imgs"
 
           # Borrar imágenes previas
           `rm -f #{path}/#{c}.*`

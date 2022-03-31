@@ -63,7 +63,8 @@ class Usuario < ActiveRecord::Base
     if perm
       hmenu.deep_merge!(Perfil.permisos_especiales).deep_merge!({'_opciones_de_menu_' => nil})
     end
-    add_menu(hmenu, 'menu_pre.yml') if File.exist?('menu_pre.yml')
+    fm = "#{Nimbus::GestionPath}menu_pre.yml"
+    add_menu(hmenu, fm) if File.exist?(fm)
     add_menu(hmenu, 'modulos/nimbus-core/menu.yml')
     # Mezclar el menú de cada módulo y obtener un array con los módulos disponibles
     modulos = []
@@ -77,7 +78,8 @@ class Usuario < ActiveRecord::Base
       add_menu(hmenu, m) if modulos.include?(m.scan(/_\w*\.yml/)[0][1..-5])
     }
     # Mezclar el menú principal de la gestión
-    add_menu(hmenu, 'menu.yml') if File.exist?('menu.yml')
+    fm = "#{Nimbus::GestionPath}menu.yml"
+    add_menu(hmenu, fm) if File.exist?(fm)
 
     # Eliminar recursivamente todas las opciones que tengan como valor (url) un "_" que es el
     # convenio para eliminar opciones (fundamentalmente sobrecargándolas desde el menú principal)

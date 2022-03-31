@@ -49,11 +49,11 @@ class GiController < ApplicationController
   def all_files(ext)
     @forms = {}
 
-    nuevo_form('privado', "formatos/_usuarios/#{@usu.codigo}", ext)
-    nuevo_form('publico', 'formatos/_publico', ext)
+    nuevo_form('privado', "#{Nimbus::GiPath}/_usuarios/#{@usu.codigo}", ext)
+    nuevo_form('publico', "#{Nimbus::GiPath}/_publico", ext)
 
     if (@usu.codigo == 'admin')
-      nuevo_form(Rails.app_class.to_s.split(':')[0].downcase, 'formatos', ext)
+      nuevo_form(Nimbus::Gestion, Nimbus::GiPath, ext)
 
       Dir.glob(Nimbus::ModulosGlob).sort.each {|mod|
         nuevo_form(mod.split('/')[1], mod + '/formatos', ext)
@@ -66,7 +66,7 @@ class GiController < ApplicationController
     @assets_javascripts = %w(gi)
 
     unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
-      render file: '/public/401.html', status: 401, layout: false
+      render file: 'public/401.html', status: 401, layout: false
       return
     end
 
@@ -80,7 +80,7 @@ class GiController < ApplicationController
     @assets_javascripts = %w(gi)
 
     unless @usu.admin or @usu.pref[:permisos][:ctr]['giv']
-      render file: '/public/401.html', status: 401, layout: false
+      render file: 'public/401.html', status: 401, layout: false
       return
     end
 
@@ -92,7 +92,7 @@ class GiController < ApplicationController
 
   def new
     unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
-      render file: '/public/401.html', status: 401, layout: false
+      render file: 'public/401.html', status: 401, layout: false
       return
     end
 
@@ -101,25 +101,12 @@ class GiController < ApplicationController
       @assets_javascripts = %w(gi_edita)
 
       @modelo = params[:modelo]
-=begin
-      begin
-        @modelo.constantize # Solo para provocar una excepción si no existe el modelo
-      rescue
-        begin
-          @modelo[1..-1].constantize  # Por si es un histórico
-          @modelo.constantize # Solo para provocar una excepción si no existe el modelo
-        rescue
-          render file: '/public/404.html', status: 404, layout: false
-          return
-        end
-      end
-=end
 
       # Comprobar si existe el modelo constantizándolo
       begin
         h_constantize(@modelo)
       rescue
-        render file: '/public/404.html', status: 404, layout: false
+        render file: 'public/404.html', status: 404, layout: false
         return
       end
 
@@ -134,7 +121,7 @@ class GiController < ApplicationController
       @titulo = nt('gi')
       @tablas = {}
 
-      nuevo_mod(Rails.app_class.to_s.split(':')[0].downcase, 'app/models')
+      nuevo_mod(Nimbus::Gestion, "i#{Nimbus::GestionPath}app/models")
 
       Dir.glob(Nimbus::ModulosGlob).sort.each {|mod|
         nuevo_mod(mod.split('/')[1], mod + '/app/models')
@@ -147,7 +134,7 @@ class GiController < ApplicationController
     @assets_javascripts = %w(gi_edita)
 
     unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
-      render file: '/public/401.html', status: 401, layout: false
+      render file: 'public/401.html', status: 401, layout: false
       return
     end
 
@@ -158,7 +145,7 @@ class GiController < ApplicationController
       @modelo = @form[:modelo]
       all_files(false)
     else
-      render file: '/public/404.html', status: 404, layout: false
+      render file: 'public/404.html', status: 404, layout: false
     end
   end
 
@@ -238,15 +225,14 @@ class GiController < ApplicationController
     begin
       case params[:modulo]
         when ''
-          #render text: 'n'
           render plain: 'n'
           return
         when 'privado'
-          path = "formatos/_usuarios/#{@usu.codigo}/"
+          path = "#{Nimbus::GiPath}/_usuarios/#{@usu.codigo}/"
         when 'publico'
-          path = "formatos/_publico/"
-        when Rails.app_class.to_s.split(':')[0].downcase
-          path = "formatos/"
+          path = "#{Nimbus::GiPath}/_publico/"
+        when Nimbus::Gestion
+          path = "#{Nimbus::GiPath}/"
         else
           path = "modulos/#{params[:modulo]}/formatos/"
       end
@@ -270,11 +256,11 @@ class GiController < ApplicationController
     return if !(@usu.codigo == 'admin' || @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr]['gi'] && (form[0] == 'publico' || form[0] == 'privado'))
 
     if form[0] == 'publico'
-      pref = 'formatos/_publico'
-    elsif form[0] == 'privado'
-      pref = "formatos/_usuarios/#{@usu.codigo}"
-    elsif form[0] == Rails.app_class.to_s.split(':')[0].downcase
-      pref = 'formatos'
+      pref = "#{Nimbus::GiPath}/_publico"
+    elsif form[0] == "privado"
+      pref = "#{Nimbus::GiPath}/_usuarios/#{@usu.codigo}"
+    elsif form[0] == Nimbus::Gestion
+      pref = "#{Nimbus::GiPath}"
     else
       pref = "modulos/#{form[0]}/formatos"
     end
@@ -289,8 +275,8 @@ class GiController < ApplicationController
 
       if @gi_modulo != 'publico' and @gi_modulo != 'privado'
         pref_html = '/'
-        if @gi_modulo == Rails.app_class.to_s.split(':')[0].downcase
-          pref = 'app/controllers'
+        if @gi_modulo == Nimbus::Gestion
+          pref = "#{Nimbus::GestionPath}app/controllers"
         else
           pref = "modulos/#{@gi_modulo}/app"
           if File.exist?("#{pref}/models/#{@gi_modulo}.rb")
@@ -300,20 +286,18 @@ class GiController < ApplicationController
             pref << "/controllers"
           end
         end
-        #return({redirect: "#{pref_html}#{@gi_formato}"}) if File.exist?("#{pref}/#{@gi_formato}_controller.rb")
         if File.exist?("#{pref}/#{@gi_formato}_controller.rb")
           redirect_to "#{pref_html}#{@gi_formato}"
           return
         end
       end
 
-      #return('/public/401.html') unless @usu.admin or params[:modulo] == 'publico' or params[:modulo] == 'privado' or @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
       prm = @usu.pref[:permisos][:ctr]['gi/run/' + params[:modulo] + '/' + params[:formato]]
       return(false) unless @usu.admin or params[:modulo] == 'publico' || params[:modulo] == 'privado' || prm && prm[get_empeje[0].to_i]
     else
       ctr = params[:controller].split('/')
       if ctr.size == 1
-        @gi_modulo = Rails.app_class.to_s.split(':')[0].downcase
+        @gi_modulo = Nimbus::Gestion
         @gi_formato = ctr[0]
       else
         @gi_modulo = ctr[0]
@@ -340,10 +324,9 @@ class GiController < ApplicationController
       @nivel ||= :g
       return true
     else
-      render file: '/public/404.html', status: 404, layout: false
+      render file: 'public/404.html', status: 404, layout: false
       return
     end
-    #@form ? nil : {file: '/public/404.html', status: 404}
   end
 
   def before_envia_ficha
@@ -370,23 +353,6 @@ class GiController < ApplicationController
       end
     end
 
-=begin
-    if @form[:modelo]
-      begin
-        cl = @form[:modelo].constantize
-      rescue
-        @form[:modelo][1..-1].constantize
-        cl = @form[:modelo].constantize
-      end
-      tit = 'Listado de ' + nt(cl.table_name)
-    else
-      tit = 'Listado'
-    end
-
-    tit = @form[:descripcion] if @form[:descripcion] && !@form[:descripcion].strip.empty?
-    set_titulo(tit, @e&.codigo, @j&.codigo)
-=end
-
     if @formato.respond_to?(:before_envia_ficha)
       eval(@formato.before_envia_ficha)
     end
@@ -400,7 +366,6 @@ class GiController < ApplicationController
   end
 
   def gi_envia_datos
-    #envia_fichero(file: "#{@g[:fns]}.#{@fact.form_type}", file_cli: "#{@fact.form_file}.#{@fact.form_type}", rm: true, disposition: @fact.form_type == 'pdf' ? 'inline' : 'attachment', popup: @g[:go] ? :self : false)
     envia_fichero(
       file: "#{@g[:fns]}.#{@fact.form_type}",
       file_cli: "#{@fact.form_file}.#{@fact.form_type}",

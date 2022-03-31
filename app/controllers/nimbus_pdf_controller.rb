@@ -1,7 +1,7 @@
 class NimbusPdfController < ApplicationController
   def index
     unless @usu.codigo == 'admin'
-      render file: '/public/401.html', status: 401, layout: false
+      render file: 'public/401.html', status: 401, layout: false
       return
     end
 
@@ -24,7 +24,7 @@ class NimbusPdfController < ApplicationController
 
   def help
     unless @usu.codigo == 'admin'
-      render file: '/public/401.html', status: 401, layout: false
+      render file: 'public/401.html', status: 401, layout: false
       return
     end
   end

@@ -1,3 +1,8 @@
+# Configuración general (development y production)
+
+# No volcar el esquema sql
+Rails.application.config.active_record.dump_schema_after_migration = false
+
 # Poner i18n por defecto
 
 I18n.config.enforce_available_locales = false
@@ -5,13 +10,10 @@ I18n.default_locale = :es
 
 # A partir de Rails 5.1 la configuración por defecto será la que está comentada
 # La otra es para que el comportamiento sea como antes
-
 #Rails.application.config.active_record.time_zone_aware_types = [:datetime, :time]
 Rails.application.config.active_record.time_zone_aware_types = [:datetime]
 
 
-# Nombre de la cookie de sesión (sobreescribe el de config/initializers/session_store.rb)
-Rails.application.config.session_store :cookie_store, key: '_' + Rails.app_class.to_s.split(':')[0].downcase + '_session'
 # Formato SQL para el schema
 Rails.application.config.active_record.schema_format = :sql
 
@@ -23,10 +25,27 @@ module Nimbus
   # Constante global para activar/desactivar mensajes de debug
   Debug = false
 
-  # Nombre de la cookie de empresa/ejercicio
-  CookieEmEj = ('_' + Rails.app_class.to_s.split(':')[0].downcase + '_emej').to_sym
+  # Paths en función de si hay un cliente seleccionado
+  Gestion = ENV['NIMBUS_CLI'] || Rails.app_class.to_s.split(':')[0].downcase
+  GestionPath = ENV['NIMBUS_CLI'] ? "clientes/#{ENV['NIMBUS_CLI']}/" : ''
+  BusPath = GestionPath + 'bus'
+  GiPath = GestionPath + 'formatos'
+  DataPath = GestionPath + 'data'
+
+  # Nombre de la cookie de sesión y de empresa/ejercicio
+  Rails.application.config.session_store :cookie_store, key: '_' + Gestion + '_session'
+  CookieEmEj = ('_' + Gestion + '_emej').to_sym
 
   # Adecuación de valores de configuración
+
+  Config[:db] ||= {}
+  Config[:db][:development] ||= {}
+  Config[:db][:production] ||= {}
+  Config[:db][:development][:database] ||= Config[:db][:database] || Gestion
+  Config[:db][:production][:database] ||= Config[:db][:database] || Gestion
+  Config[:db][:development][:pool] ||= Config[:db][:pool] || 2
+  Config[:db][:production][:pool] ||= Config[:db][:pool] || 5
+
 
   if Config[:p2p].is_a?(Integer)
     Config[:p2p] = {tot: Config[:p2p]}
@@ -62,7 +81,7 @@ module Nimbus
     
     # Cargar _adds
     add = '/' + f[iapp..-1].join('/')[0..-4] + '_add.rb'
-    Modulos.each {|m|
+    ModulosCli.each {|m|
       p = Home + '/' + m + add
       load(p) if File.exist? p
     }
@@ -84,7 +103,7 @@ module Nimbus
         views = []
         ruta = "#{ruta_v}/#{tipo}.html.erb"
 
-        Modulos.each {|m|
+        ModulosCli.each {|m|
           next if m == f[iapp-2] + '/' + f[iapp-1]
           fic = Home + '/' + m + ruta
           views << fic if File.exist?(fic)
@@ -221,6 +240,17 @@ class String
     sp = self.split('_')
     mod = sp.size > 1 ? sp[0].capitalize + '::' : ''
     (mod + sp[-1].singularize.capitalize).constantize
+  end
+end
+
+  # Para mantener compatibilidad con Rails 5 y anteriores
+if Rails.version >= '6'
+  class Date
+    alias :to_s_org :to_s
+
+    def to_s(l=nil)
+      l == :sp || l == :es ? self.strftime('%d-%m-%Y') : to_s_org
+    end
   end
 end
 
