@@ -1,0 +1,19 @@
+#!/usr/local/bin/ruby
+
+Dir.chdir(__dir__ + '/../../..')
+
+env = []
+
+env << 'RAILS_ENV=production' if ARGV.include? '-p'
+iu = ARGV.index '-u'
+env << "NIMBUS_CLI=#{ARGV[iu + 1]}" if iu
+
+if ARGV.include? '-c'
+  cmd = 'rails console'
+elsif (ir = ARGV.index('-r'))
+  cmd = "rake #{ARGV[ir + 1]}"
+else
+  cmd = 'rails server'
+end
+
+exec "#{env.join(' ')} #{cmd}"

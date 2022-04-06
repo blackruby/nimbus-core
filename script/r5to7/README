@@ -1,0 +1,13 @@
+Hay que actualizar los siguientes ficheros:
+
+config/application.rb (cambiar el nombre del módulo XXXXX por el de la gestión)
+config/boot.rb
+config/environmentes/development.rb
+config/environmentes/production.rb
+crear en vacío el fichero config/storage.yml
+
+Borrar:
+db/seeds.rb #Si tuviera contenido, borrar las tres primeras líneas (donde se cargaban el resto de seeds)
+config/initializers/assets.rb
+config/backtrace_silencers.rb
+
