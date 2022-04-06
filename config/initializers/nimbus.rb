@@ -25,13 +25,6 @@ module Nimbus
   # Constante global para activar/desactivar mensajes de debug
   Debug = false
 
-  # Paths en función de si hay un cliente seleccionado
-  Gestion = ENV['NIMBUS_CLI'] || Rails.app_class.to_s.split(':')[0].downcase
-  GestionPath = ENV['NIMBUS_CLI'] ? "clientes/#{ENV['NIMBUS_CLI']}/" : ''
-  BusPath = GestionPath + 'bus'
-  GiPath = GestionPath + 'formatos'
-  DataPath = GestionPath + 'data'
-
   # Nombre de la cookie de sesión y de empresa/ejercicio
   Rails.application.config.session_store :cookie_store, key: '_' + Gestion + '_session'
   CookieEmEj = ('_' + Gestion + '_emej').to_sym
@@ -46,6 +39,17 @@ module Nimbus
   Config[:db][:development][:pool] ||= Config[:db][:pool] || 2
   Config[:db][:production][:pool] ||= Config[:db][:pool] || 5
 
+  Config[:puma] ||= {}
+  Config[:puma][:port] ||= 3000
+  if Rails.env == 'development'
+    Config[:puma][:min_threads] = 1
+    Config[:puma][:max_threads] = Config[:db][:development][:pool]
+    Config[:puma][:workers] = 0
+  else
+    Config[:puma][:min_threads] ||= 1
+    Config[:puma][:max_threads] ||= Config[:db][:production][:pool]
+    Config[:puma][:workers] ||= 0
+  end
 
   if Config[:p2p].is_a?(Integer)
     Config[:p2p] = {tot: Config[:p2p]}
@@ -79,6 +83,12 @@ module Nimbus
     iapp = f.index('app')
     return unless iapp
     
+    tipo = f[iapp + 1]
+
+    # Hacer los includes correspondientes por si no están hechos
+    cl.class_eval('include Modelo') if tipo == 'models' && cl < ActiveRecord::Base && cl.superclass == ActiveRecord::Base && !cl.include?(Modelo)
+    cl.class_eval('include Historico') if tipo == 'models_h' && !cl.include?(Historico)
+
     # Cargar _adds
     add = '/' + f[iapp..-1].join('/')[0..-4] + '_add.rb'
     ModulosCli.each {|m|
@@ -86,15 +96,7 @@ module Nimbus
       load(p) if File.exist? p
     }
 
-    case f[iapp + 1]
-    when 'models'
-      # Hacer el include sólo en las clases que correspondan a modelos puros.
-      cl.class_eval('include Modelo') if cl < ActiveRecord::Base && cl.superclass == ActiveRecord::Base && !cl.include?(Modelo)
-    when 'models_h'
-      cl.class_eval('include Historico') unless cl.include?(Historico)
-    when 'controllers_mod'
-      cl.class_eval('include MantMod') unless cl.include? MantMod
-    when 'controllers'
+    if tipo == 'controllers'
       return unless f[-1].ends_with? '_controller.rb'
 
       ruta_v = '/' + f[iapp..-1].join('/').sub('/controllers/', '/views/').sub('_controller.rb', '')
@@ -387,21 +389,7 @@ class ActiveRecord::Base
 
   # Extensiones en ActiveRecord (para control histórico)
 
-=begin
-  before_save :hubo_cambios
-
-  def hubo_cambios
-    @hubo_cambios = changed?
-    true
-  end
-
-  def hubo_cambios?
-    @hubo_cambios
-  end
-=end
-
   def control_histo
-    #return unless hubo_cambios?
     return unless saved_changes?
 
     clh = self.class.modelo_histo
@@ -1706,7 +1694,7 @@ module Historico
         @ctrl_for_perms ||= self.table_name.gsub('_', '/')
 
         t = self.table_name.split('_')
-        self.table_name = (t.size == 1 ? "h_#{t[0]}" : "#{t[0]}_h_#{t[1]}")
+        self.table_name = (t.size == 1 ? "h_#{t[0]}" : "#{t[0]}_h_#{t[1..-1].join('_')}")
 
         @propiedades = self.superclass.propiedades
         @pk = self.superclass.pk

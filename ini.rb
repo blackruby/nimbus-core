@@ -15,10 +15,20 @@ module ::Nimbus
   else
     Modulos = Dir.glob('modulos/*').select{|m| m != 'modulos/idiomas' && m != 'modulos/nimbus-core'}
   end
+
   ModulosGlob = '{' + Modulos.join(',') + ',modulos/nimbus-core}'
   Modulos << '.'
   ModulosCli = Modulos + ["clientes/#{ENV['NIMBUS_CLI']}"] 
   ModulosCliGlob = '{' + ModulosCli.join('/') + ',modulos/nimbus-core}'
+
+  # Paths en función de si hay un cliente seleccionado
+  Gestion = ENV['NIMBUS_CLI'] || Rails.app_class.to_s.split(':')[0].downcase
+  GestionPath = ENV['NIMBUS_CLI'] ? "clientes/#{ENV['NIMBUS_CLI']}/" : ''
+  BusPath = GestionPath + 'bus'
+  GiPath = GestionPath + 'formatos'
+  DataPath = GestionPath + 'data'
+  LogPath = GestionPath + 'log'
+
 end
 
 modulos = ::Nimbus::Modulos[0..-2]
@@ -79,6 +89,12 @@ modulos_cli.each {|d|
   }
 }
 
+############# Fichero de log
+if ENV['NIMBUS_CLI']
+  FileUtils.mkpath(Nimbus::LogPath)
+  config.paths['log'] = "#{Nimbus::LogPath}/#{Rails.env}.log"
+end
+
 rr = Rails.root.to_s
 
 if Rails.version >= '6' # Configuración específica para Rails 6 o superior (testeado en rails 7.0.2.2)
@@ -90,6 +106,12 @@ if Rails.version >= '6' # Configuración específica para Rails 6 o superior (te
   Rails.autoloaders.main.ignore '**/*_add.rb'
   #Rails.autoloaders.main.on_load('/home/ruby/proyectos/nimbus/modulos/nimbus-core/app/controllers/paises_controller.rb') {
   Rails.autoloaders.main.on_load(:ANY) {|_cs, cl, fi| Nimbus.const_loaded(cl, fi) if fi.starts_with?(rr)}
+  Rails.autoloaders.main.on_unload(:ANY) {|cs|
+    unless cs.include? '::'
+      cte = cs.ends_with?('Controller') ? cs.sub('Controller', 'Mod') : 'H' + cs
+      Object.__send__(:remove_const, cte) if Object.const_defined?(cte)
+    end
+  }
 
   # Han cambiado este default a true y en Nimbus tiene que ser false (se admiten campos references con valor nil)
   config.active_record.belongs_to_required_by_default = false
