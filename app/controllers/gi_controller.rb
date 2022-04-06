@@ -1,5 +1,15 @@
+class GiMod
+  @campos = {
+    form_type: {sel: {pdf: 'pdf', xlsx: 'excel', xls: 'excel_old'}, tab: 'post', hr: true},
+    form_modulo: {},
+    form_file: {},
+  }
+
+  include MantMod
+end
+
 class GiController < ApplicationController
-  # Método para contantizar un modelo y, si es un histórico, constantizar antes el modelo original para que se carguen las clases correctamente
+  # Método para constantizar un modelo y, si es un histórico, constantizar antes el modelo original para que se carguen las clases correctamente
   def h_constantize(mod)
     begin
       mod.constantize

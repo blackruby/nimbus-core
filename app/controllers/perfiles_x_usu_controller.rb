@@ -1,3 +1,11 @@
+class PerfilesXUsuMod
+  @campos = {
+    panel: {type: :div, tab: 'pre', gcols: 12},
+  }
+
+  include MantMod
+end
+
 class PerfilesXUsuController < ApplicationController
   def before_edit
     @usu.admin

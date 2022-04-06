@@ -1,5 +1,20 @@
 unless Nimbus::Config[:excluir_perfiles]
 
+class PerfilesMod < Perfil
+  @campos = {
+    codigo: {tab: 'pre', grid: {}, gcols: 4},
+    descripcion: {tab: 'pre', grid: {}, gcols: 6},
+  }
+
+  @grid = {
+    gcols: 3,
+    cellEdit: false,
+    scroll: true,
+  }
+
+  include MantMod
+end
+
 class PerfilesController < ApplicationController
   def gen_menu(menu, path, last_st)
     menu.delete_if {|k, v|

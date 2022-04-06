@@ -1,3 +1,11 @@
+class HistoPkMod
+  @campos = {
+    panel: {type: :div, tab: 'pre', gcols: 12},
+  }
+
+  include MantMod
+end
+
 class HistoPkController < ApplicationController
   def before_edit
     @nivel = flash[:nivel]
