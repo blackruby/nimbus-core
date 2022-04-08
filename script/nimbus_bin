@@ -1,7 +1,7 @@
 #!/usr/local/bin/ruby
 
 nimbus = 'modulos/nimbus-core/script/nimbus'
-Dir.chdir('..') while Dir.pwd != '/' && !File.exists?(nimbus)
+Dir.chdir('..') while Dir.pwd != '/' && !File.exist?(nimbus)
 
 if Dir.pwd == '/'
   puts 'No estás situado en ningún proyecto.'

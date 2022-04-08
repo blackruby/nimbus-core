@@ -1,19 +1,64 @@
 #!/usr/local/bin/ruby
 
+require 'fileutils'
+
 Dir.chdir(__dir__ + '/../../..')
+
+def back(cli)
+  h = fork {
+    path = "clientes/#{cli}/log"
+    FileUtils.mkpath(path)
+    log = File.new("#{path}/puma_boot", 'w')
+    STDOUT.reopen(log)
+    STDOUT.sync = true
+    STDERR.reopen(log)
+    STDERR.sync = true
+    STDIN.reopen("/dev/null", "r")
+    exec "RAILS_ENV=production NIMBUS_LOCAL=false NIMBUS_CLI=#{cli} rails server --pid=#{path}/puma.pid"
+  }
+  Process.detach(h)
+end
+
+if ARGV.include?('-a')
+  Dir.glob('clientes/*') {|c| back c.split('/')[1]}
+  exit
+end
 
 env = []
 
-env << 'RAILS_ENV=production' if ARGV.include? '-p'
+if ARGV.include?('-p')
+  renv = 'production'
+elsif ARGV.include?('-d')
+  renv = 'development'
+else
+  renv = ENV['RAILS_ENV'] || 'development'
+end
+env << "RAILS_ENV=#{renv}"
+local = ARGV.include?('-l')
+env << 'NIMBUS_LOCAL=true' if local
 iu = ARGV.index '-u'
-env << "NIMBUS_CLI=#{ARGV[iu + 1]}" if iu
+if iu
+  usu = ARGV[iu + 1]
+elsif ENV['NIMBUS_CLI']
+  usu = ENV['NIMBUS_CLI']
+else
+  usu = nil
+end
+env << "NIMBUS_CLI=#{usu}" if usu
 
 if ARGV.include? '-c'
   cmd = 'rails console'
 elsif (ir = ARGV.index('-r'))
   cmd = "rake #{ARGV[ir + 1]}"
 else
-  cmd = 'rails server'
+  if usu
+    if renv == 'development' || local
+      cmd = 'rails server'
+    else
+      back usu
+      exit
+    end
+  end
 end
 
 exec "#{env.join(' ')} #{cmd}"

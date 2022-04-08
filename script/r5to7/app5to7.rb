@@ -1,3 +1,5 @@
+#!/usr/local/bin/ruby
+
 require 'active_support/inflector'
 
 class NilClass
@@ -19,7 +21,9 @@ end
 Dir.mkdir 'app/models_h'
 
 def trata_adds(f)
-  buf = File.read(f).rstrip.sub(/\s+end\s*\Z/, "\n")
+  buf = File.read(f).strip
+  return if buf[0..5] == '=begin'
+  buf.sub!(/\s+end\s*\Z/, "\n")
   vali = false
   tab = 0
   dest = ''
