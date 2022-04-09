@@ -1,0 +1,14 @@
+development:
+  adapter: postgresql
+  encoding: unicode
+  database: <%= Nimbus::Config[:db][:development][:database] %>
+  pool: <%= Nimbus::Config[:db][:development][:pool] %>
+  username: postgres
+  password:
+production:
+  adapter: postgresql
+  encoding: unicode
+  database: <%= Nimbus::Config[:db][:production][:database] %>
+  pool: <%= Nimbus::Config[:db][:production][:pool] %>
+  username: postgres
+  password:

@@ -51,13 +51,11 @@ if ARGV.include? '-c'
 elsif (ir = ARGV.index('-r'))
   cmd = "rake #{ARGV[ir + 1]}"
 else
-  if usu
-    if renv == 'development' || local
-      cmd = 'rails server'
-    else
-      back usu
-      exit
-    end
+  if usu && renv == 'production' && !local
+    back usu
+    exit
+  else
+    cmd = 'rails server'
   end
 end
 

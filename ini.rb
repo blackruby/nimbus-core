@@ -90,10 +90,8 @@ modulos_cli.each {|d|
 }
 
 ############# Fichero de log
-if ENV['NIMBUS_CLI']
-  FileUtils.mkpath(Nimbus::LogPath)
-  config.paths['log'] = "#{Nimbus::LogPath}/#{Rails.env}.log"
-end
+FileUtils.mkpath(Nimbus::LogPath)
+config.paths['log'] = "#{Nimbus::LogPath}/#{Rails.env}.log"
 
 rr = Rails.root.to_s
 

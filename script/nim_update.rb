@@ -1,3 +1,5 @@
+#!/usr/local/bin/ruby
+
 require 'time'
 require 'fileutils'
 require 'asciidoctor'

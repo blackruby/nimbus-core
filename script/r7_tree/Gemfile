@@ -1,0 +1,39 @@
+source 'https://rubygems.org'
+
+gem 'rails', '7.0.2.2'
+gem 'pg'
+gem "sprockets-rails"
+gem "turbolinks"
+gem 'bcrypt'
+gem 'jquery-rails'
+gem 'puma'
+
+gem 'openssl'
+gem 'rdoc'
+gem 'axlsx', git: 'https://github.com/randym/axlsx.git'
+gem 'simple_xlsx_reader'
+gem 'matrix'
+gem 'prawn'
+gem 'rest-client'
+
+# Compresión de javascript
+gem 'terser'
+
+# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
+gem 'jbuilder'
+# Reduces boot times through caching; required in config/boot.rb
+gem "bootsnap", require: false
+
+# Use SCSS for stylesheets
+gem 'sassc-rails'
+
+group :development do
+  # Use console on exceptions pages [https://github.com/rails/web-console]
+  gem "web-console"
+
+  # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
+  # gem "rack-mini-profiler"
+
+  # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
+  # gem "spring"
+end

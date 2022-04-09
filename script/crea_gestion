@@ -1,0 +1,20 @@
+#!/usr/local/bin/ruby
+
+require 'fileutils'
+
+if ARGV.size != 1
+  puts 'Sintaxis: crea_gestion <nombre_de_la_gestión>'
+  exit
+end
+
+ges = ARGV[0].downcase
+
+if Dir.exist? ges
+  puts 'Ya existe una carpeta con ese nombre'
+  exit
+end
+
+Dir.mkdir ges
+FileUtils.cp_r __dir__ + '/r7_tree/.', ges
+app = ges + '/config/application.rb'
+File.write(app, File.read(app).sub('XXXXX', ges.capitalize))
