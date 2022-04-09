@@ -42,3 +42,6 @@ Dir.glob('app/assets/images/**/*').each {|d|
   f = d.split('/')[3..-1].join('/')
   Rails.application.config.assets.precompile += [f]
 }
+
+# Temas y módulos de Highcharts
+Rails.application.config.assets.precompile += Dir.glob('modulos/nimbus-core/vendor/assets/javascripts/hch/{modules,themes}/*').map{|f| f[f.index('hch')..-1]}

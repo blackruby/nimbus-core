@@ -19,10 +19,12 @@
 //= require jquery.maskedinput
 //= require jqGrid/jquery.jqgrid.src
 //= require jqGrid/grid.locale-es
-//= require highcharts/highstock
-//= require highcharts/highcharts-3d
-//= require highcharts/modules/exporting
-//= require highcharts/spanish
+//= require hch/highstock
+//= require hch/highcharts-3d
+//= require hch/highcharts-more
+//= require hch/exporting
+//= require hch/offline-exporting
+//= require hch/spanish
 //= require jquery.mmenu.min.all
 //= require tree.jquery
 //= require mdl/material.min.js
