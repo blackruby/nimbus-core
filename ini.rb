@@ -113,6 +113,79 @@ if Rails.version >= '6' # Configuración específica para Rails 6 o superior (te
 
   # Han cambiado este default a true y en Nimbus tiene que ser false (se admiten campos references con valor nil)
   config.active_record.belongs_to_required_by_default = false
+else
+  # /usr/local/lib/ruby/gems/x.y.z/gems/railties-5.2.3/lib/rails/engine.rb
+  class Rails::Engine
+    def eager_load!
+      config.eager_load_paths.each do |load_path|
+        matcher = %r{\A#{Regexp.escape(load_path.to_s)}/(.*)\.rb\Z}
+        Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
+          require_dependency file.sub(matcher, '\1') unless file.ends_with? '_add.rb'
+        end
+      end
+    end
+  end
+
+  # /usr/local/lib/ruby/gems/2.6.0/gems/activesupport-5.2.3/lib/active_support/dependencies.rb
+  module ActiveSupport::Dependencies
+    def load_file(path, const_paths = loadable_constants_for_path(path))
+      const_paths = [const_paths].compact unless const_paths.is_a? Array
+      parent_paths = const_paths.collect { |const_path| const_path[/.*(?=::)/] || ::Object }
+
+      result = nil
+      newly_defined_paths = new_constants_in(*parent_paths) do
+        result = Kernel.load path
+        Nimbus.const_loaded(path.split(/\/app\/\w+\//)[1][0..-4].camelize.constantize, path) if path.starts_with?(Rails.root.to_s)
+      end
+
+      autoloaded_constants.concat newly_defined_paths unless load_once_path?(path)
+      autoloaded_constants.uniq!
+      result
+    end
+
+    def require_or_load(file_name, const_path = nil)
+      file_name = $` if file_name =~ /\.rb\z/
+      expanded = File.expand_path(file_name)
+      return if loaded.include?(expanded)
+
+      ActiveSupport::Dependencies.load_interlock do
+        # Maybe it got loaded while we were waiting for our lock:
+        return if loaded.include?(expanded)
+
+        # Record that we've seen this file *before* loading it to avoid an
+        # infinite loop with mutual dependencies.
+        loaded << expanded
+        loading << expanded
+
+        begin
+          if load?
+            # Enable warnings if this file has not been loaded before and
+            # warnings_on_first_load is set.
+            load_args = ["#{file_name}.rb"]
+            load_args << const_path unless const_path.nil?
+
+            if !warnings_on_first_load || history.include?(expanded)
+              result = load_file(*load_args)
+            else
+              enable_warnings { result = load_file(*load_args) }
+            end
+          else
+            result = require file_name
+            Nimbus.const_loaded(file_name.split(/\/app\/\w+\//)[1].camelize.constantize, file_name+'.rb') if file_name.starts_with?(Rails.root.to_s) && (file_name.include?('/app/controllers/') || file_name.include?('/app/models/'))
+          end
+        rescue Exception
+          loaded.delete expanded
+          raise
+        ensure
+          loading.pop
+        end
+
+        # Record history *after* loading so first load gets warnings.
+        history << expanded
+        result
+      end
+    end
+  end
 end
 
 # Inicializar hash de orígenes (procedencias).

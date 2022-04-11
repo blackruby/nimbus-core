@@ -891,3 +891,6 @@ class GI
     return name
   end
 end
+
+class Gi < GI
+end

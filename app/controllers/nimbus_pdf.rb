@@ -341,3 +341,6 @@ class NimbusPDF < Prawn::Document
     nueva_banda_cp(@documento[:pie], val_pie)
   end
 end
+
+class NimbusPdf < NimbusPDF
+end
