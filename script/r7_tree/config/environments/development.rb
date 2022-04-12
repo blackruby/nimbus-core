@@ -80,8 +80,7 @@ Rails.application.configure do
   config.assets.quiet = true
   
   # Hahiltar web_console en toda la red
-  config.web_console.permissions = '192.168.0.0/16'
-  #config.web_console.permissions = '0.0.0.0/0'
+  config.web_console.permissions = '0.0.0.0/0'
 
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
