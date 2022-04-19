@@ -256,6 +256,8 @@ class UsuariosController < ApplicationController
       @usu.save
       index_reload
     end
+
+    status_botones borrar: false if @fact.codigo == 'admin' || !@usu.admin && @usu.id == @fact.id
   end
 
   def vali_password
