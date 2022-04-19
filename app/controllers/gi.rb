@@ -591,8 +591,8 @@ class GI
 
       # Obtener la query
       @data = @form[:modelo].joins(@join).joins(@form[:join]).group(@form[:group]).order(@form[:order])
-      @data.where(@where, lim) if @where.present?
-      @data.having(@having, lim) if @having.present?
+      @data = @data.where(@where, lim) if @where.present?
+      @data = @data.having(@having, lim) if @having.present?
       @data = @data.pluck(*@vpluck)
     end
   end

@@ -175,6 +175,8 @@ class ApplicationController < ActionController::Base
   #
   # * *:msg* (String) -- Texto del mensaje a mostrar.
   # * *:tit* (String) <em>(Defalut: 'Aviso')</em> -- Título de la ventana del mensaje.
+  # * *:width* (Integer) <em>(Defalut: nil)</em> -- Anchura de la ventana. Si no se especifica será automática.
+  # * *:hmax* (Integer) <em>(Defalut: nil)</em> -- Máxima altura de la ventana. Si no se especifica será automática.
   # * *:hide_close* (Boolean) <em>(Default: false)</em> -- Si es _true_ no aparecerá el botón para cerrar
   #   el diálogo ni se podrá cerrar con <ESC>. En este caso es necesario que haya algún botón definido, ya
   #   que, si no, el mensaje se quedaría permanentemente.
@@ -218,6 +220,7 @@ class ApplicationController < ActionController::Base
     @ajax << %Q[$('<div class="nim-dialogo"></div>', #{arg[:context]}).html(#{arg[:msg].to_json}).dialog({]
     @ajax << "title: #{arg[:tit].to_json},"
     @ajax << %Q(resizable: false, modal: true, width: #{arg[:width] || '"auto"'},)
+    @ajax << %Q(maxHeight: #{arg[:hmax]},) if arg[:hmax]
     @ajax << "closeOnEscape: false," if arg[:hide_close]
     @ajax << "close: function(){#{arg[:js] ? arg[:js] : ''};$(this).remove();},"
     @ajax << "open: function(){#{f_open}}," if f_open.present?
