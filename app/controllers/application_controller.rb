@@ -3328,7 +3328,7 @@ class ApplicationController < ActionController::Base
       render_ajax
     end
 
-    @v.save if @v
+    @v.save if @v && params[:fon] != 'p2p_req'
   end
 
   def pinta_exception(e, msg=nil)
