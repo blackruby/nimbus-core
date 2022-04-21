@@ -6,7 +6,7 @@ Dir.chdir(__dir__ + '/../../..')
 
 def back(cli)
   h = fork {
-    path = "clientes/#{cli}/log"
+    path = cli ? "clientes/#{cli}/log" :'log'
     FileUtils.mkpath(path)
     log = File.new("#{path}/puma_boot", 'w')
     STDOUT.reopen(log)
@@ -14,7 +14,7 @@ def back(cli)
     STDERR.reopen(log)
     STDERR.sync = true
     STDIN.reopen("/dev/null", "r")
-    exec "RAILS_ENV=production NIMBUS_LOCAL=false NIMBUS_CLI=#{cli} rails server --pid=#{path}/puma.pid"
+    exec "RAILS_ENV=production NIMBUS_LOCAL=false #{cli ? 'NIMBUS_CLI=' + cli : ''} rails server --pid=#{path}/puma.pid"
   }
   Process.detach(h)
 end
@@ -51,7 +51,7 @@ if ARGV.include? '-c'
 elsif (ir = ARGV.index('-r'))
   cmd = "rake #{ARGV[ir + 1]}"
 else
-  if usu && renv == 'production' && !local
+  if renv == 'production' && !local
     back usu
     exit
   else
