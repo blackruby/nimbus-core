@@ -42,13 +42,22 @@ Rails.application.configure do
   config.logger = ActiveSupport::TaggedLogging.new(logger)
 
   # Mailer para Nimbus
+
+  config.action_mailer.raise_delivery_errors = true
   config.action_mailer.delivery_method = :smtp
-  config.action_mailer.default_options = { from: '"Nimbus" <correo@twinnimbus.com>' }
-
-  # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
-
   config.action_mailer.perform_caching = false
+  config.action_mailer.default_options = {
+    from: '"Nimbus" <correo@twinnimbus.com>'
+  }
+  config.action_mailer.smtp_settings = {
+    address:              'smtp.serviciodecorreo.es',
+    port:                 587,
+    domain:               'twinnimbus.com',
+    user_name:            'correo@twinnimbus.com',
+    password:             'AmpfxG252s90',
+    authentication:       'plain',
+    enable_starttls_auto: true
+  }
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log

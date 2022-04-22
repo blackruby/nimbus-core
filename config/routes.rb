@@ -28,8 +28,10 @@ Rails.application.routes.draw do
 
   unless Nimbus::Config[:excluir_usuarios]
     get 'login' => 'welcome#index'
-    post 'login' => 'welcome#login'
     get 'cambia_pass' => 'welcome#index'
+    get 'a2p' => 'welcome#index'
+    post 'login' => 'welcome#login'
+    post 'a2p' => 'welcome#a2p'
     post 'cambia_pass' => 'welcome#cambia_pass'
     post 'pass_olvido' => 'welcome#pass_olvido'
     post 'welcome/fon_server' => 'welcome#fon_server'

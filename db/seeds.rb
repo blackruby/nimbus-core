@@ -1,5 +1,3 @@
-now = Time.now
-
 #######################  USUARIOS
 
 unless Nimbus::Config[:excluir_usuarios]
@@ -16,7 +14,7 @@ unless Nimbus::Config[:excluir_usuarios]
       admin: true,
       password_salt: '$2a$10$nE9JPk2VedGY40K2MWlJ2u',
       password_hash: '$2a$10$nE9JPk2VedGY40K2MWlJ2u7tPTIk1olvKDsh.b4L4spcLZXVj9vIe',
-      password_fec_mod: now,
+      password_fec_mod: Nimbus.now,
       pref: {}
     })
   end

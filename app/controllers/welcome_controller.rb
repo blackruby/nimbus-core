@@ -3,7 +3,7 @@ unless Nimbus::Config[:excluir_usuarios]
 class WelcomeController < ApplicationController
   require 'bcrypt'
 
-  skip_before_action :ini_controller, only: [:index, :login, :cambia_pass, :api_login, :pass_olvido]
+  skip_before_action :ini_controller, only: [:index, :login, :cambia_pass, :api_login, :pass_olvido, :a2p]
 
   def index
     unless sesion_invalida
@@ -22,21 +22,78 @@ class WelcomeController < ApplicationController
   # * Intento de conexión en el periodo de bloqueo (La conexión no se produce aunque la contraseña sea válida)
   # B Intento de conexión de un usuario de baja
   # I Intento de conexión desde una IP no válida
+  # P Pin erróneo en autentificación en 2 pasos (a2p)
   # M Método de acceso incorrecto (un usuario WEB a trvés de la API o viceversa)
   # X contraseña caducada en acceso vía API
 
   def log_acceso(uid, login, status, web)
     Acceso.create usuario_id: uid, login: login, fecha: @ahora, ip: "#{web ? '' : '*'}#{request.remote_ip}", status: status
   end
+        
+  def login_ok(usu)
+    session[:uid] = usu.id
+    session[:fec] = @ahora          #Fecha de creación
+    session[:fem] = session[:fec]   #Fecha de modificación (último uso)
+    cookies.permanent[:locale] = session[:locale] = I18n.locale_available?(usu.pref[:locale]) ? usu.pref[:locale] : I18n.default_locale
+
+    log_acceso usu.id, usu.codigo, 'C', true
+  end
+
+  def render_log_fin(pag)
+    if pag == 'menu'
+      flash[:login] = true
+      redirect_to '/menu'
+    elsif pag == 'cambia_pass'
+      render 'cambia_pass'
+    else
+      redirect_to '/'
+    end
+  end
+
+  def render_log(pag = '', usu = nil)
+    if Nimbus::Config[:a2p]
+      flash[:pag] = pag
+      if pag != ''
+        flash[:uid] = usu.id
+        if usu.email.present?
+          flash[:pin] = format('%04d', rand(10000))
+          UsuariosMailer.send_pin(usu, flash[:pin]).deliver_now
+        else
+          logger.fatal "######## ERROR: a2p activado y usuario #{usu.codigo} sin e-mail"
+        end
+      end
+      render 'a2p'
+    else
+      render_log_fin pag
+    end
+  end
+
+  def a2p
+    @assets_stylesheets = %w(welcome/index)
+
+    @ahora = Nimbus.now
+    pag = flash[:pag]
+    if pag != ''
+      usu = Usuario.find(flash[:uid])
+      if params[:pin] == flash[:pin]
+        @login = usu.codigo
+        login_ok(usu)
+      else
+        log_acceso usu.id, usu.codigo, 'P', true
+        pag = ''
+      end
+    end
+    render_log_fin pag
+  end
 
   def login(web = true)
+    @login = params[:usuario].to_s
+
     @assets_stylesheets = %w(welcome/index)
-    @assets_javascripts = %w(welcome/bloqueo)
+    @assets_javascripts = %w(welcome/bloqueo) unless Nimbus::Config[:a2p]
 
     @seg_blq = 300  # Nº de segundos que un usuario permanecerá bloqueado si introduce tres veces mal la contraseña.
 
-    @login = params[:usuario].to_s
-    #@ahora = Time.now
     @ahora = Nimbus.now
 
     usu = Usuario.find_by codigo: @login
@@ -46,7 +103,8 @@ class WelcomeController < ApplicationController
       if web && usu.api || !web && !usu.api
         log_acceso usu.id, @login, 'M', web
         if web
-          redirect_to '/'
+          #redirect_to '/'
+          render_log
           return
         else
           return 'Acceso no autorizado.'
@@ -57,7 +115,8 @@ class WelcomeController < ApplicationController
       if usu.fecha_baja and usu.fecha_baja <= @ahora
         log_acceso usu.id, @login, 'B', web
         if web
-          redirect_to '/'
+          #redirect_to '/'
+          render_log
           return
         else
           return 'El usuario ha sido dado de baja.'
@@ -81,7 +140,8 @@ class WelcomeController < ApplicationController
         if bloqueo
           log_acceso usu.id, @login, 'I', web
           if web
-            redirect_to '/'
+            #redirect_to '/'
+            render_log
             return
           else
             return 'IP no autorizada.'
@@ -90,42 +150,39 @@ class WelcomeController < ApplicationController
       end
     end
 
-    acs = Acceso.where('login=? AND fecha>?', @login, @ahora - @seg_blq).order('fecha desc').limit(3)
-    nacs = acs.length
-    if nacs > 2 and acs[0].status < 'A' and acs[1].status < 'A' and acs[2].status < 'A'
-      log_acceso usu.try(:id), @login, '*', web
-      @seg_blq -= (@ahora - acs[1].fecha).round
-      if web
-        render 'bloqueo'
-        return
-      else
-        return 'Usuario bloqueado. Espere 5 minutos.'
+    unless web && Nimbus::Config[:a2p]
+      acs = Acceso.where('login=? AND fecha>?', @login, @ahora - @seg_blq).order('fecha desc').limit(3)
+      nacs = acs.length
+      if nacs > 2 and acs[0].status < 'A' and acs[1].status < 'A' and acs[2].status < 'A'
+        log_acceso usu.try(:id), @login, '*', web
+        @seg_blq -= (@ahora - acs[1].fecha).round
+        if web
+          render 'bloqueo'
+          return
+        else
+          return 'Usuario bloqueado. Espere 5 minutos.'
+        end
       end
     end
 
     if usu && usu.password_hash.present? && usu.password_hash == BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
-      if web
-        session[:uid] = usu.id
-        session[:fec] = @ahora          #Fecha de creación
-        session[:fem] = session[:fec]   #Fecha de modificación (último uso)
-        cookies.permanent[:locale] = session[:locale] = I18n.locale_available?(usu.pref[:locale]) ? usu.pref[:locale] : I18n.default_locale
-
-        log_acceso usu.id, @login, 'C', web
-      end
+      login_ok(usu) if web && !Nimbus::Config[:a2p]
 
       # Comprobar si el password ha expirado o password_fec_mod es nil (primer login) y solicitar uno nuevo o llevar al menú
 
       if usu.password_fec_mod.nil? or (usu.num_dias_validez_pass.to_i != 0 and (@ahora - usu.password_fec_mod)/86400 > usu.num_dias_validez_pass)
         if web
-          render 'cambia_pass'
+          #render 'cambia_pass'
+          render_log 'cambia_pass', usu
         else
           log_acceso usu.id, @login, 'X', web
           return 'Contraseña caducada. Solicite una nueva.'
         end
       else
         if web
-          flash[:login] = true
-          redirect_to '/menu'
+          #flash[:login] = true
+          #redirect_to '/menu'
+          render_log 'menu', usu
         else
           log_acceso usu.id, @login, 'C', web
           return usu
@@ -137,11 +194,12 @@ class WelcomeController < ApplicationController
       if web
         session[:uid] = nil
 
-        if nacs > 1 and acs[0].status < 'A' and acs[1].status < 'A'
+        if !Nimbus::Config[:a2p] && nacs > 1 && acs[0].status < 'A' && acs[1].status < 'A'
           @seg_blq -= (@ahora - acs[1].fecha).round
           render 'bloqueo'
         else
-          redirect_to '/'
+          #redirect_to '/'
+          render_log
         end
       else
         return 'Error de autentificación.'

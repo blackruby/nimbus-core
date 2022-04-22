@@ -3,19 +3,17 @@
     <h2 class="mdl-card__title-text"><%= nt('hola_nimbus') %></h2>
   </div>
   <div class="mdl-card__supporting-text">
-    Identifíquese para iniciar sesión
+    Introduzca el pin que se ha enviado a la cuenta de correo de <%= @login %>
+    <br><br>
+    Si no recibe el correo puede ser debido a que el usuario o la contraseña sean
+    erróneos o que esté mal configurada su cuenta de correo.
   </div>
   <div class="mdl-card__actions mdl-card--border">
-    <%= form_tag("/login", method: "post") do %>
+    <%= form_tag("/a2p", method: "post") do %>
       <br>
       <div class="nim-group">
-        <input class="nim-input" name="usuario" id="usuario" autocomplete="off" required style="max-width: 16em"/>
-        <label class="nim-label" for="usuario"> <%= nt('usuario') %> </label>
-      </div>
-      <br>
-      <div class="nim-group">
-        <input class="nim-input" type="password" name="password" id="password" autocomplete="new-password" required style="max-width: 16em"/>
-        <label class="nim-label-out" for="password"> <%= nt('password') %> </label>
+        <input class="nim-input" name="pin" id="pin" autocomplete="off" required style="max-width: 16em"/>
+        <label class="nim-label" for="pin">Pin</label>
       </div>
       <br>
       <input name="commit" type="submit" style="display: none"/>
@@ -29,5 +27,5 @@
 </div>
 
 <script>
-  $("#usuario").focus();
+  $("#pin").focus();
 </script>

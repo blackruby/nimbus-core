@@ -1,6 +1,9 @@
 ---
 # Este fichero tiene que estar situado en la carpeta "config" de la
-# gestión correspondiente (no aquí, ni en ningún otro módulo)
+# gestión correspondiente o en la carpeta "config" de un cliente concreto
+# (no aquí, ni en ningún otro módulo)
+# El nombre del fichero puede ser nimbus-core.yml o nimbus.yml
+# (ambos serán cargados)
 #
 #
 # osp (Oficina sin papeles)
@@ -84,6 +87,14 @@
 #  }
 #  config.action_mailer.default_options = {from: 'usuario@gmail.com'}
 :email_password: true
+
+# Autentificación en 2 pasos
+# Por defecto está deshabilitada. Si se pone a true, además de la autentificación
+# estándar (usuario y contraseña), para iniciar sesión habrá que introducir un pin
+# que se enviará al e-mail que tenga configurado el usuario.
+# Tener en cuenta que si se habilita, todos los usuarios deberán de tener una
+# cuenta de e-mail válida y hay que configurar un método de envío (ver el apartado anterior)
+:a2p: true
 
 # Control del acceso a ERD (Diagramas entidad-relación de los modelos)
 # Posibles valores:
