@@ -1,7 +1,10 @@
 class P2pMod
   @campos = {
-    panel: {type: :div, tab: 'pre', gcols: 12},
+    sep: {type: :div, tab: 'pre', gcols: 3},
+    panel: {type: :div, tab: 'pre', gcols: 9},
   }
+
+  @nivel = ''
 
   include MantMod
 end

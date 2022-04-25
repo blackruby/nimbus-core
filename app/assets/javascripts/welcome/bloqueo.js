@@ -1,4 +1,4 @@
-$(window).load(function() {
+function iniBloqueo(reloj, usuario) {
   setInterval(function() {
     $('#reloj').text(('0'+parseInt(reloj/60)).slice(-2) + ':' + ('0'+reloj%60).slice(-2));
     if (reloj-- == 0) window.location.replace('/');
@@ -27,4 +27,4 @@ $(window).load(function() {
     e.preventDefault();
     $("#dialog-email").dialog("open");
   });
-});
+}

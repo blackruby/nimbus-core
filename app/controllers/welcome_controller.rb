@@ -17,6 +17,7 @@ class WelcomeController < ApplicationController
   # Los status posibles son:
   # ------------------------
   # C Conexión correcta
+  # L Conexión correcta pero rechazada por falta de licencias
   # D Desconexión
   # - Conexión errónea (no existe el usuario o la contraseña es errónea. Para saber si existe el usuario hay que mirar usuario_id)
   # * Intento de conexión en el periodo de bloqueo (La conexión no se produce aunque la contraseña sea válida)
@@ -31,20 +32,26 @@ class WelcomeController < ApplicationController
   end
         
   def login_ok(usu)
-    session[:uid] = usu.id
-    session[:fec] = @ahora          #Fecha de creación
-    session[:fem] = session[:fec]   #Fecha de modificación (último uso)
-    cookies.permanent[:locale] = session[:locale] = I18n.locale_available?(usu.pref[:locale]) ? usu.pref[:locale] : I18n.default_locale
+    if Licencia.get_licencia(usu.id, session[:session_id])
+      session[:uid] = usu.id
+      session[:fec] = @ahora          #Fecha de creación
+      session[:fem] = session[:fec]   #Fecha de modificación (último uso)
+      cookies.permanent[:locale] = session[:locale] = I18n.locale_available?(usu.pref[:locale]) ? usu.pref[:locale] : I18n.default_locale
 
-    log_acceso usu.id, usu.codigo, 'C', true
+      log_acceso usu.id, usu.codigo, 'C', true
+      true
+    else
+      log_acceso usu.id, usu.codigo, 'L', true
+      false
+    end
   end
 
   def render_log_fin(pag)
     if pag == 'menu'
       flash[:login] = true
       redirect_to '/menu'
-    elsif pag == 'cambia_pass'
-      render 'cambia_pass'
+    elsif %w(cambia_pass nolic).include? pag
+      render pag
     else
       redirect_to '/'
     end
@@ -77,7 +84,7 @@ class WelcomeController < ApplicationController
       usu = Usuario.find(flash[:uid])
       if params[:pin] == flash[:pin]
         @login = usu.codigo
-        login_ok(usu)
+        pag = 'nolic' unless login_ok(usu)
       else
         log_acceso usu.id, usu.codigo, 'P', true
         pag = ''
@@ -115,7 +122,6 @@ class WelcomeController < ApplicationController
       if usu.fecha_baja and usu.fecha_baja <= @ahora
         log_acceso usu.id, @login, 'B', web
         if web
-          #redirect_to '/'
           render_log
           return
         else
@@ -140,7 +146,6 @@ class WelcomeController < ApplicationController
         if bloqueo
           log_acceso usu.id, @login, 'I', web
           if web
-            #redirect_to '/'
             render_log
             return
           else
@@ -166,13 +171,15 @@ class WelcomeController < ApplicationController
     end
 
     if usu && usu.password_hash.present? && usu.password_hash == BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
-      login_ok(usu) if web && !Nimbus::Config[:a2p]
+      if web && !Nimbus::Config[:a2p] && !login_ok(usu)
+        render 'nolic'
+        return
+      end
 
       # Comprobar si el password ha expirado o password_fec_mod es nil (primer login) y solicitar uno nuevo o llevar al menú
 
       if usu.password_fec_mod.nil? or (usu.num_dias_validez_pass.to_i != 0 and (@ahora - usu.password_fec_mod)/86400 > usu.num_dias_validez_pass)
         if web
-          #render 'cambia_pass'
           render_log 'cambia_pass', usu
         else
           log_acceso usu.id, @login, 'X', web
@@ -180,8 +187,6 @@ class WelcomeController < ApplicationController
         end
       else
         if web
-          #flash[:login] = true
-          #redirect_to '/menu'
           render_log 'menu', usu
         else
           log_acceso usu.id, @login, 'C', web
@@ -198,7 +203,6 @@ class WelcomeController < ApplicationController
           @seg_blq -= (@ahora - acs[1].fecha).round
           render 'bloqueo'
         else
-          #redirect_to '/'
           render_log
         end
       else
@@ -230,10 +234,6 @@ class WelcomeController < ApplicationController
     else
       ahora = Time.now
 
-      #usu.password_salt = BCrypt::Engine.generate_salt
-      #usu.password_hash = BCrypt::Engine.hash_secret(params[:password], usu.password_salt)
-      #usu.password_fec_mod = ahora
-      #usu.save
       ps = BCrypt::Engine.generate_salt
       ph = BCrypt::Engine.hash_secret(params[:password], ps)
       usu.update_columns(password_salt: ps, password_hash: ph, password_fec_mod: ahora)
@@ -251,8 +251,8 @@ class WelcomeController < ApplicationController
     session[:uid] = nil
 
     log_acceso @usu.id, @usu.codigo, 'D', true
+    Licencia.destroy_by sid: session[:session_id] if Nimbus::Config[:licencias]
 
-    #render :nothing => true
     head :no_content
   end
 
@@ -326,11 +326,6 @@ class WelcomeController < ApplicationController
         end
       }
 
-      #if ie == 0
-      #  @usu.empresa_def_id = nil
-      #  @usu.ejercicio_def_id = nil
-      #  @usu.save
-      #end
       @usu.update_columns(empresa_def_id: nil, ejercicio_def_id: nil) if ie == 0
 
       prm = 'x'

@@ -13,6 +13,7 @@ General:
   gi: /gi
   bloqueos: /bloqueos
   ctraccess: /bus?mod=Acceso&ctr=no&help=accesos/help
+  licencias: /licencias
   p2p: /p2p
   actualizaciones: /updates
   <% if Nimbus::Config[:audit] %>

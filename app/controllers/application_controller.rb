@@ -73,7 +73,6 @@ class ApplicationController < ActionController::Base
       end
       return
     elsif sesion_invalida
-      #session[:uid] = nil
       if request.xhr? # Si la petición es Ajax...
         if request.fullpath == '/noticias'
           render js: 'session_out();'
@@ -120,7 +119,13 @@ class ApplicationController < ActionController::Base
           else
             render js: 'alert(js_t("no_vista"))'
         end
+        return
       end
+    end
+
+    if Nimbus::Config[:licencias] && %w(index edit new).include?(params[:action]) && !Licencia.get_licencia(@usu.id, session[:session_id])
+      @mensaje = {tit: 'Aviso', msg: 'Hay demasiadas licencias en uso. Espere a que alguna quede libre o póngase en contacto con el administrador'}
+      render html: '', layout: 'mensaje'
     end
   end
 

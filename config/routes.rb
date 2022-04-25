@@ -101,4 +101,8 @@ Rails.application.routes.draw do
 
   get 'pdf/draw' => 'nimpdf#draw'
   post 'pdf/fon_server' => 'nimpdf#fon_server'
+
+  c = 'licencias'
+  get "#{c}" => "#{c}#edit"
+  post "#{c}/fon_server" => "#{c}#fon_server"
 end
