@@ -171,7 +171,7 @@ else
             end
           else
             result = require file_name
-            Nimbus.const_loaded(file_name.split(/\/app\/\w+\//)[1].camelize.constantize, file_name+'.rb') if file_name.starts_with?(Rails.root.to_s) && (file_name.include?('/app/controllers/') || file_name.include?('/app/models/'))
+            Nimbus.const_loaded(file_name.split(/\/app\/\w+\//)[1].camelize.constantize, file_name+'.rb') if file_name.starts_with?(Rails.root.to_s) && (file_name.include?('/app/controllers/') || file_name.include?('/app/models'))
           end
         rescue Exception
           loaded.delete expanded
