@@ -1,7 +1,7 @@
 class NimbusHelpController < ApplicationController
   def index
     unless @usu.codigo == 'admin'
-      render file: 'public/401.html', status: 401, layout: false
+      render_error '401'
       return
     end
 

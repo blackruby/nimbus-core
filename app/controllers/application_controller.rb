@@ -97,7 +97,7 @@ class ApplicationController < ActionController::Base
           render js: 'alert(js_t("no_session"))'
         end
       else
-        render file: 'public/401.html', status: 401, layout: false
+        render_error '401'
       end
 
       return
@@ -127,6 +127,48 @@ class ApplicationController < ActionController::Base
       @mensaje = {tit: 'Aviso', msg: 'Hay demasiadas licencias en uso. Espere a que alguna quede libre o póngase en contacto con el administrador'}
       render html: '', layout: 'mensaje'
     end
+  end
+
+  def render_error(tag)
+    case tag
+    when '401'
+      @mensaje = {
+        tit: 'Permiso denegado',
+        msg: 'No tiene autorización para ver el contenido de esta página.<br>Es posible que no haya iniciado sesión'
+      }
+      st = 401
+    when '404'
+      @mensaje = {
+        tit: 'La página no existe',
+        msg: 'Es posible que haya tecleado mal la dirección.'
+      }
+      st = 404
+    when '500'
+      @mensaje = {
+        tit: 'Error interno',
+        msg: 'Contacte con el administrador.'
+      }
+      st = 500
+    when 'emp'
+      @mensaje = {
+        tit: 'Empresa requerida',
+        msg: 'Seleccione una empresa en la ventana principal.'
+      }
+      st = 406
+    when 'eje'
+      @mensaje = {
+        tit: 'Ejercicio requerido',
+        msg: 'Seleccione una empresa y ejercicio en la ventana principal.'
+      }
+      st = 406
+    else
+      @mensaje = {
+        tit: 'Error no codificado',
+        msg: 'Contacte con el administrador.'
+      }
+      st = 501
+    end
+    render html: '', status: st, layout: 'mensaje'
   end
 
   # Clase del modelo ampliado para este mantenimiento (con campos X etc.)
@@ -559,7 +601,7 @@ class ApplicationController < ActionController::Base
       begin
         args = JSON.parse(cry.decrypt_and_verify(params[:data])).symbolize_keys
       rescue
-        render file: 'public/500.html', status: 500, layout: false
+        render_error '500'
         return
       end
     else
@@ -569,11 +611,11 @@ class ApplicationController < ActionController::Base
     if args[:file]
       file_name = args[:file]
       unless File.exist? file_name
-        render file: 'public/404.html', status: 404, layout: false
+        render_error '404'
         return
       end
     else
-      render file: 'public/401.html', status: 401, layout: false
+      render_error '401'
       return
     end
 
@@ -919,7 +961,7 @@ class ApplicationController < ActionController::Base
       modelo = (modulo + tab).constantize # Para cargar los modelos
       modeloh = (modulo + 'H' + tab).constantize # Para ver si existe (si tiene histórico)
     rescue
-      render file: 'public/404.html', status: 404, layout: false
+      render_error '404'
       return
     end
 
@@ -928,7 +970,7 @@ class ApplicationController < ActionController::Base
       fr = modeloh.find_by idid: params[:id]
 
       unless fr
-        render file: 'public/404.html', status: 404, layout: false
+        render_error '404'
         return
       end
 
@@ -941,7 +983,7 @@ class ApplicationController < ActionController::Base
       end
 
       unless @usu.pref.dig(:permisos, :ctr, '_acc_hist_', eid) && @usu.pref.dig(:permisos, :ctr, modeloh.ctrl_for_perms, eid)
-        render file: 'public/401.html', status: 401, layout: false
+        render_error '401'
         return
       end
     end
@@ -1094,7 +1136,7 @@ class ApplicationController < ActionController::Base
 
     case prm
       when nil
-        render file: 'public/401.html', status: 401, layout: false
+        render_error '401'
         return
       when 'c'
         #status_botones crear: false
@@ -1113,7 +1155,7 @@ class ApplicationController < ActionController::Base
           ljoin = clm.ejercicio_path
           wemej = "#{ljoin.empty? ? mod_tab : 't_emej'}.ejercicio_id=#{jid}"
         else
-          render file: 'public/no_eje.html', layout: false
+          render_error 'eje'
           return
         end
       elsif clm.respond_to?('empresa_path')
@@ -1121,7 +1163,7 @@ class ApplicationController < ActionController::Base
           ljoin = clm.empresa_path
           wemej = "#{ljoin.empty? ? mod_tab : 't_emej'}.empresa_id=#{eid}"
         else
-          render file: 'public/no_emp.html', layout: false
+          render_error 'emp'
           return
         end
       end
@@ -1611,7 +1653,7 @@ class ApplicationController < ActionController::Base
         r[:tit] ||= 'Aviso'
         render html: '', layout: 'mensaje'
       else
-        render file: 'public/401.html', status: 401, layout: false
+        render_error '401'
       end
       return true
     end
@@ -1654,7 +1696,7 @@ class ApplicationController < ActionController::Base
       #@dat[:prm] = params[:padre] ? params[:prm] : @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
       @dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
       if @dat[:prm].nil? or @dat[:prm] == 'c'
-        render file: 'public/401.html', status: 401, layout: false
+        render_error '401'
         return
       end
     end
@@ -1666,14 +1708,14 @@ class ApplicationController < ActionController::Base
     else
       if clm.respond_to?('ejercicio_path')
         if jid.nil?
-          render file: 'public/no_eje', layout: false
+          render_error 'eje'
           return
         else
           @fact.ejercicio_id = jid.to_i if clm.column_names.include?('ejercicio_id')
         end
       elsif clm.respond_to?('empresa_path')
         if eid.nil?
-          render file: 'public/no_emp', layout: false
+          render_error 'emp'
           return
         else
           @fact.empresa_id = eid.to_i if clm.column_names.include?('empresa_id')
@@ -1715,7 +1757,7 @@ class ApplicationController < ActionController::Base
     clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
     fh = clmh.find_by id: params[:id][1..-1]
     if fh.nil?
-      render file: 'public/404.html', status: 404, layout: false
+      render_error '404'
       return
     end
 
@@ -1731,24 +1773,17 @@ class ApplicationController < ActionController::Base
       end
 
       unless @usu.pref.dig(:permisos, :ctr, '_acc_hist_', eid) && @usu.pref.dig(:permisos, :ctr, clmh.ctrl_for_perms, eid)
-        render file: 'public/401.html', status: 401, layout: false
+        render_error '401'
         return
       end
     end
 
-    #fo = clmh.where('idid = ?', fh.idid).order(:created_at).first
     fo = clmh.where('idid = ? AND created_at < ?', fh.idid, fh.created_at).order(:created_at).last
-    if fo.nil?
-      #render file: 'public/404.html', status: 404, layout: false
-      #return
-      fo = fh
-    end
+    fo = fh if fo.nil?
     @fact = clm.new
     dif = ''
     clmh.column_names.each {|c|
       next unless @fact.respond_to?(c)
-      #v = fh.method(c).call
-      #@fact.method(c + '=').call(v)
       v = fh[c]
       @fact[c] = v
       dif << '$("#' + c + '").addClass("nim-campo-cambiado");' if (v != fo[c])
@@ -1782,7 +1817,7 @@ class ApplicationController < ActionController::Base
       else
         @fact = clm.find_by id: params[:id]
         if @fact.nil?
-          render file: 'public/404.html', status: 404, layout: false
+          render_error '404'
           return
         end
         @fact.user_id = session[:uid]
@@ -1872,13 +1907,13 @@ class ApplicationController < ActionController::Base
       case @nivel || clm.nivel
         when :e
           unless eid
-            render file: 'public/no_emp', layout: false
+            render_error 'emp'
             return
           end
           set_empeje(eid, nil)
         when :j
           unless jid
-            render file: 'public/no_eje', layout: false
+            render_error 'eje'
             return
           end
           set_empeje(eid, jid)
@@ -1893,7 +1928,7 @@ class ApplicationController < ActionController::Base
       #@dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
       @dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][emp_perm]
       if @dat[:prm].nil?
-        render file: 'public/401.html', status: 401, layout: false
+        render_error '401'
         return
       end
     end

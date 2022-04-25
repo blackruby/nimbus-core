@@ -81,7 +81,7 @@ class BusController < ApplicationController
 
     @mod = flash[:mod] || params[:mod]
     if @mod.nil? || @mod == 'Usuario' && !@usu.admin
-      render file: 'public/404.html', status: 404, layout: false
+      render_error '404'
       return
     end
 
@@ -90,7 +90,7 @@ class BusController < ApplicationController
     begin
       clm = @mod.constantize
     rescue
-      render file: 'public/404.html', status: 404, layout: false
+      render_error '404'
       return
     end
 
@@ -99,7 +99,7 @@ class BusController < ApplicationController
       ctrl_perm = clm.ctrl_for_perms
       #unless @usu.pref[:permisos][:ctr][ctrl_perm] && @usu.pref[:permisos][:ctr][ctrl_perm][ej[0].to_i]
       if !@usu.pref.dig(:permisos, :ctr, ctrl_perm, ej[0].to_i) || clm.historico? && !@usu.pref.dig(:permisos, :ctr, '_acc_hist_', ej[0].to_i)
-        render file: 'public/401.html', status: 401, layout: false
+        render_error '401'
         return
       end
     end

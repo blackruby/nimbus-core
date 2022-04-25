@@ -54,7 +54,7 @@ class OspController < ApplicationController
     @assets_javascripts = @assets_stylesheets = %w(osp)
 
     unless Nimbus::Config[:osp] && flash[:ruta]
-      render file: 'public/401.html', status: 401, layout: false
+      render_error '401'
       return
     end
 

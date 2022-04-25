@@ -76,7 +76,7 @@ class GiController < ApplicationController
     @assets_javascripts = %w(gi)
 
     unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
-      render file: 'public/401.html', status: 401, layout: false
+      render_error '401'
       return
     end
 
@@ -90,7 +90,7 @@ class GiController < ApplicationController
     @assets_javascripts = %w(gi)
 
     unless @usu.admin or @usu.pref[:permisos][:ctr]['giv']
-      render file: 'public/401.html', status: 401, layout: false
+      render_error '401'
       return
     end
 
@@ -102,7 +102,7 @@ class GiController < ApplicationController
 
   def new
     unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
-      render file: 'public/401.html', status: 401, layout: false
+      render_error '401'
       return
     end
 
@@ -116,7 +116,7 @@ class GiController < ApplicationController
       begin
         h_constantize(@modelo)
       rescue
-        render file: 'public/404.html', status: 404, layout: false
+        render_error '404'
         return
       end
 
@@ -144,7 +144,7 @@ class GiController < ApplicationController
     @assets_javascripts = %w(gi_edita)
 
     unless @usu.admin or @usu.pref[:permisos][:ctr]['gi']
-      render file: 'public/401.html', status: 401, layout: false
+      render_error '401'
       return
     end
 
@@ -155,7 +155,7 @@ class GiController < ApplicationController
       @modelo = @form[:modelo]
       all_files(false)
     else
-      render file: 'public/404.html', status: 404, layout: false
+      render_error '404'
     end
   end
 
@@ -334,7 +334,7 @@ class GiController < ApplicationController
       @nivel ||= :g
       return true
     else
-      render file: 'public/404.html', status: 404, layout: false
+      render_error '404'
       return
     end
   end
