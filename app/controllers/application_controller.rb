@@ -124,7 +124,7 @@ class ApplicationController < ActionController::Base
     end
 
     if Nimbus::Config[:licencias] && %w(index edit new).include?(params[:action]) && !Licencia.get_licencia(@usu.id, session[:session_id])
-      @mensaje = {tit: 'Aviso', msg: 'Hay demasiadas licencias en uso. Espere a que alguna quede libre o póngase en contacto con el administrador'}
+      @mensaje = {tit: 'Aviso', msg: 'Hay demasiadas licencias en uso.<hr>Espere a que alguna quede libre o póngase en contacto con el administrador'}
       render html: '', layout: 'mensaje'
     end
   end
@@ -134,7 +134,7 @@ class ApplicationController < ActionController::Base
     when '401'
       @mensaje = {
         tit: 'Permiso denegado',
-        msg: 'No tiene autorización para ver el contenido de esta página.<br>Es posible que no haya iniciado sesión'
+        msg: 'No tiene autorización para ver el contenido de esta página.<hr>Es posible que no haya iniciado sesión'
       }
       st = 401
     when '404'
