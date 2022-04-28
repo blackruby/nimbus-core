@@ -15,6 +15,8 @@ gem 'simple_xlsx_reader'
 gem 'matrix'
 gem 'prawn'
 gem 'rest-client'
+# Para el uso de la API (opcional)
+gem 'jwt'
 
 # Compresión de javascript
 gem 'terser'
