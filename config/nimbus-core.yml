@@ -115,3 +115,8 @@
 - admin
 - pepe
 - juan
+
+# Licencias
+# Si existe la clave se activa el control de licencias.
+# El valor de la clave determina el número de licencias (nº de usuarios simultáneos)
+:licencias: 5
