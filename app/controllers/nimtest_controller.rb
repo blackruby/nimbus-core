@@ -114,7 +114,7 @@ class NimtestController < ApplicationController
     ]
 
     q = Usuario.pluck :id, :codigo, :nombre
-    crea_grid cmp: :pxc, cols: cols3, grid: {caption: "Usuarios", height: 200}, data: q.map{|u| u + [nim_image(mod: Usuario, id: u[0], tag: :foto)]}
+    crea_grid cmp: :pxc, cols: cols3, grid: {multiselect: true, caption: "Usuarios", height: 200}, data: q.map{|u| u + [nim_image(mod: Usuario, id: u[0], tag: :foto)]}
 
     # Grid de empresas con subgrid de ejercicios
     cols_emp = [
@@ -141,6 +141,7 @@ class NimtestController < ApplicationController
       cmp: :grid_emp,
       cols: cols_emp,
       grid: {caption: "Empresas", multiselect: true, height: 400},
+      export: 'empresas',
       data: dat_emp,
       subgrid: {
         cols: cols_eje,

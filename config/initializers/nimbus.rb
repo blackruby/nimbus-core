@@ -620,9 +620,10 @@ end
 =end
 
 class HashForGrids < Hash
-  def initialize(cols, data)
+  def initialize(cols, data, export)
     self[:cols] = cols
     self[:data] = data
+    self[:export] = export
     self[:data_ini] = data.deep_dup
     self[:new_edit] = Array.new(data.size) {[nil, nil]}
     self[:borrados] = []

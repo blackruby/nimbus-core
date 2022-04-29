@@ -2867,6 +2867,7 @@ class ApplicationController < ActionController::Base
       }
 
       opts[:subgrid][:data] ||= {}
+      sg_data = opts[:subgrid][:data].deep_dup if opts[:export]
       opts[:subgrid][:data].each {|k, v|
         opts[:subgrid][:data][k] = []
         if v && v.present?
@@ -2882,14 +2883,13 @@ class ApplicationController < ActionController::Base
 
     @ajax_post << "creaGridLocal(#{opts.to_json.gsub('"~', '').gsub('~"', '')}, #{data_grid.to_json});"
 
-    @fact.campos[cmp][:grid_emb] = {opts: opts, data: data} if opts[:export]
     case modo
       when :ed
-        @fact[cmp] = HashForGrids.new(opts[:cols], data)
+        @fact[cmp] = HashForGrids.new(opts[:cols], data, opts[:export])
         @fant[cmp] = nil if @fant
       else
-        #@fact.campos[cmp][:grid_sel] = true
-        @fact.campos[cmp][:grid_sel] = {sgm: (opts[:subgrid] ? (opts[:subgrid][:grid][:multiselect] ? true : false) : nil), gm: opts[:grid][:multiselect]}
+        @fact.campos[cmp][:grid_info] = {cols: opts[:cols], data: data, sg_cols: opts.dig(:subgrid, :cols), sg_data: sg_data, export: opts[:export]} if opts[:export]
+        @fact.campos[cmp][:grid_sel] = {sgm: (opts[:subgrid] ? (opts.dig(:subgrid, :grid, :multiselect) ? true : false) : nil), gm: opts[:grid][:multiselect]}
         @fact.campos[cmp][:val_ini] = @fact[cmp].deep_dup
         @ajax_post << "setSelectionGridLocal('#{cmp}', #{@fact[cmp].to_json});"
     end
@@ -2925,7 +2925,6 @@ class ApplicationController < ActionController::Base
 
   def grid_local_ed_select
     fun = "sel_#{params[:cmp]}"
-    #self.method(fun).call(params[:row], params[:col]) if self.respond_to?(fun)
     if respond_to?(fun)
       case  method(fun).arity
       when 0
@@ -2987,7 +2986,6 @@ class ApplicationController < ActionController::Base
 
   def grid_del_row(cmp, row)
     cmp = cmp.to_sym
-    #@ajax << "$('#g_#{cmp}').jqGrid('delRowData','#{row}');"
     @ajax << "$('#g_#{cmp}').jqGrid('delRowData','#{row}');"
     # Las dos líneas que siguen son para apañar un bug de jqGrid al borrar la ultima línea de datos
     #@ajax << "$('#g_#{cmp}').jqGrid('resetSelection');"
@@ -3014,40 +3012,6 @@ class ApplicationController < ActionController::Base
     grid_del_row(params[:cmp], row)
   end
 
-=begin
-  def grid_local_select
-    campo = params[:cmp]
-    sel = (params[:sel] == 'true')
-
-    if params[:multi]
-      if params[:row] == ''
-        #@fact.method(campo + '=').call(nil)
-        @fact[campo] = nil
-      elsif params[:row].is_a? Array
-        #@fact.method(campo + '=').call(params[:row].map{|c| c.to_i})
-        @fact[campo] = params[:row].map{|c| c.to_i}
-      else
-        row = params[:row].to_i
-        v = @fact[campo]
-        if v
-          if v.is_a? Array
-            sel ? v << row : v.delete_at(v.index(row))
-          else
-            @fact[campo] = sel ? [v, row] : nil
-          end
-        else
-          #@fact.method(campo + '=').call([row]) if sel
-          @fact[campo] = [row] if sel
-        end
-      end
-    else
-      @fact[campo] = sel ? params[:row].to_i : nil
-    end
-
-    fun = "sel_#{campo}"
-    self.method(fun).call(params[:row]) if self.respond_to?(fun)
-  end
-=end
   def grid_local_select
     begin
       campo = params[:cmp]
@@ -3154,9 +3118,21 @@ class ApplicationController < ActionController::Base
     end
 
     cmp = params[:cmp].to_sym
-    cols = @fact.campos[cmp][:grid_emb][:opts][:cols]
-    data = @fact.campos[cmp][:grid_emb][:data]
+
+    # Depende de si el grid es :ed o :sel los datos están en una clave u otra.
+    clv = @fact.campos[cmp][:grid_info] ? :grid_info : :value
+    cols = @fact.campos[cmp][clv][:cols]
+    data = @fact.campos[cmp][clv][:data]
     nc = cols.size
+    if params[:subg] == 'true'
+      nc += @fact.campos[cmp][clv][:sg_cols].size
+      cols += @fact.campos[cmp][clv][:sg_cols]
+      data = []
+      @fact.campos[cmp][clv][:data].each {|r|
+        sd = @fact.campos[cmp][clv][:sg_data][r[0]]
+        sd.present? ? sd.each {|l| data << r + l[1..-1]} : data << r
+      }
+    end
 
     xls = Axlsx::Package.new
     wb = xls.workbook
@@ -3184,7 +3160,7 @@ class ApplicationController < ActionController::Base
     xls.serialize(file_name)
     @ajax << "window.location.href='/nim_download';"
     flash[:file] = file_name
-    flash[:file_cli] = @fact.campos[cmp][:grid_emb][:opts][:export] + '.xlsx'
+    flash[:file_cli] = @fact.campos[cmp][clv][:export] + '.xlsx'
     flash[:rm] = true
   end
 

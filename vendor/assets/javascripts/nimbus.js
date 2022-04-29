@@ -1387,14 +1387,23 @@ function creaGridLocal(opts, data) {
   }
   if (opts.export) {
     $("#" + cmp + " .nim-titulo").append('&nbsp;&nbsp;' + creaMdlButton('b_ex_' + cmp, 30, 2, 22, 'assignment_returned', 'Exportar a Excel'));
-    $("#b_ex_" + cmp).click(function() {
-      //if (g.find('input').length > 0) return;
-      var ids = [];
-      var data = g.jqGrid("getGridParam", "lastSelectedData");
-      for (var i in data) ids.push(data[i].id);
-      ponBusy();
-      callFonServer("grid_local_export", {cmp: cmp, ids: ids}, quitaBusy);
-    });
+
+    if (opts.subgrid) {
+      var htm = `<div id="m_exp_${cmp}" class="nim-context-menu">`+
+        '<ul class="nim-context-menu-ul">'+
+        `<li class="nim-context-menu-li" onClick="exportGridLocal('${cmp}','false')"><i class="material-icons nim-context-menu-icon">keyboard_arrow_down</i>Exportar Cabeceras</li>` +
+        `<li class="nim-context-menu-li" onClick="exportGridLocal('${cmp}','true')"><i class="material-icons nim-context-menu-icon">keyboard_double_arrow_down</i>Exportar Todo</li>` +
+        '</ul></div>';
+      $('body').append(htm);
+
+      $("#b_ex_" + cmp).click(function(e) {
+        e.stopPropagation();
+        var menu = $("#m_exp_" + cmp);
+        menu.css("display", menu.css("display") == "none" ? "block" : "none").position({my: "right top", at: "right bottom", of: '#b_ex_' + cmp})
+      });
+    } else {
+      $("#b_ex_" + cmp).click(function(e) {exportGridLocal(cmp, false)});
+    }
   }
 
   if (opts.search || opts.bsearch) {
@@ -1403,6 +1412,16 @@ function creaGridLocal(opts, data) {
   }
 
   g.setGridWidth(grid.width ? grid.width : g.width());
+}
+
+function exportGridLocal(cmp, subg) {
+  // Pasamos al servidor los ids, pero obtenidos con "lastSelectedData", que los devuelve respetando el orden que haya establecido el usuario
+  // respetando el sort o multisort que se haya efectuado.
+  var ids = [];
+  var data = $("#g_" + cmp).jqGrid("getGridParam", "lastSelectedData");
+  for (var i in data) ids.push(data[i].id);
+  ponBusy();
+  callFonServer("grid_local_export", {cmp: cmp, subg: subg, ids: ids}, quitaBusy);
 }
 
 function autoCompGridLocal(el, modelo, ctrl, cmp, col) {
