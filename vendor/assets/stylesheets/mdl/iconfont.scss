@@ -1,12 +1,8 @@
-/*
-  La librería de iconos hay que descargarla de:
-  https://github.com/google/material-design-icons/blob/master/iconfont/MaterialIcons-Regular.woff2
-*/
 @font-face {
   font-family: 'Material Icons';
   font-style: normal;
   font-weight: 400;
-  src: asset-url('mdl/iconfont/MaterialIcons-Regular.woff2');
+  src: asset-url('mdl/MaterialIcons-Regular.ttf');
 }
 
 .material-icons {

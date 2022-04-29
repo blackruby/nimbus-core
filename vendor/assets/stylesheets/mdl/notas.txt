@@ -1,1 +1,4 @@
+Para descargar los iconos:
+wget https://github.com/google/material-design-icons/blob/master/font/MaterialIcons-Regular.ttf?raw=true
+
 Al actualizar, procurar no reemplazar los ficheros iconfont.scss y roboto.scss. En todo caso añadir en ellos las novedades pertinentes.
