@@ -14,7 +14,7 @@ end
 
 class LicenciasController < ApplicationController
   def before_edit
-    @usu.admin
+    @usu.admin && Nimbus::Config[:licencias]
   end
 
   def before_envia_ficha
@@ -39,8 +39,8 @@ class LicenciasController < ApplicationController
       grid: {
         multiselect: true,
         altRows: false,
-        caption: @titulo,
-        height: 800,
+        caption: "Licencias en uso (#{Licencia.count} de #{Nimbus::Config[:licencias]})",
+        height: 700,
       },
       data: Licencia.order('fecha').pluck(:id, :fecha, :usuario_id)
     )
