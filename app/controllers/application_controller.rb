@@ -1645,16 +1645,17 @@ class ApplicationController < ActionController::Base
 
   def render_before_ine(r)
     return true if performed?
-    if r == true
-      return false
-    else
+    if r
       if r.is_a? Hash
         @mensaje = r
         r[:tit] ||= 'Aviso'
         render html: '', layout: 'mensaje'
+        return true
       else
-        render_error '401'
+        return false
       end
+    else
+      render_error '401'
       return true
     end
   end
