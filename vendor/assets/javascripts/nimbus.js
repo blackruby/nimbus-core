@@ -1082,13 +1082,14 @@ function autoCompNuevaFicha() {
     callFonServer(nw);
 }
 
-function ponBusy() {
-  $("body").append("<div class='nim-body-modal nim-busy'></div><div class='mdl-spinner mdl-js-spinner nim-busy is-active' style='z-index:100001; position: absolute; left: 50%; top: 50%;'></div>");
-  componentHandler.upgradeDom();
+// Los posibles contextos son 0 para el documento actual y !=0 para el padre (preferentemente 1, por si se añaden más valores)
+function ponBusy(context = 0) {
+  $("body", context == 0 ? document : parent.document).append("<div class='nim-body-modal nim-busy'></div><div class='mdl-spinner mdl-js-spinner nim-busy is-active' style='z-index:100001; position: absolute; left: 50%; top: 50%;'></div>");
+  context == 0 ? componentHandler.upgradeDom() : parent.componentHandler.upgradeDom();
 }
 
-function quitaBusy() {
-  $(".nim-busy").remove();
+function quitaBusy(context = 0) {
+  $(".nim-busy", context == 0 ? document : parent.document).remove();
 }
 
 function creaMdlButton(id, siz, mb, fsiz, icon, title) {
@@ -1608,6 +1609,22 @@ function creaDialogos(dial) {
 
     if (d.botones) creaBotonesDialogo(d.botones, dlg);
   }
+}
+
+function nimbusUpload(e) {
+  var th = this;
+  var etf = e.target.files;
+  if (etf.length == 0) return;
+
+  tam = 0; for(f of etf) tam += f.size;
+
+  nimbusUploadStatus = null;
+  ponBusy(1);
+  callFonServer('nimbus_upload_check', {tam: tam}, function () {
+    if (nimbusUploadStatus == 0) $(th).parent().submit();
+    quitaBusy(1);
+    th.value = "";
+  });
 }
 
 $(window).load(function() {

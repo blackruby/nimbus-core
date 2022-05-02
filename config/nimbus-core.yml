@@ -120,3 +120,13 @@
 # Si existe la clave se activa el control de licencias.
 # El valor de la clave determina el número de licencias (nº de usuarios simultáneos)
 :licencias: 5
+
+# Cuota de disco
+# Si existe la clave indica el tamaño máximo que se puede usar en la carpeta "data"
+# (bien de la gestión global o de un cliente concreto).
+# Si no existe la clave (o vale nil) el tamaño es ilimitado.
+# Se pueden emplear los sufijos B, K (o KB) M (o MB), G (o GB) y T (o TB)
+# para indicar Bytes, Kilobytes, Megas, Gigas o Teras.
+# Si no hay subijo se asume que son bytes.
+# Si el sufijo o la sintasix es errónea se usará un valor por defecto de 5GB
+:cuota_disco: 10 GB

@@ -15,6 +15,7 @@ General:
   ctraccess: /bus?mod=Acceso&ctr=no&help=accesos/help
   licencias: /licencias
   p2p: /p2p
+  nim_cuota: /cuota_disco
   actualizaciones: /updates
   <% if Nimbus::Config[:audit] %>
   auditoria: /auditorias

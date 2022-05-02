@@ -7,11 +7,11 @@
   <label id="l-tit"><%= @titulo.to_s.html_safe %></label>
   <% unless @prm == 'c' %>
     <label title="Crear nueva carpeta" class="osp-but osp-but-r" onclick="ospCrearFolder()">
-      <i class="material-icons">folder</i>
+      <i class="material-icons">create_new_folder</i>
     </label>
     <%= form_tag("/osp/fon_server?fon=osp_upload&vista=#{@v.id}", method: "post", multipart: true, target: 'osp-iframe') do %>
-      <input id="osp-upload" name="osp[]" multiple type="file" class="nim-input-img" onchange="$(this).parent().submit()"/>
-      <label title="Subir archivos..." for="osp-upload" class="osp-but osp-but-r">
+      <input id="osp_upload" name="osp[]" multiple type="file" class="nim-input-img" />
+      <label title="Subir archivos..." for="osp_upload" class="osp-but osp-but-r">
         <i class="material-icons">file_upload</i>
       </label>
     <% end %>

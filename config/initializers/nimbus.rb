@@ -59,6 +59,34 @@ module Nimbus
     Config[:p2p] = {tot: 50}
   end
 
+  # Si no hay valor, será ilimitado, si lo hay y es inválido se asignará 5GB, en cualquier otro caso 
+  # se adaptará el valor según las unidades especificadas.
+  if Config[:cuota_disco]
+    unit = Config[:cuota_disco].to_s.upcase.scan(/[A-Z]+/).to_a
+    case unit.size
+    when 0
+      fact = 1
+    when 1
+      case unit[0]
+      when 'B'
+        fact = 1
+      when 'K', 'KB'
+        fact = 1024
+      when 'M', 'MB'
+        fact = 1024**2
+      when 'G', 'GB'
+        fact = 1024**3
+      when 'T', 'TB'
+        fact = 1024**4
+      else
+        fact = nil
+      end
+    else
+      fact = nil
+    end
+    Config[:cuota_disco] = fact ? Config[:cuota_disco].to_i * fact : 5 * 1024**3
+  end
+
   # Obtención de un hash de los meses para campos tipo 'select'
   def self.mes_sel
     I18n.t('date.month_names')[1..-1].map.with_index {|m,i| [i+1, m.capitalize]}.to_h

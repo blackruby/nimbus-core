@@ -335,6 +335,8 @@ h-4v5c0,2.757,2.243,5,5,5s5-2.243,5-5v-5H28.5z M30.5,29c0,1.654-1.346,3-3,3s-3-1
       click: ospNewRename
     }]
   });
+
+  osp_upload.addEventListener('change', nimbusUpload);
 });
 
 function ospAbrir() {

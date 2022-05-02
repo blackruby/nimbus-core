@@ -3631,6 +3631,56 @@ class ApplicationController < ActionController::Base
     @ajax << 'openWinBus();'
   end
 
+  # Métodos para el manejo de la cuota de disco
+
+  def nimbus_table_cuota(cuota, usado)
+    '<table>' +
+    "<tr><td>Cuota de disco total:</td><td style='padding-left: 10px;text-align: right'>#{number_to_human_size(cuota)}</td</tr>" +
+    "<tr><td></td></tr>" +
+    "<tr><td>Cuota de disco usada:</td><td style='padding-left: 10px;text-align: right'>#{number_to_human_size(usado)}</td</tr>" +
+    "<tr><td></td></tr>" +
+    "<tr><td>Cuota de disco libre:</td><td style='padding-left: 10px;text-align: right'>#{number_to_human_size(cuota - usado)}</td</tr>" +
+    "<tr><td></td></tr>" +
+    "<tr><td>% de ocupación:</td><td style='padding-left: 10px;text-align: right'>#{number_with_precision(usado.to_f/cuota*100, separator: ',', precision: 1)}%</td</tr>" +
+    "</table>"
+  end
+
+  def nimbus_cuota_disco
+    @mensaje = {
+      tit: 'Situación de la ocupación en disco',
+      msg: nimbus_table_cuota(Nimbus::Config[:cuota_disco], `du -bs #{Nimbus::DataPath}`.to_i)
+    }
+    render html: '', layout: 'mensaje'
+  end
+
+  def nimbus_upload_check
+    tam = params[:tam].to_i
+    cuota = Nimbus::Config[:cuota_disco]
+    usado = `du -bs #{Nimbus::DataPath}`.to_i
+    if cuota && tam + usado > cuota
+      @ajax << "nimbusUploadStatus=1;"
+      mensaje "Está intentando subir archivos con un tamaño de #{number_to_human_size(tam)}.<br>" +
+              "Con eso se superaría la cuota de disco que tiene asignada.<hr>" +
+              "La situación actual es la siguiente:<br><br>" +
+              nimbus_table_cuota(cuota, usado) +
+              "<hr>Considere subir menos archivos o más pequeños."
+    else
+      @ajax << "nimbusUploadStatus=0;"
+    end
+  end
+
+  ##nim-doc {sec: 'Métodos de usuario', met: 'nimbus_cuota_check(tam)', mark: :rdoc}
+  #
+  # Devuelve _true_ o _false_ en función de si el tamaño _tam_ (en bytes) cabe o no 
+  # en el disco teniedo en cuenta la cuota asignada a la gestión/cliente.
+  #
+  ##
+  def nimbus_cuota_check(tam)
+    cuota = Nimbus::Config[:cuota_disco]
+    usado = `du -bs #{Nimbus::DataPath}`.to_i
+    (cuota && tam + usado > cuota) ? false : true
+  end
+
   def gen_form(h={})
     clm = class_mant
 
@@ -3790,7 +3840,7 @@ class ApplicationController < ActionController::Base
         end
         sal << '<div style="text-align: left;overflow: auto">'
         sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true, target: "#{cs}_iframe")
-        sal << "<input id='#{cs}' name='#{cs}' type='file' accept='image/*' class='nim-input-img' onchange='$(this).parent().submit()' #{plus}/>"
+        sal << "<input id='#{cs}' name='#{cs}' type='file' accept='image/*' class='nim-input-img' #{plus}/>"
         sal << "<label class='nim-label-img' for='#{cs}'>#{nt(v[:label])}</label><br>"
         sal << imagen
         sal << '</form>'
@@ -3800,7 +3850,7 @@ class ApplicationController < ActionController::Base
         if @v && (!clm.mant? || @fact.id != 0)
           sal << "<div title='#{nt(v[:title])}'>"
           sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true, target: "#{cs}_iframe")
-          sal << "<input id='#{cs}_input' name='#{cs + (v[:multi] ? '[]' : '')}' #{v[:multi] ? 'multiple' : ''} type='file' class='nim-input-img'} onchange='$(this).parent().submit();$(this).val(\"\")' #{plus}/>"
+          sal << "<input id='#{cs}_input' name='#{cs + (v[:multi] ? '[]' : '')}' #{v[:multi] ? 'multiple' : ''} type='file' class='nim-input-img' #{plus}/>"
           sal << "<label id='#{cs}' class='nim-label-upload' for='#{cs}_input'>#{nt(v[:label])}</label><br>"
           sal << '</form>'
           sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
@@ -3821,29 +3871,6 @@ class ApplicationController < ActionController::Base
         sal << '</div>'
       else
         clase = 'nim-input'
-=begin
-        if v[:rol]
-          if v[:rol].is_a? Hash
-            clase << ' nim-input-custom'
-            plus << " rol-icon='#{v[:rol][:icon]}'"
-            plus << " rol-title='#{v[:rol][:title]}'"
-            plus << " rol-accion='#{v[:rol][:accion]}'"
-          else
-            case v[:rol]
-              when :origen
-                clase << ' nim-input-origen'
-              when :email
-                clase << ' nim-input-email'
-              when :url
-                clase << ' nim-input-url'
-              when :map
-                clase << ' nim-input-map'
-                v[:map] ||= cs
-                plus << " map='nim-map-#{v[:map]}'"
-            end
-          end
-        end
-=end
         if v[:rol]
           clase << ' nim-rol'
           if v[:rol].is_a? Hash
@@ -3870,8 +3897,6 @@ class ApplicationController < ActionController::Base
         sal << '<label class="nim-label" for="' + cs + '">' + nt(v[:label]) + '</label>'
         sal << '</div>'
       end
-
-      #sal << '</div>' # Fin de <div class="mdl-cell">
     }
     sal << '</div>' if sal != ''   # Fin de <div class="mdl-cell">
     sal << '</div>' if sal != ''   # Fin de <div class="mdl-grid">
@@ -3893,7 +3918,7 @@ class ApplicationController < ActionController::Base
     end
 
     @fact.campos.each{|c, v|
-      next unless v[:form] and v[:visible] and !v[:img]
+      next unless v[:form] && v[:visible]
 
       if block_given?
         plus = yield(c)
@@ -3915,6 +3940,10 @@ class ApplicationController < ActionController::Base
         mt = v[:ref].split('::')
         sal << '","' + (mt.size == 1 ? v[:ref].constantize.table_name : mt[0].downcase + '/' + mt[1].downcase.pluralize) + '");'
         sal << "$('##{cs}').data('menu', #{v[:menu].to_json});" if v[:menu].present?
+      elsif v[:img] && @v
+        sal << "#{cs}.addEventListener('change', nimbusUpload);"
+      elsif v[:type] == :upload
+        sal << "#{cs}_input.addEventListener('change', nimbusUpload);"
       elsif v[:mask]
         #sal << '$("#' + cs + '").mask("' + v[:mask] + '",{placeholder: " "});'
         sal << '$("#' + cs + '").mask("' + v[:mask] + '");'
@@ -3927,7 +3956,7 @@ class ApplicationController < ActionController::Base
         sal << 'date_pick("#_f_' + cs + '",' + v[:date_opts].to_json + ');'
         sal << "$('#_f_#{cs}').datepicker('disable');" if v[:ro] == :all or v[:ro] == params[:action].to_sym
         sal << '$("#_h_' + cs + '").entrytime(' + (v[:seg] ? 'true,' : 'false,') + (v[:nil] ? 'true);' : 'false);')
-      elsif (v[:type] == :integer or v[:type] == :decimal) and !v[:sel]
+      elsif (v[:type] == :integer || v[:type] == :decimal) && !v[:sel]
         sal << "numero('##{cs}',#{v[:manti]},#{v[:decim]},#{v[:signo]},#{v[:nil]});"
       end
     }

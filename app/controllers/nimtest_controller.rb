@@ -305,6 +305,7 @@ class NimtestController < ApplicationController
     puts '*******************************************************************'
     puts 'Fichero: ' + f.original_filename
     puts 'Ruta temporal: ' + f.path
+    puts 'Tamaño: ' + f.size.to_s
     puts '*******************************************************************'
     puts f.read
     puts '***************** FIN DEL FICHERO *********************************'
@@ -316,6 +317,7 @@ class NimtestController < ApplicationController
       puts '*******************************************************************'
       puts 'Fichero: ' + f.original_filename
       puts 'Ruta temporal: ' + f.path
+      puts 'Tamaño: ' + f.size.to_s
       puts '*******************************************************************'
       puts f.read
       puts '***************** FIN DEL FICHERO *********************************'

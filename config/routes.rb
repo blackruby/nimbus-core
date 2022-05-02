@@ -105,4 +105,6 @@ Rails.application.routes.draw do
   c = 'licencias'
   get "#{c}" => "#{c}#edit"
   post "#{c}/fon_server" => "#{c}#fon_server"
+
+  get 'cuota_disco' => "application#nimbus_cuota_disco"
 end
