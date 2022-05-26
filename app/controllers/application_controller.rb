@@ -2281,7 +2281,7 @@ class ApplicationController < ActionController::Base
       # No hacer nada
       res = ''
     else
-      res = '$("#' + cmp_s + '").val(' + forma_campo(:form, @fact, cmp_s, val).to_json + ')'
+      res = '$("#' + cmp_s + '").val(' + forma_campo(cp[:auto_tipo] || :form, @fact, cmp_s, val).to_json + ')'
       res << '.attr("dbid",' + val.to_s + ')' if cmp_s.ends_with?('_id') and val
       res << ';'
     end
