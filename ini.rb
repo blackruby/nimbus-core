@@ -19,7 +19,7 @@ module ::Nimbus
   ModulosGlob = '{' + Modulos.join(',') + ',modulos/nimbus-core}'
   Modulos << '.'
   ModulosCli = Modulos + ["clientes/#{ENV['NIMBUS_CLI']}"] 
-  ModulosCliGlob = '{' + ModulosCli.join('/') + ',modulos/nimbus-core}'
+  ModulosCliGlob = '{' + ModulosCli.join(',') + ',modulos/nimbus-core}'
 
   # Paths en función de si hay un cliente seleccionado
   Gestion = ENV['NIMBUS_CLI'] || Rails.app_class.to_s.split(':')[0].downcase
