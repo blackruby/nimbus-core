@@ -118,7 +118,7 @@ $(window).load(function () {
           break;
       }
       el.parent().append(
-        '<button class="mdl-button mdl-js-button mdl-button--icon nim-rol-button" tabindex=-1 title="' + title + '">' +
+        `<button class="mdl-button mdl-js-button mdl-button--icon nim-rol-button ${el.css("text-align") == "right" ? "nim-rol-left-button" : "nim-rol-right-button"}" tabindex=-1 title="` + title + '">' +
         '<i class="material-icons nim-color-2">' + icon + '</i>' +
         '</button>'
       );

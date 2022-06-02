@@ -333,7 +333,12 @@ body {
   display: none;
   position: absolute;
   top: -4px;
+}
+.nim-rol-right-button {
   right: -4px;
+}
+.nim-rol-left-button {
+  left: 0;
 }
 .nim-grupo:hover .nim-rol-button,
 .nim-grupo:focus-within .nim-rol-button {
