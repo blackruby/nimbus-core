@@ -1627,6 +1627,14 @@ function nimbusUpload(e) {
   });
 }
 
+function nimbusd(met, params) {
+  ponBusy();
+  $.post(params.plugin ? params.plugin : "http://127.0.0.1:2003", params).
+    done(function(res) {callFonServer(met, JSON.parse(res));}).
+    fail(function() {callFonServer(met, {st: 'Fallo de conexión con el plugin'});}).
+    always(function() {quitaBusy();});
+}
+
 $(window).load(function() {
   var _auto_comp_menu_;
 

@@ -3681,6 +3681,10 @@ class ApplicationController < ActionController::Base
     (cuota && tam + usado > cuota) ? false : true
   end
 
+  def nimbusd(met, par)
+    @ajax << "nimbusd('#{met}',#{par.to_json});"
+  end
+
   def gen_form(h={})
     clm = class_mant
 
