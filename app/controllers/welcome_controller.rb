@@ -301,7 +301,7 @@ class WelcomeController < ApplicationController
 
   def menu
     @assets_stylesheets = %w(welcome/menu)
-    @assets_javascripts = %w(menu)
+    @assets_javascripts = %w(menu ui_resizable_snap)
 
     @usu.update_columns(empresa_def_id: nil, ejercicio_def_id: nil) if @usu.empresa_def_id && !Empresa.exists?(@usu.empresa_def_id)
     @usu.update_columns(ejercicio_def_id: nil) if @usu.ejercicio_def_id && !Ejercicio.exists?(@usu.ejercicio_def_id)

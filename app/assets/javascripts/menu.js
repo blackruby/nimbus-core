@@ -177,7 +177,7 @@ function creaWin(url, prop, lbl) {
             di.detach().css("top", top).css("left", left).appendTo(dragParent);
           }
         }).
-        resizable({containment: "parent", handles: "e", start: function() {$(this).find("i").css("display", "none")}, stop: function() {$(this).find("i").css("display", "inline")}}).
+        resizable({containment: "parent", snap: true, handles: "e", start: function() {$(this).find("i").css("display", "none")}, stop: function() {$(this).find("i").css("display", "inline")}}).
         css('left', prop.left).
         css('top', prop.top).
         css('z-index', prop.zi).
