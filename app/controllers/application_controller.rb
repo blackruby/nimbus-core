@@ -3648,7 +3648,7 @@ class ApplicationController < ActionController::Base
   def nimbus_cuota_disco
     @mensaje = {
       tit: 'Situación de la ocupación en disco',
-      msg: nimbus_table_cuota(Nimbus::Config[:cuota_disco], `du -bs #{Nimbus::DataPath}`.to_i)
+      msg: Nimbus::Config[:cuota_disco] ? nimbus_table_cuota(Nimbus::Config[:cuota_disco], `du -bs #{Nimbus::DataPath}`.to_i) : 'No hay restricciones de uso'
     }
     render html: '', layout: 'mensaje'
   end
