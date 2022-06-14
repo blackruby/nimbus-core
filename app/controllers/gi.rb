@@ -450,7 +450,7 @@ class GI
     @form[:cab_din_pdf] = true unless @form[:cab_din]
 
     @form[:tit_i] = @form[:tit_i].empty? ? '&B' + @e.try(:nombre).to_s + '&B' : eval_tit_macros(@form[:tit_i])
-    @form[:tit_d] = @form[:tit_d].empty? ? '&P de &N' : eval_tit_macros(@form[:tit_d])
+    @form[:tit_d] = @form[:tit_d].empty? ? '&D   &P de &N' : eval_tit_macros(@form[:tit_d])
     if @form[:tit_c].empty?
       if @form[:descripcion].to_s.strip.empty?
         @form[:tit_c] = '&BListado de ' + nt(@form[:modelo].table_name) + '&B' if @form[:modelo]
