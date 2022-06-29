@@ -1,17 +1,17 @@
 _controlador = "mensajes";
 
 function addNoticia(nt) {
-  $("body").append(`
-  <div class="noticia">
+  $("#dnoticias").prepend(`
+  <div class="noticia ${nt.new ? 'nueva' : ''}">
     <div class="cabecera">
       <div class="foto" style="background-image: url(${nt.img.slice(4)})">${nt.img == "" ? nt.from[0] : ""}</div>
       <div class="remite">${nt.from}</div>
       <div class="fecha" title="${nt.fel}"> · ${nt.fec}</div>
     </div>
     <div class="texto">${nt.tex}</div>
-    <div class="botones" uid="${nt.uid}">
-      <i class="material-icons responder" title="Responder">reply</i>
-      <i class="material-icons borrar" title="Eliminar">delete_outline</i>
+    <div class="botones">
+      <i class="material-icons responder" title="Responder" uid="${nt.uid}">reply</i>
+      <i class="material-icons archivar" title="Archivar" nid="${nt.id}">archive</i>
     </div>
   </div>
   `);
@@ -74,11 +74,21 @@ function enviarMsg() {
 }
 
 $(window).load(function () {
+  $("#d-nuevo-msg").keydown(function(e) {
+    if (e.which == 27) $("#d-nuevo-msg").css("display", "none");
+  });
+
   $("body").on("click", ".responder", function() {
     if ($("#d-nuevo-msg").css("display") == "block") return;
 
-    nuevoMsg($(this).parent().attr("uid"));
+    nuevoMsg($(this).attr("uid"));
+  });
+
+  $("body").on("click", ".archivar", function() {
+    $(this).parentsUntil(".noticia").parent().remove();
+    callFonServer("marcar_leidos", {ids: [$(this).attr("nid")]});
   });
 
   callFonServer("cargar_noticias", {}, cargarNoticias);
+  setInterval(function() {callFonServer("cargar_noticias", {nuevas: true}, cargarNoticias);}, 60000);
 });

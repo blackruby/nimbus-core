@@ -5,6 +5,7 @@ General:
   paises: /paises
   divisas: /divisas
   <% if Nimbus::Config[:noticias] %>
+  notificaciones: /shownoticias
   mensajes: /mensajes
   <% end %>
   giv: /giv

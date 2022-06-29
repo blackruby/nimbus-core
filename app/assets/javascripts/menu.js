@@ -262,7 +262,7 @@ function cierraElem(el) {
 }
 
 function session_out() {
-  clearTimeout(tmo);
+  clearInterval(tmo);
   //alert("<%= nt('no_session') %>");
   alert("La sesión ha caducado");
   window.location.replace('/');
@@ -278,15 +278,6 @@ function well_auto_comp_error(e, ui) {
 function set_cookie_emej() {
   //document.cookie = "<%= Nimbus::CookieEmEj %>=" + empresa_id + ":" + ejercicio_id + ";path=/";
   document.cookie = cookieEmEj + "=" + empresa_id + ":" + ejercicio_id + ";path=/";
-}
-
-// Función para comprobar periódicamente noticias del servidor
-
-var tmo;
-
-function noticias() {
-  $.ajax({url: '/noticias', type: 'POST'});
-  tmo = setTimeout(noticias, 60000);
 }
 
 function prompTitulo(tit) {
@@ -311,30 +302,45 @@ function nimOpenWindow(url, tag, w, h) {
   );
 }
 
+nimWinNoticias = null;
 nimWinMensaje = null;
 nimHtmMensaje = null;
 nimServerStop = false;
 
-function nimActData(n, stop, htm) {
-  if (nimNoticias) $("#nim-noticias").attr("data-badge", n == 0 ? null : n);
-  nimServerStop = stop;
-  if (htm && htm != nimHtmMensaje) {
-    if (nimWinMensaje) nimWinMensaje.close();
-    nimWinMensaje = nimOpenWindow("", "_blank", 700, 500);
-    nimWinMensaje.document.write(htm);
-  }
-  nimHtmMensaje = htm;
+var tmo;
+
+window.onbeforeunload = function(e) {
+  if (nimWinNoticias && !nimWinNoticias.closed) nimWinNoticias.close();
 }
 
 $(window).load(function () {
-  //if (nimNoticias) noticias();
-  noticias();
+  tmo = setInterval(function() {
+    $.ajax({
+      url: '/noticias',
+      type: 'POST',
+      data: {news: (!nimWinNoticias || nimWinNoticias.closed) ? false : true},
+      success: function(res) {
+        if ("n" in res) $("#nim-noticias").attr("data-badge", res.n == 0 ? null : (res.n > 1 ? "9+" : res.n));
+        nimServerStop = res.stop;
+        if (res.htm && res.htm != nimHtmMensaje) {
+          if (nimWinMensaje) nimWinMensaje.close();
+          nimWinMensaje = nimOpenWindow("", "_blank", 700, 500);
+          nimWinMensaje.document.write(res.htm);
+        }
+        nimHtmMensaje = res.htm;
+      }
+    });
+  }, 60000);
 
   $("#nim-noticias").click(function (e) {
     if (checkNimServerStop()) return;
 
-    nimOpenWindow("/shownoticias", "noticias", 600, 800);
-    $(this).attr("data-badge", null);
+    if (!nimWinNoticias || nimWinNoticias.closed) {
+      nimWinNoticias = nimOpenWindow("/shownoticias", "noticias", 600, 800);
+      $(this).attr("data-badge", null);
+    } else {
+      window.open("", "noticias");
+    }
   });
 
   //$("#nim-menu").mmenu({classes: "mm-slide"});
@@ -412,6 +418,7 @@ $(window).load(function () {
       url: '/logout',
       type: 'GET',
       success: function () {
+        if (nimWinNoticias && !nimWinNoticias.closed) nimWinNoticias.close();
         window.location.replace('/');
       }
     });

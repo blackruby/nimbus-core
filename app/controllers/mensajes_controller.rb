@@ -1,8 +1,8 @@
 class MensajesMod < Mensaje
   @campos = {
     fecha: {tab: 'pre', manti: 6, gcols: 3, ro: :edit, grid:{width: 120}},
-    from_id: {tab: 'pre', manti: 40, gcols: 4, ro: :all, grid:{}},
-    to_id: {tab: 'pre', manti: 40, gcols: 4, grid:{}},
+    from_id: {tab: 'pre', manti: 40, gcols: 4, ro: :all, req: true, grid:{}},
+    to_id: {tab: 'pre', manti: 40, gcols: 4, req: true, grid:{}},
     leido: {tab: 'pre', gcols: 1, grid:{width: 50}},
     texto: {tab: 'pre', gcols: 12, grid:{}},
   }
@@ -21,16 +21,34 @@ class MensajesController < ApplicationController
     Nimbus::Config[:noticias]
   end
 
+  def before_edit
+    @usu.admin || @fact.from_id == @usu.id || @fact.to_id == @usu.id
+  end
+
+  def control_botones
+    unless @usu.admin
+      status_botones(borrar: false) if @fact.from_id != @usu.id
+    end
+  end
+
   def before_envia_ficha
     return if @fact.id == 0
 
     if @fact.id.nil?
       @fact.from_id = @usu.id
       @fact.fecha = Nimbus.now
-      @fact.leido = false
     end
-    disable(:leido) if @fact.to_id != @usu.id
-    disable(:to_i) if @fact.leido
+
+    unless @usu.admin
+      disable(:from_id)
+      [:to_id, :texto].each{|c| disable(c)} if @fact.from_id != @usu.id
+    end
+
+    control_botones
+  end
+
+  def after_save
+    control_botones
   end
 
   def show
@@ -46,8 +64,8 @@ class MensajesController < ApplicationController
   end
 
   def cargar_noticias
-    noti = Mensaje.where(to_id: @usu.id, leido: false).order('fecha desc')
-    Mensaje.where('id in (?)', noti.map{|n| n.id}).update_all(leido: true)
+    noti = Mensaje.where("to_id = ? AND leido IS #{params[:nuevas] ? 'NULL' : 'NOT true'}", @usu.id).order('fecha')
+    Mensaje.where('id in (?)', noti.map{|n| n.id}).update_all(leido: false)
 
     render json: noti.map {|n|
       d = Nimbus.now - n.fecha
@@ -62,7 +80,7 @@ class MensajesController < ApplicationController
       else
         fec = I18n.l(n.fecha, format: '%-d %b %y')
       end
-      {tex: n.texto, from: n.from.nombre, fec: fec, fel: n.fecha.strftime('%-d %b %Y %H:%M:%S'), uid: n.from_id, img: nim_path_image('Usuario', n.from_id, :foto)}
+      {id: n.id, new: n.leido.nil?, tex: n.texto, from: n.from.nombre, fec: fec, fel: I18n.l(n.fecha, format: '%-d %b %Y %H:%M'), uid: n.from_id, img: nim_path_image('Usuario', n.from_id, :foto)}
     }
   end
 
@@ -70,17 +88,24 @@ class MensajesController < ApplicationController
     render json: Usuario.order(:nombre).pluck(:id, :nombre).map {|u| {id: u[0], nom: u[1], img: nim_path_image('Usuario', u[0], :foto)}}
   end
 
-  File_msg = 'tmp/nim_mensaje.html'
-  File_stp = 'tmp/nim_stop'
+  File_msg = Nimbus::GestionPath + 'tmp/nim_mensaje.html'
+  File_stp = Nimbus::GestionPath + 'tmp/nim_stop'
 
   def nuevas
-    n = Nimbus::Config[:noticias] ? Mensaje.where(to: @usu.id, leido: false).count : 0
-    js = "nimActData(#{n},#{File.exist?(File_stp)},"
-    js << (File.exist?(File_msg) ? File.read(File_msg).to_json : 'null')
-    render js: js + ');'
+    jsn = {
+      stop: File.exist?(File_stp),
+      htm: File.exist?(File_msg) ? File.read(File_msg) : nil
+    }
+    jsn[:n] = Mensaje.where(to: @usu.id, leido: nil).count if Nimbus::Config[:noticias]
+
+    render json: jsn
   end
 
   def enviar_mensaje
-    params[:uids].each {|uid| Mensaje.create(from_id: @usu.id, to_id: uid, fecha: Nimbus.now, texto: params[:msg], leido: false)}
+    params[:uids].each {|uid| Mensaje.create(from_id: @usu.id, to_id: uid, fecha: Nimbus.now, texto: params[:msg])}
+  end
+    
+  def marcar_leidos
+    Mensaje.where('id in (?)', params[:ids]).update_all(leido: true)
   end
 end
