@@ -1725,57 +1725,6 @@ $(window).load(function() {
     });
 
     componentHandler.upgradeDom();
-/*
-  }).on("focus", ".nim-input-custom", function (e) {
-    var th = this;
-    addRolButton($(th), th.getAttribute("rol-title"), th.getAttribute("rol-icon"), function() {
-      nimAjax(th.getAttribute("rol-accion"));
-    });
-  }).on("focus", ".nim-input-origen", function (e) {
-    var th = this;
-    addRolButton($(this), 'Abrir ficha asociada', 'exit_to_app', function() {
-      //var cmp = $(this).parent().find('input');
-      var v = th.value.trim();
-      //if (v != '') callFonServer('ir_a_origen', {cmp: cmp.attr('id')});
-      if (v != '') callFonServer('ir_a_origen', {cmp: th.getAttribute('id')});
-    });
-  }).on("focus", ".nim-input-email", function (e) {
-    var th = this;
-    addRolButton($(this), 'Enviar correo', 'message', function() {
-      //var v = $(this).parent().find('input').val().trim();
-      var v = th.value.trim();
-      if (v != '') window.open('mailto:' + v);
-    });
-  }).on("focus", ".nim-input-url", function (e) {
-    var th = this;
-    addRolButton($(this), 'Seguir enlace', 'link', function() {
-      //var v = $(this).parent().find('input').val().trim();
-      var v = th.value.trim();
-      if (v != '') {
-        if (v.indexOf('://') == -1) v = 'http://' + v;
-        window.open(v);
-      }
-    });
-  }).on("focus", ".nim-input-map", function (e) {
-    var th = this;
-    addRolButton($(this), 'Abrir en google maps', 'location_on', function() {
-      //var cl = $(this).parent().find('input').attr("map");
-      var cl = th.getAttribute("map");
-      var place = '';
-      $("." + cl).each(function() {
-        //var v = $(this).val().replace(/c\//gi, '').replace(/nº/gi, '');
-        var v = this.value.replace(/c\//gi, '').replace(/nº/gi, '');
-        var i, l = v.length;
-        for (i = 0; i < l; i++) if (v[i] >= '0' && v[i] <= '9') break;
-        for (;i < l; i++) if (v[i] < '0' || v[i] > '9') break;
-        v = v.substr(0, i);
-
-        if (place != '') place += ',';
-        place += v;
-      });
-      window.open('http://www.google.com/maps/place/' + place);
-    });
-*/
   }).on("contextmenu", ".nim-label-img", function(e) {
     e.preventDefault();
     var cmp = $(this).attr("for");
