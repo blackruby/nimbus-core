@@ -51,10 +51,6 @@ class EmpresasMod < Empresa
 end
 
 class EmpresasController < ApplicationController
-  def grid_conf(grid)
-    grid[:wh] = "id in (#{@usu.pref[:permisos][:emp].map{|e| e[0]}})".gsub('[', '').gsub(']', '') unless @usu.admin
-  end
-
   def get_prm_prf
     prm = prf = nil
     @usu.pref[:permisos][:emp].each {|e|

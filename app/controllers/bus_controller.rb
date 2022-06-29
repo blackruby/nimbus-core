@@ -141,6 +141,11 @@ class BusController < ApplicationController
       add_where(w, "#{join_emej.empty? ? tabla : 't_emej'}.empresa_id=#{ej[0]}")
     end
 
+    # Añadir, si existe, un filtro especial definido en el modelo para limitar la búsqueda.
+    # El método tiene que ser un método de clase (self.) y recibirá como argumento un hash
+    # con los parámetros que se ven en la llamada de abajo.
+    add_where(w, clm.bus_filter({usu: @usu, eid: ej[0], jid: ej[1]})) if clm.respond_to? :bus_filter
+
     # la clave 'tipo' del flash indica algún tipo de acción especial.
     # De momento se contempla 'hb' para histórico de borrados.
     if flash[:tipo] == 'hb'

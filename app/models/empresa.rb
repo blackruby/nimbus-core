@@ -27,6 +27,10 @@ class Empresa < ActiveRecord::Base
   def ini_campos
     self.param ||= {} if self.respond_to? :param
   end
+
+  def self.bus_filter(h)
+    "empresas.id IN (#{h[:usu].mis_empresas.join(',')})" unless h[:usu].admin
+  end
 end
 
 end

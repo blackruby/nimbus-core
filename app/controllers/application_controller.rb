@@ -1169,6 +1169,11 @@ class ApplicationController < ActionController::Base
       end
     end
 
+    # Añadir, si existe, un filtro especial definido en el modelo para limitar la búsqueda.
+    # El método tiene que ser un método de clase (self.) y recibirá como argumento un hash
+    # con los parámetros que se ven en la llamada de abajo.
+    add_where(w, clm.bus_filter({usu: @usu, eid: eid, jid: jid})) if clm.respond_to? :bus_filter
+
     @v = Vista.create
     @v.data = {}
     @dat = @v.data
