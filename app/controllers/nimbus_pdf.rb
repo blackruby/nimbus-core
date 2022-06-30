@@ -214,7 +214,7 @@ class NimbusPDF < Prawn::Document
       v[:color] = v[:color][1..-1] if v[:color]
     }
 
-    fix_vals = -> (k, v) {
+    fix_vals = Proc.new {|k, v|
       if v[:borde] || v[:bgcolor]
         pl = v[:pad_l].to_f
         pr = v[:pad_r].to_f
