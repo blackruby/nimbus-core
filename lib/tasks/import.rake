@@ -275,7 +275,8 @@ namespace :nimbus do
           his = t[:mod].modelo_histo
           next unless his
           puts his.table_name
-          wh = opt == 'm' ? "IN (#{t[:ids].join(',')})" : ">= #{t[:last_id]}"
+          # Añado el id 0 por si la lista de id's está vacía (para que no dé un error postgres)
+          wh = opt == 'm' ? "IN (#{([0] + t[:ids].to_a).join(',')})" : ">= #{t[:last_id]}"
           cols = t[:mod].column_names.join(',')
           sql_exe %Q(
             INSERT INTO #{his.table_name}
