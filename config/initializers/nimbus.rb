@@ -1072,6 +1072,9 @@ module MantMod
           if hay_grid
             v[:grid][:edittype] ||= 'textarea'
             v[:grid][:searchoptions][:sopt] ||= ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
+            if v[:rich]
+              v[:grid][:formatter] ||= '~function(v){return "<div class=\'ql-editor\' style=\'padding: 0;height: unset;max-height: 50px\'>" + v + "</div>"}~'
+            end
           end
         when :div
           v[:nil] = true

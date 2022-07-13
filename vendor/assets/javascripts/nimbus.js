@@ -770,6 +770,13 @@ function mant_grabar(nueva) {
 
   if (nueva) res = $.extend(true, {_new: true}, res);
 
+  // Incluir los campos "rich"
+  var rich = {};
+  for(var e of $(".nq-contenedor")) {
+    rich[e.id] = nimQuillVal(e.id);
+  }
+  if (Object.keys(rich).length > 0) res = $.extend(true, {rich: rich}, res);
+
   $("body", context).append('<div class="nim-body-modal"></div>');
   _nimAjax({
     url: '/' + _controlador + '/grabar',

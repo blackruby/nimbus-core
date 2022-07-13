@@ -1,0 +1,81 @@
+@import 'nimbus_theme', 'quill/quill.snow';
+
+.nq-contenedor {
+  position: relative;
+  min-height: 162px;
+}
+
+.nq-contenedor-style {
+  background-color: $color-1-3;
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+  border-radius: 2px;
+}
+
+.nq-toolbar-left {
+  position: absolute;
+  top: 8px;
+  left: 6px;
+  color: blue;
+  cursor: pointer;
+  display: none;
+}
+
+.nq-toolbar-right {
+  position: absolute;
+  top: 8px;
+  right: -2px;
+  color: blue;
+  cursor: pointer;
+  display: none;
+}
+
+.nq-toolbar {
+  position: absolute;
+  left: 28px;
+  right: 25px;
+  top: 0;
+  bottom: 0;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border: 0 !important;
+  /* La propiedad "display" hay que asignarla después de crear el componente por lo que se da en nim_quill.js */
+  /* display: -webkit-box; */
+  overflow: auto;
+}
+.nq-toolbar::-webkit-scrollbar {display: none;}
+
+.nq-editor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 38px;
+  bottom: 0;
+  height: unset;
+  margin: 2px;
+  border: 0 !important;
+  background-color: white;
+}
+
+.ql-editor {
+  padding: 8px 12px;
+  user-select: text;
+}
+
+.ql-editor::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ql-editor::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  border-radius: 5px;
+}
+
+.ql-editor::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}
+
+.nim-label-rich {
+  font-size: 12px;
+  color: $color-1;
+}

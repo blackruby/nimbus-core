@@ -1,0 +1,2 @@
+En caso de actualizar, traducir los textos en inglés que afectan a la interfaz de usuario.
+Están todos en directivas "content:"

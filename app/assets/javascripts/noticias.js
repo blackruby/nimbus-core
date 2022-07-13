@@ -8,7 +8,7 @@ function addNoticia(nt) {
       <div class="remite">${nt.from}</div>
       <div class="fecha" title="${nt.fel}"> · ${nt.fec}</div>
     </div>
-    <div class="texto">${nt.tex}</div>
+    <div class="ql-editor texto">${nt.tex}</div>
     <div class="botones">
       <i class="material-icons responder" title="Responder" uid="${nt.uid}">reply</i>
       <i class="material-icons archivar" title="Archivar" nid="${nt.id}">archive</i>
@@ -28,6 +28,7 @@ function adecuarUsuarios(uid) {
   if (uid != undefined) $("#lb" + uid).addClass("is-checked");
 }
 
+var editor = null;
 function nuevoMsg(uid) {
   var dnm = $("#d-nuevo-msg");
   if (dnm.css("display") == "block") {
@@ -36,7 +37,20 @@ function nuevoMsg(uid) {
   }
 
   $("#d-nuevo-msg").css("display", "block");
-  $("#t-nuevo-msg").val("").focus();
+  if (!editor) {
+    editor = nimQuill("d_editor");
+
+    $("#d_editor").resizable({
+      handles: "s",
+      minHeight: 162,
+      resize: function(e, ui) {
+        $("#d-lista-usu").css("top", ui.size.height + 10);
+      }
+    });
+  }
+
+  editor.setContents("");
+  editor.focus();
 
   if ($("#d-lista-usu").children().length == 0) { // Cargar usuarios sólo la primera vez
     callFonServer("cargar_usuarios", {}, function(dat) {
@@ -69,14 +83,16 @@ function enviarMsg() {
     return;
   }
 
-  callFonServer("enviar_mensaje", {msg: $("#t-nuevo-msg").val(), uids: uids});
+  callFonServer("enviar_mensaje", {msg: nimQuillVal("d_editor"), uids: uids});
   $("#d-nuevo-msg").css("display", "none");
 }
 
 $(window).load(function () {
+  /**
   $("#d-nuevo-msg").keydown(function(e) {
     if (e.which == 27) $("#d-nuevo-msg").css("display", "none");
   });
+  **/
 
   $("body").on("click", ".responder", function() {
     if ($("#d-nuevo-msg").css("display") == "block") return;

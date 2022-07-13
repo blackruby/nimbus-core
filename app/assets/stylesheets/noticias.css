@@ -75,18 +75,9 @@ body {
 }
 
  .texto {
-   margin-left: 3px;
-   margin-right: 3px;
-   padding-left: 20px;
-   padding-right: 20px;
-   padding-top: 5px;
-   padding-bottom: 5px;
-   border-top: 1px;
-   border-bottom: 1px;
-   border-left: 0;
-   border-right: 0;
-   border-style: solid;
-   border-color: #e3e3e3;
+  margin-top: 10px;
+  height: unset;
+  max-height: 150px;
  }
 
  .botones {
@@ -108,7 +99,6 @@ body {
   bottom: 20px;
   left: 25px;
   right: 25px;
-  padding-top: 10px;
   z-index: 1;
   background-color: #D1C4E9;
   background-color: #ede7f6;
@@ -116,32 +106,18 @@ body {
   border-radius: 2px;
 }
 
-#dt-nuevo-msg {
-  position: fixed;
-  top: 60px;
-  left: 32px;
-  right: 32px;
-  height: 100px;
+#d_editor {
+  height: 200px;
   box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
   border-radius: 2px;
 }
 
-#t-nuevo-msg {
-  height: 100px;
-  width: 100%;
-  resize: none;
-  outline: none;
-  border: 0;
-  font-size: medium;
-  font-family: Roboto, Arial, Helvetica, sans-serif;
-}
-
 #d-lista-usu {
-  position: fixed;
-  top: 170px;
-  bottom: 25px;
-  left: 29px;
-  right: 29px;
+  position: absolute;
+  top: 210px;
+  bottom: 5px;
+  left: 4px;
+  right: 4px;
   overflow-y: auto;
 }
 

@@ -13,7 +13,6 @@ class HistoPkController < ApplicationController
   end
 
   def before_envia_ficha
-    #@assets_stylesheets = %w(histo_pk)
     @assets_javascripts = %w(histo_pk)
 
     id = flash[:id]
@@ -30,12 +29,27 @@ class HistoPkController < ApplicationController
     end
     @titulo = 'Histórico ' + nt(mod.table_name) + ': ' + (clave ? clave : "id: #{id}")
 
-    cols = [{name: 'idid', type: :integer, hidden: true}, {name: 'created_at', label: nt('fecha'), type: :datetime, width: 100}, {name: 'created_by_id', label: nt('usuario'), ref: 'Usuario', width: 150}]
+    cols = [
+      {name: 'idid', type: :integer, hidden: true},
+      {name: 'created_at', label: nt('fecha'), type: :datetime, width: 100},
+      {name: 'created_by_id', label: nt('usuario'), ref: 'Usuario', width: 150}
+    ]
+
     modh.columns_hash.each {|c, v|
       next if %w(id idid created_at created_by_id).include?(c) || modh.propiedades.dig(c.to_sym, :bus_hide)
 
       prop = modh.propiedades[c.to_sym] || {}
-      cols << {name: c, label: nt(c), type: v.type, manti: prop[:manti], decim: prop[:decim]}
+      rich = v.type == :text && prop[:rich]
+      @assets_stylesheets = @assets_stylesheets.to_a + %w(quill/nim_quill) if rich
+
+      cols << {
+        name: c,
+        label: nt(c),
+        type: v.type,
+        manti: prop[:manti],
+        decim: prop[:decim],
+        formatter: rich ? '~function(v){return \'<div class=ql-editor style=padding:0;height:unset;max-height:100px>\' + v + \'</div>\'}~' : nil
+      }
       if c.ends_with? '_id'
         cl = modh.reflect_on_association(c[0..-4]).class_name
         cols[-1][:ref] = cl
@@ -65,7 +79,8 @@ class HistoPkController < ApplicationController
         altRows: false,
         caption: @titulo,
         height: 800,
-        gridComplete: '~gridCargado~'
+        gridComplete: '~gridCargado~',
+        beforeSelectRow: '~function(){return false;}~'
       },
       data: q.map{|r| [r.id] + cols.map{|c| r[c[:name]]}}
     )

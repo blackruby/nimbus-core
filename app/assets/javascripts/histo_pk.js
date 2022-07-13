@@ -28,5 +28,5 @@ function gridCargado() {
 }
 
 $(window).load(function () {
-  $("#g_panel").css("pointer-events", "none");
+  // $("#g_panel").css("pointer-events", "none");
 });

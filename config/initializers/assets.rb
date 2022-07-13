@@ -45,3 +45,6 @@ Dir.glob('app/assets/images/**/*').each {|d|
 
 # Temas y módulos de Highcharts
 Rails.application.config.assets.precompile += Dir.glob('modulos/nimbus-core/vendor/assets/javascripts/hch/{modules,themes}/*').map{|f| f[f.index('hch')..-1]}
+
+# Quill (rich editor)
+Rails.application.config.assets.precompile += %w(quill/nim_quill.js quill/nim_quill.css)

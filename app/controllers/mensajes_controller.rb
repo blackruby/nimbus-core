@@ -1,10 +1,11 @@
 class MensajesMod < Mensaje
   @campos = {
     fecha: {tab: 'pre', manti: 6, gcols: 3, ro: :edit, grid:{width: 120}},
-    from_id: {tab: 'pre', manti: 40, gcols: 4, ro: :all, req: true, grid:{}},
+    from_id: {tab: 'pre', manti: 40, gcols: 4, req: true, grid:{}},
     to_id: {tab: 'pre', manti: 40, gcols: 4, req: true, grid:{}},
     leido: {tab: 'pre', gcols: 1, grid:{width: 50}},
-    texto: {tab: 'pre', gcols: 12, grid:{}},
+    separador: {tab: 'pre', gcols: 2, type: :div},
+    texto: {tab: 'pre', gcols: 8, label: '', rich: true, grid:{label: 'Mensaje'}},
   }
 
   @grid = {
@@ -57,8 +58,8 @@ class MensajesController < ApplicationController
       return
     end
 
-    @assets_javascripts = %w(noticias)
-    @assets_stylesheets = %w(noticias)
+    @assets_javascripts = %w(noticias quill/nim_quill)
+    @assets_stylesheets = %w(noticias quill/nim_quill)
 
     @titulo = 'Notificaciones'
   end

@@ -298,13 +298,14 @@ class ApplicationController < ActionController::Base
   end
 
   def enable_disable(c, ed)
-    ty = rol = nil
+    ty = rol = rich = nil
 
     if @fact
       v = @fact.campos[c.to_sym]
       if v
         ty = v[:type]
         rol = true if v[:rol]
+        rich = v[:rich]
         v[:ro] = ed == :d ? :all : nil
       end
     end
@@ -318,6 +319,8 @@ class ApplicationController < ActionController::Base
       @ajax << "$('#_h_#{c}').attr('disabled', #{ed == :d ? 'true' : 'false'});"
     elsif ty == :boolean
       @ajax << "mdlCheckStatus('#{c}','#{ed}');"
+    elsif ty == :text && rich
+      @ajax << "nq_#{c}.enable(#{ed == :e ? 'true' : 'false'});"
     else
       @ajax << "$('##{c}').attr('disabled', #{ed == :d ? 'true' : 'false'});"
     end
@@ -1261,12 +1264,20 @@ class ApplicationController < ActionController::Base
       @view[:arg_edit] << '&hijos=' + params[:hijos]
     end
 
+    rich = false
     if clm.mant? # No es un proc, y por lo tanto preparamos los datos del grid
       @view[:url_cell] = @view[:url_base] + '/validar_cell'
 
       #cm = clm.columnas.map{|c| clm.campos[c.to_sym][:grid]}.deep_dup
       @dat[:columnas] = []  # Aquí construimos un array con las columnas visibles para usarlo en el método "list"
-      cm = clm.columnas.select{|c| clm.propiedad(c, :visible, binding)}.map{|c| @dat[:columnas] << c; clm.campos[c.to_sym][:grid]}.deep_dup
+      cm = clm.columnas.
+        select{|c| clm.propiedad(c, :visible, binding)}.
+        map{|c|
+          @dat[:columnas] << c;
+          v = clm.campos[c.to_sym]
+          rich = true if v[:rich]
+          v[:grid]
+        }.deep_dup
       cm.each {|h|
         h[:label] = nt(h[:label])
         if h[:edittype] == 'select'
@@ -1290,6 +1301,9 @@ class ApplicationController < ActionController::Base
     @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
     # Añadir distintivo de color de la empresa si procede
     @ajax << %Q($("body").append('<div class="#{@e.param[:estilo]}" style="background-color: #{@e.param[:color]}"></div>');) if @e && @e.param[:estilo] && @e.param[:estilo] != 'nil' && !params[:mod]
+
+    # Incluir la hoja de estilo quill si hay campos "rich" en el grid
+    @assets_stylesheets = @assets_stylesheets.to_a + %w(quill/nim_quill) if rich
 
     pag_render('grid')
   end
@@ -1665,6 +1679,16 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def assets_for_rich
+    @fact.campos.each_value {|v|
+      if v[:type] == :text && v[:rich]
+        @assets_javascripts = @assets_javascripts.to_a + %w(quill/nim_quill)
+        @assets_stylesheets = @assets_stylesheets.to_a + %w(quill/nim_quill)
+        break
+      end
+    }
+  end
+
   def new
     ini_ajax
 
@@ -1753,6 +1777,9 @@ class ApplicationController < ActionController::Base
     graba_v
     @ajax << '_vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
 
+    # Incluir los assets necesarios si hay algún campo de tipo :text con rich: true
+    assets_for_rich
+
     pag_render('ficha')
   end
 
@@ -1789,10 +1816,15 @@ class ApplicationController < ActionController::Base
     @fact = clm.new
     dif = ''
     clmh.column_names.each {|c|
-      next unless @fact.respond_to?(c)
+      # next unless @fact.respond_to?(c)
+      cmp = @fact.campos[c.to_sym]
+      next unless cmp && cmp[:form] && cmp[:visible] 
+
       v = fh[c]
       @fact[c] = v
-      dif << '$("#' + c + '").addClass("nim-campo-cambiado");' if (v != fo[c])
+      if (v != fo[c])
+        dif << "$('##{c}#{cmp[:type] == :text && cmp[:rich] ? ' .ql-editor' : ''}').addClass('nim-campo-cambiado');"
+      end
     }
 
     set_empeje
@@ -1803,8 +1835,15 @@ class ApplicationController < ActionController::Base
 
     ini_ajax
     envia_ficha
+    # Deshabilitar campos "normales"
     @ajax << '$(":input").attr("disabled", true);'
+    # Deshabilitar campos "rich"
+    @ajax << 'for(var e of $(".nq-contenedor")) window["nq_"+e.id].disable();'
     @ajax << dif
+
+    # Incluir los assets necesarios si hay algún campo de tipo :text con rich: true
+    assets_for_rich
+
     render html: '', layout: 'ficha'
   end
 
@@ -2005,6 +2044,9 @@ class ApplicationController < ActionController::Base
       @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
       sincro_hijos(true, blq ? true : false) if clm.mant?
     end
+
+    # Incluir los assets necesarios si hay algún campo de tipo :text con rich: true
+    assets_for_rich
 
     mi_render if self.respond_to?(:mi_render)
 
@@ -2286,9 +2328,13 @@ class ApplicationController < ActionController::Base
       # No hacer nada
       res = ''
     else
-      res = '$("#' + cmp_s + '").val(' + forma_campo(cp[:auto_tipo] || :form, @fact, cmp_s, val).to_json + ')'
-      res << '.attr("dbid",' + val.to_s + ')' if cmp_s.ends_with?('_id') and val
-      res << ';'
+      if cp[:type] == :text && cp[:rich]
+        res = '$("#' + cmp_s + ' .ql-editor").html(' + val.to_json + ');'
+      else
+        res = '$("#' + cmp_s + '").val(' + forma_campo(cp[:auto_tipo] || :form, @fact, cmp_s, val).to_json + ')'
+        res << '.attr("dbid",' + val.to_s + ')' if cmp_s.ends_with?('_id') and val
+        res << ';'
+      end
     end
 
     @ajax << res if ajax
@@ -3468,6 +3514,11 @@ class ApplicationController < ActionController::Base
       }
 
       if err == ''
+        # Asignar los campos "rich"
+        if params[:rich]
+          params[:rich].each {|k, v| @fact[k.to_sym] = v if @fact.campos.has_key?(k.to_sym)}
+        end
+
         err = vali_save if self.respond_to?('vali_save')
         err ||= ''
       end
@@ -3789,18 +3840,16 @@ class ApplicationController < ActionController::Base
         sal << '</label>'
         sal << '</div>'
       elsif v[:type] == :text
-        sal << '<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">'
-        sal << '<textarea class="nim-textarea mdl-textfield__input" type="text" id="' + cs + '" cols=' + size + ' rows=' + v[:rows].to_s + ' onchange="validar($(this))"' + plus + '>'
-        sal << '</textarea>'
-        sal << '<label class="mdl-textfield__label">' + nt(v[:label]) + '</label>'
-        sal << '</div>'
-=begin
-        sal << '<div class="nim-group">'
-        sal << '<textarea id="' + cs + '" cols=' + size + ' rows=' + rows.to_s + ' required onchange="validar($(this))"' + plus + '>'
-        sal << '</textarea>'
-        sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
-        sal << '</div>'
-=end
+        if v[:rich]
+          sty = v[:rich].is_a?(Hash) && v[:rich][:height] ? " style='height:#{v[:rich][:height]}px'" : ''
+          sal << "<label class='nim-label-rich'>#{v[:label]}</label><div id='#{cs}' class='nq-contenedor-style'#{sty}></div>"
+        else
+          sal << '<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">'
+          sal << '<textarea class="nim-textarea mdl-textfield__input" type="text" id="' + cs + '" cols=' + size + ' rows=' + v[:rows].to_s + ' onchange="validar($(this))"' + plus + '>'
+          sal << '</textarea>'
+          sal << '<label class="mdl-textfield__label">' + nt(v[:label]) + '</label>'
+          sal << '</div>'
+        end
       elsif v[:code]
         #sal << '<div class="nim-group">'
         sal << "<div #{div_attr}>"
@@ -3914,7 +3963,7 @@ class ApplicationController < ActionController::Base
   end
 
   def gen_js
-    return unless @v  # Si no hay vista no generar nada (históricos)
+    # return unless @v  # Si no hay vista no generar nada (históricos)
 
     clm = class_mant
     sal = ''
@@ -3943,7 +3992,7 @@ class ApplicationController < ActionController::Base
         sal << '&type=' + v[:auto_tipo].to_s if v[:auto_tipo]
         sal << '&eid=' + @e.id.to_s if @e
         sal << '&jid=' + @j.id.to_s if @j
-        sal << '&vista=' + @v.id.to_s
+        sal << '&vista=' + @v.id.to_s if @v
         sal << '&cmp=' + cs
         sal << '","' + v[:ref]
         mt = v[:ref].split('::')
@@ -3951,6 +4000,8 @@ class ApplicationController < ActionController::Base
         sal << "$('##{cs}').data('menu', #{v[:menu].to_json});" if v[:menu].present?
       elsif v[:img] && @v
         sal << "#{cs}.addEventListener('change', nimbusUpload);"
+      elsif v[:type] == :text && v[:rich]
+        sal << "nimQuill('#{cs}');$('##{cs}').resizable({handles: 's'});"
       elsif v[:type] == :upload
         sal << "#{cs}_input.addEventListener('change', nimbusUpload);"
       elsif v[:mask]
