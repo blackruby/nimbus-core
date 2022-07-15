@@ -1089,14 +1089,17 @@ function autoCompNuevaFicha() {
     callFonServer(nw);
 }
 
-// Los posibles contextos son 0 para el documento actual y !=0 para el padre (preferentemente 1, por si se añaden más valores)
+// Los posibles contextos son 1 para el padre (posible ampliación: 2 para abuelo, etc.) y 0 o cualquier otro valor para el contexto actual (document)
 function ponBusy(context = 0) {
   $("body", context == 0 ? document : parent.document).append("<div class='nim-body-modal nim-busy'></div><div class='mdl-spinner mdl-js-spinner nim-busy is-active' style='z-index:100001; position: absolute; left: 50%; top: 50%;'></div>");
   context == 0 ? componentHandler.upgradeDom() : parent.componentHandler.upgradeDom();
 }
 
 function quitaBusy(context = 0) {
-  $(".nim-busy", context == 0 ? document : parent.document).remove();
+  if (context == 1)
+    $(".nim-busy", parent.document).remove();
+  else
+    $(".nim-busy").remove();
 }
 
 function creaMdlButton(id, siz, mb, fsiz, icon, title) {
