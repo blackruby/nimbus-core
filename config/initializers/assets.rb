@@ -48,3 +48,6 @@ Rails.application.config.assets.precompile += Dir.glob('modulos/nimbus-core/vend
 
 # Quill (rich editor)
 Rails.application.config.assets.precompile += %w(quill/nim_quill.js quill/nim_quill.css)
+
+# nimFirma (signature_pad)
+Rails.application.config.assets.precompile += %w(nimFirma/nimFirma.js)

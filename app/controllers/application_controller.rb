@@ -1689,6 +1689,15 @@ class ApplicationController < ActionController::Base
     }
   end
 
+  def assets_for_nim_firma
+    @fact.campos.each_value {|v|
+      if v[:img] && v[:img][:firma]
+        @assets_javascripts = @assets_javascripts.to_a + %w(nimFirma/nimFirma)
+        break
+      end
+    }
+  end
+
   def new
     ini_ajax
 
@@ -1779,6 +1788,8 @@ class ApplicationController < ActionController::Base
 
     # Incluir los assets necesarios si hay algún campo de tipo :text con rich: true
     assets_for_rich
+    # Incluir los assets necesarios si hay algún campo :img con firma: true
+    assets_for_nim_firma
 
     pag_render('ficha')
   end
@@ -2047,6 +2058,8 @@ class ApplicationController < ActionController::Base
 
     # Incluir los assets necesarios si hay algún campo de tipo :text con rich: true
     assets_for_rich
+    # Incluir los assets necesarios si hay algún campo :img con firma: true
+    assets_for_nim_firma
 
     mi_render if self.respond_to?(:mi_render)
 
@@ -3296,16 +3309,30 @@ class ApplicationController < ActionController::Base
       if valor == '*' # Es un borrado de imagen
         @fact[campo] = '*'
         render js: "$('##{campo}_img').attr('src','');"
-      else # Es una asignación de imagen que viene del submit del form asociado. La respuesta va al iframe asociado al campo imagen
-        return unless params[campo] # Por si llega un submit sin fichero para upload
+      else
+        # Es una asignación de imagen que viene del submit del form asociado. La respuesta va al iframe asociado al campo imagen
+        # Si tiene la clave "firma" entonces no hay frame asociado y la imagen viene codificada en base64 en "valor"
 
-        @fact[campo] = "/tmp/nimImg-#{@v.id}-#{campo}.#{params[campo].tempfile.path.split('.')[1]}"
-        `cp #{params[campo].tempfile.path} #{@fact[campo]}`
-        render html: %Q(
-          <script>
-            $(window).load(function(){$("##{campo}_img",parent.document).attr('src', '/nim_send_file?file=#{@fact[campo]}')})
-          </script>
-        ).html_safe, layout: 'basico'
+        file_base = "/tmp/nimImg-#{@v.id}-#{campo}"
+        token = Time.now.strftime('%d%H%M%S') # Token para añadir al URL de nim_send_file para forzar el envío si se repite la misma imagen (y ha cambiado)
+        `rm -f #{file_base}.*`
+        if cs[:img][:firma]
+          @fact[campo] = "#{file_base}.png"
+          File.write(@fact[campo], Base64.decode64(valor[valor.index(',')+1..-1]), mode: 'wb')
+          @ajax << %Q($("##{campo}_img").attr("src", "/nim_send_file?file=#{@fact[campo]}&#{token}"))
+          render_ajax
+        else
+          return unless params[campo] # Por si llega un submit sin fichero para upload
+
+          @fact[campo] = "#{file_base}.#{params[campo].tempfile.path.split('.')[-1]}"
+          `cp #{params[campo].tempfile.path} #{@fact[campo]}`
+
+          render html: %Q(
+            <script>
+              $(window).load(function(){$("##{campo}_img",parent.document).attr('src', '/nim_send_file?file=#{@fact[campo]}&#{token}')})
+            </script>
+          ).html_safe, layout: 'basico'
+        end
       end
 
       @v.save
@@ -3896,14 +3923,21 @@ class ApplicationController < ActionController::Base
         else
           imagen = nim_image(tag: c, hid: "#{cs}_img", w: v[:img][:w] || v[:img][:width], h: v[:img][:h] || v[:img][:height])
         end
-        sal << '<div style="text-align: left;overflow: auto">'
-        sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true, target: "#{cs}_iframe")
-        sal << "<input id='#{cs}' name='#{cs}' type='file' accept='image/*' class='nim-input-img' #{plus}/>"
-        sal << "<label class='nim-label-img' for='#{cs}'>#{nt(v[:label])}</label><br>"
-        sal << imagen
-        sal << '</form>'
-        sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
-        sal << '</div>'
+        if v[:img][:firma]
+          sal << "<div id='#{cs}' style='text-align: left;overflow: auto' onclick='nimFirma(this)'>"
+          sal << "<label class='nim-label-img'>#{nt(v[:label])}</label><br>"
+          sal << imagen
+          sal << '</div>'
+        else
+          sal << '<div style="text-align: left;overflow: auto">'
+          sal << view_context.form_tag("/#{params[:controller]}/validar?vista=#{@v.id}&campo=#{cs}", multipart: true, target: "#{cs}_iframe")
+          sal << "<input id='#{cs}' name='#{cs}' type='file' accept='image/*' class='nim-input-img' #{plus}/>"
+          sal << "<label class='nim-label-img' for='#{cs}'>#{nt(v[:label])}</label><br>"
+          sal << imagen
+          sal << '</form>'
+          sal << "<iframe name='#{cs}_iframe' style='display: none'></iframe>"
+          sal << '</div>'
+        end
       elsif v[:type] == :upload
         if @v && (!clm.mant? || @fact.id != 0)
           sal << "<div title='#{nt(v[:title])}'>"
