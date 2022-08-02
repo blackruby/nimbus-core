@@ -336,7 +336,7 @@ $(window).load(function () {
     if (checkNimServerStop()) return;
 
     if (!nimWinNoticias || nimWinNoticias.closed) {
-      nimWinNoticias = nimOpenWindow("/shownoticias", "noticias", 600, 800);
+      nimWinNoticias = nimOpenWindow("/shownoticias", "noticias", 660, 800);
       $(this).attr("data-badge", null);
     } else {
       window.open("", "noticias");
