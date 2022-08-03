@@ -1292,8 +1292,7 @@ class ApplicationController < ActionController::Base
         end
       }
       call_nimbus_hook :grid_col_model, cm
-      #@view[:col_model] = eval_cad(clm.col_model_html(cm))
-      @view[:col_model] = clm.col_model_html(cm)
+      @view[:col_model] = eval_cad(clm.col_model_html(cm))
     end
 
     call_nimbus_hook :after_index
