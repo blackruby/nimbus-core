@@ -3866,7 +3866,7 @@ class ApplicationController < ActionController::Base
       elsif v[:type] == :text
         if v[:rich]
           sty = v[:rich].is_a?(Hash) && v[:rich][:height] ? " style='height:#{v[:rich][:height]}px'" : ''
-          sal << "<label class='nim-label-rich'>#{v[:label]}</label><div id='#{cs}' class='nq-contenedor-style'#{sty}></div>"
+          sal << "<label class='nim-label-rich'>#{nt(v[:label])}</label><div id='#{cs}' class='nq-contenedor-style'#{sty}></div>"
         else
           sal << '<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">'
           sal << '<textarea class="nim-textarea mdl-textfield__input" type="text" id="' + cs + '" cols=' + size + ' rows=' + v[:rows].to_s + ' onchange="validar($(this))"' + plus + '>'
