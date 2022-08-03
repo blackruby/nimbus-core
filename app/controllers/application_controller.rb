@@ -1827,13 +1827,10 @@ class ApplicationController < ActionController::Base
     @fact = clm.new
     dif = ''
     clmh.column_names.each {|c|
-      # next unless @fact.respond_to?(c)
-      cmp = @fact.campos[c.to_sym]
-      next unless cmp && cmp[:form] && cmp[:visible] 
+      @fact[c] = fh[c] if c != 'id' && @fact.respond_to?(c)
 
-      v = fh[c]
-      @fact[c] = v
-      if (v != fo[c])
+      cmp = @fact.campos[c.to_sym]
+      if cmp && cmp[:form] && cmp[:visible] && @fact[c] != fo[c]
         dif << "$('##{c}#{cmp[:type] == :text && cmp[:rich] ? ' .ql-editor' : ''}').addClass('nim-campo-cambiado');"
       end
     }
