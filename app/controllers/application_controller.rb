@@ -1292,7 +1292,8 @@ class ApplicationController < ActionController::Base
         end
       }
       call_nimbus_hook :grid_col_model, cm
-      @view[:col_model] = eval_cad(clm.col_model_html(cm))
+      #@view[:col_model] = eval_cad(clm.col_model_html(cm))
+      @view[:col_model] = clm.col_model_html(cm)
     end
 
     call_nimbus_hook :after_index
@@ -2811,7 +2812,7 @@ class ApplicationController < ActionController::Base
           c[:manti] ||= 7
           c[:decim] ||= (c[:type] == :integer ? 0 : 2)
           c[:signo] = false if c[:signo].nil?
-          c[:editoptions][:dataInit] ||= "~function(e){numero(e,#{c[:manti]},#{c[:decim]},#{c[:signo]})}~"
+          c[:editoptions][:dataInit] ||= "~function(e){numero(e,#{eval_cad(c[:manti])},#{eval_cad(c[:decim])},#{c[:signo]})}~"
           c[:searchoptions][:dataInit] ||= c[:editoptions][:dataInit]
           c[:searchoptions][:sopt] ||= ['eq','ne','lt','le','gt','ge','in','ni','nu','nn']
           c[:sortfunc] ||= '~sortNumero~'
@@ -3777,9 +3778,6 @@ class ApplicationController < ActionController::Base
       #next if v[:tab].nil? or v[:tab] != h[:tab]
       next if v[tab_dlg].nil? or v[tab_dlg] != h[tab_dlg] or !v[:visible]
 
-      #ro = eval_cad(v[:ro])
-      #manti = eval_cad(v[:manti]).to_i
-      #decim = eval_cad(v[:decim]).to_i
       ro = v[:ro]
       manti = v[:manti]
       decim = v[:decim]
@@ -3791,17 +3789,6 @@ class ApplicationController < ActionController::Base
         size = manti.to_s
       end
       manti = manti.to_s
-
-=begin
-      rows = eval_cad(v[:rows])
-      sel = eval_cad(v[:sel])
-
-      if v[:code]
-        code = eval_cad(v[:code])
-        code_pref = eval_cad(code[:prefijo])
-        code_rell = eval_cad(code[:relleno])
-      end
-=end
 
       plus = ''
       if ro == :all or ro == params[:action].to_sym or v[:rol] == :origen

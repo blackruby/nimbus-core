@@ -22,6 +22,8 @@ class HistoPkController < ApplicationController
     fic = modh.where('idid = ?', id).order('created_at').last
 
     begin
+      @j = fic.ejercicio if fic.respond_to?(:ejercicio)
+      @e = fic.empresa if fic.respond_to?(:empresa)
       fic.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
       clave = forma_campo_id(modh, fic.id)
     rescue
@@ -35,12 +37,13 @@ class HistoPkController < ApplicationController
       {name: 'created_by_id', label: nt('usuario'), ref: 'Usuario', width: 150}
     ]
 
+    rich = false
     modh.columns_hash.each {|c, v|
       next if %w(id idid created_at created_by_id).include?(c) || modh.propiedades.dig(c.to_sym, :bus_hide)
 
       prop = modh.propiedades[c.to_sym] || {}
-      rich = v.type == :text && prop[:rich]
-      @assets_stylesheets = @assets_stylesheets.to_a + %w(quill/nim_quill) if rich
+      rch = v.type == :text && prop[:rich]
+      rich = true if rch
 
       cols << {
         name: c,
@@ -48,7 +51,7 @@ class HistoPkController < ApplicationController
         type: v.type,
         manti: prop[:manti],
         decim: prop[:decim],
-        formatter: rich ? '~function(v){return \'<div class=ql-editor style=padding:0;height:unset;max-height:100px>\' + v + \'</div>\'}~' : nil
+        formatter: rch ? '~function(v){return \'<div class=ql-editor style=padding:0;height:unset;max-height:100px>\' + v + \'</div>\'}~' : nil
       }
       if c.ends_with? '_id'
         cl = modh.reflect_on_association(c[0..-4]).class_name
@@ -56,8 +59,9 @@ class HistoPkController < ApplicationController
       end
     }
 
+    @assets_stylesheets = @assets_stylesheets.to_a + %w(quill/nim_quill) if rich
+
     if fic
-      #wh = modh.pk.map{|k| "#{k} = '#{fic[k]}'"}.join(' AND ')
       wh = modh.pk.map{|k| k.to_s + (fic[k] ? " = '#{fic[k]}'" : ' IS NULL')}.join(' AND ')
       q = modh.where(wh).order(:created_at)
     else
