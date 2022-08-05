@@ -35,8 +35,8 @@
 }
 
 .titulo-bloques {
-  background-color: #673AB7;
-  color: white;
+  background-color: var(--color-1);
+  color: var(--color-1_f);
   margin-top: 3px;
   padding-left: 5px;
   height: 28px;

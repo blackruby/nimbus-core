@@ -1,6 +1,6 @@
 #d-titulo {
-  background-color: #673AB7;
-  color: #ffffff;
+  background-color: var(--color-1);
+  color: var(--color-1_f);
   height: 40px;
   line-height: 40px;
   font-size: large;
@@ -26,10 +26,10 @@
   line-height: 10px;
   margin-right: 10px;
   padding-left: 8px;
-  background-color: #D1C4E9;
+  background-color: var(--color-1-2);
   width: 90px;
   border-radius: 7px;
-  color: #FF4081;
+  color: var(--color-2);
   position: fixed;
   top: 8px;
   right: 0;
@@ -43,5 +43,5 @@ li i {
 .nim-reload {
   cursor: pointer;
   padding-left: 5px;
-  color: #673AB7;
+  color: var(--jqg-head-color_f);
 }

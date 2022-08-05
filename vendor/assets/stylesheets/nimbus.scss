@@ -1,16 +1,11 @@
-$color-1: #673AB7;
-$color-1-2: #D1C4E9;
-$color-1-3: #ede7f6;
-$color-1-d: #512DA8;
-$color-2: #FF4081;
-$color-2-2: #F8BBD0;
-$color-nim-label: #ABABAB;
-$color-nim-context-menu-li: #EEEEEE;
+@import 'nimbus_theme';
 
-.nim-bgcolor-1 {background-color: $color-1}
-.nim-color-2 {color: $color-2}
-.nim-bgcolor-2 {background-color: $color-2}
-.nim-bgcolor-2-2 {background-color: $color-2-2}
+$color-nim-label: #ABABAB;
+
+.nim-bgcolor-1 {background-color: var(--color-1);}
+.nim-color-2 {color: var(--color-2);}
+.nim-bgcolor-2 {background-color: var(--color-2);}
+.nim-bgcolor-2-2 {background-color: var(--color-2-2);}
 
 .c-herencia {background-color: #d3d3d3}
 .c-permitido {background-color: greenyellow}
@@ -23,6 +18,10 @@ $color-nim-context-menu-li: #EEEEEE;
 body {
   font-family: Roboto, Helvetica, Arial, sans-serif;
   user-select: none;
+}
+
+a {
+  color: var(--color-2);
 }
 
 .ficha {
@@ -68,7 +67,7 @@ body {
 }
 
 .nim-titulo {
-  background-color: $color-1;
+  background-color: var(--color-1);
   color: #ffffff;
   height: 35px;
   font-size:16px;
@@ -101,16 +100,16 @@ body {
 }
 
 .nim-input:focus {
-  border-bottom-color: $color-1;
+  border-bottom-color: var(--color-1);
 }
 
 .nim-select:focus {
-  border-bottom-color: $color-1;
+  border-bottom-color: var(--color-1);
   border-bottom-width: 2px;
 }
 
 .nim-input:focus, .nim-select:focus{
-  border-bottom-color: $color-1;
+  border-bottom-color: var(--color-1);
 }
 
 .page-content {
@@ -139,13 +138,13 @@ body {
 
 .nim-label-img {
   font-size: 12px;
-  color: $color-1;
+  color: var(--color-1);
   cursor: pointer;
 }
 
 .nim-label-upload {
   font-size: 12px;
-  background-color: $color-1;
+  background-color: var(--color-1);
   color: #ffffff;
   cursor: pointer;
   padding: 6px;
@@ -157,7 +156,7 @@ body {
   left:1px;
   top: -18px;
   font-size: 12px;
-  color: $color-1;
+  color: var(--color-1);
 }
 
 .nim-label, .nim-label-fix {
@@ -176,7 +175,7 @@ body {
 .nim-input:focus ~ .nim-label, .nim-input:valid ~ .nim-label, .nim-select:focus ~ .nim-label, .nim-select:valid ~ .nim-label {
   top:-18px;
   font-size:12px;
-  color: $color-1;
+  color: var(--color-1);
 }
 
 .nim-input:focus ~ .nim-label-fix, .nim-input:valid ~ .nim-label-fix, .nim-select:focus ~ .nim-label-fix, .nim-select:valid ~ .nim-label-fix {
@@ -199,7 +198,7 @@ body {
 }
 
 .nim-campo-cambiado {
-  background-color: $color-1-2;
+  background-color: var(--color-1-2);
 }
 .nim-campo-cambiado:disabled {
   color: grey;
@@ -216,7 +215,7 @@ body {
 .ui-dialog-titlebar-close {outline: none;}
 
 .edit-cell {
-  background-color: $color-1-2;
+  background-color: var(--color-1-2);
 }
 
 .nim-context-menu {
@@ -243,7 +242,7 @@ body {
 }
 
 .nim-context-menu-li:hover {
-  background-color: $color-nim-context-menu-li;
+  background-color: #eeeeee;
 }
 
 .nim-context-menu-icon {
@@ -343,4 +342,134 @@ body {
 .nim-grupo:hover .nim-rol-button,
 .nim-grupo:focus-within .nim-rol-button {
   display: block;
+}
+
+/** Asignar colores en variables para poder cambiar el tema **/
+
+.mdl-layout__header, .mdl-layout__tab-bar {
+  color: var(--color-1_f);
+  background-color: var(--color-1);
+}
+.mdl-layout__tab {
+  color: var(--color-1_f);
+  opacity: 50%;
+  background-color: var(--color-1);
+}
+.mdl-layout.is-upgraded .mdl-layout__tab.is-active {
+  color: var(--color-1_f);
+  opacity: 100%;
+}
+.mdl-layout__tab-bar-button {
+  background-color: var(--color-1);
+}
+.mdl-layout__tab-bar-button.is-active {
+  color: var(--color-1_f);
+}
+
+// .mdl-card__title, .w-card > .mdl-card__title {
+.mdl-card__title {
+  color: var(--color-1_f);
+  background-color: var(--color-1);
+}
+// Botón menú_l
+.mdl-layout__header .mdl-layout__drawer-button {
+  color: var(--color-1_f);
+}
+.mdl-layout.is-upgraded .mdl-layout__tab.is-active::after {
+  color: var(--color-2_f);
+  background: var(--color-2);
+}
+
+// Botón favorito
+.mdl-button--fab.mdl-button--colored {
+  color: var(--color-2_f);
+  background: var(--color-2);
+}
+// Botón favorito al pasar por encima
+.mdl-button--fab.mdl-button--colored:enabled:hover {
+  color: var(--color-2-2_f);
+  background: var(--color-2-2);
+}
+// Botón favorito al coger foco con el tabulador
+.mdl-button--fab.mdl-button--colored:focus:not(:active) {
+  color: var(--color-2-2_f);
+  background: var(--color-2-2);
+}
+.mdl-button--fab {
+  border-radius: var(--mdl-button-fab-radius);
+}
+/** Botones mdl normales (diálogos, etc.) **/
+.mdl-button--raised.mdl-button--colored {
+  color: var(--color-1_f);
+  background-color: var(--color-1);
+  border-radius: var(--mdl-button-radius);
+}
+.mdl-button--raised.mdl-button--colored:enabled:hover {
+  color: var(--color-1-2_f);
+  background-color: var(--color-1-2);
+}
+.mdl-button--raised.mdl-button--colored:focus:not(:active) {
+  color: var(--color-1-2_f);
+  background-color: var(--color-1-2);
+}
+
+.mdl-checkbox__ripple-container .mdl-ripple {
+  color: var(--color-1_f);
+  background-color: var(--color-1);
+}
+.mdl-checkbox.is-checked .mdl-checkbox__tick-outline {
+  color: var(--color-1_f);
+  background: var(--color-1);
+}
+.mdl-checkbox.is-checked .mdl-checkbox__box-outline {
+  border: 2px solid var(--color-1);
+}
+
+.mdl-switch__ripple-container .mdl-ripple {
+  background: var(--color-1);
+}
+.mdl-switch.is-checked .mdl-switch__thumb {
+  background: var(--color-1);
+}
+.mdl-switch.is-checked .mdl-switch__track {
+  background: var(--color-1-3);
+}
+
+.ui-icon, .ui-state-default .ui-icon, .ui-widget-content .ui-icon
+{
+  // background-image: image-url("ui/images/ui-icons_673AB7_256x240.png");
+  background-image: image-url("ui/images/ui-icons_000000_256x240.png");
+}
+.ui-state-error {
+  color: var(--color-1-3_f);
+  background: var(--color-1-3);
+}
+.ui-state-highlight, .ui-widget-content .ui-state-highlight {
+  color: var(--jqg-row-selected-color_f);
+  background: var(--jqg-row-selected-color);
+}
+.ui-widget-header {
+  color: var(--color-1_f);
+  background: var(--color-1);
+}
+/**
+.ui-widget-header .ui-state-default {
+  background: yellow;
+}
+**/
+// Cabeceras de columna en los grids
+.ui-state-default .ui-th-column {
+  color: var(--jqg-head-column-color_f);
+  background: var(--jqg-head-column-color);
+}
+// Cabecera principal del grid (nº de registros, navegador,...)
+// .ui-state-default .ui-jqgrid-toppager .ui-corner-top {
+.ui-state-default.ui-jqgrid-toppager {
+  color: var(--jqg-head-color_f);
+  background: var(--jqg-head-color);
+}
+// Color de la celda que tiene el foco para ser editada en grids editables.
+.edit-cell {
+  color: var(--jqg-active-cell-color);
+  background: var(--jqg-active-cell-color_f);
 }

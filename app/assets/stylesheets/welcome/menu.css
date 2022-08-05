@@ -14,7 +14,7 @@
 }
 
 ::-webkit-scrollbar-corner {
-  background-color: #D1C4E9;
+  background-color: var(--color-1-2);
 }
 
 .ui-icon-gripsmall-diagonal-se {
@@ -27,17 +27,15 @@ html, body {
 }
 
 body {
-  background-color: #D1C4E9;
+  background-color: var(--color-1-2);
 }
 
 #titulo {
-  background: #673AB7;
-  color: #ffffff;
+  background: var(--color-1);
+  color: var(--color-1_f);
   width: 100%;
   height: 60px;
-  /*line-height: 40px;*/
   z-index: 100;
-  /*vertical-align: middle;*/
   white-space: nowrap;
 }
 
@@ -93,12 +91,12 @@ body {
 }
 #a-usuario {
   outline-style: none;
-  color: #ffffff
+  color: var(--color-1_f);
 }
 
 #a-menu {
   outline-style: none;
-  color: #ffffff
+  color: var(--color-1_f);
 }
 
 #div-body {
@@ -109,7 +107,6 @@ body {
   top: 0;
   bottom: 0;
   right: 0;
-  background-color: #D1C4E9;
 }
 
 .base {
@@ -166,7 +163,8 @@ body {
 
 .div-fav {
   margin: 1px;
-  background-color: #673AB7;
+  background-color: var(--color-1);
+  color: var(--color-1_f);
   padding-top: 7px;
   padding-bottom: 7px;
   overflow: hidden;
@@ -175,7 +173,7 @@ body {
 }
 
 .url-fav {
-  color: white;
+  color: var(--color-1_f);
   margin-left: 15px;
   margin-right: 40px;
   vertical-align: middle;
@@ -190,7 +188,7 @@ body {
 }
 
 .del-fav {
-  color: #d3d3d3;
+  color: var(--color-1_f);
   cursor: pointer;
   visibility: hidden;
 }
@@ -206,12 +204,13 @@ body {
   position: absolute;
   box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
   border-radius: 10px;
-  background-color: #D1C4E9;
+  background-color: var(--color-1-2);
+  color: var(--color-1-2_f);
 }
 
 .tit-contenedor {
-  background-color: white;
-  color: #673AB7;
+  background-color: var(--color-1_f);
+  color: var(--color-1);
   text-align: center;
   font-weight: bold;
 }
@@ -223,6 +222,7 @@ body {
 }
 
 .bot-contenedor i {
+  color: var(--color-1);
   margin-left: 4px;
   margin-right: 3px;
   font-size: 22px;

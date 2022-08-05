@@ -16,6 +16,7 @@ class NimtestMod < Pais
     pxc: {tab: 'post', type: :div, gcols: 12},
     fact_emp: {tab: 'post', label: '@fact.grid_emp', ro: :all, gcols: 12},
     grid_emp: {tab: 'post', type: :div, gcols: 12},
+    firma: {tab: 'post', gcols: 3, img: {firma: true, height: 120}},
 
     campo_x: {dlg: 'uno', gcols: 6},
     mig1: {dlg: 'uno', type: :div, gcols: 6, br: true},

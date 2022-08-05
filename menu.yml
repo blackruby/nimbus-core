@@ -9,6 +9,7 @@ General:
   mensajes: /mensajes
   <% end %>
   giv: /giv
+  temas: /temas
   <% if @usu && @usu.admin %>
   tag_admin: <hr>
   gi: /gi

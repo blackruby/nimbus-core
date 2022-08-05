@@ -7,13 +7,13 @@
 }
 
 .w-card > .mdl-card__title {
-  color: #fff;
   height: 176px;
-  background: #673AB7 image-url('logo.png') no-repeat top left;
+  color: var(--color-1_f);
+  background: var(--color-1) image-url('logo.png') no-repeat top left;
 }
 
 .w-card > .mdl-card__menu {
-  color: #fff;
+  color: var(--color-2_f);
 }
 
 .mdl-card__supporting-text {

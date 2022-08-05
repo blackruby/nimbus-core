@@ -22,6 +22,7 @@ class UsuariosMod < Usuario
     empresa_def_id: {tab: 'general', gcols: 4},
     ejercicio_def_id: {tab: 'general', gcols: 4},
     log_ej_actual: {tab: 'general', type: :boolean, gcols: 4, pref: true},
+    tema_id: {tab: 'general', ref: 'Tema', gcols: 4, pref: true, dirty: true},
   }
 
   @grid = {
@@ -248,6 +249,10 @@ class UsuariosController < ApplicationController
 
     #cookies.permanent[:locale] = session[:locale] = @fact.pref[:locale] || I18n.default_locale
     cookies.permanent[:locale] = session[:locale] = (@fact.present? ? @fact.locale.to_sym : I18n.default_locale)
+
+    if @usu.id == @fact.id && @fact.tema_id != @fact.campos[:tema_id][:val_ini]
+      @ajax << (@fact.tema_id ? "grabarTema(#{@fact.tema.params.to_json});" : "borrarTema();")
+    end
   end
 
   def after_save
@@ -303,6 +308,10 @@ class UsuariosController < ApplicationController
     @usu.update_column(:pref, @usu.pref)
     #render nothing: true
     head :no_content
+  end
+
+  def on_tema_id
+    @ajax << "setCSSVariables2(#{(@fact.tema ? @fact.tema.params : Tema.scs_default).to_json});" if @usu.id == @fact.id
   end
 end
 

@@ -1,0 +1,33 @@
+#parametros {
+  text-align: center;
+}
+
+table {
+  margin-right: auto;
+  margin-left: auto;
+  border-collapse: collapse;
+  text-align: left;
+}
+th {
+  padding-left: 14px;
+}
+td {
+  border: 1px solid #e0e0e0;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+td input {
+  border: 0;
+  outline-color: #d0d0d0;
+}
+td i {
+  margin-left: 8px;
+  vertical-align: bottom;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+#mdl-button-radius, #mdl-button-fab-radius {
+  width: 100px;
+  text-align: right;
+}

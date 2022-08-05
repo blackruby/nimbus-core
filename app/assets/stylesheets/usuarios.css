@@ -7,8 +7,8 @@
 }
 
 #t-empresas thead {
-  background-color: #673AB7;
-  color: #ffffff;
+  background-color: var(--color-1);
+  color: var(--color-1_f);
 }
 
 #t-empresas td {

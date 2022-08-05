@@ -1,0 +1,78 @@
+<% if @fact.id != 0 %>
+<div id="parametros">
+  <br>
+  <button id="default" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" title="Grabar este tema y usarlo como predeterminado">
+    <i class="material-icons">push_pin</i>&nbsp;Predeterminar
+  </button>
+
+  <h4>Parámetros primarios </h4>
+  <table>
+    <th></th>
+    <th>Fondo</th>
+    <th>Texto</th>
+    <tr>
+      <td>Color principal</td>
+      <td><input id="--color-1" type="color" onchange="chMainColor(this)"></td>
+      <td><input id="--color-1_f" type="color"><i></i></td>
+    </tr>
+    <tr>
+      <td>Color destacado</td>
+      <td><input id="--color-2" type="color" onchange="chMainColor(this)" /></td>
+      <td><input id="--color-2_f" type="color"><i></i></td>
+    </tr>
+    <tr>
+      <td>Color fila seleccionada grid</td>
+      <td><input id="--jqg-row-selected-color" type="color" onchange="fColor(this)" /></td>
+      <td><input id="--jqg-row-selected-color_f" type="color"><i></i></td>
+    </tr>
+  </table>
+  <br>
+  <table>
+    <tr>
+      <td>Curvatura botón favorito</td>
+      <td><input id="--mdl-button-fab-radius" type="range" nmin="0" max="50" sufijo="%"></td>
+    </tr>
+    <tr>
+      <td>Curvatura botón normal</td>
+      <td><input id="--mdl-button-radius" type="range" nmin="0" max="20" sufijo="px"></td>
+    </tr>
+  </table>
+
+  <h4>Parámetros secundarios </h4>
+  <table>
+    <th></th>
+    <th>Fondo</th>
+    <th>Texto</th>
+    <tr>
+      <td>Color principal gradiente 2</td>
+      <td><input id="--color-1-2" type="color" onchange="fColor(this)"></td>
+      <td><input id="--color-1-2_f" type="color"><i></i></td>
+    </tr>
+    <tr>
+      <td>Color principal gradiente 3</td>
+      <td><input id="--color-1-3" type="color" onchange="fColor(this)"></td>
+      <td><input id="--color-1-3_f" type="color"><i></i></td>
+    </tr>
+    <tr>
+      <td>Color destacado gradiente 2</td>
+      <td><input id="--color-2-2" type="color" onchange="fColor(this)" /></td>
+      <td><input id="--color-2-2_f" type="color"><i></i></td>
+    </tr>
+    <tr>
+      <td>Color destacado gradiente 3</td>
+      <td><input id="--color-2-3" type="color" onchange="fColor(this)" /></td>
+      <td><input id="--color-2-3_f" type="color"><i></i></td>
+    </tr>
+    <tr>
+      <td>Color cabecera grid</td>
+      <td><input id="--jqg-head-color" type="color" onchange="fColor(this)" /></td>
+      <td><input id="--jqg-head-color_f" type="color"><i></i></td>
+    </tr>
+    <tr>
+      <td>Color cabecera columnas grid</td>
+      <td><input id="--jqg-head-column-color" type="color" onchange="fColor(this)" /></td>
+      <td><input id="--jqg-head-column-color_f" type="color"><i></i></td>
+    </tr>
+  </table>
+</div>
+<% end %>

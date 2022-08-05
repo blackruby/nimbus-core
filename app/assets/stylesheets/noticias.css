@@ -13,7 +13,7 @@
 }
 
 body {
-  background-color: #673AB7;
+  background-color: var(--color-1);
   padding-top: 15px;
   padding-bottom: 15px;
 }
@@ -49,10 +49,10 @@ body {
   border-radius: 50%;
   background-size: cover;
   /* Las siguientes opciones sólo son válidas cuando no haya foto y se pinte la inicial del nombre */
-  background-color: #673AB7; 
+  background-color: var(--color-1);
+  color: var(--color-1_f);
   line-height: 48px;
   text-align: center;
-  color: white;
   font-size: x-large;
   font-weight: bold;
 }
@@ -100,8 +100,7 @@ body {
   left: 25px;
   right: 25px;
   z-index: 1;
-  background-color: #D1C4E9;
-  background-color: #ede7f6;
+  background-color: var(--color-1-3);
   box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
   border-radius: 2px;
 }

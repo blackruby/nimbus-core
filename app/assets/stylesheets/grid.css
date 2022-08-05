@@ -22,7 +22,8 @@
 
 #_pk-input {
   display: none;
-  background-color: #D1C4E9;
+  background-color: var(--color-1-2);
+  color: var(--color-1-2_f);
   border-radius: 10px;
   width: 15em;
 }
@@ -32,8 +33,8 @@
 }
 
 #sel-nim-ejer {
-  background-color: #673AB7;
-  color: white;
+  background-color: var(--color-1);
+  color: var(--color-1_f);
   font-size: 20px;
   outline: none;
   border: none;

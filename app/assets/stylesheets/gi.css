@@ -1,7 +1,7 @@
 #titulo {
   text-align: center;
-  background-color: #673AB7;
-  color: #ffffff;
+  background-color: var(--color-1);
+  color: var(--color-1_f);
   height: 40px;
   line-height: 40px;
   font-size: large;
@@ -12,8 +12,8 @@ table, td {
   border-collapse: collapse;
 }
 thead td {
-  background-color: #673AB7;
-  color: #ffffff;
+  background-color: var(--color-1);
+  color: var(--color-1_f);
   font-weight: bold;
 }
 td {

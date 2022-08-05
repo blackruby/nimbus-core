@@ -1,6 +1,6 @@
 .titulo {
-  background-color: #673AB7;
-  color: #ffffff;
+  background-color: var(--color-1);
+  color: var(--color-1_f);
   height: 40px;
   line-height: 40px;
   font-size: large;
@@ -72,7 +72,7 @@ textarea {
 
 .file_exists {
   color: red;
-  background-color: #D1C4E9;
+  background-color: #c0c0c0;
 }
 
 .no-close .ui-dialog-titlebar-close {

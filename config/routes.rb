@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  ['usuarios','nimtest','empresas','ejercicios','divisas','paises','perfiles','bloqueos','mensajes','divisalineas','auditorias'].each{|c|
+  ['usuarios','nimtest','empresas','ejercicios','divisas','paises','perfiles','bloqueos','mensajes','divisalineas','auditorias','temas'].each{|c|
     next if Nimbus::Config["excluir_#{c}".to_sym]
     get c => "#{c}#index"
     get "#{c}/new" => "#{c}#new"

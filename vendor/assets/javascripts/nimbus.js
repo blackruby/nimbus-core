@@ -1,10 +1,30 @@
-// Colores globales
-color_1 = "#673AB7";
-color_1_2 = "#D1C4E9";
-color_1_3 = "#ede7f6";
-color_1_d = "#512DA8";
-color_2 = "#FF4081";
-color_2_2 = "#F8BBD0";
+function setCSSVariables(tema, context = document) {
+  var r = context.querySelector(':root');
+  var keys = Object.keys(tema);
+
+  for (var k of keys) r.style.setProperty(k, tema[k]);
+}
+
+function setCSSVariables2(tema) {
+  setCSSVariables(tema);
+  if (parent != self) setCSSVariables(tema, parent.document);
+}
+
+function grabarTema(tema, aplicar) {
+  localStorage.setItem('nimbus_tema', JSON.stringify(tema));
+  if (aplicar) setCSSVariables(tema);
+}
+
+// Esta función borrará el tema almacenado en localStorage
+// y aplicará el que se le pasa como argumento (normalmente el de por defecto)
+function borrarTema(tema) {
+  localStorage.removeItem("nimbus_tema");
+  if (tema) setCSSVariables(tema);
+}
+
+// Aplicar el tema de estilos (si existe)
+var t = localStorage.getItem("nimbus_tema");
+if (t) setCSSVariables(JSON.parse(t));
 
 function checkDate(val) {
   if (val == '') return('');
@@ -853,10 +873,8 @@ function statusBotones(b) {
     context = $(".cl-" + k).length > 0 ? document : parent.document;
     if (v == null)
       $(".cl-" + k, context).remove();
-      //$(".cl-" + k, context).css("display", "none");
     else
       $(".cl-" + k, context).attr("disabled", !v);
-      //$(".cl-" + k, context).css("display", "inline-block").attr("disabled", !v);
   });
 }
 
@@ -1494,7 +1512,7 @@ function p2p(tit, label, pb, cancel, width, mant, fin) {
             clearInterval(vi);
             if (p2pStatus == 2) {
               fin.label = 'Finalizar';
-              dlgd.find('.ui-dialog-buttonpane').prepend('<i class="material-icons" style="color: #FF4081; vertical-align: bottom">report_problem</i>Error');
+              dlgd.find('.ui-dialog-buttonpane').prepend('<i class="material-icons" style="color: var(--color-2); vertical-align: bottom">report_problem</i>Error');
             }
             if (fin.label) {
               var context = mant ? parent.document : document;
@@ -1527,7 +1545,7 @@ function p2p(tit, label, pb, cancel, width, mant, fin) {
           callFonServer('p2p_req', {p2ps: 0}, function() {
             bt.attr('disabled', false);
             btt.css('color', 'black').text('Finalizar');
-            dlg.find('.ui-dialog-buttonpane').prepend('<i class="material-icons" style="color: #FF4081; vertical-align: bottom">report_problem</i>Cancelado');
+            dlg.find('.ui-dialog-buttonpane').prepend('<i class="material-icons" style="color: var(--color-2); vertical-align: bottom">report_problem</i>Cancelado');
           });
         } else {
           if (fin.met && p2pStatus == 0) callFonServer(fin.met);
@@ -1766,32 +1784,6 @@ $(window).load(function() {
   $(window).unload(function() {
     if (typeof(_vista) == "undefined") return;
 
-    /*
-    var vista = [];
-    var nimlock = [];
-
-    function addItem(win, doc) {
-      if (typeof(win._vista) != 'undefined') vista.push(win._vista);
-      if (typeof(win._nimlock) != 'undefined') nimlock.push(win._nimlock);
-
-      var ficha = doc.getElementById('ficha');
-      if (ficha) addItem(ficha.contentWindow, ficha.contentDocument);
-
-      var hijo;
-      for(var i = 0; hijo = doc.getElementById('hijo_' + i); i++) {
-        addItem(hijo.contentWindow, hijo.contentDocument);
-      }
-    }
-
-    addItem(window, document);
-
-    $.ajax({
-      url: '/application/destroy_vista',
-      type: "POST",
-      async: false,
-      data: {vista: vista, nimlock: nimlock}
-    });
-    */
     var data = new FormData();
     data.set('vista', _vista);
     if (typeof(_nimlock) != "undefined") data.set('nimlock', _nimlock);

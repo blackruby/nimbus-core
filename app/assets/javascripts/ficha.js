@@ -58,9 +58,9 @@ function grabarConTecla(e) {
 function nimLockTabs(def) {
   if (botLockTab.text() == "lock_open" || typeof(def) == "string") {
     if (botLockTab.text() == "lock_open") parent.nimDefaultTab = _activeTab.attr("id").slice(2);
-    botLockTab.text("lock").css("color", "#FF4081").prop("title", "Desbloquear pestaña activa");
+    botLockTab.text("lock").css("color", "var(--color-2)").prop("title", "Desbloquear pestaña activa");
   } else {
-    botLockTab.text("lock_open").css("color", "white").prop("title", "Bloquear pestaña activa en sucesivas ediciones");
+    botLockTab.text("lock_open").css("color", "var(--color-1_f)").prop("title", "Bloquear pestaña activa en sucesivas ediciones");
     parent.nimDefaultTab = null;
   }
 }

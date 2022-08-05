@@ -1,1 +1,6 @@
-Al actualizar hay que cambiar el fichero '.css' por '.scss' y dentro cambiar los 'url' de imágenes (no los de imágenes con data:) por 'image_url' y las rutas de las imágenes tienen que tener path relativo: ui/images/la_imagen_que_sea.png
+Al actualizar hay que cambiar el fichero '.css' por '.scss' y dentro cambiar las 'url' de imágenes (no las de imágenes con data:) por 'image-url' y las rutas de las imágenes tienen que tener path relativo: ui/images/la_imagen_que_sea.png
+
+Para cambiar el color de los iconos, se puede generar el png con cualquier color(rrggbb) con la siguiente URL:
+http://download.jqueryui.com/themeroller/images/ui-icons_rrggbb_256x240.png
+Ejemplo para greenyellow:
+http://download.jqueryui.com/themeroller/images/ui-icons_adff2f_256x240.png

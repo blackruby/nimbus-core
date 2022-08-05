@@ -303,6 +303,8 @@ class WelcomeController < ApplicationController
     @assets_stylesheets = %w(welcome/menu)
     @assets_javascripts = %w(menu ui_resizable_snap)
 
+    @ajax = ''
+
     @usu.update_columns(empresa_def_id: nil, ejercicio_def_id: nil) if @usu.empresa_def_id && !Empresa.exists?(@usu.empresa_def_id)
     @usu.update_columns(ejercicio_def_id: nil) if @usu.ejercicio_def_id && !Ejercicio.exists?(@usu.ejercicio_def_id)
 
@@ -361,17 +363,28 @@ class WelcomeController < ApplicationController
       end
     end
 
-    # Calcular en qué ejercicio se va a entrar (sólo al iniciar sesión)
-    if flash[:login] && @usu.empresa_def_id && @usu.pref[:log_ej_actual]
-      jid = Ejercicio.where('empresa_id = ? AND ? BETWEEN fec_inicio AND fec_fin', @usu.empresa_def_id, Date.today).order('fec_inicio desc').limit(1).pluck(:id)[0] || @usu.ejercicio_def_id
-      @usu.update_columns(ejercicio_def_id: jid) if jid != @usu.ejercicio_def_id
+    # Acciones a realizar sólo en el caso de que entremos por primera vez (directamente después de hacer login)
+    if flash[:login]
+      # Almacenar en localStorage el tema predeterminado, y, si no existe, borrarlo
+      t = Tema.find_by id: @usu.pref[:tema_id]
+      if t
+        @ajax << "grabarTema(#{t.params.to_json}, true);"
+      elsif Nimbus::Config[:tema]
+        @ajax << "grabarTema(#{Tema.scs_default.to_json}, true);"
+      else
+        @ajax << "borrarTema(#{Tema.scs_default.to_json});"
+      end
+
+      # Calcular en qué ejercicio se va a entrar (sólo al iniciar sesión)
+      if @usu.empresa_def_id && @usu.pref[:log_ej_actual]
+        jid = Ejercicio.where('empresa_id = ? AND ? BETWEEN fec_inicio AND fec_fin', @usu.empresa_def_id, Date.today).order('fec_inicio desc').limit(1).pluck(:id)[0] || @usu.ejercicio_def_id
+        @usu.update_columns(ejercicio_def_id: jid) if jid != @usu.ejercicio_def_id
+      end
+
+      # LLamar al método on_ini_sesion si existe. Este método hay que definirlo
+      # en app/controllers/welcome_controller_add.rb de la gestión.
+      on_ini_sesion if self.respond_to?(:on_ini_sesion)
     end
-
-    @ajax = ''
-
-    # LLamar al método on_ini_sesion si existe. Este método hay que definirlo
-    # en app/controllers/welcome_controller_add.rb de la gestión.
-    on_ini_sesion if flash[:login] && self.respond_to?(:on_ini_sesion)
   end
 
   def cambio_emej
