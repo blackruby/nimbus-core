@@ -376,7 +376,7 @@ class BusController < ApplicationController
     col_mod = @dat[:cols].map {|k, c|
       c[:cmp_db] = mp[:alias_cmp][c[:label]][:cmp_db]
       c[:alias] = mp[:alias_cmp][c[:label]][:alias]
-      h = {name: k.to_s, label: c[:label], type: c[:type], width: c[:w], searchoptions: {}, flag: true}
+      h = {name: k.to_s, label: c[:label], type: c[:type], width: c[:w], searchoptions: {}, flag: true, rich: c[:rich]}
       case c[:type]
         when 'boolean'
           h[:align] = 'center'
@@ -394,6 +394,9 @@ class BusController < ApplicationController
           h[:searchoptions][:sopt] = ['ge','le','gt','lt','eq','ne','nu','nn']
         else
           h[:searchoptions][:sopt] = ['cn','eq','bw','ew','nc','ne','bn','en','lt','le','gt','ge','in','ni','nu','nn']
+          if c[:rich]
+            h[:formatter] = %q(~function(v){return '<div class="rich" style="padding: 0;height: unset;max-height: 50px">' + v + '</div>'}~)
+          end
       end
       h
     }
@@ -481,7 +484,7 @@ class BusController < ApplicationController
         end
       }
     else
-      @dat[:cols][@dat[:last_col].next!.to_sym] =  {label: col, w: 150, type: arg[:type]}
+      @dat[:cols][@dat[:last_col].next!.to_sym] =  {label: col, w: 150, type: arg[:type], rich: arg[:rich]}
     end
 
     genera_grid((arg[:modo] == 'del' ? true : 99999), keep_scroll_v)

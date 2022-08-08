@@ -45,3 +45,31 @@ li i {
   padding-left: 5px;
   color: var(--jqg-head-color_f);
 }
+
+.rich {
+  box-sizing: border-box;
+  line-height: 1.42;
+  height: 100%;
+  outline: none;
+  overflow-y: auto;
+  tab-size: 4;
+  text-align: left;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding: 8px 12px;
+  user-select: text;
+}
+
+.rich::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rich::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  border-radius: 5px;
+}
+
+.rich::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}

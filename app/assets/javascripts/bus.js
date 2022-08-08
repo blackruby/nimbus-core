@@ -9,7 +9,7 @@ function gridCols() {
 
   var cols = {};
   for (var i in gcols) {
-    cols[gcols[i].name] = {label: gcols[i].label, w: gcols[i].width, type: gcols[i].type};
+    cols[gcols[i].name] = {label: gcols[i].label, w: gcols[i].width, type: gcols[i].type, rich: gcols[i].rich};
   }
 
   return cols;
@@ -61,7 +61,7 @@ function selCampo(event, modo) {
 
     setLastScroll();
 
-    callFonServer("nueva_col", {dat: JSON.stringify({col: name, modo: modo, type: event.node.type, dec: dec, cols: gridCols()})});
+    callFonServer("nueva_col", {dat: JSON.stringify({col: name, modo: modo, type: event.node.type, dec: dec, rich: event.node.rich, cols: gridCols()})});
   }
 }
 

@@ -192,7 +192,6 @@ class GiController < ApplicationController
         d[:label] = c
         d[:pk] = cl.respond_to?(:pk) ? (c == cl.pk[-1]) : false
         d[:manti] = cl.propiedades[cs][:manti] if cl.propiedades[cs] and cl.propiedades[cs][:manti]
-        decim = (cl.propiedades[cs] and cl.propiedades[cs][:decim]) ? cl.propiedades[cs][:decim] : 2
 
         case d[:type]
           when :boolean
@@ -212,6 +211,7 @@ class GiController < ApplicationController
             d[:estilo] = 'int'
           when :decimal
             d[:ali] = 'd'
+            decim = (cl.propiedades[cs] and cl.propiedades[cs][:decim]) ? cl.propiedades[cs][:decim] : 2
             if decim.is_a?(String)
               d[:decim] = decim[decim.index('#{').to_i+2...decim.rindex('}').to_i]
               d[:estilo] = 'dyn'
@@ -220,6 +220,7 @@ class GiController < ApplicationController
               d[:estilo] = 'dec' + decim.to_s
             end
           else
+            d[:rich] = true if cl.propiedades.dig(cs, :rich)
             d[:ali] = 'i'
         end
       end
