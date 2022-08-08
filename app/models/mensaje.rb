@@ -1,4 +1,8 @@
 class Mensaje < ActiveRecord::Base
+  @propiedades = {
+    texto: {rich: true}
+  }
+
   belongs_to :from, :class_name => 'Usuario'
   belongs_to :to, :class_name => 'Usuario'
 

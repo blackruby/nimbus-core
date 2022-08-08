@@ -5,7 +5,7 @@ class MensajesMod < Mensaje
     to_id: {tab: 'pre', manti: 40, gcols: 4, req: true, grid:{}},
     leido: {tab: 'pre', gcols: 1, grid:{width: 50}},
     separador: {tab: 'pre', gcols: 2, type: :div},
-    texto: {tab: 'pre', gcols: 8, label: '', rich: true, grid:{label: 'Mensaje'}},
+    texto: {tab: 'pre', gcols: 8, label: '', grid:{label: 'Mensaje'}},
   }
 
   @grid = {
