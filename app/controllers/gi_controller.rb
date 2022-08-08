@@ -213,7 +213,7 @@ class GiController < ApplicationController
             d[:ali] = 'd'
             decim = (cl.propiedades[cs] and cl.propiedades[cs][:decim]) ? cl.propiedades[cs][:decim] : 2
             if decim.is_a?(String)
-              d[:decim] = decim[decim.index('#{').to_i+2...decim.rindex('}').to_i]
+              d[:decim] = '(' + decim[decim.index('#{').to_i+2...decim.rindex('}').to_i] + ')'
               d[:estilo] = 'dyn'
             else
               d[:decim] = decim
