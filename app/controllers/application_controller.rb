@@ -186,7 +186,7 @@ class ApplicationController < ActionController::Base
 
   # Clase del modelo original
   def class_modelo
-    class_mant.modelo_base
+    class_mant.modelo_base rescue nil
   end
 
   def eval_cad(cad)
@@ -659,7 +659,7 @@ class ApplicationController < ActionController::Base
     src.size > 0 ? "src='/nim_send_file?file=#{src[0][Nimbus::DataPath.size+1..-1]}'" : ''
   end
 
-  def nim_image(mod: class_modelo, id: @fact.id, tag:, hid: nil, w: nil, h: nil)
+  def nim_image(mod: class_modelo, id: (@fact.respond_to?(:id) ? @fact.id : 0), tag:, hid: nil, w: nil, h: nil)
     h = 25 if w.nil? && h.nil?
     "<img #{hid ? 'id=' + hid : ''} #{nim_path_image(mod, id, tag)}#{w ? ' width=' + w.to_s : ''}#{h ? ' height=' + h.to_s: ''} />"
   end
@@ -1796,7 +1796,6 @@ class ApplicationController < ActionController::Base
 
   def edith
     clm = class_mant
-    #class_modelo  # Para inicializar la clase (forzar el load)
     cls = class_modelo.to_s.split('::')
     clmh = (cls.size == 1 ? 'H' + cls[0] : cls[0] + '::H' + cls[1]).constantize
     fh = clmh.find_by id: params[:id][1..-1]
@@ -2578,24 +2577,10 @@ class ApplicationController < ActionController::Base
       if params[:nocallback]
         @fact.update_column(campo, valor)
       else
-=begin
-        if clm.view?
-          clmod = class_modelo
-          f = clmod.find(@fact.id)
-          clmod.column_names.each {|c|
-            f.method(c+'=').call(@fact.method(c).call)
-          }
-          f.save
-        else
-          @fact.save
-        end
-=end
         @fact.save
       end
-      #render text: ''
       render plain: ''
     else
-      #render text: err
       render plain: err
     end
   end
@@ -3448,7 +3433,6 @@ class ApplicationController < ActionController::Base
     else
       call_nimbus_hook :before_borra
 
-      #class_mant.view? ? class_modelo.destroy(@fact.id) : @fact.destroy
       @fact.destroy
 
       if @usu.audit
@@ -3498,7 +3482,6 @@ class ApplicationController < ActionController::Base
     end
 
     clm = class_mant
-    clmod = class_modelo rescue nil
     err = ''
     last_c = nil
 
@@ -3557,23 +3540,23 @@ class ApplicationController < ActionController::Base
         end
 
         # Tratar campos imagen
-        cmps_img.each {|c|
-          v = @fact.campos[c][:img]
-          path = "#{Nimbus::DataPath}/#{clmod}/#{@fact.id}/_imgs"
-
-          # Borrar imágenes previas
-          `rm -f #{path}/#{c}.*`
-
-          unless @fact[c] == '*' # el valor asterisco es borrar la imagen, cosa que se ha hecho en la línea anterior
-            ia = @fact[c].split('.')
-            FileUtils.mkdir_p(path)
-            `mv #{@fact[c]} #{path}/#{c}.#{ia[1]}`
-          end
-
-          @fact[c] = nil
-        }
-
         if clm.mant?
+          clmod = class_modelo.to_s
+          cmps_img.each {|c|
+            path = "#{Nimbus::DataPath}/#{clmod}/#{@fact.id}/_imgs"
+
+            # Borrar imágenes previas
+            `rm -f #{path}/#{c}.*`
+
+            unless @fact[c] == '*' # el valor asterisco es borrar la imagen, cosa que se ha hecho en la línea anterior
+              ia = @fact[c].split('.')
+              FileUtils.mkdir_p(path)
+              `mv #{@fact[c]} #{path}/#{c}.#{ia[1]}`
+            end
+
+            @fact[c] = nil
+          }
+
           reponer_dirty
 
           #Refrescar el grid si procede
@@ -3898,7 +3881,7 @@ class ApplicationController < ActionController::Base
         }
         sal << '</div>'
       elsif v[:img] && @v   # Si no hay @v es la edición de una ficha histórica (edith)
-        if @fact.id == 0
+        if clm.mant? && @fact.id == 0
           imagen = ''
         elsif self.respond_to?(c)
           plus << ' disabled' unless plus.include?(' disabled')
