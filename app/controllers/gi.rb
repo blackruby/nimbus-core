@@ -713,7 +713,7 @@ class GI
       rt.add_run(tab_unit * tab, estilo_def) if tab > 0
 
       color = tag.match(/rgb\((.+?)\)/)
-      estilo[:color] = Prawn::Graphics::Color.rgb2hex(color[1].split(',')) if color
+      estilo[:color] = format('%02X%02X%02X', *color[1].split(',')) if color
 
       if tag.include?('serif')
         estilo[:font_name] = 'Times New Roman'
