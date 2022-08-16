@@ -220,7 +220,10 @@ class GiController < ApplicationController
               d[:estilo] = 'dec' + decim.to_s
             end
           else
-            d[:rich] = true if cl.propiedades.dig(cs, :rich)
+            if cl.propiedades.dig(cs, :rich)
+              d[:rich] = true
+              d[:estilo] = 'rich'
+            end
             d[:ali] = 'i'
         end
       end

@@ -50,7 +50,16 @@ function genArrayBan(rows) {
 }
 
 function grabaFic() {
-  var data = {modelo: modelo};
+  var data = {}
+  if (Object.keys(formato).length == 0) {
+    // Si es nuevo.
+    data.version = 2.0;
+  } else if (formato.version) {
+    // Si ya existía y tenía versión, respetarla.
+    data.version = formato.version;
+  }
+  data.modelo = modelo;
+
   var th, cl, h, trup;
 
   // Generamos la cadena de anchuras de columnas en el input col_widthd
@@ -1257,6 +1266,7 @@ $(window).load(function () {
     addEstilo("tit_d", ":def_d, :tit");
     addEstilo("borde", ":def, {border: {style: :thin, color: 'AAAAAA', edges: [:left, :right, :top, :bottom]}}");
     addEstilo("text", ":def, {alignment: {horizontal: :justify, vertical: :top, wrap_text: true}}");
+    addEstilo("rich", ":def, {alignment: {horizontal: :left, vertical: :top, wrap_text: true}, rich: true}");
   }
   llenaEstilos();
 

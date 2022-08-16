@@ -1,8 +1,10 @@
 ---
 :modelo: Pais
+:descripcion: ''
+:comentario: ''
 :filt_emej: true
-:npagw: ''
-:npagh: ''
+:fuente: ''
+:detalle_cond: ''
 :pingrid: false
 :tit_i: ''
 :tit_c: ''
@@ -12,13 +14,20 @@
 :pie_d: ''
 :page_setup: ''
 :col_widths: ''
+:row_height: ''
 :page_margins: 'header: 0.35, top: 0.64, bottom: 0.3'
+:print_options: ''
+:linxpag: ''
+:cab_din: false
+:cab_din_pdf: false
+:no_salto_last_rup: false
 :formulas: {}
 :select: {}
 :where: {}
 :order: ''
 :group: ''
 :having: {}
+:join: ''
 :cab:
 - - :campo: nt('codigo')
     :alias: codigo

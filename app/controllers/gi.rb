@@ -255,6 +255,45 @@ GI::Colors Es un array con 9 colores
 GI::Colors20 Es un array con 20 colores
 GI::Colors20d Es un array con 20 colores más suaves
 </pre>
+
+##nim-doc {sec: 'Miscelánea', met: 'Campos :text'}
+<pre>
+El problema con las celdas que contienen campos con mucho texto es determinar qué altura
+deben de tener, ya que no existe un modo automático que la adapte.
+En primer lugar hay que tener en cuenta que en el estilo habría que habilitar la opción
+de "wrap" (alignment: {wrap_text: true}) para que el texto se "doble". Si no, el texto
+se truncaría al final de la celda. Es importante especificar una anchura concreta, ya que 
+si no, la anchura se iría expandiendo hasta conseguir acomodar todo el texto.
+Una vez establecida una anchura y la opción "wrap" habilitada ya conseguimos que el texto
+se vaya "doblando" ocupando las filas que necesite.
+Por defecto, una fila de la hoja de cálculo va a tener una altura fija y por lo tanto
+no veríamos las líneas extra que se nos han podido crear. Para controlar la altura de la celda
+podemos especificar un valor en el campo "Caracteres/Línea" (esto es una estimación que
+tenemos que hacer de cuántos caracteres cabrán, de media, en una línea teniendo en cuenta la
+anchura de la columna y el font elegido). Con esto se hará un cálculo del número de líneas
+que se necesitan para pintar el texto. Una vez sabido el número de líneas, éste se 
+multiplicartá por la altura que se haya especificado para esa fila (si no hay, se usará
+el valor "Altura filas" de la configuración, y, si tampoco hay, se usará 13).
+Si no especificamos "Caracteres/Línea" pero sí una altura de fila, se asumirá que esa
+es la altura total (sin multiplicar por nada). GI interpreta que sólo hay una línea aunque
+en realidad haya varias por el wrap. Esto es útil para "cajas" de texto fijas
+en cabeceras o piés.
+En cualquier caso, si no se especifica nada (ni altura de fila, ni caracteres/línea, ni
+"Filas extra"), se ha fijado una anchura para la columna y en el estilo está hailitado el
+"wrap", el GI hará un cálculo automático de esos valores (altura de fila y caracteres/línea)
+basados el tipo de font y su tamaño.
+Para evitar el automatismo sólo hay que especificar alguno de los valores indicados en
+función del resultado que busquemos.
+Otra forma de conseguir altura en una celda es utilizar "Filas extra", aunque en este
+caso es sólo la celda la que gana altura, no toda la fila. Este método también es muy útil
+para cajas en cabecra/piés y se puede compaginar con todo lo anterior.
+Un último apunte: si el texto es enriquecido, para que el GI lo procese, hay que añadir
+la clave "rich: true" en el estilo (si es un campo de un modelo y en @propiedades ya tiene
+puesto "rich: true", se elegirá automáticamente el estilo "rich", que ya incluye dicha
+clave). Si el texto no fuera enriquecido, no pasa nada por añadir la clave (salvo pérdida
+de eficiencia).
+
+</pre>
 ##
 =end
 
@@ -642,6 +681,97 @@ class GI
     r
   end
 
+  # Parsea "text" para generar un objeto Axlsx::RichText
+  # Devuelve el objeto y el nº de líneas estimado que ocupa
+
+  def parse_rich(text, sz_def, cxl)
+    ini_cont = lambda {|cont, n|
+      (n..9).each {|i| cont[i] = i.even? ? '0' : '`'}
+      cont
+    }
+
+    # Si el texto no es rich añadirle un tag para forzarlo
+    text = '<p>' + text if text[0] != '<'
+
+    tab_unit = ' ' * 4
+    li = nil
+    cont = ini_cont[[], 0]
+    estilo_def = {font_name: 'Helvetica', sz: sz_def}
+    estilo_def_c = {font_name: 'Courier', sz: sz_def}
+    estilo = estilo_def.dup
+    nnl = 0
+    nlxsz = 0
+
+    rt = Axlsx::RichText.new
+
+    # Escaneo de todos los tags html del texto. En tt[0] estará el tag y en tt[1] el texto (de ese tag).
+    text.scan(/<(.+?)>([^<]*)/).each {|tt|
+      tag = tt[0]
+
+      tab = tag.match(/indent-([1-9])/)
+      tab = tab ? tab[1].to_i : 0
+      rt.add_run(tab_unit * tab, estilo_def) if tab > 0
+
+      color = tag.match(/rgb\((.+?)\)/)
+      estilo[:color] = Prawn::Graphics::Color.rgb2hex(color[1].split(',')) if color
+
+      if tag.include?('serif')
+        estilo[:font_name] = 'Times New Roman'
+      elsif tag.include?('monospace')
+        estilo[:font_name] = 'Courier'
+      end
+
+      if tag.include?('small')
+        estilo[:sz] = (sz_def * 0.7).round
+      elsif tag.include?('large')
+        estilo[:sz] = (sz_def * 1.8).round
+        nlxsz = 1
+      elsif tag.include?('huge')
+        estilo[:sz] = (sz_def * 2.5).round
+        nlxsz = 1
+      end
+
+      if tag.start_with? 'ol'
+        li = :o
+        ini_cont[cont, 0]
+      elsif tag.start_with? 'ul'
+        li = :u
+      elsif tag.start_with? 'li'
+        ini_cont[cont, tab + 1]
+        rt.add_run(tab_unit, estilo_def)
+        rt.add_run((li == :u ? "\u2022" : cont[tab].next! + '.'), estilo_def_c)
+        rt.add_run(' ', estilo_def)
+      elsif tag.start_with? 'strong'
+        estilo[:b] = true
+      elsif tag.start_with? 'em'
+        estilo[:i] = true
+      elsif tag == 'u' || tag.start_with?('u ')
+        estilo[:u] = true
+      elsif tag == 's' || tag.start_with?('s ')
+        estilo[:strike] = true
+      end
+
+      if tt[1] != ''
+        t = tt[1].gsub('&lt;', '<').gsub('&gt;', '>')
+        rt.add_run(t, estilo)
+        nnl += t.size / cxl if cxl > 0
+        estilo = estilo_def.dup
+      end
+
+      if %w(/p /l).include?(tag[0..1])
+        rt.add_run("\n")
+        if cxl > 0
+          nnl += 1 + nlxsz
+          nlxsz = 0
+        end
+      end
+    }
+
+    nnl -= 1 if text.ends_with?('</p>') || text.ends_with?('</li>')
+
+    [rt, nnl]
+  end
+
   def _add_banda(ban, valores={}, sheet)
     @ri_act = @ris[sheet]
     merg = []
@@ -664,27 +794,36 @@ class GI
         end
         @lis[sheet] += 1
       end
+      
       @bi = i
+      
+      sty = r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}
+      typ = r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}
+      
       res = []
       num_rows = 0
       r.each_with_index {|c, i|
-        res << Nimbus.nimval(valores[c[:alias].to_s.to_sym] || val_campo(c[:campo]))
-        cxl = c[:charxlin].to_i
-        if cxl > 0 && res[-1]
-          l = res[-1].size / cxl
-          num_rows = l if l > num_rows
+        estilo = @estilos[sty[i]]
+        texto = Nimbus.nimval(valores[c[:alias].to_s.to_sym] || val_campo(c[:campo]))
+        if estilo[:rich]
+          rt = parse_rich(texto, estilo[:sz] || 10, c[:charxlin].to_i)
+          res << rt[0]
+          num_rows = rt[1] if rt[1] > num_rows
+        else
+          res << texto
+          cxl = c[:charxlin].to_i
+          if cxl > 0 && res[-1]
+            l = res[-1].size / cxl
+            num_rows = l if l > num_rows
+          end
         end
 
         if c[:colspan].to_i > 0 or c[:rowspan].to_i > 0
-          #merg << "#{('A'.ord + i).chr}#{@ri_act}:#{('A'.ord + i + c[:colspan].to_i).chr}#{@ri_act + c[:rowspan].to_i}"
           merg << "#{col_code(i)}#{@ri_act}:#{col_code(i + c[:colspan].to_i)}#{@ri_act + c[:rowspan].to_i}"
         end
       }
-      sty = r.map {|c| c[:estilo].to_s.empty? ? @sty[:def] : @sty[c[:estilo].to_sym]}
-      typ = r.map {|c| c[:tipo] ? (c[:tipo].empty? ? nil : c[:tipo].to_sym) : nil}
       altura = r[0] ? r[0][:height].to_i : 0
       altura = @form[:row_height] if altura == 0
-      #sheet.add_row res, style: sty, types: typ, height: (num_rows == 0 ? @form[:row_height] : 13 * (num_rows+1))
       sheet.add_row res, style: sty, types: typ, height: (num_rows == 0 ? altura : (altura ? altura : 13) * (num_rows+1))
       @ris[sheet] += 1
       @ri_act += 1
@@ -791,12 +930,40 @@ class GI
     @sh = nueva_hoja name: 'Uno'
 
     # Añadir estilos
+    @estilos = []
     if @form[:style]
       @sty = {}
       @form[:style].each {|c, v|
         st = {}
         new_style(v, st)
         @sty[c] = @wb.styles.add_style(st)
+        @estilos[@sty[c]] = st
+      }
+    end
+
+    # Calcular valores razonables para alturas de fila y nº de caracteres por fila (si está
+    # activado wrap_text) en función del tipo de fuente y su tamaño.
+    # El cálculo sólo se hará si no hay valores especificados y si la versión del GI > 1
+
+    if @form[:version].to_f > 1
+      cw = @form[:col_widths].split(',').map(&:to_i)
+      # mu es un hash con los valores del ancho medio que ocupa un carácter en cada font (el default es Arial)
+      mu = {'Times New Roman' => 2.48, 'Courier' => 1.67}
+      mu.default = 2.25
+      ([:cab, :det, :pie] + @form.keys.select{|b| b[0..2] == 'bu_'}).each {|ban|
+        @form[ban].each {|r|
+          if r[0] && r[0][:height].to_i == 0 
+            msz = 10
+            r.each_with_index {|c, i|
+              st = c[:estilo] ? @estilos[@sty[c[:estilo].to_sym]] : {}
+              msz = [msz, st[:sz].to_i].max
+              if cw[i].to_i != 0 && st.dig(:alignment, :wrap_text) && c[:charxlin].to_i == 0 && c[:rowspan].to_i == 0
+                c[:charxlin] = (12.0 * mu[st[:font_name]] * cw[i].to_i / (mu.default * ((st[:sz] || 10).to_i))).round
+              end
+            }
+            r[0][:height] = msz * 13 / 10 if @form[:row_height].to_i == 0
+          end
+        }
       }
     end
 
@@ -884,7 +1051,6 @@ class GI
     # Método de final si existe
     final if self.respond_to?(:final)
 
-    #@sh.column_widths(*(@form[:col_widths].split(',').map{|w| w == '0' ? nil : w.to_i})) if @form[:col_widths]
     set_col_widths
 
     xls.serialize(name)
