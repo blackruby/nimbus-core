@@ -690,8 +690,8 @@ class GI
       cont
     }
 
-    # Si el texto no es rich añadirle un tag para forzarlo
-    text = '<p>' + text if text[0] != '<'
+    # Si el texto no es rich añadirle un tag para forzarlo y cambiar los comienzos de tag para que no se cuele el parser
+    text = '<p>' + text.gsub('<', '&lt;') if text[0] != '<'
 
     tab_unit = ' ' * 4
     li = nil
