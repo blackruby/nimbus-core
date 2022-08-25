@@ -953,6 +953,7 @@ module MantMod
         v[:grid][:editoptions] ||= {}
         v[:grid][:searchoptions] ||= {}
         v[:grid][:formatoptions] ||= {}
+        v[:grid][:sortable] = false if v[:grid][:sortable].nil? && v[:calculado]
       end
 
       case v[:type]
@@ -1615,6 +1616,7 @@ module Modelo
   end
 
   def _ini_campos
+    @ctrl = {}
     cl = self.class.to_s.ends_with?('Mod') ? self.class.superclass : self.class
     pr = cl.propiedades
     ch = cl.columns_hash

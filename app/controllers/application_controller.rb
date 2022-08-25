@@ -1308,16 +1308,6 @@ class ApplicationController < ActionController::Base
     pag_render('grid')
   end
 
-  def forma_eager(eager, campo)
-    if campo.include?('.')
-      tablas = campo.split('.')
-      eager << tablas[0]     # Borrar cuando esté tratado el caso de varias tablas
-      for i in 0..tablas.size-2
-        #eager <<      # Tratar el caso de varias tablas
-      end
-    end
-  end
-
   # Método para añadir a la cadena 's' el valor 'v' concatenado con 'AND'
   def add_where(s, v)
     if v and v.strip != ''
@@ -1327,6 +1317,7 @@ class ApplicationController < ActionController::Base
   end
 
   # Método que provee de datos a las peticiones del grid
+
   def list
     # Si la petición no es Ajax... ¡Puerta! (Por razones de seguridad)
     unless request.xhr?
@@ -1335,42 +1326,15 @@ class ApplicationController < ActionController::Base
     end
 
     clm = class_mant
-    #mod_tab = clm.table_name
-
-    #w = (@dat and @dat[:auto_comp] and @dat[:auto_comp][:_pk_input]) ? @dat[:auto_comp][:_pk_input] : ''
     w = @dat[:wgrid] ? @dat[:wgrid] : ''
-=begin
-    if params[:mod]
-      add_where(w, mod_tab + '.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
-    else
-      if clm.column_names.include?('empresa_id')
-        if params[:eid]
-          add_where(w, mod_tab + '.empresa_id=' + params[:eid])
-        else
-          render json: {error: 'no_emp'}
-          return
-        end
-      end
-      if clm.column_names.include?('ejercicio_id')
-        if params[:jid]
-          add_where(w, mod_tab + '.ejercicio_id=' + params[:jid])
-        else
-          render json: {error: 'no_eje'}
-          return
-        end
-      end
-    end
-=end
 
     # Definimos @e y @j por si hay campos que los utilizan algún parámetro (p.ej. :decim)
     @e = Empresa.find_by(id: @dat[:eid]) if @dat[:eid]
     @j = Ejercicio.find_by(id: @dat[:jid]) if @dat[:jid]
 
     if params[:filters]
-      #fil = eval(params[:filters])
       fil = JSON.parse(params[:filters]).deep_symbolize_keys
       fil[:rules].each {|f|
-        #f = f.symbolize_keys
         #[:eq,:ne,:lt,:le,:gt,:ge,:bw,:bn,:in,:ni,:ew,:en,:cn,:nc,:nu,:nn]
         op = f[:op].to_sym
 
@@ -1395,7 +1359,6 @@ class ApplicationController < ActionController::Base
         end
 
         if op == :nu or op == :nn
-          #add_where w, f[:field]
           add_where w, field
           w << ' IS'
           w << ' NOT' if op == :nn
@@ -1403,18 +1366,15 @@ class ApplicationController < ActionController::Base
           next
         end
 
-        #add_where w, ([:bn,:ni,:en,:nc].include?(op) ? 'NOT ' : '') + (ty == :string ? 'UNACCENT(LOWER(' + f[:field] + '))' : f[:field])
         add_where w, ([:bn,:ni,:en,:nc].include?(op) ? 'NOT ' : '') + (ty == :string ? 'UNACCENT(LOWER(' + field + '))' : field)
         w << ({eq: '=', ne: '<>', cn: ' LIKE ', bw: ' LIKE ', ew: ' LIKE ', nc: ' LIKE ', bn: ' LIKE ', en: ' LIKE ', in: ' IN (', ni: ' IN (', lt: '<', le: '<=', gt: '>', ge: '>='}[op] || '=')
         if op == :in or op == :ni
-          #f[:data].split(',').each {|d| w << '\'' + I18n.transliterate(d).downcase + '\','}
           f[:data].split(',').each {|d| w << '\'' + I18n.transliterate(d).downcase.gsub('\'', '\'\'') + '\','}
           w.chop!
           w << ')'
         else
           w << '\''
           w << '%' if [:ew,:en,:cn,:nc].include?(op)
-          #w << (ty == :string ? I18n.transliterate(f[:data]).downcase : f[:data])
           w << (ty == :string ? I18n.transliterate(f[:data]).downcase.gsub('\'', '\'\'') : f[:data].gsub('\'', '\'\''))
           w << '%' if [:bw,:bn,:cn,:nc].include?(op)
           w << '\''
@@ -1427,9 +1387,7 @@ class ApplicationController < ActionController::Base
 
     # Mirar si algún campo es de otra tabla para incluirla en la lista de eager-load
     # Componer también la cadena select (con los campos sql)
-    #clm.columnas.each{|c|
     @dat[:columnas].each{|c|
-      #forma_eager(eager, class_mant.campos[c.to_sym][:grid][:index])
       if c.ends_with?('_id')
         eager << c[0..-4]
       end
@@ -1446,32 +1404,11 @@ class ApplicationController < ActionController::Base
     sort_elem = params[:sidx].split(',')  #Partimos por ',' así tenemos un vector de campos por los que ordenar
     sort_elem.each{|c|
       c2 = c.split(' ') # Separamos el campo y el tipo de ord (ASC, DESC)
-      #if c2[0].include?('.')
-        #c3 = c2[0].split('.')   # Aquí habrá problemas con nietos y dos o más columnas con foreing_key a la misma tabla
-        #ord << c3[0].split('_')[0].pluralize + '.' + c3[-1] # Se están ignorando c3[1]...c3[-2]  ¿Qué hacer?
-        #forma_eager(eager, c2[0])
-      #else
-        #ord << mod_tab + '.' + c2[0]  #Anteponemos el nombre de la tabla si no está puesto (para evitar conflictos de mismo nombre de campo en distintas tablas)
-      #end
       ord << c2[0]
       ord << (c2[1] ? ' ' + c2[1] : '') + ','
     }
     ord = ord[0..-2] + ' ' + params[:sord] if ord != ''
 
-=begin
-    sort = params[:sidx].split('.')
-    if sort.size == 1
-      sortname = sort[0]
-    else
-      for i in 0..sort.size-2
-        eager << sort[i]  # Hay que añadir el resto cuando son más de un nivel
-      end
-      sortname = sort[-2].split('_')[0].pluralize + '.' + sort[-1]
-    end
-    ord = sortname + ' ' + params[:sord]
-=end
-
-    #tot_records =  clm.eager_load(eager).where(w).where(params[:wh]).count
     begin
       tot_records =  clm.eager_load(eager).joins(@dat[:cad_join]).where(w).count
       lim = params[:rows].to_i
@@ -1485,14 +1422,14 @@ class ApplicationController < ActionController::Base
         return
       end
 
-      #sql = clm.eager_load(eager).where(w).where(params[:wh]).order(ord).offset((page-1)*lim).limit(lim)
       sql = clm.eager_load(eager).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
 
       res = {page: page, total: tot_pages, records: tot_records, rows: []}
       sql.each {|s|
+        # Inyectar variable @ctrl para que esté disponible en campos calculados a través de métodos
+        s.instance_variable_set('@ctrl', {usu: @usu, emp: @e, eje: @j, eid: @dat[:eid], jid: @dat[:jid]})
         @fact = s
         h = {:id => s.id, :cell => []}
-        #clm.columnas.each {|c|
         @dat[:columnas].each {|c|
           begin
             h[:cell] << forma_campo(:grid, s, c, s[c]).to_s
@@ -1764,6 +1701,9 @@ class ApplicationController < ActionController::Base
 
     set_empeje(eid, jid)
 
+    # Inyectar variable @ctrl para que esté disponible en campos calculados a través de métodos
+    @fact.instance_variable_set('@ctrl', {usu: @usu, emp: @e, eje: @j, eid: @dat[:eid], jid: @dat[:jid]})
+
     var_for_views(clm)
 
     @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
@@ -1880,29 +1820,12 @@ class ApplicationController < ActionController::Base
 
     ini_ajax
 
-=begin
-    ((!clm.mant? or @fact.id != 0) and self.respond_to?('before_edit')) ? r = before_edit : r = nil
-    if r
-      if r.is_a? Hash
-        if r[:redirect]
-          redirect_to r[:redirect]
-        else
-          render file: r[:file], status: r[:status], layout: false
-        end
-      else
-        render file: r, status: 401, layout: false
-      end
-      return
-    end
-=end
     ((!clm.mant? or @fact.id != 0) and self.respond_to?('before_edit')) ? r = before_edit : r = true
     return if render_before_ine(r)
 
-    #var_for_views(clm)
     call_nimbus_hook :ini_campos
 
     @v = Vista.new
-    #@v.save unless clm.mant? and @fact.id == 0
     @v.data = {}
     @dat = @v.data
     @dat[:persistencia] = {}
@@ -1913,6 +1836,8 @@ class ApplicationController < ActionController::Base
     set_parent
 
     emp_perm = nil
+
+    eid, jid = get_empeje
 
     if clm.mant?
       if @fact.id != 0
@@ -1931,28 +1856,17 @@ class ApplicationController < ActionController::Base
           @dat[:jid] = @fact.id
         end
 
-        #set_empeje(@dat[:eid], @dat[:jid])
         set_empeje
 
         #Activar botones necesarios (Grabar/Borrar)
-        #@ajax << 'statusBotones({grabar: true, borrar: true});'
         status_botones grabar: true, borrar: true, osp: true
       else
-=begin
-        @dat[:eid] = params[:eid]
-        @dat[:jid] = params[:jid]
-
-        @e = Empresa.find_by id: params[:eid]
-        @j = Ejercicio.find_by id: params[:jid]
-=end
         set_empeje(*get_empeje)
 
         #Activar botones necesarios (Grabar/Borrar)
         @ajax << 'statusBotones({grabar: false, borrar: false});'
       end
     else
-      eid, jid = get_empeje
-
       @dat[:eid] = eid
       @dat[:jid] = jid
 
@@ -1977,7 +1891,6 @@ class ApplicationController < ActionController::Base
     # Control de permisos
     @dat[:prm] = 'p'
     unless @usu.admin or params[:controller] == 'gi' or (clm.mant? and @fact.id == 0)
-      #@dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
       @dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][emp_perm]
       if @dat[:prm].nil?
         render_error '401'
@@ -1987,10 +1900,12 @@ class ApplicationController < ActionController::Base
 
     call_nimbus_hook(:set_permiso) if clm.mant? && @fact.id != 0
 
+    # Inyectar variable @ctrl en @fact para que esté disponible en campos calculados a través de métodos
+    @fact.instance_variable_set('@ctrl', {usu: @usu, emp: @e, eje: @j, eid: @dat[:eid] || eid, jid: @dat[:jid] || jid})
+
     @dat[:idindex] = params[:idindex].to_i
     @dat[:prm] = 'c' if params[:lock]
 
-    #blq = nil
     blq = (@dat[:prm] == 'c')
     if clm.mant? && @fact.id != 0 && clm.nim_lock && @dat[:prm] != 'c'
       begin
@@ -2026,18 +1941,10 @@ class ApplicationController < ActionController::Base
 
     @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
-    #@v.save unless clm.mant? and @fact.id == 0
-
-    #set_parent @v.id
-
     @ajax << 'eid="' + @dat[:eid].to_s + '",jid="' + @dat[:jid].to_s + '";'
-    #unless clm.mant? and @fact.id == 0
-    #  @ajax << '_vista=' + @v.id.to_s + ';_controlador="' + params['controller'] + '";'
-    #end
 
     var_for_views(clm)
 
-    #before_envia_ficha if self.respond_to?(:before_envia_ficha)
     call_nimbus_hook :before_envia_ficha
 
     unless clm.mant? && @fact.id == 0
