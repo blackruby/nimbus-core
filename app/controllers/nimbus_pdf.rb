@@ -11,12 +11,31 @@
 Prawn::Font::AFM.hide_m17n_warning = true
 
 class NimbusPDF < Prawn::Document
+  # Clase para pintar un rectángulo en textos rich con background-color.
+  # Se irá creando un objeto de esta clase por cada nuevo color y se
+  # guardarán en @rich_bg_colors para reaprovecharlos.
+
+  class RichBgColor
+    def initialize(color, doc)
+      @color = color
+      @doc = doc
+    end
+
+    def render_behind(text)
+      oc = @doc.fill_color
+      @doc.fill_color = @color
+      @doc.fill_rectangle(text.top_left, text.width, text.height)
+      @doc.fill_color = oc
+    end
+  end
+
   # Sobrecarga de métodos originales
 
   def initialize(opts = {})
     @documentos = {}
     @documentos_pag = [[0, nil]]  # Lo inicializamos con un centinela para cuando haya que referenciar el elemento anterior
     opts[:skip_page_creation] = true
+    @rich_bg_colors = {}
     super
   end
 
@@ -117,7 +136,15 @@ class NimbusPDF < Prawn::Document
         fo = font
         font v[:font]
       end
-      span(v[:ancho], position: v[:pos]) {text (val[k] || v[:texto]).to_s, v}
+      span(v[:ancho], position: v[:pos]) {
+        t = (val[k] || v[:texto]).to_s
+        if t[0] == '<' && %w(p o u).include?(t[1])
+          # Asumimos que es texto enriquecido (rich)
+          formatted_text rich2prawn(t, v[:size] || 12), v
+        else
+          text t, v
+        end
+      }
       set_font fo if v[:font]
 
       pag = page_number
@@ -285,6 +312,7 @@ class NimbusPDF < Prawn::Document
       line_width lw
       stroke_color sc if v[:brcolor]
     end
+
     if v[:bgcolor]
       fc = fill_color
       fill_color v[:bgcolor]
@@ -298,11 +326,20 @@ class NimbusPDF < Prawn::Document
       fo = font
       font v[:font]
     end
+
     if v[:color]
       fc = fill_color
       fill_color v[:color]
     end
-    text_box (val || v[:texto]).to_s, v
+
+    t = (val || v[:texto]).to_s
+    if t[0] == '<' && %w(p o u).include?(t[1])
+      # Asumimos que es texto enriquecido (rich)
+      formatted_text_box rich2prawn(t, v[:overflow] == :shrink_to_fit ? 0 : (v[:size] || 12)), v
+    else
+      text_box t, v
+    end
+
     set_font fo if v[:font]
     fill_color fc if v[:color]
   end
@@ -339,6 +376,90 @@ class NimbusPDF < Prawn::Document
     end
 
     nueva_banda_cp(@documento[:pie], val_pie)
+  end
+
+  def rich2prawn(htm, sz = 0)
+    estilo_def = lambda {
+      h = {font: 'Helvetica', styles: []}
+      h[:size] = sz if sz > 0
+      h
+    }
+
+    ini_cont = lambda {|cont, n|
+      (n..9).each {|i| cont[i] = i.even? ? '0' : '`'}
+      cont
+    }
+
+    tab_unit = Prawn::Text::NBSP * 8
+    li = nil
+    cont = ini_cont[[], 0]
+    estilo_d = estilo_def[]
+    estilo_d_c = estilo_def[].merge({font: 'Courier'})
+    estilo = estilo_def[]
+    tb = []
+
+    htm.scan(/<(.+?)>([^<]*)/).each {|tt|
+      tag = tt[0]
+
+      tab = tag.match(/indent-([1-9])/)
+      tab = tab ? tab[1].to_i : 0
+      tb << {text: tab_unit * tab}.merge(estilo_d) if tab > 0
+
+      color = tag.match(/[^-]color: rgb\((.+?)\)/)
+      estilo[:color] = format('%02X%02X%02X', *color[1].split(',')) if color
+
+      bgcolor = tag.match(/[-]color: rgb\((.+?)\)/)
+      if bgcolor
+        rgb = format('%02X%02X%02X', *bgcolor[1].split(','))
+        puts rgb
+        @rich_bg_colors[rgb] = RichBgColor.new(rgb, self) unless @rich_bg_colors[rgb]
+        estilo[:callback] = @rich_bg_colors[rgb]
+      end
+
+      if tag.include?('serif')
+        estilo[:font] = 'Times-Roman'
+      elsif tag.include?('monospace')
+        estilo[:font] = 'Courier'
+      end
+
+      if sz > 0
+        if tag.include?('small')
+          estilo[:size] = sz * 0.7
+        elsif tag.include?('large')
+          estilo[:size] = sz * 1.8
+        elsif tag.include?('huge')
+          estilo[:size] = sz * 2.5
+        end
+      end
+
+      if tag.starts_with? 'ol'
+        li = :o
+        ini_cont[cont, 0]
+      elsif tag.starts_with? 'ul'
+        li = :u
+      elsif tag.starts_with? 'li'
+        ini_cont[cont, tab + 1]
+        tb << {text: tab_unit}.merge(estilo_d)
+        tb << {text: (li == :u ? "\u2022" : cont[tab].next! + '.')}.merge(estilo_d_c)
+        tb << {text: ' '}.merge(estilo_d)
+      elsif tag.starts_with? 'strong'
+        estilo[:styles] << :bold
+      elsif tag.starts_with? 'em'
+        estilo[:styles] << :italic
+      elsif tag == 'u' || tag.starts_with?('u ')
+        estilo[:styles] << :underline
+      elsif tag == 's' || tag.starts_with?('s ')
+        estilo[:styles] << :strikethrough
+      end
+
+      if tt[1] != ''
+        tb << {text: tt[1].gsub('&lt;', '<').gsub('&gt;', '>')}.merge(estilo)
+        estilo = estilo_def[]
+      end
+
+      tb << {text: "\n"} if %w(/p /l).include?(tag[0..1])
+    }
+    tb
   end
 end
 
