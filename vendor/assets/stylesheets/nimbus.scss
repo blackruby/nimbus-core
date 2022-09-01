@@ -45,12 +45,6 @@ a {
   text-align: right;
 }
 
-.auto_comp {
-  /*
-  background-color: #F9FFF9;
-  */
-}
-
 .nim-popup {
   position: absolute;
   cursor: none;
@@ -346,6 +340,11 @@ a {
 
 /** Asignar colores en variables para poder cambiar el tema **/
 
+// Color de la barra de los inputs de tipo range
+input[type=range] {
+  accent-color: var(--color-1);
+}
+
 .mdl-layout__header, .mdl-layout__tab-bar {
   color: var(--color-1_f);
   background-color: var(--color-1);
@@ -447,10 +446,9 @@ a {
 
 .ui-icon, .ui-state-default .ui-icon, .ui-widget-content .ui-icon
 {
-  // background-image: image-url("ui/images/ui-icons_673AB7_256x240.png");
   background-image: image-url("ui/images/ui-icons_000000_256x240.png");
 }
-.ui-state-error {
+.ui-state-error, .ui-widget-content .ui-state-error, .ui-widget-header .ui-state-error {
   color: var(--color-1-3_f);
   background: var(--color-1-3);
 }
@@ -462,11 +460,7 @@ a {
   color: var(--color-1_f);
   background: var(--color-1);
 }
-/**
-.ui-widget-header .ui-state-default {
-  background: yellow;
-}
-**/
+
 // Cabeceras de columna en los grids
 .ui-state-default .ui-th-column {
   color: var(--jqg-head-column-color_f);

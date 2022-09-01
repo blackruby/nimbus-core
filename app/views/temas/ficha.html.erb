@@ -1,4 +1,5 @@
 <% if @fact.id != 0 %>
+<% content_for :params do %>
 <div id="parametros">
   <br>
   <button id="default" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" title="Grabar este tema y usarlo como predeterminado">
@@ -75,4 +76,5 @@
     </tr>
   </table>
 </div>
+<% end %>
 <% end %>

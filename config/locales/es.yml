@@ -19,3 +19,5 @@ es:
   accion: Acción
   acciones_audit: "A: Alta de nuevo registro\nB: Borrado de registro\nE: Edición/Entrada en registro/proceso\nG: Grabación/Ejecución de registro/proceso" 
   nim_cuota: Uso de disco
+  params: Parámetros
+  fondo_menu: Imagen fondo menú

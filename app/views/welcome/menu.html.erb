@@ -16,7 +16,7 @@
   <div class="div-head">
     <a id="a-usuario" target="_blank" href="/usuarios/<%= @usu.id %>/edit" style="font-size: 20px">
       <%= @usu.codigo %>
-      <img <%= nim_path_image('Usuario', @usu.id, :foto).html_safe %>" height="40" border="0" style="margin-left: 8px">
+      <img <%= nim_path_image('Usuario', @usu.id, :foto).html_safe %> height="40" style="margin: 0 6px">
       <%= @usu.nombre %>
     </a>
     <div class="d-icon-cab">
@@ -59,7 +59,7 @@
   </ul>
 </nav>
 
-<div id="div-body"></div>
+<div id="div-body"><div id="bg-img"></div></div>
 
 <div id="context-menu" class="nim-context-menu">
   <ul class="nim-context-menu-ul">
@@ -69,6 +69,7 @@
     <li id="add-url" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon">link</i>Añadir URL</li>
     <li id="add-cont" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon">folder_open</i>Añadir carpeta</li>
     <li id="save-panel" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon">save</i>Guardar panel</li>
+    <li id="li-opacidad" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon">visibility</i><input id="opacidad" type="range" nmin="0" max="1" step="0.01"></li>
   </ul>
 </div>
 
@@ -85,5 +86,10 @@
   numEjer = <%= Ejercicio.where('empresa_id = ?', @usu.empresa_def_id).count %>
   daysLeft = <%= @days_left.to_json %>;
   nimNoticias = <%= Nimbus::Config[:noticias].to_json %>
+  <% if (img = nim_path_image('Tema', @usu.pref[:tema_id], :fondo_menu)).present? %>
+    bgImg = "<%= img[5..-2].html_safe %>";
+  <% else %>
+    bgImg = null;
+  <% end %>
   <%= @ajax.html_safe %>
 </script>

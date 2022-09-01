@@ -1,8 +1,12 @@
 class TemasMod < Tema
   @campos = {
     codigo: {tab: 'pre', gcols: 2, grid: {}},
-    descripcion: {tab: 'pre', gcols: 6, grid: {}},
+    descripcion: {tab: 'pre', gcols: 4, grid: {}},
     privado: {tab: 'pre', gcols: 2, title: 'No permite la edición de este tema por parte de otros usuarios'},
+
+    dumb: {tab: 'params', gcols: 0},
+
+    fondo_menu: {tab: 'fondo_menu', gcols: 12, title: 'Imagen de fondo de la ventana principal', img: {height: 600}},
   }
 
   @grid = {
