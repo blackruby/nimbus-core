@@ -1663,24 +1663,22 @@ function nimbusd(met, params) {
     always(function() {quitaBusy();});
 }
 
-$(window).load(function() {
-  var _auto_comp_menu_;
-
-  // Calcular cuál es la ventana del menú principal (si sigue abierta)
-  nimWinMenu = self;
-  do {
-    if (nimWinMenu.parent == nimWinMenu.self) {
-      if (nimWinMenu.nimServerStop == undefined) {
-        if (nimWinMenu.opener == null)
-          break;
-        else
-          nimWinMenu = nimWinMenu.opener;
-      } else
+// Calcular cuál es la ventana del menú principal (si sigue abierta)
+nimWinMenu = self;
+do {
+  if (nimWinMenu.parent == nimWinMenu.self) {
+    if (nimWinMenu.nimServerStop == undefined) {
+      if (nimWinMenu.opener == null)
         break;
+      else
+        nimWinMenu = nimWinMenu.opener;
     } else
-      nimWinMenu = nimWinMenu.parent;
-  } while (true);
+      break;
+  } else
+    nimWinMenu = nimWinMenu.parent;
+} while (true);
 
+$(window).load(function() {
   $("body").on("focus", ".nim-datetime", function (e) {
     var th = $(this);
     var rt = e.relatedTarget;
