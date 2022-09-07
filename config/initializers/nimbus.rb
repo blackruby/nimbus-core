@@ -953,7 +953,10 @@ module MantMod
         v[:grid][:editoptions] ||= {}
         v[:grid][:searchoptions] ||= {}
         v[:grid][:formatoptions] ||= {}
-        v[:grid][:sortable] = false if v[:grid][:sortable].nil? && v[:calculado]
+        if v[:calculado]
+          v[:grid][:sortable] = false if v[:grid][:sortable].nil?
+          v[:grid][:search] = false if v[:grid][:search].nil?
+        end
       end
 
       case v[:type]
