@@ -19,12 +19,6 @@
 //= require jquery.maskedinput
 //= require jqGrid/jquery.jqgrid.src
 //= require jqGrid/grid.locale-es
-//= require hch/highstock
-//= require hch/highcharts-3d
-//= require hch/highcharts-more
-//= require hch/exporting
-//= require hch/offline-exporting
-//= require hch/spanish
 //= require jquery.mmenu.min.all
 //= require tree.jquery
 //= require mdl/material.min.js
