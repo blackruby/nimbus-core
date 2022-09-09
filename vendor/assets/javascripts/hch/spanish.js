@@ -17,6 +17,7 @@ Highcharts.setOptions({
     downloadSVG: 'Descargar gráfica SVG',
     printChart: 'Imprimir Gráfica',
     thousandsSep: ".",
-    decimalPoint: ','
+    decimalPoint: ',',
+    noData: 'No hay datos para mostrar'
   }
 });  

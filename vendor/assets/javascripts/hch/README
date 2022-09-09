@@ -1,2 +1,2 @@
 Al descargar los "js" quitar la última línea para que no use el ".map"
-Poner el module exporting.js y offline-exporting en el primer (fuera de modules) para integrarlo directamente en el asset hch
+Los modules exporting.js, offline-exporting y no-data-to-display ponerlos en el primer nivel (fuera de modules) para integrarlos directamente en el asset hch y que no se vuelvan a compilar como independientes (como el resto de modules).
