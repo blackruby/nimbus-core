@@ -1422,7 +1422,7 @@ class ApplicationController < ActionController::Base
         return
       end
 
-      sql = clm.eager_load(eager).joins(@dat[:cad_join]).where(w).order(ord).offset((page-1)*lim).limit(lim)
+      sql = clm.eager_load(eager).joins(@dat[:cad_join]).where(w).order(Arel.sql(ord)).offset((page-1)*lim).limit(lim)
 
       res = {page: page, total: tot_pages, records: tot_records, rows: []}
       sql.each {|s|
