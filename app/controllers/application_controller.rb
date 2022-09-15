@@ -1892,13 +1892,14 @@ class ApplicationController < ActionController::Base
     @dat[:prm] = 'p'
     unless @usu.admin or params[:controller] == 'gi' or (clm.mant? and @fact.id == 0)
       @dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][emp_perm]
-      if @dat[:prm].nil?
-        render_error '401'
-        return
-      end
     end
 
     call_nimbus_hook(:set_permiso) if clm.mant? && @fact.id != 0
+
+    if @dat[:prm].nil?
+      render_error '401'
+      return
+    end
 
     # Inyectar variable @ctrl en @fact para que esté disponible en campos calculados a través de métodos
     @fact.instance_variable_set('@ctrl', {usu: @usu, emp: @e, eje: @j, eid: @dat[:eid] || eid, jid: @dat[:jid] || jid})
