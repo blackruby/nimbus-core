@@ -211,7 +211,7 @@ class Usuario < ActiveRecord::Base
   end
 
   def permiso(tag, eid)
-    pref[:permisos][:ctr][tag.to_s][eid.to_i]
+    admin ? 'p' : pref.dig(:permisos, :ctr, tag.to_s, eid.to_i)
   end
 end
 
