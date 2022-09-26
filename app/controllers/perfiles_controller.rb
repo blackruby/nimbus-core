@@ -67,7 +67,7 @@ class PerfilesController < ApplicationController
   end
 
   def before_save
-    @fact.data = params[:data].to_unsafe_hash
+    @fact.data = params[:data] ? params[:data].to_unsafe_hash : {}
   end
 
   def after_save
