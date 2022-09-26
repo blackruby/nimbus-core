@@ -1486,7 +1486,7 @@ class ApplicationController < ActionController::Base
     @on_tabs = []
     @hijos = clm.hijos
     @dialogos = clm.dialogos
-    @fact.campos.each{|c, v|
+    @fact.campos.each{|_c, v|
       @tabs << v[:tab] if v[:tab] and !@tabs.include?(v[:tab]) and v[:tab] != 'pre' and v[:tab] != 'post'
     }
     clm.hijos.each{|h|
@@ -1643,7 +1643,6 @@ class ApplicationController < ActionController::Base
 
     clm = class_mant
 
-    #@v = Vista.create
     @v = Vista.new
     @v.data = {}
     @dat = @v.data
@@ -1654,14 +1653,17 @@ class ApplicationController < ActionController::Base
     @fact.user_id = session[:uid]
     @dat[:head] = params[:head] if params[:head]
     @dat[:idindex] = params[:idindex].to_i
-    #@fact.respond_to?(:id)  # Solo para inicializar los métodos internos de ActiveRecord ???
 
-    #set_parent @v.id
     set_parent
 
-    #var_for_views(clm)
-
-    eid, jid = get_empeje
+    if clm.superclass.to_s == 'Empresa'
+      eid = jid = 0
+    elsif clm.superclass.to_s == 'Ejercicio'
+      eid = get_empeje[0]
+      jid = 0
+    else
+      eid, jid = get_empeje
+    end
 
     @dat[:eid] = eid
     @dat[:jid] = jid
@@ -1669,7 +1671,6 @@ class ApplicationController < ActionController::Base
     if @usu.admin
       @dat[:prm] = 'p'
     else
-      #@dat[:prm] = params[:padre] ? params[:prm] : @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
       @dat[:prm] = @usu.pref[:permisos][:ctr][params[:controller]] && @usu.pref[:permisos][:ctr][params[:controller]][@dat[:eid] ? @dat[:eid].to_i : 0]
       if @dat[:prm].nil? or @dat[:prm] == 'c'
         render_error '401'
@@ -1679,7 +1680,6 @@ class ApplicationController < ActionController::Base
 
     if params[:mod]
       # Si es un mant hijo, inicializar el id del padre
-      #eval('@fact.' + params[:mod].split(':')[-1].downcase + '_id=' + params[:id])
       @fact[params[:mod].split(':')[-1].downcase + '_id'] = params[:id]
     else
       if clm.respond_to?('ejercicio_path')
@@ -1708,10 +1708,7 @@ class ApplicationController < ActionController::Base
 
     @fact.contexto(binding) # Para adecuar los valores dependientes de parámetros (manti, decim, etc.)
 
-    #@ajax << '_vista=' + @v.id.to_s + ',_controlador="' + params['controller'] + '",eid="' + eid.to_s + '",jid="' + jid.to_s + '";'
-
     #Activar botones necesarios (Grabar/Borrar)
-    #@ajax << 'statusBotones({grabar: true, borrar: false});'
     status_botones grabar: true, borrar: false, osp: false
     @ajax << 'setMenuR(false);'
 
@@ -3665,7 +3662,6 @@ class ApplicationController < ActionController::Base
 
     @fact.campos.each{|c, v|
       cs = c.to_s
-      #next if v[:tab].nil? or v[:tab] != h[:tab]
       next if v[tab_dlg].nil? or v[tab_dlg] != h[tab_dlg] or !v[:visible]
 
       ro = v[:ro]
@@ -3733,7 +3729,6 @@ class ApplicationController < ActionController::Base
       prim = false
 
       if v[:type] == :boolean
-        #sal << "<div class='#{div_class}' title='#{nt(v[:title])}'>"
         sal << "<div #{div_attr} title='#{nt(v[:title])}'>"
         sal << '<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="' + cs + '">'
         sal << '<input id="' + cs + '" type="checkbox" class="mdl-checkbox__input" onchange="vali_check($(this))"' + plus + '/>'
@@ -3752,14 +3747,11 @@ class ApplicationController < ActionController::Base
           sal << '</div>'
         end
       elsif v[:code]
-        #sal << '<div class="nim-group">'
         sal << "<div #{div_attr}>"
-        #sal << '<input class="nim-input" id="' + cs + '" maxlength=' + size + ' onchange="vali_code($(this),' + manti + ',\'' + code_pref + '\',\'' + code_rell + '\')" required style="max-width: ' + size + 'em"' + plus + '/>'
         sal << '<input class="nim-input" id="' + cs + '" maxlength=' + size + ' onchange="vali_code($(this),' + manti + ',\'' + v[:code][:prefijo] + '\',\'' + v[:code][:relleno] + '\')" required style="max-width: ' + size + 'em"' + plus + '/>'
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
       elsif v[:sel]
-        #sal << '<div class="nim-group">'
         sal << "<div #{div_attr}>"
         sal << '<select class="nim-select" id="' + cs + '" required onchange="validar($(this))"' + plus + '>'
         v[:sel].each{|k, tex|
@@ -3769,7 +3761,6 @@ class ApplicationController < ActionController::Base
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
       elsif cs.ends_with?('_id')
-        #sal << '<div class="nim-group">'
         sal << "<div #{div_attr}>"
         sal << '<input class="nim-input" id="' + cs + '" required style="max-width: ' + size + 'em"'
         sal << ' menu="N"' if v.include?(:menu) and !v[:menu]
@@ -3780,13 +3771,21 @@ class ApplicationController < ActionController::Base
         sal << '<label class="nim-label">' + nt(v[:label]) + '</label>'
         sal << '</div>'
       elsif v[:type] == :div
-        sal << "<div id='#{cs}' style='overflow: auto'>"
-        clm.hijos.each_with_index {|h, i|
-          if h[:tab].to_s == cs
-            sal << "<iframe id='hijo_#{i}' height='#{h[:height] ? h[:height] : 'auto'}'></iframe>"
-            break
+        if v[:div]
+          if v[:div][:tit]
+            sal << "<div id='#{cs}' style='padding: 3px;background-color: var(--color-1);color: var(--color-1_f);text-align: #{v[:div][:ali] || :center}'>"
+            tit = v[:div][:may] ? nt(v[:div][:tit]).upcase : nt(v[:div][:tit])
+            sal << tit.html_safe
           end
-        }
+        else
+          sal << "<div id='#{cs}' style='overflow: auto'>"
+          clm.hijos.each_with_index {|hijo, i|
+            if hijo[:tab].to_s == cs
+              sal << "<iframe id='hijo_#{i}' height='#{hijo[:height] ? hijo[:height] : 'auto'}'></iframe>"
+              break
+            end
+          }
+        end
         sal << '</div>'
       elsif v[:img] && @v   # Si no hay @v es la edición de una ficha histórica (edith)
         if clm.mant? && @fact.id == 0
