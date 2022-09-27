@@ -18,6 +18,7 @@ class EmpresasMod < Empresa
     logo: {tab: 'pre', gcols: 2, img: {height: 68}},
     estilo: {tab: 'pre', nil: true, sel: {nil: 'nim_color_emp_nil', nim_color_emp_banda: 'nim_color_emp_banda', nim_color_emp_tl: 'nim_color_emp_tl', nim_color_emp_c: 'nim_color_emp_c'}, span: true, param: true},
     color: {tab: 'pre', manti: 20, attr: 'type="color"', span: true, param: true},
+    dumb: {tab: 'general', type: :div, gcols: 0},
   }
 
   @grid = {
@@ -28,7 +29,7 @@ class EmpresasMod < Empresa
     cellEdit: false,
   }
 
-  @hijos = [{url: 'ejercicios', tab: 'post'}]
+  @hijos = [{url: 'ejercicios', tab: 'general'}]
 
   before_save :graba_param
 
@@ -68,11 +69,14 @@ class EmpresasController < ApplicationController
   end
 
   def after_save
-    if !@usu.admin and @fant[:id].nil?
-      mf = get_prm_prf
-      @usu.pref[:permisos][:emp] << [@fact.id, mf[0], mf[1]]
-      @usu.save
-      index_reload
+    if @fant[:id].nil?
+      if !@usu.admin
+        mf = get_prm_prf
+        @usu.pref[:permisos][:emp] << [@fact.id, mf[0], mf[1]]
+        @usu.save
+      end
+      # Recargar la ficha para refrescar los parámetros que hayan podido crear los distintos módulos
+      @ajax << "window.location='/empresas/#{@fact.id}/edit?head=0&idindex=#{@dat[:idindex]}&tab='+_activeTab.attr('id').slice(2);"
     end
   end
 end

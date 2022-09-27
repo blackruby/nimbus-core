@@ -2,13 +2,13 @@ unless Nimbus::Config[:excluir_ejercicios]
 
 class EjerciciosMod < Ejercicio
   @campos = {
-    codigo: {tab: 'pre', grid:{}},
-    descripcion: {tab: 'pre', grid:{}},
-    ej_anterior_id: {tab: 'pre'},
-    ej_siguiente_id: {tab: 'pre'},
-    divisa_id: {tab: 'pre', manti: 10, req: true},
-    fec_inicio: {tab: 'pre', grid:{}, req: true},
-    fec_fin: {tab: 'pre', grid:{}, req: true},
+    codigo: {tab: 'pre', gcols: 3, grid:{}},
+    descripcion: {tab: 'pre', gcols: 5, grid:{}},
+    fec_inicio: {tab: 'general', gcols: 3, br: true, grid:{}, req: true},
+    fec_fin: {tab: 'general', gcols: 3, grid:{}, req: true},
+    ej_anterior_id: {tab: 'general', gcols: 3},
+    ej_siguiente_id: {tab: 'general', gcols: 3},
+    divisa_id: {tab: 'general', gcols: 6, br: true, req: true},
   }
 
   @grid = {
@@ -17,8 +17,19 @@ class EjerciciosMod < Ejercicio
     cellEdit: false,
   }
 
-  #def ini_campos_ctrl
-  #end
+  before_save :graba_param
+
+  def ini_campos_ctrl
+    self.campos.each {|c, v|
+      self[c] = self.param[c] if v[:param]
+    }
+  end
+
+  def graba_param
+    self.campos.each {|c, v|
+      self.param[c] = self[c] if v[:param]
+    }
+  end
   
   include MantMod
 end
