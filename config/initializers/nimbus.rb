@@ -886,7 +886,7 @@ module MantMod
         cm = nil
       end
 
-      if (cm.nil? and self.method_defined?(campo)) or (cm and cmo.nil?)
+      if cm.nil? && self.method_defined?(campo)
         v[:calculado] = true
         v[:ro] = :all
       else
@@ -953,7 +953,7 @@ module MantMod
         v[:grid][:editoptions] ||= {}
         v[:grid][:searchoptions] ||= {}
         v[:grid][:formatoptions] ||= {}
-        if v[:calculado]
+        if v[:calculado] && v[:grid][:index].nil?
           v[:grid][:sortable] = false if v[:grid][:sortable].nil?
           v[:grid][:search] = false if v[:grid][:search].nil?
         end
