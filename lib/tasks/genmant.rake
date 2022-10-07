@@ -4,7 +4,7 @@
 
 namespace :nimbus do
   desc 'Generar mantenimientos a partir de los esquemas definidos'
-  task :genmant, [:file, :opt] => :environment do |task, args|
+  task :genmant, [:file, :opt] => :environment do |_task, args|
 
     def trata_def(tipo, fic, modulo, ar)
       mod = fic[fic.rindex('/')+1..-5]
@@ -22,6 +22,7 @@ namespace :nimbus do
         table = modulo + '_' + modp
         tableh = modulo + '_h_' + modp
       end
+      hash_titulo = {}
 
       return if tipo == :new and File.exist?("#{path}app/models/#{modulo}/#{mod}.rb")
 
@@ -35,6 +36,15 @@ namespace :nimbus do
           if l[0] == '#'
             if l[1] == '{'
               prop = prop.merge(eval(l[1..-1]))
+            elsif l[1..7] == '@titulo'
+              #@titulo = {titulo: 'mi_modelo', locale: {es: 'Mi Modelo', en: 'My Model'}}
+              hash_titulo =
+                begin
+                  eval(l[l.index('{')..-1])
+                rescue Exception
+                  puts '  Error de sintaxis en @titulo'
+                  {}
+                end
             end
             next
           end
@@ -44,6 +54,7 @@ namespace :nimbus do
         cmps = eval(h)
 
         modelo = StringIO.new
+        modelo_h = StringIO.new
         modelo_asoc = StringIO.new
         controller = StringIO.new
         mig = StringIO.new
@@ -60,7 +71,6 @@ namespace :nimbus do
         mig.puts('  def change')
         mig.puts('    col = lambda {|t|')
 
-        refs = []
         cmps.each { |cmp|
           cmpn = cmp[:cmp]
 
@@ -220,38 +230,28 @@ namespace :nimbus do
           modelo.puts(modelo_asoc.read)
         end
         modelo.puts
-        # Ya no es necesario el callback, se hace automático en nimbus.rb
-        #modelo.puts('  after_save :control_histo') if prop[:histo]
         modelo.puts('  #after_initialize :ini_campos')
         modelo.puts
         modelo.puts('  #def ini_campos')
         modelo.puts('  #end')
         modelo.puts('end')
-        modelo.puts
-        modelo.puts("class #{namesp}#{modc}")
-        modelo.puts('  include Modelo')
-        modelo.puts('end')
         if prop[:histo]
-          modelo.puts
-          modelo.puts("class #{namesp}H#{modc} < #{namesp}#{modc}")
-          modelo.puts('  include Historico')
-          modelo.puts('end')
-        end
-        if namesp != ''
-          modelo.puts
-          modelo.puts('Nimbus.load_adds __FILE__')
+          modelo_h.puts("class #{namesp}H#{modc} < #{namesp}#{modc}")
+          modelo_h.puts('end')
         end
         modelo.rewind
+        modelo_h.rewind
 
-        File.write("#{path}app/models/#{modulo}/#{mod}.rb", modelo.read) if tipo != 'ctr'
+        if tipo != 'ctr'
+          File.write("#{path}app/models/#{modulo}/#{mod}.rb", modelo.read)
+          File.write("#{path}app/models_h/#{modulo}/h_#{mod}.rb", modelo_h.read)
+        end
 
         # Generar el controlador
         controller.puts('  }')
+        controller.puts("\n  @titulo = '#{hash_titulo[:titulo]}'") if hash_titulo[:titulo]
         controller.puts
         controller.puts('  #@hijos = []')
-        # Ya no es necesario el call_back, si existe ini_campos_ctrl se llamará automáticamente.
-        #controller.puts
-        #controller.puts('  #after_initialize :ini_campos_ctrl')
         controller.puts
         controller.puts('  #def ini_campos_ctrl')
         controller.puts('  #end')
@@ -263,25 +263,9 @@ namespace :nimbus do
         controller.puts
         controller.puts("class #{namesp}#{modcp}Controller < ApplicationController")
         controller.puts('end')
-        if namesp != ''
-          controller.puts
-          controller.puts('Nimbus.load_adds __FILE__')
-        end
         controller.rewind
 
         File.write("#{path}app/controllers/#{modulo}/#{modp}_controller.rb", controller.read)
-
-=begin
-        # Generar las vistas
-        f = "#{path}app/views/#{modulo}/#{modp}"
-        begin
-          Dir.mkdir(f)
-          #FileUtils.cp('modulos/nimbus-core/privado/views/index.html.erb', f)
-          #FileUtils.cp('modulos/nimbus-core/privado/views/_form.html.erb', f)
-        rescue
-          #puts('  Ya existe el directorio de vistas. Se respetará su contenido')
-        end
-=end
 
         # Generar las rutas
         if tipo != 'ctr'
@@ -341,7 +325,6 @@ namespace :nimbus do
       end
       if f.start_with?('esquemas/') or f.start_with?('modulos/nimbus-core/')
         mod = ''
-      #elsif File.directory?(f[0..f.rindex('/')-1].gsub('esquemas', '.git'))
       elsif File.exist?(f[0..f.rindex('/')-1].gsub('esquemas', '.git'))
         mod = f[8..f.index('/', 8)-1]
       else
@@ -352,7 +335,6 @@ namespace :nimbus do
       busca_esquemas('esquemas', '', ar)
       Dir.glob('modulos/*/esquemas').each {|d|
         nmod = d[8..d.rindex('/')-1]
-        #mod = (nmod != 'nimbus-core' and File.directory?(d[0..d.rindex('/')] + '.git')) ? nmod : ''
         mod = (nmod != 'nimbus-core' and File.exist?(d[0..d.rindex('/')] + '.git')) ? nmod : ''
         busca_esquemas(d, mod, ar)
       }
@@ -362,11 +344,14 @@ namespace :nimbus do
     # Actualizar ficheros de idioma
     locales.each {|l|
       ar[:loc][l][l.to_s] = ar[:loc][l][l.to_s].sort.to_h # Ordenamos el locale en orden alfabético de claves
-      File.write("modulos/idiomas/config/locales/nimbus_#{l.to_s}.yml", YAML.dump(ar[:loc][l]))
+      File.write("modulos/idiomas/config/locales/nimbus_#{l}.yml", YAML.dump(ar[:loc][l]))
     }
 
     if args[:opt] != 'ctr'
       # Ejecutar migraciones
+      puts
+      puts '---------------- MIGRACIONES ---------------'
+      puts
       Rake::Task['db:migrate'].invoke
     end
   end
