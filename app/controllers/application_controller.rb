@@ -3723,7 +3723,7 @@ class ApplicationController < ActionController::Base
       end
 
       if prim or !v[:span]
-        sal << (v[:gcols] == 0 ? '<div style="display: none">' : "<div class='mdl-cell mdl-cell--#{v[:gcols]}-col #{v[:class]}'>")
+        sal << (v[:gcols] == 0 ? '<div style="display: none">' : "<div class='mdl-cell mdl-cell--#{v[:gcols]}-col #{v[:class]}' #{v[:cell_attr]}>")
       end
 
       prim = false
