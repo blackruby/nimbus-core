@@ -955,7 +955,7 @@ class GI
           if r[0] && r[0][:height].to_i == 0 
             msz = 10
             r.each_with_index {|c, i|
-              st = c[:estilo] ? @estilos[@sty[c[:estilo].to_sym]] : {}
+              st = c[:estilo].present? ? @estilos[@sty[c[:estilo].to_sym]] : {}
               msz = [msz, st[:sz].to_i].max
               if cw[i].to_i != 0 && st.dig(:alignment, :wrap_text) && c[:charxlin].to_i == 0 && c[:rowspan].to_i == 0
                 c[:charxlin] = (12.0 * mu[st[:font_name]] * cw[i].to_i / (mu.default * ((st[:sz] || 10).to_i))).round
