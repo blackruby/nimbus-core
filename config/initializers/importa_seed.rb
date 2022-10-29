@@ -12,7 +12,7 @@ def importa_seed(modelo)
 
   ActiveRecord::Base.connection.reset_pk_sequence!(tabla)
   sql_exe "ALTER TABLE #{tabla} " + cmpadd.map{|c| "ADD COLUMN #{c} CHARACTER VARYING"}.join(',') if !cmpadd.empty?
-  sql_exe "COPY #{tabla} (#{campos}) FROM '#{Rails.root}#{modulo}/db/#{csv}' CSV HEADER"
+  sql_copy "COPY #{tabla} (#{campos}) FROM '#{Rails.root}#{modulo}/db/#{csv}' CSV HEADER"
 
   yield if block_given?
 
@@ -23,6 +23,6 @@ def importa_seed(modelo)
     tablah = modeloh.constantize.table_name
     sql_exe "TRUNCATE #{tablah} RESTART IDENTITY"
     sql_exe "INSERT INTO #{tablah} (id#{cols.join(',')}) SELECT * FROM #{tabla}"
-    sql_exe "UPDATE #{tablah} SET created_by_id = '1', created_at = '#{Nimbus.now.to_s}'"
+    sql_exe "UPDATE #{tablah} SET created_by_id = '1', created_at = '#{Nimbus.now}'"
   end
 end

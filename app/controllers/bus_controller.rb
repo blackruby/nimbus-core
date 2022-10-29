@@ -588,7 +588,7 @@ class BusController < ApplicationController
         #`libreoffice --headless --convert-to pdf --outdir /tmp /tmp/nim#{@v.id}.xlsx` if params[:tipo] == 'pdf'
         if params[:tipo] == 'pdf'
           p2p label: label << '<br>Generando PDF'
-          h = spawn "libreoffice -env:UserInstallation=file:///tmp/nim#{@v.id}_lo_dir --headless --convert-to pdf --outdir /tmp /tmp/nim#{@v.id}.xlsx"
+          h = spawn "libreoffice -env:UserInstallation=file:///tmp/nim#{@v.id}_lo_dir --headless --convert-to pdf --outdir /tmp /tmp/nim#{@v.id}.xlsx >/dev/null 2>&1"
           Process.wait h
           FileUtils.rm_rf %W(/tmp/nim#{@v.id}.xlsx /tmp/nim#{@v.id}_lo_dir)
         end

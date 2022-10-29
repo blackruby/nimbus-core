@@ -3,12 +3,16 @@ development:
   encoding: unicode
   database: <%= Nimbus::Config[:db][:development][:database] %>
   pool: <%= Nimbus::Config[:db][:development][:pool] %>
-  username: postgres
-  password:
+  username: <%= Nimbus::Config[:db][:development][:username] %>
+  password: <%= Nimbus::Config[:db][:development][:password] %>
+  host: <%= Nimbus::Config[:db][:development][:host] %>
+  port: <%= Nimbus::Config[:db][:development][:port] %>
 production:
   adapter: postgresql
   encoding: unicode
   database: <%= Nimbus::Config[:db][:production][:database] %>
   pool: <%= Nimbus::Config[:db][:production][:pool] %>
-  username: postgres
-  password:
+  username: <%= Nimbus::Config[:db][:production][:username] %>
+  password: <%= Nimbus::Config[:db][:production][:password] %>
+  host: <%= Nimbus::Config[:db][:production][:host] %>
+  port: <%= Nimbus::Config[:db][:production][:port] %>

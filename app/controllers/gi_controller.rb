@@ -433,7 +433,7 @@ class GiController < ApplicationController
 
             #`libreoffice --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
             #`libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
-            h = spawn "libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to pdf --outdir /tmp #{fns}.xlsx"
+            h = spawn "libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to pdf --outdir /tmp #{fns}.xlsx >/dev/null 2>&1"
             Process.wait h
             FileUtils.rm_rf %W(#{fns}.xlsx #{fns}_lo_dir)
           when 'xls'
@@ -442,7 +442,7 @@ class GiController < ApplicationController
 
             #`libreoffice --headless --convert-to xls --outdir /tmp #{fns}.xlsx`
             #`libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to xls --outdir /tmp #{fns}.xlsx`
-            h = spawn "libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to xls --outdir /tmp #{fns}.xlsx"
+            h = spawn "libreoffice -env:UserInstallation=file://#{fns}_lo_dir --headless --convert-to xls --outdir /tmp #{fns}.xlsx >/dev/null 2>&1"
             Process.wait h
             FileUtils.rm_rf %W(#{fns}.xlsx #{fns}_lo_dir)
         end

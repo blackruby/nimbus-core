@@ -2,9 +2,43 @@
 # Este fichero tiene que estar situado en la carpeta "config" de la
 # gestión correspondiente o en la carpeta "config" de un cliente concreto
 # (no aquí, ni en ningún otro módulo)
-# El nombre del fichero puede ser nimbus-core.yml o nimbus.yml
-# (ambos serán cargados)
-#
+# El nombre del fichero puede ser nimbus-core.yml o nimbus.yml (ambos serán cargados)
+# Todas las claves que aparecen serán convertidas a "synbol" (to_sym)
+# por lo que no es necesario ponerles los ":" por delante, como se hace aquí en muchos casos.
+
+## Base de datos
+# Si se ponen las claves en el primer nivel las herederán tanto developmemnt como production, por lo que esas secciones son opcionales 
+# Cualquier clave que no aparezca en development o production se cojerá del primer nivel y, si tampoco está, se usará el default.
+db:
+  database: Nombre_de_la_base_de_datos (opcional. Defecto = Si hay un cliente (nimbus -u cliente) se usará su nombre, si no, el del module de config/application.rb)
+  pool: Nº de conexiones (opcional. Defecto = 2 en development y 5 en production)
+  username: nombre_de_usuario (opcional. Defecto = postgres)
+  password: contraseña (opcional. Defecto = "postgres")
+  host: Server_de_la_base_de_datos (opcional. Defecto = sin docker el propio host, con docker, "dbhost" si ese nombre de host responde, si no, el hsot anfitrión del container
+  port: Puerto del servicio (opcional. Defecto "" -así se usará el de por defecto de postgres-)
+  development:
+    database: Nombre_de_la_base_de_datos (opcional. Defecto = Si hay un cliente (nimbus -u cliente) se usará su nombre, si no, el del module de config/application.rb)
+    pool: Nº de conexiones (opcional. Defecto = 2)
+    username: nombre_de_usuario (opcional. Defecto = postgres)
+    password: contraseña (opcional. Defecto = "postgres")
+    host: Server_de_la_base_de_datos (opcional. Defecto = sin docker el propio host, con docker, "dbhost" si ese nombre de host responde, si no, el hsot anfitrión del container
+    port: Puerto del servicio (opcional. Defecto "" -así se usará el de por defecto de postgres-)
+  production:
+    database: Nombre_de_la_base_de_datos (opcional. Defecto = Si hay un cliente (nimbus -u cliente) se usará su nombre, si no, el del module de config/application.rb)
+    pool: Nº de conexiones (opcional. Defecto = 5)
+    username: nombre_de_usuario (opcional. Defecto = postgres)
+    password: contraseña (opcional. Defecto = "postgres")
+    host: Server_de_la_base_de_datos (opcional. Defecto = sin docker el propio host, con docker, "dbhost" si ese nombre de host responde, si no, el hsot anfitrión del container
+    port: Puerto del servicio (opcional. Defecto "" -así se usará el de por defecto de postgres-)
+  
+  ## Puma
+  puma:
+    port: Puerto del servicio (Opcional, Defecto = 3000)
+    min_threads: Nº mínimo de threads (Opcional. Defecto = 1)
+    max_threads: Nº máximo de threads (Opcional. Defecto = el pool definido en la sección "db")
+    workers: Nº de workers (Opcional. Defecto = 0)
+    bind: Cadena completa para usar en bind (port será ignarado, hay que especificarlo aquí). P.ej. "ssl://0.0.0.0:3000?key=path_to_key&cert=path_to_cert"
+
 #
 # osp (Oficina sin papeles)
 # Posibles valores:

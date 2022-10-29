@@ -187,7 +187,7 @@ namespace :nimbus do
           sql_exe("ALTER TABLE #{tab} " + add_cols.chop)
         end
 
-        sql_exe("COPY #{tab} (#{head}) FROM '#{fic}' CSV HEADER")
+        sql_copy("COPY #{tab} (#{head}) FROM '#{fic}' CSV HEADER")
       }
 
       puts

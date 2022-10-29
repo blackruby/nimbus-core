@@ -2,25 +2,89 @@
 
 require 'fileutils'
 
+@init = (Process.pid == 1)
+`rm -f /rails/clientes/*/log/puma.pid /rails/log/puma.pid` if @init
+
 Dir.chdir(__dir__ + '/../../..')
 
-def back(cli)
-  h = fork {
-    path = cli ? "clientes/#{cli}/log" :'log'
-    FileUtils.mkpath(path)
-    log = File.new("#{path}/puma_boot", 'w')
-    STDOUT.reopen(log)
-    STDOUT.sync = true
-    STDERR.reopen(log)
-    STDERR.sync = true
-    STDIN.reopen("/dev/null", "r")
-    exec "RAILS_ENV=production NIMBUS_LOCAL=false #{cli ? 'NIMBUS_CLI=' + cli : ''} rails server --pid=#{path}/puma.pid"
-  }
-  Process.detach(h)
+def help
+  hlp = "{Sintaxis}\n"
+  hlp << "    nimbus [opciones]...\n"
+  hlp << "\n"
+  hlp << "{Descripción}:\n"
+  hlp << "    Atajo para lanzar los distintos servicios de Rails controlando el entorno.\n"
+  hlp << "\n"
+  hlp << "{Opciones}:\n"
+  hlp << "\n"
+  hlp << "{-a}\n" 
+  hlp << "    Se lanazarán instancias de Puma para cada cliente definido, si no hubiera ninguno,\n" 
+  hlp << "    se usará el entorno normal (home de la aplicación). Se usará el modo 'production'\n"
+  hlp << "    y se ignorarán el resto de opciones.\n"
+  hlp << "\n"
+  hlp << "{-c}\n"
+  hlp << "    Abre una consola Rails.\n"
+  hlp << "\n"
+  hlp << "{-h}\n"
+  hlp << "    Muestra esta ayuda\n"
+  hlp << "\n"
+  hlp << "{-l}\n"
+  hlp << "    Modo 'local'. Sólo válido con -p. Se lanzará Rails en 'production' pero sin\n"
+  hlp << "    demonizar (igual que 'development' y con el nivel máximo de logging.\n"
+  hlp << "    Este modo es útil para hacer debug en producción.\n"
+  hlp << "\n"
+  hlp << "{-p}\n"
+  hlp << "    Se usará el modo 'production'.\n"
+  hlp << "\n"
+  hlp << "{-u} <cliente>\n"
+  hlp << "    Se usará el entorno y configuración de <cliente>.\n"
+  hlp << "\n"
+  hlp << "{-r} <string>\n"
+  hlp << "    Se pasará <string> a rake para que realice la tarea especificada.\n"
+  hlp << "\n"
+  hlp << "{Ejemplos}:\n"
+  hlp << "\n"
+  hlp << "Lanza Rails en modo 'development' (equivalente a rails server)\n"
+  hlp << "  {nimbus}\n" 
+  hlp << "\n"
+  hlp << "Lanza Rails en modo 'production' con el entorno del cliente pepe\n"
+  hlp << "  {nimbus} -p -u pepe\n" 
+  hlp << "\n"
+  hlp << "Lanza Rails en modo 'production' con el entorno del cliente pepe sin demonizar\n"
+  hlp << "  {nimbus} -p -l -u pepe\n" 
+  hlp << "\n"
+  hlp << "Abre una consola Rails en modo 'production' con el entorno del cliente pepe\n"
+  hlp << "  {nimbus} -c -p -u pepe\n" 
+  hlp << "\n"
+  hlp << "Precompila los assets en modo 'production'\n"
+  hlp << "  {nimbus} -p -r assets:prcompile\n"
+
+  IO.popen({}, 'more', 'w') {|p| p.write hlp.gsub('{', "\e[1m").gsub('}', "\e[0m")}
+  exit
 end
 
+def back(cli, multi = false)
+  h = fork {
+    path = cli ? "clientes/#{cli}/log" : 'log'
+    FileUtils.mkpath(path)
+    unless @init
+      log = File.new("#{path}/nimbus.log", 'w')
+      STDOUT.reopen(log)
+      STDOUT.sync = true
+      STDERR.reopen(log)
+      STDERR.sync = true
+    end
+    STDIN.reopen("/dev/null", "r")
+    exec "RAILS_ENV=production NIMBUS_LOCAL=false #{@init ? 'NIMBUS_INIT=true' : ''} #{@init && multi ? 'NIMBUS_MULTI=true' : ''} #{cli ? 'NIMBUS_CLI=' + cli : ''} rails server --pid=#{path}/puma.pid"
+  }
+  Process.detach(h) unless @init
+end
+
+help if ARGV.include?('-h')
+
 if ARGV.include?('-a')
-  Dir.glob('clientes/*') {|c| back c.split('/')[1]}
+  cl = Dir.glob('clientes/*')
+  cl.size > 0 ? cl.each {|c| back c.split('/')[1], cl.size > 1} : back(nil)
+  Process.wait if @init
   exit
 end
 
@@ -44,7 +108,14 @@ elsif ENV['NIMBUS_CLI']
 else
   usu = nil
 end
-env << "NIMBUS_CLI=#{usu}" if usu
+
+if usu
+  unless Dir.exist? "clientes/#{usu}"
+    puts "No existe el cliente #{usu}"
+    exit 1
+  end
+  env << "NIMBUS_CLI=#{usu}"
+end
 
 if ARGV.include? '-c'
   cmd = 'rails console'
@@ -53,9 +124,12 @@ elsif (ir = ARGV.index('-r'))
 else
   if renv == 'production' && !local
     back usu
+    Process.wait if @init
     exit
   else
-    cmd = 'rails server'
+    path = usu ? "clientes/#{usu}/log" : 'log'
+    FileUtils.mkpath(path)
+    cmd = "rails server --pid=#{path}/puma.pid"
   end
 end
 

@@ -25,19 +25,23 @@ module Nimbus
   # Constante global para activar/desactivar mensajes de debug
   Debug = false
 
-  # Nombre de la cookie de sesión y de empresa/ejercicio
-  Rails.application.config.session_store :cookie_store, key: '_' + Gestion + '_session'
-  CookieEmEj = ('_' + Gestion + '_emej').to_sym
-
   # Adecuación de valores de configuración
 
   Config[:db] ||= {}
   Config[:db][:development] ||= {}
-  Config[:db][:production] ||= {}
   Config[:db][:development][:database] ||= Config[:db][:database] || Gestion
-  Config[:db][:production][:database] ||= Config[:db][:database] || Gestion
   Config[:db][:development][:pool] ||= Config[:db][:pool] || 2
+  Config[:db][:development][:username] ||= Config[:db][:username] || 'postgres'
+  Config[:db][:development][:password] ||= Config[:db][:password] || 'postgres'
+  Config[:db][:development][:host] ||= Config[:db][:host] || (Dir.exist?('/rails') ? ((Addrinfo.ip('dbhost') rescue nil) ? 'dbhost' : 'host.docker.internal') : '')
+  Config[:db][:development][:port] ||= Config[:db][:port] || ''
+  Config[:db][:production] ||= {}
+  Config[:db][:production][:database] ||= Config[:db][:database] || Gestion
   Config[:db][:production][:pool] ||= Config[:db][:pool] || 5
+  Config[:db][:production][:username] ||= Config[:db][:username] || 'postgres'
+  Config[:db][:production][:password] ||= Config[:db][:password] || 'postgres'
+  Config[:db][:production][:host] ||= Config[:db][:host] || Config[:db][:development][:host]
+  Config[:db][:production][:port] ||= Config[:db][:port] || ''
 
   Config[:puma] ||= {}
   Config[:puma][:port] ||= 3000
@@ -86,6 +90,11 @@ module Nimbus
     end
     Config[:cuota_disco] = fact ? Config[:cuota_disco].to_i * fact : 5 * 1024**3
   end
+
+  # Nombre de la cookie de sesión y de empresa/ejercicio
+  nombre = ENV['NIMBUS_CLI'] || (Gestion == 'nimbus' ? Config[:db][Rails.env.to_sym][:database] : Gestion)
+  Rails.application.config.session_store :cookie_store, key: '_' + nombre + '_session'
+  CookieEmEj = ('_' + nombre + '_emej').to_sym
 
   # Obtención de un hash de los meses para campos tipo 'select'
   def self.mes_sel
@@ -323,6 +332,24 @@ end
 
 def sql_exe(cad)
   ActiveRecord::Base.connection.execute(cad)
+end
+
+# Método para ejecutar sentencias SQL "COPY". Si la base de datos no está en el propio host
+# se hace a través de "psql" y su comando integrado "\COPY", esto nos permite tener los
+# ficheros a importar/exportar en el servidor ni Nimbus (y no en el del PostgreSQL)
+
+def sql_copy(cad)
+  db = Nimbus::Config[:db][Rails.env.to_sym]
+  if db[:host].present?
+    sql = ''
+    sql << "PGPASSWORD=#{db[:password]} " if db[:password].present?
+    sql << %Q(psql -d #{db[:database]} -U #{db[:username]} -h #{db[:host]})
+    sql << %Q( -p #{db[:port]}) if db[:port].present?
+    sql << %Q( -c "\\#{cad}")
+    `#{sql}`
+  else
+    sql_exe(cad)
+  end
 end
 
 # Método para generar left joins. Recibe como argumentos el modelo

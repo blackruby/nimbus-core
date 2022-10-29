@@ -1,3 +1,5 @@
+ActiveRecord::Base.logger.level = Logger::INFO
+
 #######################  USUARIOS
 
 unless Nimbus::Config[:excluir_usuarios]

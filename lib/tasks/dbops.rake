@@ -183,7 +183,7 @@ namespace :nimbus do
               print format('%5d %12s %-50s ', m[:niv], n.to_sep_mil, mod)
               if opt == 'dump'
                 fic = mod.split('::').map(&:underscore).join('_')
-                sql_exe %Q(copy (#{m[sq].to_sql}) to '#{args[:dir]}/#{fic}.csv' (format 'csv', header true))
+                sql_copy %Q(copy (#{m[sq].to_sql}) to '#{args[:dir]}/#{fic}.csv' (format 'csv', header true))
                 puts 'Volcado'
               else
                 m[sq].delete_all

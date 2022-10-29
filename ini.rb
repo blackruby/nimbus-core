@@ -1,8 +1,12 @@
+# Crear el manifiesto para sprockets (si no existe)
+FileUtils.mkdir_p('app/assets/config') unless Dir.exist?('app/assets/config')
+File.write('app/assets/config/manifest.js', '') unless File.exist?('app/assets/config/manifest.js')
+
 # Lectura del hash de configuración
 module ::Nimbus
   Config = {}
   %W(config/nimbus-core.yml config/nimbus.yml clientes/#{ENV['NIMBUS_CLI']}/config/nimbus.yml).each {|file|
-    Config.merge! File.exist?(file) ? YAML.load(ERB.new(File.read(file)).result) : {}
+    Config.merge! File.exist?(file) ? YAML.load(ERB.new(File.read(file)).result).deep_symbolize_keys : {}
   }
 
   # Cálculo de los módulos 'puros' disponibles

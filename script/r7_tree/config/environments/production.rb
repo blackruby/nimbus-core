@@ -48,13 +48,16 @@ Rails.application.configure do
 
   # Use the lowest log level to ensure availability of diagnostic information
   # when problems arise.
+  logger = ActiveSupport::Logger.new(STDOUT)
+  logger.formatter = config.log_formatter
+  config.logger = ActiveSupport::TaggedLogging.new(logger)
   if ENV['NIMBUS_LOCAL'] == 'true'
     config.log_level = :debug
-    logger = ActiveSupport::Logger.new(STDOUT)
-    logger.formatter = config.log_formatter
-    config.logger = ActiveSupport::TaggedLogging.new(logger)
   else
     config.log_level = :fatal
+    config.log_tags = []
+    config.log_tags << [Time.now.strftime('%d-%m %H:%M')] unless ENV['NIMBUS_INIT'] 
+    config.log_tags << ENV['NIMBUS_CLI'] if ENV['NIMBUS_MULTI']
   end
 
   # Prepend all log lines with the following tags.
