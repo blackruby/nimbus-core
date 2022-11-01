@@ -2,11 +2,6 @@
 
 require 'fileutils'
 
-@init = (Process.pid == 1)
-`rm -f /rails/clientes/*/log/puma.pid /rails/log/puma.pid` if @init
-
-Dir.chdir(__dir__ + '/../../..')
-
 def help
   hlp = "{Sintaxis}\n"
   hlp << "    nimbus [opciones]...\n"
@@ -26,6 +21,13 @@ def help
   hlp << "\n"
   hlp << "{-h}\n"
   hlp << "    Muestra esta ayuda\n"
+  hlp << "\n"
+  hlp << "{-i}\n"
+  hlp << "    Modo 'init'. Sirve para usarlo como comando de arranque en un contenedor docker.\n"
+  hlp << "    En este caso el resto de opciones serán ignoradas y no se realizará ninguna tarea.\n"
+  hlp << "    Su único propósito es mantener activo el contenedor para usarlo desde un termianal.\n"
+  hlp << "    También se encarga de acabar con los procesos zombis que se generen.\n"
+  hlp << "    Esta opción será ignorada si se usa fuera del contexto aludido.\n"
   hlp << "\n"
   hlp << "{-l}\n"
   hlp << "    Modo 'local'. Sólo válido con -p. Se lanzará Rails en 'production' pero sin\n"
@@ -78,13 +80,39 @@ def back(cli, multi = false)
   }
   Process.detach(h) unless @init
 end
+      
+####### Main
+
+@init = (Process.pid == 1)
+`rm -f /rails/clientes/*/log/puma.pid /rails/log/puma.pid` if @init
+
+Dir.chdir(__dir__ + '/../../..')
+
+Signal.trap('TERM') do
+  if @init
+    Dir.glob('/proc/*[0-9]*') {|p|
+      p = p.split('/')[2].to_i
+      Process.kill('TERM', p) if p > 1
+    }
+    Process.waitall
+  end
+  exit
+end
 
 help if ARGV.include?('-h')
 
+if ARGV.include?('-i')
+  if @init
+    fork {exec 'sleep infinity'}
+    loop{Process.wait} rescue nil
+    exit
+  end
+end
+
 if ARGV.include?('-a')
   cl = Dir.glob('clientes/*')
-  cl.size > 0 ? cl.each {|c| back c.split('/')[1], cl.size > 1} : back(nil)
-  Process.wait if @init
+  cl.size > 0 ? cl.each {|c| back(c.split('/')[1], cl.size > 1) if File.directory?(c)} : back(nil)
+  (loop{Process.wait} rescue nil) if @init
   exit
 end
 
@@ -124,7 +152,7 @@ elsif (ir = ARGV.index('-r'))
 else
   if renv == 'production' && !local
     back usu
-    Process.wait if @init
+    (loop{Process.wait} rescue nil) if @init
     exit
   else
     path = usu ? "clientes/#{usu}/log" : 'log'
@@ -133,4 +161,9 @@ else
   end
 end
 
-exec "#{env.join(' ')} #{cmd}"
+if @init
+  spawn "#{env.join(' ')} #{cmd}"
+  loop{Process.wait} rescue nil
+else
+  exec "#{env.join(' ')} #{cmd}"
+end

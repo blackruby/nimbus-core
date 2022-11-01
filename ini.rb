@@ -17,7 +17,7 @@ module ::Nimbus
       Modulos << mod if m != 'idiomas' && m != 'nimbus-core' && Dir.exist?(mod)
     }
   else
-    Modulos = Dir.glob('modulos/*').select{|m| m != 'modulos/idiomas' && m != 'modulos/nimbus-core'}
+    Modulos = Dir.glob('modulos/*').select{|m| File.directory?(m) && m != 'modulos/idiomas' && m != 'modulos/nimbus-core'}
   end
 
   ModulosGlob = '{' + Modulos.join(',') + ',modulos/nimbus-core}'

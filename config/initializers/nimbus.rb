@@ -27,33 +27,52 @@ module Nimbus
 
   # Adecuación de valores de configuración
 
-  Config[:db] ||= {}
-  Config[:db][:development] ||= {}
-  Config[:db][:development][:database] ||= Config[:db][:database] || Gestion
-  Config[:db][:development][:pool] ||= Config[:db][:pool] || 2
-  Config[:db][:development][:username] ||= Config[:db][:username] || 'postgres'
-  Config[:db][:development][:password] ||= Config[:db][:password] || 'postgres'
-  Config[:db][:development][:host] ||= Config[:db][:host] || (Dir.exist?('/rails') ? ((Addrinfo.ip('dbhost') rescue nil) ? 'dbhost' : 'host.docker.internal') : '')
-  Config[:db][:development][:port] ||= Config[:db][:port] || ''
-  Config[:db][:production] ||= {}
-  Config[:db][:production][:database] ||= Config[:db][:database] || Gestion
-  Config[:db][:production][:pool] ||= Config[:db][:pool] || 5
-  Config[:db][:production][:username] ||= Config[:db][:username] || 'postgres'
-  Config[:db][:production][:password] ||= Config[:db][:password] || 'postgres'
-  Config[:db][:production][:host] ||= Config[:db][:host] || Config[:db][:development][:host]
-  Config[:db][:production][:port] ||= Config[:db][:port] || ''
-
   Config[:puma] ||= {}
-  Config[:puma][:port] ||= 3000
+  Config[:puma][:port] = ENV['PUMA_PORT'] || Config[:puma][:port] || 3000
   if Rails.env == 'development'
     Config[:puma][:min_threads] = 1
-    Config[:puma][:max_threads] = Config[:db][:development][:pool]
+    Config[:puma][:max_threads] = 5
     Config[:puma][:workers] = 0
+    Config[:puma][:bind] = nil
   else
-    Config[:puma][:min_threads] ||= 1
-    Config[:puma][:max_threads] ||= Config[:db][:production][:pool]
-    Config[:puma][:workers] ||= 0
+    Config[:puma][:max_threads] = ENV['PUMA_MAX_THREADS'] || Config[:puma][:max_threads] || 5
+    Config[:puma][:min_threads] = ENV['PUMA_MIN_THREADS'] || Config[:puma][:min_threads] || Config[:puma][:max_threads]
+    Config[:puma][:workers] = ENV['PUMA_WORKERS'] || Config[:puma][:workers] || 0
+    Config[:puma][:bind] = ENV['PUMA_BIND'] || Config[:puma][:bind]
+
+    if ENV['PUMA_PRELOAD_APP'].to_s.upcase == 'TRUE' || Config[:puma][:preload_app] == true
+      Config[:puma][:preload_app] = true
+    elsif ENV['PUMA_PRELOAD_APP'].to_s.upcase == 'FALSE' || Config[:puma][:preload_app] == false
+      Config[:puma][:preload_app] = false
+    else
+      Config[:puma][:preload_app] = true
+    end
+
+    if ENV['PUMA_QUEUE_REQUESTS'].to_s.upcase == 'TRUE' || Config[:puma][:queue_requests] == true
+      Config[:puma][:queue_requests] = true
+    elsif ENV['PUMA_QUEUE_REQUESTS'].to_s.upcase == 'FALSE' || Config[:puma][:queue_requests] == false
+      Config[:puma][:queue_requests] = false
+    else
+      Config[:puma][:queue_requests] = true
+    end
   end
+
+  Config[:db] ||= {}
+  Config[:db][:development] ||= {}
+  Config[:db][:development][:database] = ENV['DB_DATABASE'] || Config[:db][:development][:database] || Config[:db][:database] || Gestion
+  Config[:db][:development][:pool] = ENV['DB_POOL'] || Config[:db][:development][:pool] || Config[:db][:pool] || Config[:puma][:max_threads]
+  Config[:db][:development][:username] = ENV['DB_USERNAME'] || Config[:db][:development][:username] || Config[:db][:username] || 'postgres'
+  Config[:db][:development][:password] = ENV['DB_PASSWORD'] || Config[:db][:development][:password] || Config[:db][:password] || 'postgres'
+  Config[:db][:development][:host] = ENV['DB_HOST'] || Config[:db][:development][:host] || Config[:db][:host] || (Dir.exist?('/rails') ? ((Addrinfo.ip('dbhost') rescue nil) ? 'dbhost' : 'host.docker.internal') : '')
+  Config[:db][:development][:port] = ENV['DB_PORT'] || Config[:db][:development][:port] || Config[:db][:port] || ''
+
+  Config[:db][:production] ||= {}
+  Config[:db][:production][:database] = ENV['DB_DATABASE'] || Config[:db][:production][:database] || Config[:db][:database] || Gestion
+  Config[:db][:production][:pool] = ENV['DB_POOL'] || Config[:db][:production][:pool] || Config[:db][:pool] || Config[:puma][:max_threads]
+  Config[:db][:production][:username] = ENV['DB_USERNAME'] || Config[:db][:production][:username] || Config[:db][:username] || 'postgres'
+  Config[:db][:production][:password] = ENV['DB_PASSWORD'] || Config[:db][:production][:password] || Config[:db][:password] || 'postgres'
+  Config[:db][:production][:host] = ENV['DB_HOST'] || Config[:db][:production][:host] || Config[:db][:host] || Config[:db][:development][:host]
+  Config[:db][:production][:port] = ENV['DB_PORT'] || Config[:db][:production][:port] || Config[:db][:port] || ''
 
   if Config[:p2p].is_a?(Integer)
     Config[:p2p] = {tot: Config[:p2p]}

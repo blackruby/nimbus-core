@@ -7,6 +7,8 @@
 # por lo que no es necesario ponerles los ":" por delante, como se hace aquí en muchos casos.
 
 ## Base de datos
+# Sobre cualquiera de estas claves tendrán prioridad las siguientes variables de entorno:
+# DB_DATABASE DB_POOL DB_USERNAME DB_PASSWORD DB_HOST DB_PORT
 # Si se ponen las claves en el primer nivel las herederán tanto developmemnt como production, por lo que esas secciones son opcionales 
 # Cualquier clave que no aparezca en development o production se cojerá del primer nivel y, si tampoco está, se usará el default.
 db:
@@ -18,28 +20,34 @@ db:
   port: Puerto del servicio (opcional. Defecto "" -así se usará el de por defecto de postgres-)
   development:
     database: Nombre_de_la_base_de_datos (opcional. Defecto = Si hay un cliente (nimbus -u cliente) se usará su nombre, si no, el del module de config/application.rb)
-    pool: Nº de conexiones (opcional. Defecto = 2)
+    pool: Nº de conexiones (opcional. Defecto = max_threads de puma)
     username: nombre_de_usuario (opcional. Defecto = postgres)
     password: contraseña (opcional. Defecto = "postgres")
     host: Server_de_la_base_de_datos (opcional. Defecto = sin docker el propio host, con docker, "dbhost" si ese nombre de host responde, si no, el hsot anfitrión del container
     port: Puerto del servicio (opcional. Defecto "" -así se usará el de por defecto de postgres-)
   production:
     database: Nombre_de_la_base_de_datos (opcional. Defecto = Si hay un cliente (nimbus -u cliente) se usará su nombre, si no, el del module de config/application.rb)
-    pool: Nº de conexiones (opcional. Defecto = 5)
+    pool: Nº de conexiones (opcional. Defecto = max_threads de puma)
     username: nombre_de_usuario (opcional. Defecto = postgres)
     password: contraseña (opcional. Defecto = "postgres")
     host: Server_de_la_base_de_datos (opcional. Defecto = sin docker el propio host, con docker, "dbhost" si ese nombre de host responde, si no, el hsot anfitrión del container
     port: Puerto del servicio (opcional. Defecto "" -así se usará el de por defecto de postgres-)
   
-  ## Puma
-  puma:
-    port: Puerto del servicio (Opcional, Defecto = 3000)
-    min_threads: Nº mínimo de threads (Opcional. Defecto = 1)
-    max_threads: Nº máximo de threads (Opcional. Defecto = el pool definido en la sección "db")
-    workers: Nº de workers (Opcional. Defecto = 0)
-    bind: Cadena completa para usar en bind (port será ignarado, hay que especificarlo aquí). P.ej. "ssl://0.0.0.0:3000?key=path_to_key&cert=path_to_cert"
+## Puma
+# Sobre cualquiera de estas claves tendrán prioridad las siguientes variables de entorno:
+# PUMA_PORT PUMA_MAX_THREADS PUMA_MIN_THREADS PUMA_WORKERS PUMA_BIND PUMA_PRELOAD_APP PUMAQUEUE_REQUESTS
+puma:
+  port: Puerto del servicio (Opcional, Defecto = 3000)
+  max_threads: Nº máximo de threads (Opcional. Defecto = 5)
+  min_threads: Nº mínimo de threads (Opcional. Defecto = 1 en development y max_threads en production)
+  workers: Nº de workers. Sólo válido en producción. (Opcional. Defecto = 0)
+  bind: Cadena completa para usar en bind. Sólo válido en production (port será ignarado, hay que especificarlo aquí).
+        Por defecto vale nil. En ese caso se usará "tcp://0.0.0.0:port"
+        P.ej. "ssl://0.0.0.0:3000?key=path_to_key&cert=path_to_cert"
+  preload_app: Booleano (true/false). Sólo válido en producción. (Opcional. Defecto = true)
+  queue_requests: Booleano (true/false). Sólo válido en producción. (Opcional. Defecto = true)
 
-#
+
 # osp (Oficina sin papeles)
 # Posibles valores:
 # true Habilita la oficina sin papeles con todos los valores por defecto
