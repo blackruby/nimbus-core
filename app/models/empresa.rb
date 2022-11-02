@@ -11,6 +11,7 @@ class Empresa < ActiveRecord::Base
     poblacion: {manti: 50},
     provincia: {manti: 20},
     pais: {},
+    tipo_persona: {req: true, sel: {j: 'juridica', f: 'fisica'}},
     telefono: {manti: 30},
     fax: {manti: 30},
     email: {manti: 70},
@@ -25,6 +26,7 @@ class Empresa < ActiveRecord::Base
   after_initialize :ini_campos
 
   def ini_campos
+    self.tipo_persona ||= 'j' if self.respond_to? :tipo_persona
     self.param ||= {} if self.respond_to? :param
   end
 
