@@ -1398,6 +1398,10 @@ function creaGridLocal(opts, data) {
 
       break;
     default :
+      // En los grid de selección, al filtrar por un campo se deseleccionan todos los registros.
+      // Para estar sincronizados con el servidor, se lo comunicamos (que deseleccione todo). 
+      g.bind("jqGridToolbarAfterSearch", function(){callFonServer("grid_local_select", {cmp: cmp, row: null, sel: false})});
+
       if (caption != '') $('#gbox_g_' + cmp).prepend('<div class="nim-titulo">' + caption + '&nbsp;&nbsp;&nbsp;&nbsp;' + '</div>');
 
       // Si hay subgrid
