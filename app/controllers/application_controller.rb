@@ -1400,14 +1400,16 @@ class ApplicationController < ActionController::Base
 
     # Formar la cadena de ordenación y seguir incluyendo tablas en eager-load
     #
-    ord = ''
-    sort_elem = params[:sidx].split(',')  #Partimos por ',' así tenemos un vector de campos por los que ordenar
-    sort_elem.each{|c|
-      c2 = c.split(' ') # Separamos el campo y el tipo de ord (ASC, DESC)
-      ord << c2[0]
-      ord << (c2[1] ? ' ' + c2[1] : '') + ','
-    }
-    ord = ord[0..-2] + ' ' + params[:sord] if ord != ''
+    #ord = ''
+    #sort_elem = params[:sidx].split(',')  #Partimos por ',' así tenemos un vector de campos por los que ordenar
+    #sort_elem.each{|c|
+      #c2 = c.split(' ') # Separamos el campo y el tipo de ord (ASC, DESC)
+      #ord << c2[0]
+      #ord << (c2[1] ? ' ' + c2[1] : '') + ','
+    #}
+    #ord = ord[0..-2] + ' ' + params[:sord] if ord != ''
+    ord = params[:sidx]
+    ord += ' ' + params[:sord] if ord.present?
 
     begin
       tot_records =  clm.eager_load(eager).joins(@dat[:cad_join]).where(w).count
