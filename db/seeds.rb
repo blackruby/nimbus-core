@@ -28,8 +28,8 @@ unless Nimbus::Config[:excluir_divisas]
   puts 'Divisas'
 
   divisas = [
-    ['EUR', 'Euro', 2],
-    ['USD', 'Dólar estadounidense', 2],
+    ['EUR', 'Euro', 2, nil, '€'],
+    ['USD', 'Dólar estadounidense', 2, '$'],
     ['CAD', 'Dólar canadiense', 2],
     ['GBP', 'Libra esterlina', 2],
     ['GIP', 'Libra de Gibraltar', 2],
@@ -66,7 +66,7 @@ unless Nimbus::Config[:excluir_divisas]
     ['VES', 'Bolívar soberano', 2],
   ]
   divisas.each {|d|
-    Divisa.create(codigo: d[0], descripcion: d[1], decimales: d[2], user_id: 1) rescue nil
+    Divisa.create(codigo: d[0], descripcion: d[1], decimales: d[2], prefijo: d[3], sufijo: d[4], user_id: 1) rescue nil
   }
 end
 

@@ -5,6 +5,8 @@ class Divisa < ActiveRecord::Base
     codigo: {pk: true, manti: 3, may: true, req: true},
     descripcion: {},
     decimales: {manti: 1},
+    prefijo: {},
+    sufijo: {},
   }
 
   has_many :divisalineas, dependent: :destroy

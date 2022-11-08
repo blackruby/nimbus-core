@@ -5,6 +5,8 @@ class CreateDivisas < ActiveRecord::Migration[5.0]
           t.string :codigo
           t.string :descripcion
           t.integer :decimales
+          t.string :prefijo
+          t.string :sufijo
       }
 
       create_table(:divisas) {|t| col.call(t)}

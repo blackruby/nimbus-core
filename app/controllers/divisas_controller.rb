@@ -5,6 +5,8 @@ class DivisasMod < Divisa
     codigo: {tab: 'pre', grid:{}},
     descripcion: {tab: 'pre', grid:{}},
     decimales: {tab: 'pre', grid:{}},
+    prefijo: {tab: 'pre', grid:{}, br: true},
+    sufijo: {tab: 'pre', grid:{}},
   }
 
   @grid = {
@@ -13,9 +15,6 @@ class DivisasMod < Divisa
   }
 
   @hijos = [{url: 'divisalineas', tab: 'post'}]
-
-  #def ini_campos_ctrl
-  #end
 
   include MantMod
 end
