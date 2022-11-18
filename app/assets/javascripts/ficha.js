@@ -30,8 +30,12 @@ function tabClick(tab) {
 
   if (typeof(_controlador) == "undefined") return;
   
-  var fs = "ontab_" + tab_name;
-  if ($.inArray(fs, nimOnTabs) >= 0) callFonServer(fs);
+  if (nimOnTabs[0] == 'ontab_') {
+    callFonServer('ontab_', {tab: tab_name});
+  } else {
+    var fs = "ontab_" + tab_name;
+    if ($.inArray(fs, nimOnTabs) >= 0) callFonServer(fs);
+  }
   setTimeout(function(){
     if (typeof tabClickUsu == "function") tabClickUsu(tab);
     redimWindow();

@@ -1494,10 +1494,15 @@ class ApplicationController < ActionController::Base
     clm.hijos.each{|h|
       @tabs << h[:tab] if h[:tab] and !@tabs.include?(h[:tab]) and h[:tab] != 'pre' and h[:tab] != 'post' and !@fact.campos.include?(h[:tab].to_sym)
     }
-    @tabs.each {|t|
-      f = "ontab_#{t}"
-      @on_tabs << f if self.respond_to?(f)
-    }
+
+    if self.respond_to?('ontab_')
+      @on_tabs << 'ontab_'
+    else
+      @tabs.each {|t|
+        f = "ontab_#{t}"
+        @on_tabs << f if self.respond_to?(f)
+      }
+    end
 
     #@head = (params[:head] ? params[:head].to_i : 1)
     @head = (flash[:head] || params[:head] || 1).to_i
@@ -2576,7 +2581,9 @@ class ApplicationController < ActionController::Base
   #   que ha provocado la selección. Este último puede valer: "prog" si la
   #   la selección se ha hecho programáticamente, "click" si ha sido por la
   #   pulsación del ratón o por la tecla <ENTER>, "keydown" si ha sido con el teclado, pero
-  #   no con <ENTER> (cursores, tabulador, etc.).
+  #   no con <ENTER> (cursores, tabulador, etc.). Si existe el método <tt>sel_</tt>
+  #   también será llamado y recibirá como primer argumento el nombre del campo (cmp) y como
+  #   argumentos siguientes los mismos que el caso anterior (rowid, col, evento). 
   #
   # * *:del* (Boolean) <em>(Default: true)</em> -- Sólo válido en modo edición. Indica si
   #   se permiten borrar filas. En caso afirmativo antes del borrado se
@@ -2878,6 +2885,22 @@ class ApplicationController < ActionController::Base
   end
 
   def grid_local_ed_select
+    fun = "sel_}"
+    if respond_to?(fun)
+      case  method(fun).arity
+      when 0
+        method(fun).call
+      when 1
+        method(fun).call(params[:cmp])
+      when 2
+        method(fun).call(params[:cmp], params[:row])
+      when 3
+        method(fun).call(params[:cmp], params[:row], params[:col])
+      else
+        method(fun).call(params[:cmp], params[:row], params[:col], params[:event])
+      end
+    end
+
     fun = "sel_#{params[:cmp]}"
     if respond_to?(fun)
       case  method(fun).arity
