@@ -2885,7 +2885,7 @@ class ApplicationController < ActionController::Base
   end
 
   def grid_local_ed_select
-    fun = "sel_}"
+    fun = "sel_"
     if respond_to?(fun)
       case  method(fun).arity
       when 0
