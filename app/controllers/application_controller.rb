@@ -2639,7 +2639,7 @@ class ApplicationController < ActionController::Base
   #   * *:manti* (Integer) <em>(Default: 7)</em> -- Sólo para tipos numéricos. Indica la mantisa.
   #   * *:signo* (Boolean) <em>(Default: false)</em> -- Sólo para tipos numéricos.
   #     Indica si se admiten negativos.
-  #   * *:dec* (Integer) <em>(Default: 2)</em> -- Sólo para el type :decimal.
+  #   * *:decim* (Integer) <em>(Default: 2)</em> -- Sólo para el type :decimal.
   #     Indica el número de decimales.
   #   * *:align* (String) -- Posibles valores: 'left', 'center', 'right'
   #     Por defecto se adapta al _type_ por lo que no sería necesario
