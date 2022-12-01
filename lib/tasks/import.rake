@@ -37,7 +37,7 @@ namespace :nimbus do
 
     ########### MAIN
 
-    path_i = "/nimbus-import/#{Rails.app_class.to_s.split(':')[0].downcase}"
+    path_i = "/nimbus-import/#{Nimbus::Gestion.downcase}"
 
     opt = args[:opt]
     #if !%w(c a m).include?(opt) || nh && nh != 'nh'
