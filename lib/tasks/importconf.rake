@@ -43,8 +43,6 @@ namespace :nimbus do
 
     if args[:opt]
       puts
-      puts 'Sintaxis: rake nimbus:importconf[h]'
-      puts 
       puts '  Esta tarea procesa todos los ficheros con extensión "csv" que se encuentren'
       puts "  en la carpeta #{path_i}"
       puts '  El nombre de cada fichero es irrelevante.'
