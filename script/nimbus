@@ -25,7 +25,7 @@ def help
   hlp << "{-i}\n"
   hlp << "    Modo 'init'. Sirve para usarlo como comando de arranque en un contenedor docker.\n"
   hlp << "    En este caso el resto de opciones serán ignoradas y no se realizará ninguna tarea.\n"
-  hlp << "    Su único propósito es mantener activo el contenedor para usarlo desde un termianal.\n"
+  hlp << "    Su único propósito es mantener activo el contenedor para usarlo desde un terminal.\n"
   hlp << "    También se encarga de acabar con los procesos zombis que se generen.\n"
   hlp << "    Esta opción será ignorada si se usa fuera del contexto aludido.\n"
   hlp << "\n"
@@ -85,8 +85,6 @@ end
 
 @init = (Process.pid == 1)
 `rm -f /rails/clientes/*/log/puma.pid /rails/log/puma.pid` if @init
-
-Dir.chdir(__dir__ + '/../../..')
 
 Signal.trap('TERM') do
   if @init

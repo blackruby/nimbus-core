@@ -5,30 +5,36 @@
 #include "stdio.h"
 #include "string.h"
 #include "unistd.h"
-#include "sys/stat.h"
 
-char *k;
-int ks;
+/*-*/
 
 VALUE rb_nimbus_source(VALUE self, VALUE binding) {
-  char x = 'a', *buf, *fic, nfic[300], ev[18], fi[9], fm[12];
-  int i, seed;
+  char x = 'a', *ptr, *buf, *fic, nfic[300], ev[18], sl[16], fm[12];
+  int i, seed = 0;
   long length;
   FILE *f;
   VALUE res;
-  struct stat fs;
 
   ev[0]='_'-x;ev[1]='r'-x;ev[2]='u'-x;ev[3]='b'-x;ev[4]='y'-x;ev[5]='_'-x;ev[6]='v'-x;ev[7]='e'-x;ev[8]='r'-x;ev[9]='s'-x;ev[10]='i'-x;ev[11]='o'-x;ev[12]='n'-x;ev[13]='_'-x;ev[14]='i'-x;ev[15]='d'-x;ev[16]='_'-x;ev[17]=0;
   for (i = 0; i < 17; i++) {ev[i] += x;}
-  fi[0]='_'-x;fi[1]='_'-x;fi[2]='F'-x;fi[3]='I'-x;fi[4]='L'-x;fi[5]='E'-x;fi[6]='_'-x;fi[7]='_'-x;fi[8]=0;
-  for (i = 0; i < 8; i++) {fi[i] += x;}
-  fm[0]='.'-x;fm[1]='n'-x;fm[2]='i'-x;fm[3]='m'-x;fm[4]='b'-x;fm[5]='u'-x;fm[6]='s'-x;fm[7]='/'-x;fm[8]='%'-x;fm[9]='j'-x;fm[10]='X'-x;fm[11]=0;
-  for (i = 0; i < 11; i++) {fm[i] += x;}
+  sl[0]='s'-x;sl[1]='o'-x;sl[2]='u'-x;sl[3]='r'-x;sl[4]='c'-x;sl[5]='e'-x;sl[6]='_'-x;sl[7]='l'-x;sl[8]='o'-x;sl[9]='c'-x;sl[10]='a'-x;sl[11]='t'-x;sl[12]='i'-x;sl[13]='o'-x;sl[14]='n'-x;sl[15]=0;
+  for (i = 0; i < 15; i++) {sl[i] += x;}
+  fm[0]='.'-x;fm[1]='n'-x;fm[2]='i'-x;fm[3]='m'-x;fm[4]='b'-x;fm[5]='u'-x;fm[6]='s'-x;fm[7]='/'-x;fm[8]='%'-x;fm[9]='d'-x;fm[10]=0;
+  for (i = 0; i < 10; i++) {fm[i] += x;}
 
-  res = rb_funcall(binding, rb_intern(ev), 1, rb_str_new_cstr(fi));
+  res = rb_funcall(binding, rb_intern(sl), 0);
+  res = rb_ary_entry(res, 0);
   fic = StringValueCStr(res);
-  stat(fic, &fs);
-  sprintf(nfic, fm, (uintmax_t)fs.st_ino + 123456789);
+  if (*fic == '/') fic += lenh; 
+  *nfic = 0;
+  for (ptr = fls,  i = 0; i < nfls; i++) {
+    if (!strcmp(ptr, fic)) {
+      sprintf(nfic, fm, fls_n[i]);
+      seed = fls_n[i] % ks;
+      break;
+    }
+    ptr += strlen(ptr) + 1;
+  }
 
   f = fopen (nfic, "rb");
   if (!f) return(Qnil);
@@ -41,7 +47,6 @@ VALUE rb_nimbus_source(VALUE self, VALUE binding) {
   fclose(f);
   buf[length] = 0;
 
-  seed = fs.st_ino % ks;
   for (i = 0; i < length; i++) {
     buf[i] = (buf[i] - k[seed] + 256) % 256;
     seed = (seed + 1) % ks;
@@ -55,9 +60,9 @@ VALUE rb_nimbus_source(VALUE self, VALUE binding) {
   return(Qnil);
 }
 
-void Init_nimbus()
+void Init_nimbus(void)
 {
-  char x = 'a', ce[11], al[29], ns[14];
+  char x = 'a', ce[11], al[29], ns[14], *ptr;
   int i;
 
   ce[10]=0;ce[0]='c'-x;ce[1]='l'-x;ce[2]='a'-x;ce[3]='s'-x;ce[4]='s'-x;ce[5]='_'-x;ce[6]='e'-x;ce[7]='v'-x;ce[8]='a'-x;ce[9]='l'-x;
@@ -71,5 +76,14 @@ void Init_nimbus()
 
   rb_funcall(rb_cBinding, rb_intern(ce), 1, rb_str_new_cstr(al));
   rb_define_global_function(ns, rb_nimbus_source, 1);
-  /*-*/
+
+  for (i = 0; i < ks; i++) k[i] += kof;
+  for (ptr = fls, i = 0; i < nfls; i++) {
+    while (*ptr) {
+      *ptr = 256 - *ptr;
+      ptr++;
+    }
+    ptr++;
+  }
+
 }

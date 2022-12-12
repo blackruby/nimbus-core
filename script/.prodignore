@@ -1,0 +1,8 @@
+.prodignore
+crea_gestion
+genmodulo.rb
+nimbus_bin
+nim_update
+nim_update.rb
+r5to7
+r7_tree

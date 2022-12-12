@@ -10,6 +10,8 @@ class Tema < ActiveRecord::Base
   serialize :params
 
   def self.scs_default
+    # NO BORRAR los comentarios de IniDef y FinDef (el código entre ellos será sustituido al encriptar la aplicación)
+    ##--IniDef
     h = {}
     File.readlines('modulos/nimbus-core/vendor/assets/stylesheets/_nimbus_theme.scss').each {|l|
       next unless l.strip!.to_s.starts_with?('--')
@@ -17,6 +19,7 @@ class Tema < ActiveRecord::Base
       l = l.split(':')
       h[l[0]] = l[1].strip.chomp.chop
     }
+    ##--FinDef
     h.merge!(Nimbus::Config[:tema]) if Nimbus::Config[:tema]
     h
   end

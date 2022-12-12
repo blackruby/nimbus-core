@@ -1,4 +1,4 @@
-module Nimbus
+class Numeric
   TextoUnidades = {
     '00'=>'','01'=>'un','02'=>'dos','03'=>'tres','04'=>'cuatro','05'=>'cinco','06'=>'seis','07'=>'siete','08'=>'ocho','09'=>'nueve',
     '10'=>'diez','11'=>'once','12'=>'doce','13'=>'trece','14'=>'catorce','15'=>'quince','16'=>'dieciséis','17'=>'diecisiete',
@@ -44,16 +44,14 @@ module Nimbus
     ret << " #{n > 1 ? suf.pluralize : suf}" if suf
     ret
   end
-end
 
-class Numeric
   def texto(gen_manti: :n, gen_decim: :n, decim: 2, suf_manti: nil, suf_decim: nil, sep_decim: 'con')
     num = self.abs
     man = num.to_i
     dec = (num - man).round(decim).to_s[2..-1].to_i
     res = self < 0 ? 'menos ' : ''
-    res << Nimbus.numalet(n: man, gen: gen_manti, suf: suf_manti)
-    res << " #{sep_decim} " + Nimbus.numalet(n: dec, gen: gen_decim, suf: suf_decim) if dec != 0
+    res << self.class.numalet(n: man, gen: gen_manti, suf: suf_manti)
+    res << " #{sep_decim} " + self.class.numalet(n: dec, gen: gen_decim, suf: suf_decim) if dec != 0
     res
   end
 

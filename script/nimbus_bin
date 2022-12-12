@@ -1,11 +1,12 @@
 #!/usr/local/bin/ruby
 
 nimbus = 'modulos/nimbus-core/script/nimbus'
-Dir.chdir('..') while Dir.pwd != '/' && !File.exist?(nimbus)
+p = (ENV['PWD'] || Dir.pwd).split('/')
+p.pop while p.size > 1 && !File.exist?(p.join('/') + '/' + nimbus)
 
-if Dir.pwd == '/'
-  puts 'No estás situado en ningún proyecto.'
-  exit
+if p.size > 1
+  Dir.chdir(p.join('/'))
+  exec(nimbus, *ARGV) if File.exist?('Gemfile') && File.exist?('bin/rails')
 end
 
-exec nimbus, *ARGV
+puts 'No estás situado en ningún proyecto.'

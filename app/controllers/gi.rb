@@ -362,7 +362,7 @@ class GI
       #`libreoffice --headless --convert-to pdf --outdir /tmp #{fns}.xlsx`
       dirtmp = "#{fx[0..-6]}_lo_dir"
       #`libreoffice -env:UserInstallation=file://#{dirtmp} --headless --convert-to pdf --outdir /tmp #{fx}`
-      `libreoffice -env:UserInstallation=file://#{dirtmp} --headless --convert-to pdf --outdir #{Pathname(fx).dirname} #{fx} >/dev/null 2>&1`
+      `libreoffice -env:UserInstallation=file://#{dirtmp} --headless --convert-to pdf --outdir #{Pathname(fx).dirname} #{fx} >/dev/null 3>&1`
       FileUtils.rm_rf [fx, dirtmp]
       return fx[0..-5] + 'pdf'
     else
