@@ -9,4 +9,9 @@ if p.size > 1
   exec(nimbus, *ARGV) if File.exist?('Gemfile') && File.exist?('bin/rails')
 end
 
-puts 'No estás situado en ningún proyecto.'
+if ARGV.include?('-i') && Process.pid == 1
+  fork {exec 'sleep infinity'}
+  loop{Process.wait} rescue nil
+else
+  puts 'No estás situado en ningún proyecto.'
+end
