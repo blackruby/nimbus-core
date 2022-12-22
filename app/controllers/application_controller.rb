@@ -3363,21 +3363,28 @@ class ApplicationController < ActionController::Base
     else
       call_nimbus_hook :before_borra
 
-      @fact.destroy
+      begin
+        @fact.destroy
 
-      if @usu.audit
-        Auditoria.create usuario_id: @usu.id, fecha: Nimbus.now, controlador: params[:controller], accion: 'B', rid: @fact.id
+        if @usu.audit
+          Auditoria.create usuario_id: @usu.id, fecha: Nimbus.now, controlador: params[:controller], accion: 'B', rid: @fact.id
+        end
+
+        # Borrar los datos asociados
+        `rm -rf #{Nimbus::DataPath}/#{class_modelo}/#{@fact.id}`
+
+        call_nimbus_hook :after_borra
+
+        grid_reload
+        @ajax << 'hayCambios=false;'
+        #@ajax << "window.location.replace('/' + _controlador + '/0/edit?head=#{@dat[:head]}');"
+        @ajax << 'if(parent == self){window.close();location.replace("about:blank")}else parent.editInForm(0);'
+      rescue ActiveRecord::InvalidForeignKey => e
+        mensaje 'No se ha podido borrar el registro.<br>Está referenciado en otras tablas.'
+        logger.fatal e.message
+      rescue => e
+        pinta_exception(e, 'No se ha podido borrar el registro.')
       end
-
-      # Borrar los datos asociados
-      `rm -rf #{Nimbus::DataPath}/#{class_modelo}/#{@fact.id}`
-
-      call_nimbus_hook :after_borra
-
-      grid_reload
-      @ajax << 'hayCambios=false;'
-      #@ajax << "window.location.replace('/' + _controlador + '/0/edit?head=#{@dat[:head]}');"
-      @ajax << 'if(parent == self){window.close();location.replace("about:blank")}else parent.editInForm(0);'
     end
 
     render_ajax
