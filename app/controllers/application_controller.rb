@@ -2124,7 +2124,7 @@ class ApplicationController < ActionController::Base
       ep = ep + 'empresa_id'
       msel = mselect_parse(mod, mod.auto_comp_mselect, ep)
       edb = msel[:alias_cmp][ep][:cmp_db]
-      par[:eid] = nil if par[:eid].length == 0 #Añadido por JOTA -> Para que en caso de ser "" recoja el del dat[:eid]
+      par[:eid] = nil if par[:eid].to_s.length == 0 #Añadido por JOTA -> Para que en caso de ser "" recoja el del dat[:eid]
       wh << " AND #{edb}=#{(par[:eid] || @dat[:eid])}"
     else
       msel = mselect_parse(mod, mod.auto_comp_mselect)
