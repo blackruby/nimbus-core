@@ -8,6 +8,6 @@ namespace :nimbus do
         WHERE table_schema = 'public' AND table_type = 'BASE TABLE' AND table_name LIKE 'tmp%' OR table_name LIKE '%_tmp%'
       )).values.flatten.join(',')
 
-      sql_exe "TRUNCATE #{tablas} RESTART IDENTITY" unless tablas.blank?
+      sql_exe "TRUNCATE #{tablas} RESTART IDENTITY CASCADE" unless tablas.blank?
   end
 end

@@ -21,7 +21,7 @@ def importa_seed(modelo)
   modeloh = modelo.name.sub('::', '::H')
   if Object.const_defined?(modeloh)
     tablah = modeloh.constantize.table_name
-    sql_exe "TRUNCATE #{tablah} RESTART IDENTITY"
+    sql_exe "TRUNCATE #{tablah} RESTART IDENTITY CASCADE"
     sql_exe "INSERT INTO #{tablah} (id#{cols.join(',')}) SELECT * FROM #{tabla}"
     sql_exe "UPDATE #{tablah} SET created_by_id = '1', created_at = '#{Nimbus.now}'"
   end
