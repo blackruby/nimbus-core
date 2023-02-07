@@ -157,9 +157,9 @@ namespace :nimbus do
         else
           tab = mod.table_name
           if opt == 'c'
-            sql_exe("TRUNCATE #{tab} RESTART IDENTITY")
+            sql_exe("TRUNCATE #{tab} RESTART IDENTITY CASCADE")
             his = mod.modelo_histo
-            sql_exe("TRUNCATE #{his.table_name} RESTART IDENTITY") if his && !nh
+            sql_exe("TRUNCATE #{his.table_name} RESTART IDENTITY CASCADE") if his && !nh
           end
           tu[:last_id] = sql_exe("select last_value from #{tab}_id_seq").values[0][0]
         end

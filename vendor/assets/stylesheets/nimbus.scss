@@ -139,10 +139,16 @@ a {
 .nim-label-upload {
   font-size: 12px;
   background-color: var(--color-1);
-  color: #ffffff;
+  color:  var(--color-1_f);
   cursor: pointer;
   padding: 6px;
   border-radius: 6px;
+}
+
+.nim-label-upload-disabled {
+  background-color: #d3d3d3;
+  color:  #a0a0a0;
+  cursor: not-allowed;
 }
 
 .nim-label-out {

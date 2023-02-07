@@ -319,6 +319,9 @@ class ApplicationController < ActionController::Base
       @ajax << "$('#_h_#{c}').attr('disabled', #{ed == :d ? 'true' : 'false'});"
     elsif ty == :boolean
       @ajax << "mdlCheckStatus('#{c}','#{ed}');"
+    elsif ty == :upload
+      @ajax << "$('##{c}').#{ed == :d ? 'add' : 'remove'}Class('nim-label-upload-disabled');"
+      @ajax << "$('##{c}_input').attr('disabled', #{ed == :d ? 'true' : 'false'});"
     elsif ty == :text && rich
       @ajax << "nq_#{c}.enable(#{ed == :e ? 'true' : 'false'});"
     else
