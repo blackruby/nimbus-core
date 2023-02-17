@@ -192,8 +192,8 @@ module ::Nimbus
         }
 
         if views.present?
-          fic = f[0..iapp-1].join('/') + '/' + ruta
-          views.unshift(fic) if File.exist?(fic)
+          #fic = f[0..iapp-1].join('/') + '/' + ruta
+          #views.unshift(fic) if File.exist?(fic)
           cl.set_nimbus_views(tipo, views)
         end
       }
