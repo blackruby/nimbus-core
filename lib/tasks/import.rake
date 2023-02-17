@@ -121,6 +121,14 @@ namespace :nimbus do
     ficheros_procesados = []
 
     ActiveRecord::Base.transaction do
+      if opt == 'c'
+        Dir.glob("#{path_i}/*.csv").each {|fic|
+          mod = monta_modelo(fic)
+          sql_exe("TRUNCATE #{mod.table_name} RESTART IDENTITY CASCADE")
+          his = mod.modelo_histo
+          sql_exe("TRUNCATE #{his.table_name} RESTART IDENTITY CASCADE") if his && !nh
+        }
+      end
       Dir.glob("#{path_i}/*").each {|fic|
         next unless fic[-4..-1].downcase == ('.csv')
 
@@ -130,16 +138,7 @@ namespace :nimbus do
         File.foreach(fic) {|l| head = l.chomp; break}
         cmps = head.split(',')
 
-        name = fic.split('/')[-1][0..-5].downcase
-        name_a = name.split('_')
-
-        if name_a.size == 1 || name_a[0] == 'h'
-          name[2..-1].camelize.constantize if name_a[0] == 'h' # Para precargar la clase del modelo principal si es un histórico
-          mod = name.camelize.constantize
-        else
-          "#{name_a[0].capitalize}::#{name_a[2..-1].join('_').camelize}".constantize if name_a[1] == 'h' # Para precargar la clase del modelo principal si es un histórico
-          mod = "#{name_a[0].capitalize}::#{name_a[1..-1].join('_').camelize}".constantize
-        end
+        mod = monta_modelo(fic)
 
         cmps_o = mod.column_names
 
@@ -156,11 +155,6 @@ namespace :nimbus do
           sql_exe("ALTER TABLE #{tab} DROP COLUMN id") unless tu[:hay_id]
         else
           tab = mod.table_name
-          if opt == 'c'
-            sql_exe("TRUNCATE #{tab} RESTART IDENTITY CASCADE")
-            his = mod.modelo_histo
-            sql_exe("TRUNCATE #{his.table_name} RESTART IDENTITY CASCADE") if his && !nh
-          end
           tu[:last_id] = sql_exe("select last_value from #{tab}_id_seq").values[0][0]
         end
 
@@ -289,4 +283,17 @@ namespace :nimbus do
       end
     end
   end
+end
+
+def monta_modelo(fic)
+  name = fic.split('/')[-1][0..-5].downcase
+  name_a = name.split('_')
+  if name_a.size == 1 || name_a[0] == 'h'
+    name[2..-1].camelize.constantize if name_a[0] == 'h' # Para precargar la clase del modelo principal si es un histórico
+    mod = name.camelize.constantize
+  else
+    "#{name_a[0].capitalize}::#{name_a[2..-1].join('_').camelize}".constantize if name_a[1] == 'h' # Para precargar la clase del modelo principal si es un histórico
+    mod = "#{name_a[0].capitalize}::#{name_a[1..-1].join('_').camelize}".constantize
+  end
+  mod
 end
