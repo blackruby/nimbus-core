@@ -182,6 +182,7 @@ namespace :nimbus do
         end
 
         sql_copy("COPY #{tab} (#{head}) FROM '#{fic}' CSV HEADER")
+        sql_exe("SELECT setval('#{tab}_id_seq', (SELECT MAX(id) FROM #{tab}))")
       }
 
       puts
