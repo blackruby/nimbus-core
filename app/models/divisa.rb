@@ -21,28 +21,50 @@ class Divisa < ActiveRecord::Base
     codigo + ' - ' + descripcion
   end
 
-  def self.convertir_a_divisa(divisaorigen, divisadestino, ejercicio, importe, fecha, decimales_extra = 0)
-    return 0.00 if importe.to_f.zero?
-    divisaorigen = divisaorigen.present? ? divisaorigen : ejercicio.divisa
-    divisadestino = divisadestino.present? ? divisadestino : ejercicio.divisa
-    return importe if (divisaorigen == divisadestino)
-    return (importe * self.cambio_a_fecha(divisaorigen, divisadestino, fecha)).round(2 + decimales_extra)
+  def self.convertir_a_divisa(divisaorigen_id, divisadestino_id, importe, fecha, decimales_extra = 0, masa_array = nil)
+    return importe if divisaorigen_id == divisadestino_id
+    es_array = importe.is_a?(Array)
+    return 0.00 if !es_array && importe.to_f.zero?
+    cambio = 1
+    if masa_array.present?
+      #Buscar las divisas que tocan
+      aux = masa_array.select{|x| x[0] == divisaorigen_id && x[2] <= fecha}.last
+      cambio = aux[1].to_f.round(6) if aux.present?
+    else
+      cambio = self.cambio_a_fecha(divisaorigen_id, divisadestino_id, fecha)
+    end
+    #Le suma 2 de las divisas
+    decimales_extra = decimales_extra.to_i + 2
+    if es_array
+      return importe.map{|imp| (imp * cambio).round(decimales_extra)}
+    else
+      return (importe * cambio).round(decimales_extra)  
+    end  
   end
 
-  #Devuelve el cambio mas cercano analizando divisaorigen y divisadestino
-  def self.cambio_a_fecha(divisaorigen, divisadestino, fecha)
-    cambio_origen = divisaorigen.divisalineas.where(:divisacambio_id => divisadestino.id).where("fecha < ?", fecha).order(:fecha => :desc).first
-    cambio_destino = divisadestino.divisalineas.where(:divisacambio_id => divisaorigen.id).where("fecha < ?", fecha).order(:fecha => :desc).first
+  #Devuelve el cambio mas cercano analizando divisaorigen_id y divisadestino_id
+  def self.cambio_a_fecha(divisaorigen_id, divisadestino_id, fecha)
+    return 1 if divisaorigen_id == divisadestino_id || divisaorigen_id.to_i == 0 || divisadestino_id.to_i == 0
+    divisas = [divisaorigen_id, divisadestino_id]
+    aux = sql_exe("SELECT case when divisacambio_id = #{divisadestino_id} then dl.cambio else 1 / dl.cambio end
+                  FROM divisas d
+                  JOIN divisalineas dl ON dl.divisa_id = d.id and dl.fecha = (
+										SELECT MAX(f.fecha) 
+                    FROM divisalineas f
+                    WHERE d.id <> dl.divisacambio_id and fecha <= '#{fecha}'
+                    and (f.divisa_id = d.id or f.divisa_id = dl.divisacambio_id)
+                  )
+                  WHERE dl.cambio <> 0 and dl.cambio <> 1 and fecha <= '#{fecha}'
+                  and d.id in (#{divisas.join(",")}) and dl.divisacambio_id in (#{divisas.join(",")})").values
+    return aux.present? ? aux[0][0].to_f.round(6) : 1 
+  end
 
-    if cambio_origen.present?
-      if cambio_destino.present? #existe cambio_origen y cambio_destino, devolver el mas actual
-        return (cambio_origen.fecha >= cambio_destino.fecha) ? cambio_origen.cambio : (1 / cambio_destino.cambio)
-      else #solo existe origen
-        return cambio_origen.cambio
-      end
-    else #solo podría haber cambio_destino
-      return cambio_destino.present? ? (1 / cambio_destino.cambio) : 1
-    end
+  #Devuelve el cambio respecto a la divisa que se le pase
+  def self.cambio_a_fecha_masa(divisadestino_id)
+    return sql_exe("SELECT case when d.id <> #{divisadestino_id} then d.id else dl.divisacambio_id end, case when divisacambio_id = #{divisadestino_id} then dl.cambio else 1 / dl.cambio end, dl.fecha
+                  FROM divisas d
+                  JOIN divisalineas dl ON dl.divisa_id = d.id
+                  WHERE dl.cambio <> 0 and dl.cambio <> 1").values
   end
 end
 
