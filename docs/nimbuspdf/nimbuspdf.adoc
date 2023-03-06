@@ -62,8 +62,8 @@ Todas las medidas (posición, grosor, tamaño de fuente, etc.) se expresan en "p
 == Ejemplo práctico
 
 Para ilustrar el funcionamiento nos vamos a basar en el informe "modulos/nimbus-core/app/controllers/l_divisas_paises_controller.rb". Para hacer un informe hay que hacer un controlador como si se tratara de un proceso más (con sus rutas correspondientes). Aquí definiremos nuestro _@campos_ con los campos que queramos recoger (principalmente límites y filtros) y, luego, en el método _after_save_, que es el llamado al confirmar la página construiremos el informe (PDF) y lo enviaremos al navegador. +
-En este ejemplo pintaremos para cada divisa seleccionada un documento con la lista de todos los países que usan dicha divisa y a continuación otro documento (totalmente artificial y sólo a modo de ejemplo) rellenando un formulario preimpreso. Puesto que el informe se compone de dos documentos, necesitaremos dos plantillas (YAML). Como norma general, lo ideal es crear una carpeta en el mismo nivel donde reside el controlador y con el nombre del mismo sin el sufijo __controller.rb_ y dejar allí tanto las plantillas (yml) como las imágenes que se pudieran usar. Así no necesitaremos indicar ningún path para referirnos a ellas. +
-Las dos plantillas que usaremos son:
+En este ejemplo pintaremos para cada divisa seleccionada un documento con la lista de todos los países que usan dicha divisa y a continuación otro documento (totalmente artificial y sólo a modo de ejemplo) rellenando un formulario preimpreso. Puesto que el informe se compone de dos documentos, necesitaremos dos plantillas (YAML). Como norma general, lo ideal es crear una carpeta en el mismo nivel donde reside el controlador y con el nombre del mismo sin el sufijo __controller.rb_ y dejar allí tanto las plantillas (yml) como las imágenes que se pudieran usar. Así no necesitaremos indicar ningún path para referirnos a ellas. Usaremos una plantilla adicional (_resumen.yml_) para pintar una banda embebida a partir del documento que representa esa plantilla. +
+Las tres plantillas que usaremos son:
 
 _l_divisas_paises.yml_
 [.codebox]
@@ -74,6 +74,12 @@ _322.yml_
 [.codebox]
 [source,yaml]
 include::../../app/controllers/l_divisas_paises/322.yml[]
+
+
+_resumen.yml_
+[.codebox]
+[source,yaml]
+include::../../app/controllers/l_divisas_paises/resumen.yml[]
 
 Además de las plantillas de los documentos, en la carpeta se encuentran dos imágenes: "ruby.png" usada como fondo de un elemento en la primera plantilla, y "322.png", usada como fondo de página en la segunda.
 
@@ -141,6 +147,70 @@ opciones _info_ y _compress_ (como está usado en el ejemplo).
   declarar opcionalmente un argumento (_fin_ en el ejemplo) que valdrá _true_ o _false_ en función de si es
   la última página del documento o no. Esto es útil para si, en documentos tipo factura, se quiere pintar los
   valores del pie sólo en la última página.
+
+* *47* Comenzamos un nuevo documento. Esto implica que se comienza una nueva página.
+  Se puede asociar un bloque en el que se puede ir construyendo el contenido del documento, bien usando métodos
+  directos de Prawn o añadiendo bandas con los métodos propios de NimbusPDF (_nueva_banda_, _nuevo_doc_banda_).
+  Según se vayan añadiendo bandas el documento irá creciendo y se irán creando páginas según se necesite. Se
+  puede forzar una página nueva con el método _start_new_page_. Si no se pasa ningún bloque también se puede
+  usar todo lo anterior, pero tendremos que finalizar el documento explícitamente llamando a _fin_doc_ (esto
+  no sería necesario si el documento carece de pie). Al comenzar un nuevo documento se da por finalizado el
+  anterior (si no había bloque o no se había llamado a _fin_doc_ no se pintará el último pie).
+  Las bandas _draw_, _cab_ y _pie_ se pintarán automáticamente en cada página del documento.
+  Los argumentos que puede recibir son: +
+  ** _doc_: Nombre del documento (fichero yml) donde se encuentra la plantilla. Si no se especifica se asume
+     que el nombre del fichero es el mismo que el controlador (sin __controller_) y con extensión _yml_ (no es
+     necesario indicar la extensión)
+  ** _cab_: Es opcional. Si no se ha usado el método _cabecera_ (línea 44), se puede indicar aquí. Igual que en
+     el método, se le puede indicar un hash o un lambda.
+  ** _pie_: Es opcional. Si no se ha usado el método _pie_ (línea 45), se puede indicar aquí. Igual que en
+     el método, se le puede indicar un hash o un lambda.
+  ** _tit_: Es opcional. Si se indica, debe ser una string que será el texto que aparecerá en el índice que
+     se muestra en los lectores de PDF (el PDF incluirá un índice con el texto indicado asociado a la página
+     donde comienza este documento).
+* *50* Añadimos una nueva banda de detalle. El método espera dos argumentos: _ban_, que es el nombre de la banda
+  de detalle (si no se especifica, se usará :det) y _val_ que es un hash con los valores que asignamos a cada
+  elemento de la banda. Las bandas de detalle no tienen altura y constan de elementos dispuestos en una única
+  fila. Si el contenido de alguno de los elementos no cupiera en una sóla línea, se irá expandiendo (incluso
+  pasando de página) lo que sea necesario. Para demostrar este hecho, cuando el país es Alemania (código DE),
+  en la línea anterior (49) se le añade al nombre del país un texto largo.
+* *51* Pinta una línea horizontal. Se basa en las coordenadas de los elementos _margen_i_ y _margen_d_ de la
+  banda _draw_. Para poder acceder a cualquier dato del documento lo podemos hacer a través del hash _documento_
+  que contiene toda la información del _yml_ asociado.
+* *52* Aunque al pintar una banda ya se deja un margen para pintar la siguiente, aquí se ha optado por bajar
+  el _cursor_ un poco más (5 puntos) para dejar un interlineado algo mayor.
+* *56* Se añade otra banda de detalle después de las correspodientes a cada país.
+* *60* Se añade otra banda resumen. Esta vez se usa el método _nuevo_doc_banda_, aquí se usa una plantilla
+  (documento) para obtener información de los elementos correspondientes. De dicha plantilla sólo se tendrá
+  en cuenta su banda de dibujo (_draw_) y de cabecera (_cab_). La altura de la banda que se renderizará será
+  la comprendida entre el elemento situado más arriba en la plantilla y el situado más abajo (es decir, que
+  todo el espacio que se deje por arriba o por abajo en las bandas _draw_ o _cab_ será ignorado). Eso significa
+  que da igual la altura donde posicionemos los elementos, ya que estos se considerarán relativos al elemento
+  situado en lo más alto. Este tipo de bandas se pintarán siempre completas, si no queda espacio suficiente
+  en la página, se saltará de página y se pintará la banda en la siguiente. En el ejemplo se pintan 4 bandas
+  de este tipo cuando la divisa sea la Corona Danesa (DKK) (se pintan sólo en este caso para no hacer muy
+  "pesado" el informe). Se esperan dos argumentos: _doc_, que es el nombre de la plantilla (_resumen.yml_ en
+  este caso) y _val_ que es un hash con los valores que se asignarán a los elementos de la banda _cab_ del
+  documento.
+* *66* Se añade un nuevo documento asociado a la divisa en curso, en este caso basado en la plantilla _322.yml_.
+  Aquí se opta por pasar los valores para los elementos de la banda cabecera (_cab_) directamente en el método.
+  Al no tener un bloque asociado ni añadirse bandas ni usar _fin_doc_, el documento constará de sólo una
+  página con la imagen de fondo y los elementos de las bandas _draw_ y _cab_. 
+* *69* _repeat_ es un método nativo de Prawn. Su función es iterar por las páginas indicadas, en este caso, todas
+  (:all) y así poder volver a renderizar algún elemento, por ejemplo, aquellos para los que no se conoce el 
+  valor hasta el final del informe (como el número total de páginas).
+* *70* _pon_elementos_ es un método de NimbusPDF y lo que hace es renderizar los elementos indicados en la
+  banda especificada en el primer argumento. Así, el primer argumento es la banda que queremos "re-renderizar"
+  y el segundo argumento es un hash cuyas claves son los elementos a renderizar, y, los valores, el contenido
+  de los mismos. Se están usando dos métodos para obtener los números de página:
+  ** _page_number_: Sin argumento devuelve el número de la página actual en el informe completo. Puede recibir
+     un argumento que sería una cadena para pintar; en la cadena se pueden emplear las macros %{p} y %{tp} que
+     serán sustituidas por el número de la página actual (referida al informe) y por el número total de
+     páginas del informe.
+  ** _page_number_doc_: Igual que el método anterior. En este caso, el número de página que devuelve (o el
+     valor de la macro %{p}) es relativa al documento correspondiente, y %{tp} se sustituirá por el número
+     total de páginas del documento en curso. 
+* *74* Envía el PDF generado al navegador.
 
 == Diseñador gráfico
 

@@ -33,7 +33,7 @@ class NimbusPDF < Prawn::Document
 
   def initialize(opts = {})
     @documentos = {}
-    @documentos_pag = [[0, nil]]  # Lo inicializamos con un centinela para cuando haya que referenciar el elemento anterior
+    @documentos_pag = []
     opts[:skip_page_creation] = true
     @rich_bg_colors = {}
     super
@@ -54,19 +54,7 @@ class NimbusPDF < Prawn::Document
     unless h[:orphan]
       canvas {image @fondo, :at => bounds.top_left, width: bounds.right, height: bounds.top} if @fondo
 
-      if @documento[:draw]
-        canvas {
-          @documento[:draw].each {|_k, v|
-            if v[:color]
-              fc = fill_color
-              fill_color v[:color]
-            end
-            fill_rectangle [v[:at][0], v[:at][1]], v[:width], v[:height]
-            fill_color fc if v[:color]
-          }
-        }
-      end
-
+      pon_draw @documento[:draw]
       pon_cabecera
     end
   end
@@ -88,18 +76,23 @@ class NimbusPDF < Prawn::Document
   end
 
   def page_number_doc(formato = nil)
-    pag = page_number - @documentos_pag[-1][0] + 1
-    ind = -1
-    if page_number != page_count
-      @documentos_pag.each_with_index {|p, i|
-        if page_number < p[0]
-          ind = i
-          pag = page_number - @documentos_pag[i - 1][0] + 1
+    p = page_number
+
+    if p < @documentos_pag[-1][0]
+      pag = tp = 0
+      @documentos_pag.each_with_index {|d, i|
+        if p < d[0]
+          pag = p - @documentos_pag[i - 1][0] + 1
+          tp = d[0] - @documentos_pag[i - 1][0]
           break
         end
       }
+    else
+      pag = p - @documentos_pag[-1][0] + 1
+      tp = page_count - @documentos_pag[-1][0] + 1
     end
-    return formato ? format(formato, {p: pag, tp: @documentos_pag[ind][0] - @documentos_pag[ind - 1][0]}) : pag
+
+    formato ? format(formato, {p: pag, tp: tp}) : pag
   end
     
   def nuevo_doc(doc: '', tit: nil, cab: nil, pie: nil)
@@ -122,6 +115,27 @@ class NimbusPDF < Prawn::Document
 
   def fin_doc
     pon_pie true
+  end
+
+  def nuevo_doc_banda(doc:, val: {})
+    doc_act = @documento
+    cargar_documento(doc)
+    doch = @documento.deep_dup
+    @documento = doc_act
+
+    start_new_page if doch[:_altura_si_banda_] > cursor
+
+    offset = cursor - doch[:_max_y_] + @documento[:pag][:bottom_margin]
+    [doch[:cab], doch[:draw]].compact.each {|b|
+      b.each {|k, v|
+        v[:at][1] += offset if v[:at]
+        v[:at_r][1] += offset if v[:at_r]
+      }
+    }
+
+    pon_draw doch[:draw]
+    nueva_banda_cp(doch[:cab], val)
+    move_cursor_to cursor - doch[:_altura_si_banda_]
   end
 
   def nueva_banda(ban: :det, val: {})
@@ -241,6 +255,9 @@ class NimbusPDF < Prawn::Document
       v[:color] = v[:color][1..-1] if v[:color]
     }
 
+    min_y = 99999.0
+    max_y = 0
+
     fix_vals = Proc.new {|k, v|
       if v[:borde] || v[:bgcolor]
         pl = v[:pad_l].to_f
@@ -253,10 +270,14 @@ class NimbusPDF < Prawn::Document
         v[:width] = v[:width_r] - pl - pr
         v[:height_r] = v[:height].to_f
         v[:height] = v[:height_r] - pt - pb
+        min_y = [min_y, v[:at_r][1] - v[:height_r]].min
+        max_y = [max_y, v[:at_r][1]].max
       else
         v[:at] = [v[:at][0].to_f, v[:at][1].to_f]
         v[:width] = v[:width].to_f
         v[:height] = v[:height].to_f
+        min_y = [min_y, v[:at][1] - v[:height]].min
+        max_y = [max_y, v[:at][1]].max
       end
       v[:valign] = v[:valign] ? v[:valign].to_sym : :center
       v[:overflow] = v[:overflow].to_sym if v[:overflow]
@@ -268,8 +289,13 @@ class NimbusPDF < Prawn::Document
       v[:brcolor] = v[:brcolor][1..-1] if v[:brcolor]
     }
 
-    # Bandas de cabecera, pie y draw
-    [:cab, :pie, :draw].each {|b| ndoc[b].each(&fix_vals) if ndoc[b]}
+    # Bandas de cabecera y draw
+    [:cab, :draw].each {|b| ndoc[b].each(&fix_vals) if ndoc[b]}
+    ndoc[:_max_y_] = max_y
+    ndoc[:_altura_si_banda_] = max_y - min_y
+
+    # Banda de pie
+    ndoc[:pie].each(&fix_vals) if ndoc[:pie]
 
     # Bandas de detalle
     if ndoc[:ban]
@@ -348,6 +374,20 @@ class NimbusPDF < Prawn::Document
     canvas {
       ban.each {|k, v|
         _pon_elemento(v, val[k]) unless v[:render]
+      }
+    }
+  end
+        
+  def pon_draw(banda)
+    return unless banda
+    canvas {
+      banda.each {|_k, v|
+        if v[:color]
+          fc = fill_color
+          fill_color v[:color]
+        end
+        fill_rectangle [v[:at][0], v[:at][1]], v[:width], v[:height]
+        fill_color fc if v[:color]
       }
     }
   end

@@ -1,0 +1,81 @@
+---
+:pag:
+  :layout: landscape
+:cab:
+  :c1:
+    :at:
+    - '180.00'
+    - '567.00'
+    :width: '135.97'
+    :height: '30.00'
+    :align: center
+    :overflow: shrink_to_fit
+    :bgcolor: "#ea9999"
+    :pad_l: '5.00'
+    :pad_r: '5.00'
+    :pad_t: '5.00'
+    :pad_b: '5.00'
+  :c2:
+    :at:
+    - '340.00'
+    - '567.00'
+    :width: '135.97'
+    :height: '30.00'
+    :align: center
+    :overflow: shrink_to_fit
+    :bgcolor: "#27d37a"
+    :pad_l: '5.00'
+    :pad_r: '5.00'
+    :pad_t: '5.00'
+    :pad_b: '5.00'
+  :c3:
+    :at:
+    - '180.00'
+    - '530.00'
+    :width: '135.97'
+    :height: '30.00'
+    :align: center
+    :overflow: shrink_to_fit
+    :color: "#ffffff"
+    :bgcolor: "#063289"
+    :pad_l: '5.00'
+    :pad_r: '5.00'
+    :pad_t: '5.00'
+    :pad_b: '5.00'
+  :c4:
+    :at:
+    - '340.00'
+    - '530.00'
+    :width: '135.97'
+    :height: '30.00'
+    :overflow: shrink_to_fit
+    :bgcolor: "#e8ec22"
+    :pad_l: '5.00'
+    :pad_r: '5.00'
+    :pad_t: '5.00'
+    :pad_b: '5.00'
+:draw:
+  :e_1:
+    :at:
+    - '168.00'
+    - '572.24'
+    :width: '320.00'
+    :height: '1.00'
+  :e_2:
+    :at:
+    - '168.00'
+    - '571.26'
+    :width: '1.00'
+    :height: '74.40'
+  :e_3:
+    :at:
+    - '168.00'
+    - '496.82'
+    :width: '320.00'
+    :height: '1.00'
+  :e_4:
+    :at:
+    - '487.00'
+    - '571.14'
+    :width: '1.00'
+    :height: '74.40'
