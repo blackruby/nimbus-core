@@ -28,8 +28,10 @@ class Divisa < ActiveRecord::Base
     cambio = 1
     if masa_array.present?
       #Buscar las divisas que tocan
-      aux = masa_array.select{|x| x[0] == divisaorigen_id && x[2] <= fecha}.last
-      cambio = aux[1].to_f.round(6) if aux.present?
+      if divisaorigen_id.present? && divisadestino_id.present?
+        aux = masa_array.select{|x| x[0] == divisaorigen_id && x[2] <= fecha}.last
+        cambio = aux[1].to_f.round(6) if aux.present?
+      end
     else
       cambio = self.cambio_a_fecha(divisaorigen_id, divisadestino_id, fecha)
     end
