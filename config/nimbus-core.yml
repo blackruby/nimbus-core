@@ -185,8 +185,8 @@ puma:
 # Aunque no exista la clave "temas" (o valga nil/false), que implicaría que el
 # cliente no puede gestionar los temas, se puede poner un tema concreto para
 # personalizar la gestión. 
-:temas: true
-:tema:
+temas: true
+tema:
   --color-1: "#673ab7"
   --color-1_f: "#ffffff"
   --color-1-2: "#d1c4e9"
@@ -209,3 +209,10 @@ puma:
   --jqg-active-cell-color_f: "#000000"
   --mdl-button-radius: 4px
   --mdl-button-fab-radius: 50%
+
+# Secret
+# Si se especifica tendrá preferencia sobre el especificado en config/secrets.yml
+# Para generar una clave se puede usar "rails secret"
+# Por motivos de seguridad habría que incluirlo siempre (y distinta) para cada gestión o cliente.
+
+secret_key_base: 841639a9d038cc13109d9a79978f41d485d2119f3fbf49196791d2baaa8b5ef8426c77027dcb74e2c546e436765ab4815f7147cdf2a45783e4049e8832305ec9
