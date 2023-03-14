@@ -56,7 +56,7 @@ class Divisa < ActiveRecord::Base
                     WHERE d.id <> dl.divisacambio_id and fecha <= '#{fecha}'
                     and (f.divisa_id = d.id or f.divisa_id = dl.divisacambio_id)
                   )
-                  WHERE dl.cambio <> 0 and dl.cambio <> 1 and fecha <= '#{fecha}'
+                  WHERE dl.cambio <> 0 and fecha <= '#{fecha}'
                   and d.id in (#{divisas.join(",")}) and dl.divisacambio_id in (#{divisas.join(",")})").values
     return aux.present? ? aux[0][0].to_f.round(6) : 1 
   end
@@ -66,7 +66,7 @@ class Divisa < ActiveRecord::Base
     return sql_exe("SELECT case when d.id <> #{divisadestino_id} then d.id else dl.divisacambio_id end, case when divisacambio_id = #{divisadestino_id} then dl.cambio else 1 / dl.cambio end, dl.fecha
                   FROM divisas d
                   JOIN divisalineas dl ON dl.divisa_id = d.id
-                  WHERE dl.cambio <> 0 and dl.cambio <> 1").values
+                  WHERE dl.cambio <> 0").values
   end
 end
 
