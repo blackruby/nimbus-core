@@ -3383,7 +3383,8 @@ class ApplicationController < ActionController::Base
         #@ajax << "window.location.replace('/' + _controlador + '/0/edit?head=#{@dat[:head]}');"
         @ajax << 'if(parent == self){window.close();location.replace("about:blank")}else parent.editInForm(0);'
       rescue ActiveRecord::InvalidForeignKey => e
-        mensaje 'No se ha podido borrar el registro.<br>Está referenciado en otras tablas.'
+        msg = e.message.scan(/en la tabla «.+»/)
+        mensaje "No se ha podido borrar el registro.#{msg.present? ? '<br>Está referenciado ' + msg[0] : ''}"
         logger.fatal e.message
       rescue => e
         pinta_exception(e, 'No se ha podido borrar el registro.')
