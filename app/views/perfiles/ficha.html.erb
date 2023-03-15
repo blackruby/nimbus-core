@@ -1,4 +1,13 @@
-<div id="radios">
+<div id="main">
+  <div id="botones">
+    <button class="nim-dialog-button mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" title="Colapsar todo" onclick="colapsar('remove_box')">
+      <i class="material-icons" title="Colapsar todo">compress</i>
+    </button>
+    <button class="nim-dialog-button mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" title="Expandir todo" onclick="colapsar('add_box')">
+      <i class="material-icons">expand</i>
+    </button>
+  </div>
+
   <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="herencia">
     <input type="radio" id="herencia" class="mdl-radio__button" name="options" value="h" checked>
     <span class="mdl-radio__label c-herencia">Herencia</span>
@@ -19,7 +28,15 @@
     <input type="radio" id="prohibido" class="mdl-radio__button" name="options" value="x">
     <span class="mdl-radio__label c-prohibido">Prohibido</span>
   </label>
-</div>
 
-<div id="menu">
+  <div id="menu">
+  </div>
+
+  <span id="float_opts">
+    <i class="c-herencia material-icons opts" st="h"></i>
+    <i class="c-permitido material-icons opts" st="p"></i>
+    <i class="c-sinborrado material-icons opts" st="b"></i>
+    <i class="c-consulta material-icons opts" st="c"></i>
+    <i class="c-prohibido material-icons opts" st="x"></i>
+  </span>
 </div>

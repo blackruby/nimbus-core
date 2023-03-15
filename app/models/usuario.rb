@@ -131,7 +131,7 @@ class Usuario < ActiveRecord::Base
             (cl + 'Controller').constantize # Para forzar el "lazy load" del controlador asociado
             cl = (cl + 'Mod').constantize
             # Asignación de permisos a las opciones de menu_l
-            cl.menu_l.each {|m|
+            (cl.menu_l + (cl.respond_to?(:permisos) ? cl.permisos : [])).each {|m|
               st2 = []
               emp.each_with_index {|e, i|
                 st2[i] = prf[e[2]] ? (prf[e[2]][path + k + '/' + m[:label]] || prm[i]) : 'x'
