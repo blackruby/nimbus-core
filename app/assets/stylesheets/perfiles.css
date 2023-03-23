@@ -1,6 +1,12 @@
-#radios {
-  margin: 10px;
-  text-align: center;
+#main {
+  display: none;
+}
+
+#botones {
+  display: inline-block;
+  margin-left: 10px;
+  margin-right: 30px;
+  vertical-align: middle;
 }
 
 .mdl-radio {
@@ -18,15 +24,15 @@
   overflow-y: scroll;
 }
 
-.collapse, .status, .relleno {
+.collapse, .status, .relleno, .opts {
   font-size: 20px;
 }
 
-.collapse, .status {
+.collapse, .status, .opts {
   vertical-align: middle;
 }
 
-.status {
+.status, .opts {
   border-radius: 50%;
 }
 
@@ -41,4 +47,9 @@
   padding-left: 5px;
   height: 28px;
   line-height: 28px;
+}
+
+#float_opts {
+  display: none;
+  padding-left: 10px;
 }

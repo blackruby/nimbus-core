@@ -34,9 +34,11 @@ class PerfilesController < ApplicationController
               cl = ps.size == 3 ? ps[1].capitalize + '::' + ps[2].camelize : ps[1].camelize
               (cl + 'Controller').constantize # Para forzar el "lazy load" del controlador asociado
               cl = (cl + 'Mod').constantize
-              unless cl.menu_l.empty?
+              submenu = cl.menu_l + (cl.respond_to?(:permisos) ? cl.permisos : [])
+
+              if submenu.present?
                 mn = {}
-                cl.menu_l.each {|m|
+                submenu.each {|m|
                   st2 = @fact.data[path + k + '/' + m[:label]] || 'h'
                   sth2 = st2 == 'h' ? sth : st2
                   mn[m[:label]] = {url: m[:url], nt: nt(m[:label]), st: st2, sth: sth2, menu: nil}

@@ -52,7 +52,15 @@ class LDivisasPaisesController < ApplicationController
             move_down 5
             tot += 1
           }
+
           nueva_banda ban: :total, val: {total: "Nº de países: #{tot}"}
+
+          if div.codigo == 'DKK'
+            (1..4).each {|i|
+              nuevo_doc_banda doc: 'resumen', val: {c1: "#{div.codigo} (#{i})", c2: div.descripcion, c3: "Decimales: #{div.decimales}", c4: st}
+              move_down 4
+            }
+          end
         }
 
         nuevo_doc doc: '322', cab: {codigo: div.codigo, descripcion: div.descripcion, n_paises: tot, actividad: 'X'}

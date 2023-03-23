@@ -1,4 +1,5 @@
 Highcharts.setOptions({
+  credits: { enabled: false }, // hace que salga un copyright.
   lang: {
     loading: 'Cargando...',
     months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],

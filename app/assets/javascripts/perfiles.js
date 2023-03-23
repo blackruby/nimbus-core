@@ -1,4 +1,4 @@
-var menuIndent = 18;
+var menuIndent = 40;
 
 function statusToClass(st) {
   switch(st) {
@@ -46,10 +46,6 @@ function genMenu(menu) {
 }
 
 function cambiaStatus(div, st) {
-  zz = div;
-  //var lbl = div.children().first();
-  //if (!lbl.hasClass('h')) return;
-
   div.children().each(function() {
     th =$(this);
     if (th.hasClass('l-menu') && !th.hasClass('h')) return(false);
@@ -60,26 +56,39 @@ function cambiaStatus(div, st) {
   });
 }
 
-function generaResult(div, path) {
+function _generaResult(div, path, menuToServer) {
   div.children().each(function() {
     if ($(this).hasClass("titulo-bloques")) return;
     var sm = $(this).children('div');
     var id = $(this).attr('clave');
     var st = $(this).children().first().attr('class')[0];
     if (st != 'h') menuToServer[path + id] = st;
-    if (sm.length > 0) generaResult(sm, path + id + '/');
+    if (sm.length > 0) _generaResult(sm, path + id + '/', menuToServer);
   });
 }
 
-function jsGrabar() {
-  menuToServer = {};
-  generaResult($("#menu"), '/');
+function generaResult() {
+  var menuToServer = {};
+  _generaResult($("#menu"), '/', menuToServer);
+  return menuToServer;
+}
 
-  return {data: menuToServer};
+function jsGrabar() {
+  var res = generaResult();
+  menuOrg = JSON.stringify(res);
+  return {data: res};
+}
+
+function jsCambios() {
+  return _factId != 0 && menuOrg != JSON.stringify(generaResult());
 }
 
 function redimMenu() {
   $("#menu").css("height", $(window).height() - $("#menu").offset().top);
+}
+
+function colapsar(modo) {
+  for (c of $(".collapse")) if (c.innerText == modo) c.click();
 }
 
 $(window).load(function () {
@@ -99,27 +108,39 @@ $(window).load(function () {
     $(this).parent().parent().find('div').first().css("display", vis);
   });
 
-  $("#menu").on("click", ".l-menu", function (e) {
-    var st = $('input[name=options]:checked').val();
-    if (st == 'h') {
-      var nst = 'h';
-      $(this).parent().parent().parentsUntil("#menu").each(function () {
-        var cl = $(this).find('label').first().attr('class')[0];
-        if (cl != 'h') {
-          nst = cl;
-          return false;
-        }
-      });
-    } else {
-      var nst = st;
-    }
+  var nuevo_status = null;
 
-    $(this).attr('class', 'h l-menu');
-    cambiaStatus($(this).parent(), nst);
-    $(this).attr('class', st + ' l-menu');
-    $(this).find('.status').html(st == 'h' ? '' : 'lock').attr('class', statusToClass(nst) + " material-icons status");
-  });
+  $("#menu").
+    on("mouseenter", ".l-menu", function (e) {$("#float_opts").appendTo($(this)).css("display", "inline");}).
+    on("mouseleave", function (e) {float_opts.style.display = "none";}).
+    on("click", ".l-menu", function (e) {
+      var st = nuevo_status ? nuevo_status : $('input[name=options]:checked').val();
+      nuevo_status = null;
+      if (st == 'h') {
+        var nst = 'h';
+        $(this).parent().parent().parentsUntil("#menu").each(function () {
+          var cl = $(this).find('label').first().attr('class')[0];
+          if (cl != 'h') {
+            nst = cl;
+            return false;
+          }
+        });
+      } else {
+        var nst = st;
+      }
 
-  $(window).resize(redimMenu);
-  redimMenu();
+      $(this).attr('class', 'h l-menu');
+      cambiaStatus($(this).parent(), nst);
+      $(this).attr('class', st + ' l-menu');
+      $(this).find('.status').html(st == 'h' ? '' : 'lock').attr('class', statusToClass(nst) + " material-icons status");
+    });
+
+  $(".opts").on("click", function (e) {nuevo_status = this.attributes.st.value;});
+
+  if (_factId != 0) {
+    main.style.display = 'block';
+    redimMenu();
+    $(window).resize(redimMenu);
+    menuOrg = JSON.stringify(generaResult());
+  }
 });

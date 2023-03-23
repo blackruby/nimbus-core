@@ -7,7 +7,7 @@ class Ejercicio < ActiveRecord::Base
     descripcion: {manti: 30},
     ej_anterior_id: {},
     ej_siguiente_id: {},
-    divisa_id: {},
+    divisa_id: {req: true},
     fec_inicio: {},
     fec_fin: {},
     param: {bus_hide: true},

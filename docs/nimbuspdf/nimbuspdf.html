@@ -598,8 +598,8 @@ El comando pdftoppm es parte de la suite poppler-utils. Si no está instalado ha
 <div class="sectionbody">
 <div class="paragraph">
 <p>Para ilustrar el funcionamiento nos vamos a basar en el informe "modulos/nimbus-core/app/controllers/l_divisas_paises_controller.rb". Para hacer un informe hay que hacer un controlador como si se tratara de un proceso más (con sus rutas correspondientes). Aquí definiremos nuestro <em>@campos</em> con los campos que queramos recoger (principalmente límites y filtros) y, luego, en el método <em>after_save</em>, que es el llamado al confirmar la página construiremos el informe (PDF) y lo enviaremos al navegador.<br>
-En este ejemplo pintaremos para cada divisa seleccionada un documento con la lista de todos los países que usan dicha divisa y a continuación otro documento (totalmente artificial y sólo a modo de ejemplo) rellenando un formulario preimpreso. Puesto que el informe se compone de dos documentos, necesitaremos dos plantillas (YAML). Como norma general, lo ideal es crear una carpeta en el mismo nivel donde reside el controlador y con el nombre del mismo sin el sufijo <em>_controller.rb</em> y dejar allí tanto las plantillas (yml) como las imágenes que se pudieran usar. Así no necesitaremos indicar ningún path para referirnos a ellas.<br>
-Las dos plantillas que usaremos son:</p>
+En este ejemplo pintaremos para cada divisa seleccionada un documento con la lista de todos los países que usan dicha divisa y a continuación otro documento (totalmente artificial y sólo a modo de ejemplo) rellenando un formulario preimpreso. Puesto que el informe se compone de dos documentos, necesitaremos dos plantillas (YAML). Como norma general, lo ideal es crear una carpeta en el mismo nivel donde reside el controlador y con el nombre del mismo sin el sufijo <em>_controller.rb</em> y dejar allí tanto las plantillas (yml) como las imágenes que se pudieran usar. Así no necesitaremos indicar ningún path para referirnos a ellas. Usaremos una plantilla adicional (<em>resumen.yml</em>) para pintar una banda embebida a partir del documento que representa esa plantilla.<br>
+Las tres plantillas que usaremos son:</p>
 </div>
 <div class="paragraph">
 <p><em>l_divisas_paises.yml</em></p>
@@ -836,6 +836,94 @@ Las dos plantillas que usaremos son:</p>
 </div>
 </div>
 <div class="paragraph">
+<p><em>resumen.yml</em></p>
+</div>
+<div class="listingblock codebox">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="head"><span class="head">---</span></span>
+<span class="symbol">:pag</span>:
+  <span class="symbol">:layout</span>: <span class="error">landscape</span>
+<span class="symbol">:cab</span>:
+  <span class="symbol">:c1</span>:
+    <span class="symbol">:at</span>:
+    - <span class="string"><span class="content">'180.00'</span></span>
+    - <span class="string"><span class="content">'567.00'</span></span>
+    <span class="symbol">:width</span>: <span class="error">'135.97'</span>
+    <span class="symbol">:height</span>: <span class="error">'30.00'</span>
+    <span class="symbol">:align</span>: <span class="error">center</span>
+    <span class="symbol">:overflow</span>: <span class="error">shrink_to_fit</span>
+    <span class="symbol">:bgcolor</span>: <span class="error">&quot;#ea9999&quot;</span>
+    <span class="symbol">:pad_l</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_r</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_t</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_b</span>: <span class="error">'5.00'</span>
+  <span class="symbol">:c2</span>:
+    <span class="symbol">:at</span>:
+    - <span class="string"><span class="content">'340.00'</span></span>
+    - <span class="string"><span class="content">'567.00'</span></span>
+    <span class="symbol">:width</span>: <span class="error">'135.97'</span>
+    <span class="symbol">:height</span>: <span class="error">'30.00'</span>
+    <span class="symbol">:align</span>: <span class="error">center</span>
+    <span class="symbol">:overflow</span>: <span class="error">shrink_to_fit</span>
+    <span class="symbol">:bgcolor</span>: <span class="error">&quot;#27d37a&quot;</span>
+    <span class="symbol">:pad_l</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_r</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_t</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_b</span>: <span class="error">'5.00'</span>
+  <span class="symbol">:c3</span>:
+    <span class="symbol">:at</span>:
+    - <span class="string"><span class="content">'180.00'</span></span>
+    - <span class="string"><span class="content">'530.00'</span></span>
+    <span class="symbol">:width</span>: <span class="error">'135.97'</span>
+    <span class="symbol">:height</span>: <span class="error">'30.00'</span>
+    <span class="symbol">:align</span>: <span class="error">center</span>
+    <span class="symbol">:overflow</span>: <span class="error">shrink_to_fit</span>
+    <span class="symbol">:color</span>: <span class="error">&quot;#ffffff&quot;</span>
+    <span class="symbol">:bgcolor</span>: <span class="error">&quot;#063289&quot;</span>
+    <span class="symbol">:pad_l</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_r</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_t</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_b</span>: <span class="error">'5.00'</span>
+  <span class="symbol">:c4</span>:
+    <span class="symbol">:at</span>:
+    - <span class="string"><span class="content">'340.00'</span></span>
+    - <span class="string"><span class="content">'530.00'</span></span>
+    <span class="symbol">:width</span>: <span class="error">'135.97'</span>
+    <span class="symbol">:height</span>: <span class="error">'30.00'</span>
+    <span class="symbol">:overflow</span>: <span class="error">shrink_to_fit</span>
+    <span class="symbol">:bgcolor</span>: <span class="error">&quot;#e8ec22&quot;</span>
+    <span class="symbol">:pad_l</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_r</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_t</span>: <span class="error">'5.00'</span>
+    <span class="symbol">:pad_b</span>: <span class="error">'5.00'</span>
+<span class="symbol">:draw</span>:
+  <span class="symbol">:e_1</span>:
+    <span class="symbol">:at</span>:
+    - <span class="string"><span class="content">'168.00'</span></span>
+    - <span class="string"><span class="content">'572.24'</span></span>
+    <span class="symbol">:width</span>: <span class="error">'320.00'</span>
+    <span class="symbol">:height</span>: <span class="error">'1.00'</span>
+  <span class="symbol">:e_2</span>:
+    <span class="symbol">:at</span>:
+    - <span class="string"><span class="content">'168.00'</span></span>
+    - <span class="string"><span class="content">'571.26'</span></span>
+    <span class="symbol">:width</span>: <span class="error">'1.00'</span>
+    <span class="symbol">:height</span>: <span class="error">'74.40'</span>
+  <span class="symbol">:e_3</span>:
+    <span class="symbol">:at</span>:
+    - <span class="string"><span class="content">'168.00'</span></span>
+    - <span class="string"><span class="content">'496.82'</span></span>
+    <span class="symbol">:width</span>: <span class="error">'320.00'</span>
+    <span class="symbol">:height</span>: <span class="error">'1.00'</span>
+  <span class="symbol">:e_4</span>:
+    <span class="symbol">:at</span>:
+    - <span class="string"><span class="content">'487.00'</span></span>
+    - <span class="string"><span class="content">'571.14'</span></span>
+    <span class="symbol">:width</span>: <span class="error">'1.00'</span>
+    <span class="symbol">:height</span>: <span class="error">'74.40'</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
 <p>Además de las plantillas de los documentos, en la carpeta se encuentran dos imágenes: "ruby.png" usada como fondo de un elemento en la primera plantilla, y "322.png", usada como fondo de página en la segunda.</p>
 </div>
 <div class="paragraph">
@@ -912,6 +1000,14 @@ Las dos plantillas que usaremos son:</p>
 66
 67
 68
+69
+70
+71
+72
+73
+74
+75
+76
 </pre></td>
   <td class="code"><pre><span class="keyword">class</span> <span class="class">LDivisasPaisesMod</span>
   <span class="instance-variable">@campos</span> = {
@@ -967,7 +1063,15 @@ Las dos plantillas que usaremos son:</p>
             move_down <span class="integer">5</span>
             tot += <span class="integer">1</span>
           }
+
           nueva_banda <span class="key">ban</span>: <span class="symbol">:total</span>, <span class="key">val</span>: {<span class="key">total</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Nº de países: </span><span class="inline"><span class="inline-delimiter">#{</span>tot<span class="inline-delimiter">}</span></span><span class="delimiter">&quot;</span></span>}
+
+          <span class="keyword">if</span> div.codigo == <span class="string"><span class="delimiter">'</span><span class="content">DKK</span><span class="delimiter">'</span></span>
+            (<span class="integer">1</span>..<span class="integer">4</span>).each {|i|
+              nuevo_doc_banda <span class="key">doc</span>: <span class="string"><span class="delimiter">'</span><span class="content">resumen</span><span class="delimiter">'</span></span>, <span class="key">val</span>: {<span class="key">c1</span>: <span class="string"><span class="delimiter">&quot;</span><span class="inline"><span class="inline-delimiter">#{</span>div.codigo<span class="inline-delimiter">}</span></span><span class="content"> (</span><span class="inline"><span class="inline-delimiter">#{</span>i<span class="inline-delimiter">}</span></span><span class="content">)</span><span class="delimiter">&quot;</span></span>, <span class="key">c2</span>: div.descripcion, <span class="key">c3</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Decimales: </span><span class="inline"><span class="inline-delimiter">#{</span>div.decimales<span class="inline-delimiter">}</span></span><span class="delimiter">&quot;</span></span>, <span class="key">c4</span>: st}
+              move_down <span class="integer">4</span>
+            }
+          <span class="keyword">end</span>
         }
 
         nuevo_doc <span class="key">doc</span>: <span class="string"><span class="delimiter">'</span><span class="content">322</span><span class="delimiter">'</span></span>, <span class="key">cab</span>: {<span class="key">codigo</span>: div.codigo, <span class="key">descripcion</span>: div.descripcion, <span class="key">n_paises</span>: tot, <span class="key">actividad</span>: <span class="string"><span class="delimiter">'</span><span class="content">X</span><span class="delimiter">'</span></span>}
@@ -1063,6 +1167,109 @@ llevemos en alguna variable local, deberíamos de usar un lambda.</p>
 declarar opcionalmente un argumento (<em>fin</em> en el ejemplo) que valdrá <em>true</em> o <em>false</em> en función de si es
 la última página del documento o no. Esto es útil para si, en documentos tipo factura, se quiere pintar los
 valores del pie sólo en la última página.</p>
+</li>
+<li>
+<p><strong>47</strong> Comenzamos un nuevo documento. Esto implica que se comienza una nueva página.
+Se puede asociar un bloque en el que se puede ir construyendo el contenido del documento, bien usando métodos
+directos de Prawn o añadiendo bandas con los métodos propios de NimbusPDF (<em>nueva_banda</em>, <em>nuevo_doc_banda</em>).
+Según se vayan añadiendo bandas el documento irá creciendo y se irán creando páginas según se necesite. Se
+puede forzar una página nueva con el método <em>start_new_page</em>. Si no se pasa ningún bloque también se puede
+usar todo lo anterior, pero tendremos que finalizar el documento explícitamente llamando a <em>fin_doc</em> (esto
+no sería necesario si el documento carece de pie). Al comenzar un nuevo documento se da por finalizado el
+anterior (si no había bloque o no se había llamado a <em>fin_doc</em> no se pintará el último pie).
+Las bandas <em>draw</em>, <em>cab</em> y <em>pie</em> se pintarán automáticamente en cada página del documento.
+Los argumentos que puede recibir son:<br></p>
+<div class="ulist">
+<ul>
+<li>
+<p><em>doc</em>: Nombre del documento (fichero yml) donde se encuentra la plantilla. Si no se especifica se asume
+que el nombre del fichero es el mismo que el controlador (sin <em>_controller</em>) y con extensión <em>yml</em> (no es
+necesario indicar la extensión)</p>
+</li>
+<li>
+<p><em>cab</em>: Es opcional. Si no se ha usado el método <em>cabecera</em> (línea 44), se puede indicar aquí. Igual que en
+el método, se le puede indicar un hash o un lambda.</p>
+</li>
+<li>
+<p><em>pie</em>: Es opcional. Si no se ha usado el método <em>pie</em> (línea 45), se puede indicar aquí. Igual que en
+el método, se le puede indicar un hash o un lambda.</p>
+</li>
+<li>
+<p><em>tit</em>: Es opcional. Si se indica, debe ser una string que será el texto que aparecerá en el índice que
+se muestra en los lectores de PDF (el PDF incluirá un índice con el texto indicado asociado a la página
+donde comienza este documento).</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>50</strong> Añadimos una nueva banda de detalle. El método espera dos argumentos: <em>ban</em>, que es el nombre de la banda
+de detalle (si no se especifica, se usará :det) y <em>val</em> que es un hash con los valores que asignamos a cada
+elemento de la banda. Las bandas de detalle no tienen altura y constan de elementos dispuestos en una única
+fila. Si el contenido de alguno de los elementos no cupiera en una sóla línea, se irá expandiendo (incluso
+pasando de página) lo que sea necesario. Para demostrar este hecho, cuando el país es Alemania (código DE),
+en la línea anterior (49) se le añade al nombre del país un texto largo.</p>
+</li>
+<li>
+<p><strong>51</strong> Pinta una línea horizontal. Se basa en las coordenadas de los elementos <em>margen_i</em> y <em>margen_d</em> de la
+banda <em>draw</em>. Para poder acceder a cualquier dato del documento lo podemos hacer a través del hash <em>documento</em>
+que contiene toda la información del <em>yml</em> asociado.</p>
+</li>
+<li>
+<p><strong>52</strong> Aunque al pintar una banda ya se deja un margen para pintar la siguiente, aquí se ha optado por bajar
+el <em>cursor</em> un poco más (5 puntos) para dejar un interlineado algo mayor.</p>
+</li>
+<li>
+<p><strong>56</strong> Se añade otra banda de detalle después de las correspodientes a cada país.</p>
+</li>
+<li>
+<p><strong>60</strong> Se añade otra banda resumen. Esta vez se usa el método <em>nuevo_doc_banda</em>, aquí se usa una plantilla
+(documento) para obtener información de los elementos correspondientes. De dicha plantilla sólo se tendrá
+en cuenta su banda de dibujo (<em>draw</em>) y de cabecera (<em>cab</em>). La altura de la banda que se renderizará será
+la comprendida entre el elemento situado más arriba en la plantilla y el situado más abajo (es decir, que
+todo el espacio que se deje por arriba o por abajo en las bandas <em>draw</em> o <em>cab</em> será ignorado). Eso significa
+que da igual la altura donde posicionemos los elementos, ya que estos se considerarán relativos al elemento
+situado en lo más alto. Este tipo de bandas se pintarán siempre completas, si no queda espacio suficiente
+en la página, se saltará de página y se pintará la banda en la siguiente. En el ejemplo se pintan 4 bandas
+de este tipo cuando la divisa sea la Corona Danesa (DKK) (se pintan sólo en este caso para no hacer muy
+"pesado" el informe). Se esperan dos argumentos: <em>doc</em>, que es el nombre de la plantilla (<em>resumen.yml</em> en
+este caso) y <em>val</em> que es un hash con los valores que se asignarán a los elementos de la banda <em>cab</em> del
+documento.</p>
+</li>
+<li>
+<p><strong>66</strong> Se añade un nuevo documento asociado a la divisa en curso, en este caso basado en la plantilla <em>322.yml</em>.
+Aquí se opta por pasar los valores para los elementos de la banda cabecera (<em>cab</em>) directamente en el método.
+Al no tener un bloque asociado ni añadirse bandas ni usar <em>fin_doc</em>, el documento constará de sólo una
+página con la imagen de fondo y los elementos de las bandas <em>draw</em> y <em>cab</em>.</p>
+</li>
+<li>
+<p><strong>69</strong> <em>repeat</em> es un método nativo de Prawn. Su función es iterar por las páginas indicadas, en este caso, todas
+(:all) y así poder volver a renderizar algún elemento, por ejemplo, aquellos para los que no se conoce el
+valor hasta el final del informe (como el número total de páginas).</p>
+</li>
+<li>
+<p><strong>70</strong> <em>pon_elementos</em> es un método de NimbusPDF y lo que hace es renderizar los elementos indicados en la
+banda especificada en el primer argumento. Así, el primer argumento es la banda que queremos "re-renderizar"
+y el segundo argumento es un hash cuyas claves son los elementos a renderizar, y, los valores, el contenido
+de los mismos. Se están usando dos métodos para obtener los números de página:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><em>page_number</em>: Sin argumento devuelve el número de la página actual en el informe completo. Puede recibir
+un argumento que sería una cadena para pintar; en la cadena se pueden emplear las macros %{p} y %{tp} que
+serán sustituidas por el número de la página actual (referida al informe) y por el número total de
+páginas del informe.</p>
+</li>
+<li>
+<p><em>page_number_doc</em>: Igual que el método anterior. En este caso, el número de página que devuelve (o el
+valor de la macro %{p}) es relativa al documento correspondiente, y %{tp} se sustituirá por el número
+total de páginas del documento en curso.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>74</strong> Envía el PDF generado al navegador.</p>
 </li>
 </ul>
 </div>

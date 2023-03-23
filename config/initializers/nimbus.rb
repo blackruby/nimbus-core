@@ -5,6 +5,9 @@ Date::DATE_FORMATS[:sp] = '%d-%m-%Y'
 I18n.config.enforce_available_locales = false
 I18n.default_locale = :es
 
+# Cambiar secret_key_base si está especificado en nimbus.yml
+Rails.application.secrets.secret_key_base = Nimbus::Config[:secret_key_base] if Nimbus::Config[:secret_key_base]
+
 # Añadir el método to_d a NilClass
 
 class NilClass
