@@ -4,7 +4,7 @@ class Usuario < ActiveRecord::Base
   @propiedades = {
     codigo: {pk: true, manti: 30},
     nombre: {},
-    email: {},
+    email: {manti: 50},
     password_salt: {bus_hide: true},
     password_hash: {bus_hide: true},
     password_fec_mod: {},
