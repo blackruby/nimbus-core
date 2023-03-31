@@ -11,6 +11,9 @@
 # DB_DATABASE DB_POOL DB_USERNAME DB_PASSWORD DB_HOST DB_PORT
 # Si se ponen las claves en el primer nivel las herederán tanto developmemnt como production, por lo que esas secciones son opcionales 
 # Cualquier clave que no aparezca en development o production se cojerá del primer nivel y, si tampoco está, se usará el default.
+# El nombre de la base de datos (database) irá prefijado por el contanido de la variable de entorno DB_PREFIX si exitiera. Esto es
+# útil si en un entorno de desarrollo compartimos base de datos con otros usuarios, así podemos personalizar el nombre de nuestras
+# BD sin alterar config.yml
 db:
   database: Nombre_de_la_base_de_datos (opcional. Defecto = Si hay un cliente (nimbus -u cliente) se usará su nombre, si no, el del module de config/application.rb)
   pool: Nº de conexiones (opcional. Defecto = 2 en development y 5 en production)

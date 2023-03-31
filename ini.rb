@@ -67,7 +67,7 @@ module ::Nimbus
 
   Config[:db] ||= {}
   Config[:db][:development] ||= {}
-  Config[:db][:development][:database] = ENV['DB_DATABASE'] || Config[:db][:development][:database] || Config[:db][:database] || Gestion
+  Config[:db][:development][:database] = ENV['DB_PREFIX'].to_s + (ENV['DB_DATABASE'] || Config[:db][:development][:database] || Config[:db][:database] || Gestion)
   Config[:db][:development][:pool] = ENV['DB_POOL'] || Config[:db][:development][:pool] || Config[:db][:pool] || Config[:puma][:max_threads]
   Config[:db][:development][:username] = ENV['DB_USERNAME'] || Config[:db][:development][:username] || Config[:db][:username] || 'postgres'
   Config[:db][:development][:password] = ENV['DB_PASSWORD'] || Config[:db][:development][:password] || Config[:db][:password] || 'postgres'
@@ -75,7 +75,7 @@ module ::Nimbus
   Config[:db][:development][:port] = ENV['DB_PORT'] || Config[:db][:development][:port] || Config[:db][:port] || ''
 
   Config[:db][:production] ||= {}
-  Config[:db][:production][:database] = ENV['DB_DATABASE'] || Config[:db][:production][:database] || Config[:db][:database] || Gestion
+  Config[:db][:production][:database] = ENV['DB_PREFIX'].to_s + (ENV['DB_DATABASE'] || Config[:db][:production][:database] || Config[:db][:database] || Gestion)
   Config[:db][:production][:pool] = ENV['DB_POOL'] || Config[:db][:production][:pool] || Config[:db][:pool] || Config[:puma][:max_threads]
   Config[:db][:production][:username] = ENV['DB_USERNAME'] || Config[:db][:production][:username] || Config[:db][:username] || 'postgres'
   Config[:db][:production][:password] = ENV['DB_PASSWORD'] || Config[:db][:production][:password] || Config[:db][:password] || 'postgres'
