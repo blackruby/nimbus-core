@@ -23,6 +23,7 @@ module ::Nimbus
   BusPath = GestionPath + 'bus'
   BusUsuPath = DataPath + '/_bus'
   GiPath = GestionPath + 'formatos'
+  GiUsuPath = DataPath + '/_formatos'
   LogPath = GestionPath + 'log'
 
   # NO BORRAR los comentarios de IniConf y FinConf (el código entre ellos será sustituido al encriptar la aplicación)

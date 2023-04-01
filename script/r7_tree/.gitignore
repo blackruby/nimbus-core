@@ -7,12 +7,6 @@ log
 clientes/*/log
 tmp
 clientes/*/tmp
-formatos/_usuarios
-formatos/_publico
-clientes/*/formatos/_usuarios
-clientes/*/formatos/_publico
-bus/_usuarios
-clientes/*/bus/_usuarios
 .bundle
 .project
 .vscode

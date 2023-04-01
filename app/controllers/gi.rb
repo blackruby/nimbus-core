@@ -27,8 +27,8 @@ salga directamente sin pasar por la pantalla de límites. Ej.:
 Nomenclaturas de 'modulo'
 -------------------------
 
-privado: se refiere a "formatos/_usuarios/usuario"
-publico: "formatos/_publico"
+privado: se refiere a "<cliente>/data/_formatos/usuarios/<usuario>"
+publico: "<cliente>/data/_formatos/publico"
 gestion: "formatos" (sustituir gestión por el nombre apropiado: cope, consejo, etc.)
 modulo: "modulos/modulo/formatos"
 </pre>
@@ -310,9 +310,9 @@ class GI
       when '', '_', Nimbus::Gestion
         path = "#{Nimbus::GiPath}/"
       when 'publico'
-        path = "#{Nimbus::GiPath}/_publico/"
+        path = "#{Nimbus::GiUsuPath}/publico/"
       when 'privado'
-        path = "#{Nimbus::GiPath}/_usuarios/#{user}/"
+        path = "#{Nimbus::GiUsuPath}/usuarios/#{user}/"
       else
         path = "modulos/#{modulo}/formatos/"
     end

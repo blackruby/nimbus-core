@@ -59,8 +59,8 @@ class GiController < ApplicationController
   def all_files(ext)
     @forms = {}
 
-    nuevo_form('privado', "#{Nimbus::GiPath}/_usuarios/#{@usu.codigo}", ext)
-    nuevo_form('publico', "#{Nimbus::GiPath}/_publico", ext)
+    nuevo_form('privado', "#{Nimbus::GiUsuPath}/usuarios/#{@usu.codigo}", ext)
+    nuevo_form('publico', "#{Nimbus::GiUsuPath}/publico", ext)
 
     if (@usu.codigo == 'admin')
       nuevo_form(Nimbus::Gestion, Nimbus::GiPath, ext)
@@ -242,9 +242,9 @@ class GiController < ApplicationController
           render plain: 'n'
           return
         when 'privado'
-          path = "#{Nimbus::GiPath}/_usuarios/#{@usu.codigo}/"
+          path = "#{Nimbus::GiUsuPath}/usuarios/#{@usu.codigo}/"
         when 'publico'
-          path = "#{Nimbus::GiPath}/_publico/"
+          path = "#{Nimbus::GiUsuPath}/publico/"
         when Nimbus::Gestion
           path = "#{Nimbus::GiPath}/"
         else
@@ -270,9 +270,9 @@ class GiController < ApplicationController
     return if !(@usu.codigo == 'admin' || @usu.pref[:permisos] && @usu.pref[:permisos][:ctr] && @usu.pref[:permisos][:ctr]['gi'] && (form[0] == 'publico' || form[0] == 'privado'))
 
     if form[0] == 'publico'
-      pref = "#{Nimbus::GiPath}/_publico"
+      pref = "#{Nimbus::GiUsusPath}/publico"
     elsif form[0] == "privado"
-      pref = "#{Nimbus::GiPath}/_usuarios/#{@usu.codigo}"
+      pref = "#{Nimbus::GiUsusPath}/usuarios/#{@usu.codigo}"
     elsif form[0] == Nimbus::Gestion
       pref = "#{Nimbus::GiPath}"
     else
