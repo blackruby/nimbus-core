@@ -19,9 +19,10 @@ module ::Nimbus
   # Paths en función de si hay un cliente seleccionado
   Gestion = ENV['NIMBUS_CLI'] || Rails.app_class.to_s.split(':')[0].downcase
   GestionPath = ENV['NIMBUS_CLI'] ? "clientes/#{ENV['NIMBUS_CLI']}/" : ''
-  BusPath = GestionPath + 'bus'
-  GiPath = GestionPath + 'formatos'
   DataPath = GestionPath + 'data'
+  BusPath = GestionPath + 'bus'
+  BusUsuPath = DataPath + '/_bus'
+  GiPath = GestionPath + 'formatos'
   LogPath = GestionPath + 'log'
 
   # NO BORRAR los comentarios de IniConf y FinConf (el código entre ellos será sustituido al encriptar la aplicación)

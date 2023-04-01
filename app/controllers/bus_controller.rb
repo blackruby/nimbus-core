@@ -179,7 +179,7 @@ class BusController < ApplicationController
       rows: 50,
       tit: flash[:tit] || (clm.respond_to?(:nim_bus_tit) ? clm.nim_bus_tit(@dat[:eid], @dat[:jid], @usu) : nil) || "Búsqueda de #{nt(tabla)}",
       rld: flash[:rld] || params[:rld],
-      home: Nimbus::BusPath + "/_usuarios/#{@usu.codigo}/#{@mod}"
+      home: Nimbus::BusUsuPath + "/#{@usu.codigo}/#{@mod}"
     }
     @titulo = @dat[:tit]
 
@@ -506,6 +506,7 @@ class BusController < ApplicationController
 
   def bus_save
     return unless @v
+    return if params[:fic].include?('..')
 
     arg = JSON.parse(params[:dat]).deep_symbolize_keys
 

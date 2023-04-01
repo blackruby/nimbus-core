@@ -83,7 +83,6 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
   $('#d-grid').html('');
   $("#d-grid").append("<table id='grid'></table>");
   grid = $("#grid");
-  //var toolgrid = '#grid_toppager';
   var pVez = true;
 
   nimGridUrl = '/bus/list?vista=' + _vista;
@@ -95,7 +94,6 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
     sortorder: sortorder,
     postData: postdata,
     page: (keepScrollV ? lastPage : 1),
-    //url: '/bus/list?vista=' + _vista,
     url: nimGridUrl,
     datatype: "json",
     mtype: 'POST',
@@ -131,7 +129,6 @@ function generaGrid(colMod, rows, sortname, sortorder, postdata, keepScrollH, ke
       setTimeout(function() {
         redimWindow();
         $("#d-grid .ui-jqgrid-view").css("display", "block");
-        //if (pVez) $("#d-grid .ui-jqgrid-bdiv").scrollLeft(keepScrollH ? lastScrollH : 90000).scrollTop(keepScrollV ? lastScrollV : 0);
         if (pVez) $("#d-grid .ui-jqgrid-bdiv").scrollLeft(sch).scrollTop(keepScrollV ? lastScrollV : 0);
         if (!nimRld && nimRldServer) nimPopup("Recargue datos para obtener reultados", {of: window});
         nimRld = loadEnCurso = pVez = false;
@@ -229,8 +226,6 @@ function viewSel() {
 }
 
 function gridExport(tipo) {
-  //ponBusy();
-  //callFonServer("bus_export", {tipo: tipo}, quitaBusy);
   callFonServer("bus_export", {tipo: tipo});
 }
 
@@ -246,7 +241,7 @@ function busSave() {
   ficheros = [];
   $("#bus-sel optgroup[label='" + usuCod + "'] option").each(function() {ficheros.push($(this).text())});
   var fs = $("#bus-sel option:selected");
-  var fn = (fs.length > 0 && fs.val().slice(0, 14)) == "bus/_usuarios/" ? fs.text() : "";
+  var fn = fs.length > 0 && fs.val().startsWith(busUsuPath) ? fs.text() : "";
   $("#inp-save").val(fn);
   $("#dialog-save").dialog("open");
 }
@@ -257,7 +252,7 @@ function resetFiltros() {
 
 function busDel() {
   var fic = $("#bus-sel").val();
-  if (fic && fic.slice(0, 14) == "bus/_usuarios/") {
+  if (fic && fic.startsWith(busUsuPath)) {
     $("#dialog-del").dialog("open");
   }
 }
@@ -284,7 +279,6 @@ function delColumna() {
 
 $(window).load(function() {
   _controlador = 'bus';
-  ficPrefijo = "bus/_usuarios/" + usuCod + "/" + modelo + "/";
 
   $("#dialog-save").dialog({
     title: "Guardar búsqueda",
@@ -300,7 +294,7 @@ $(window).load(function() {
 
         callFonServer("bus_save", {fic: fi, dat: JSON.stringify({cols: gridCols()})});
 
-        var fic = ficPrefijo + fi + '.yml';
+        var fic = busUsuPath + fi + '.yml';
         var nuevo = true;
         $("#bus-sel option").each(function() {
           if ($(this).val() == fic) {
@@ -371,7 +365,6 @@ $(window).load(function() {
 
   $("#tree-campos").tree({
     selectable: false,
-    //dataUrl: '/gi/campos?node=' + view
     dataUrl: '/gi/campos?node=' + view + '&emp=' + empresa,
     onCreateLi: function (node, $li, is_selected) {
       if (node.title) $li.attr("title", node.title);
