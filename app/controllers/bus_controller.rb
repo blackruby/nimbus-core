@@ -25,7 +25,7 @@
 #   en rojo para indicar el hecho (así no hay que sacar un diálogo
 #   adicional indicando que ya existe). Los ficheros de búsqueda de
 #   usuario se guardan en formato yaml (extensión .yml) y se sitúan en:
-#   bus/_usuarios/<usuario>/Modelo/
+#   <cliente>/data/_bus/<usuario>/Modelo/
 #
 # Predeterminar: Selecciona la búsqueda actual como predeterminada.
 #   Si no hay búsqueda predeterminada por el usuario, la búsqueda
@@ -42,12 +42,12 @@
 #     'bus' de algún módulo (ej.: modulos/venta/bus/Agente/Agente.yml)
 #
 #     .- El primer fichero que se encuentre en el orden:
-#       bus/_usuarios/<usuario>/Modelo/*.yml
+#       <cliente>/data/_bus/<usuario>/Modelo/*.yml
 #       bus/Modelo/*.yml
 #       modulos/*/bus/Modelo/*.yml
 #
 #   Las predeterminaciones (preferencias) se almacenarán en el fichero
-#   bus/_usuarios/<usuario>/Modelo/_preferencias
+#   <cliente>/data/_bus/<usuario>/Modelo/_preferencias
 #   y su estructura es:
 #     controladorxx1: path_al_fichero_de_búsqueda
 #     controladorxx2: path_al_fichero_de_búsqueda
