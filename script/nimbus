@@ -129,7 +129,7 @@ env << 'NIMBUS_LOCAL=true' if local
 iu = ARGV.index '-u'
 if iu
   usu = ARGV[iu + 1]
-elsif ENV['NIMBUS_CLI']
+elsif !ENV['NIMBUS_CLI'].to_s.strip.empty?
   usu = ENV['NIMBUS_CLI']
 else
   usu = nil
