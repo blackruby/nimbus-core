@@ -319,7 +319,7 @@ Rails.application.configure do
   ############# locales
 
   r = 'config/locales'
-  (modulos_nc + %w(modulos/idiomas)).each {|m|
+  (modulos_cli + %w(modulos/idiomas)).each {|m|
     d = m + '/' + r
     config.paths[r].unshift(d) if Dir.exist?(d)
   }
@@ -329,7 +329,7 @@ Rails.application.configure do
   ############# initializers
 
   r = 'config/initializers'
-  modulos_nc.each {|m|
+  modulos_cli.each {|m|
     d = m + '/' + r
     config.paths[r].unshift(d) if Dir.exist?(d)
   }
