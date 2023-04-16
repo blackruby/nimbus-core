@@ -794,9 +794,15 @@ class ApplicationController < ActionController::Base
     @ajax << @dat[:p2p][:js] if @dat[:p2p][:js]
   end
 
-  def exe_p2p(tit: 'En proceso', label: nil, pbar: :inf, cancel: false, width: nil, info: '', tag: nil, fin: {label: 'Finalizar', met: nil})
-    busy = P2p.count >= Nimbus::Config[:p2p][:tot]
-    busy = (P2p.where(tag: tag).count >= Nimbus::Config[:p2p][tag]) if !busy && Nimbus::Config[:p2p][tag]
+   def exe_p2p(tit: 'En proceso', label: nil, pbar: :inf, cancel: false, width: nil, info: '', tag: nil, fin: {label: 'Finalizar', met: nil}, pool: 1)
+    busy = nil
+    p2p_row = nil
+    P2p.transaction {
+      sql_exe('LOCK p2p IN ACCESS EXCLUSIVE MODE')
+      busy = P2p.count >= Nimbus::Config[:p2p][:tot]
+      busy = (P2p.where(tag: tag).count >= Nimbus::Config[:p2p][tag]) if !busy && Nimbus::Config[:p2p][tag]
+      p2p_row = P2p.create(usuario_id: @usu.id, fecha: Nimbus.now, ctrl: self.class.to_s, info: info, tag: tag) unless busy
+    }
     if busy
       mensaje 'El servidor está sobrecargado.<br>Por favor, inténtelo más tarde'
       return
@@ -835,16 +841,17 @@ class ApplicationController < ActionController::Base
       ObjectSpace.each_object(IO) {|io| io.close if io.class == TCPSocket and !io.closed?}
       begin
         # Establecer conexión con la base de datos
-        config[:pool] = 1
+        config[:pool] = pool
         ActiveRecord::Base.establish_connection(config)
       rescue Exception => e
         p2p label: 'Error al conectar con la base de datos', st: :err
         pinta_exception(e)
+        p2p_row.destroy
         return
       end
 
       # Registrar el proceso en la tabla p2p
-      P2p.create(usuario_id: @usu.id, fecha: Nimbus.now, ctrl: self.class.to_s, info: info, tag: tag, pgid: Process.pid)
+      p2p_row.update_column(:pgid, Process.pid)
 
       # Para hacer de este proceso el líder de grupo (por si lanza nuevos comandos poderlos matar a todos de golpe)
       Process.setsid
