@@ -3,7 +3,7 @@ unless Nimbus::Config[:excluir_usuarios]
 class WelcomeController < ApplicationController
   require 'bcrypt'
 
-  skip_before_action :ini_controller, only: [:index, :login, :cambia_pass, :api_login, :pass_olvido, :a2p]
+  skip_before_action :ini_controller, only: [:index, :login, :cambia_pass, :api_login, :pass_olvido, :a2p, :img]
 
   def index
     unless sesion_invalida
@@ -413,6 +413,19 @@ class WelcomeController < ApplicationController
       ph = BCrypt::Engine.hash_secret(pass, ps)
       usu.update_columns(password_salt: ps, password_hash: ph, password_fec_mod: nil)
     end
+  end
+
+  def img
+    img = params[:img] + '.png'
+    if ENV['NIMBUS_CLI'].to_s.strip.present?
+      begin
+        redirect_to(ActionController::Base.helpers.asset_path(ENV['NIMBUS_CLI'] + '/' + img))
+        return
+      rescue
+      end
+    end
+
+    redirect_to(ActionController::Base.helpers.asset_path(img)) rescue head(:no_content)
   end
 end
 

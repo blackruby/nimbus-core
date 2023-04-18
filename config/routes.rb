@@ -37,6 +37,7 @@ Rails.application.routes.draw do
     post 'welcome/fon_server' => 'welcome#fon_server'
     get 'logout' => 'welcome#logout'
     get 'menu' => 'welcome#menu'
+    get 'welcome/img/:img' => 'welcome#img'
     post 'pref_user' => 'usuarios#pref_user'
     get 'perfiles_x_usu' => 'perfiles_x_usu#edit'
     post 'perfiles_x_usu/fon_server' => 'perfiles_x_usu#fon_server'

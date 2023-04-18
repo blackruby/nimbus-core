@@ -9,7 +9,7 @@
 .w-card > .mdl-card__title {
   height: 176px;
   color: var(--color-1_f);
-  background: var(--color-1) image-url('logo.png') no-repeat top left;
+  background: var(--color-1) url('/welcome/img/logo') no-repeat top left;
 }
 
 .w-card > .mdl-card__menu {
@@ -22,6 +22,6 @@
 }
 
 body{
-  background-image: image-url('background.png') ;
+  background-image: url('/welcome/img/background') ;
   background-size: cover;
 }
