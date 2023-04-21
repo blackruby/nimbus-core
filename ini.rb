@@ -133,7 +133,7 @@ module ::Nimbus
 
   ModulosGlob = '{' + Modulos.join(',') + ',modulos/nimbus-core}'
   Modulos << '.'
-  ModulosCli = Modulos + ["clientes/#{ENV['NIMBUS_CLI']}"] 
+  ModulosCli = ENV['NIMBUS_CLI'] ? Modulos + ["clientes/#{ENV['NIMBUS_CLI']}"] : Modulos
   ModulosCliGlob = '{' + ModulosCli.join(',') + ',modulos/nimbus-core}'
 
   # Nombre de la cookie de sesión y de empresa/ejercicio
