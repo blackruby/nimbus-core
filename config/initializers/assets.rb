@@ -13,34 +13,22 @@ Rails.application.config.assets.version = '1.0'
 
 Rails.application.config.assets.precompile += ['*.png', '*.gif', '*.jpg', '*.eot', '*.ttf', '*.woff', '*.woff2', '*.svg']
 
-Dir.glob('{modulos,clientes}/*/app/assets/stylesheets/**/*.{css,scss,erb}').each {|d|
-  f = d.split('/')[5..-1].join('/')
-  f = f[0..f.index('.')] + 'css'
-  Rails.application.config.assets.precompile += [f]
-}
-Dir.glob('{modulos,clientes}/*/app/assets/javascripts/**/*.{js,coffee,erb}').each {|d|
-  f = d.split('/')[5..-1].join('/')
-  f = f[0..f.index('.')] + 'js'
-  Rails.application.config.assets.precompile += [f]
-}
-Dir.glob('{modulos,clientes}/*/app/assets/images/**/*').each {|d|
-  f = d.split('/')[5..-1].join('/')
-  Rails.application.config.assets.precompile += [f]
+path = 'app/assets/stylesheets'
+lpath = path.size + 1
+Dir.glob("#{Nimbus::ModulosCliGlob}/#{path}/**/*.{css,scss,erb}").each {|d|
+  Rails.application.config.assets.precompile += [d[d.index(path)+lpath..d.index('.', d.rindex('/'))] + 'css']
 }
 
-Dir.glob('app/assets/stylesheets/**/*.{css,scss,erb}').each {|d|
-  f = d.split('/')[3..-1].join('/')
-  f = f[0..f.index('.')] + 'css'
-  Rails.application.config.assets.precompile += [f]
+path = 'app/assets/javascripts'
+lpath = path.size + 1
+Dir.glob("#{Nimbus::ModulosCliGlob}/#{path}/**/*.{js,cofee,erb}").each {|d|
+  Rails.application.config.assets.precompile += [d[d.index(path)+lpath..d.index('.', d.rindex('/'))] + 'js']
 }
-Dir.glob('app/assets/javascripts/**/*.{js,coffee,erb}').each {|d|
-  f = d.split('/')[3..-1].join('/')
-  f = f[0..f.index('.')] + 'js'
-  Rails.application.config.assets.precompile += [f]
-}
-Dir.glob('app/assets/images/**/*').each {|d|
-  f = d.split('/')[3..-1].join('/')
-  Rails.application.config.assets.precompile += [f]
+
+path = 'app/assets/images'
+lpath = path.size + 1
+Dir.glob("#{Nimbus::ModulosCliGlob}/#{path}/**/*.*").each {|d|
+  Rails.application.config.assets.precompile += [d[d.index(path)+lpath..-1]]
 }
 
 # Highcharts
