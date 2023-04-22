@@ -100,4 +100,8 @@ Rails.application.configure do
 
   # Uncomment if you wish to allow Action Cable access from any origin.
   # config.action_cable.disable_request_forgery_protection = true
+
+  # Eliminar restricciones (whitelist) en cuanto a nombres de nuestro host.
+  # Esta vulnerabilidad sólo se da usando web_console (que no usamos)
+  config.hosts.clear
 end
