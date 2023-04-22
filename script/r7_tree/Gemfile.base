@@ -17,8 +17,6 @@ gem 'prawn'
 gem 'rest-client'
 # Para el uso de la API (opcional)
 gem 'jwt'
-# Opcional (si se detecta, se usará Redis para almacenar @v en controladores)
-gem 'redis'
 
 # Compresión de javascript
 gem 'terser'
