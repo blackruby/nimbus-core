@@ -1,7 +1,3 @@
-# Crear el manifiesto para sprockets (si no existe)
-FileUtils.mkdir_p('app/assets/config') unless Dir.exist?('app/assets/config')
-File.write('app/assets/config/manifest.js', '') unless File.exist?('app/assets/config/manifest.js')
-
 class ::Object
   def deep_freeze
     if self.respond_to? :each

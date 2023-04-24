@@ -86,6 +86,24 @@ end
 @init = (Process.pid == 1)
 `rm -f /rails/clientes/*/log/puma.pid /rails/log/puma.pid` if @init
 
+if !File.exist?('.nimbus_ini')
+  FileUtils.touch('.nimbus_ini')
+
+  # Crear el manifiesto para sprockets (si no existe)
+  FileUtils.mkdir_p('app/assets/config') unless Dir.exist?('app/assets/config')
+  File.write('app/assets/config/manifest.js', '') unless File.exist?('app/assets/config/manifest.js')
+
+  # Copiar r7_tree
+  Dir.glob('modulos/nimbus-core/script/r7_tree/**/*') {|f|
+    d = f.sub('modulos/nimbus-core/script/r7_tree/', '')
+    if Dir.exist?(f)
+      FileUtils.mkdir_p(d) unless Dir.exist?(d)
+    else
+      `cp -d #{f} #{d}` unless File.exist?(d)
+    end
+  }
+end
+
 Signal.trap('TERM') do
   if @init
     Dir.glob('/proc/*[0-9]*') {|p|
