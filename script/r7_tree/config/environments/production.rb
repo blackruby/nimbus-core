@@ -56,7 +56,6 @@ Rails.application.configure do
   else
     config.log_level = :fatal
     config.log_tags = []
-    config.log_tags << [Time.now.strftime('%d-%m %H:%M')] unless ENV['NIMBUS_INIT'] 
     config.log_tags << ENV['NIMBUS_CLI'] if ENV['NIMBUS_MULTI']
   end
 

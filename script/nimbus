@@ -69,14 +69,14 @@ def back(cli, multi = false)
     path = cli ? "clientes/#{cli}/log" : 'log'
     FileUtils.mkpath(path)
     unless @init
-      log = File.new("#{path}/nimbus.log", 'w')
+      log = ENV['NIMBUS_DOCKER'] ? File.open('/proc/1/fd/1', 'a') : File.new("#{path}/nimbus.log", 'w')
       STDOUT.reopen(log)
       STDOUT.sync = true
       STDERR.reopen(log)
       STDERR.sync = true
     end
     STDIN.reopen("/dev/null", "r")
-    exec "RAILS_ENV=production NIMBUS_LOCAL=false #{@init ? 'NIMBUS_INIT=true' : ''} #{@init && multi ? 'NIMBUS_MULTI=true' : ''} #{cli ? 'NIMBUS_CLI=' + cli : ''} rails server --pid=#{path}/puma.pid"
+    exec "RAILS_ENV=production NIMBUS_LOCAL=false #{@init && multi ? 'NIMBUS_MULTI=true' : ''} #{cli ? 'NIMBUS_CLI=' + cli : ''} rails server --pid=#{path}/puma.pid"
   }
   Process.detach(h) unless @init
 end

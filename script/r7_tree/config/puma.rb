@@ -20,7 +20,7 @@ queue_requests if Nimbus::Config[:puma][:queue_requests]
 if ENV['RAILS_ENV'] == 'production' && ENV['NIMBUS_LOCAL'] != 'true'
   log_formatter do |str|
     res = ''
-    res << "[#{Time.now.strftime '%d-%m %H:%M'}] " unless ENV['NIMBUS_INIT'] 
+    res << "[#{Time.now.strftime '%d-%m %H:%M'}] " unless ENV['NIMBUS_DOCKER'] 
     res << '[Puma] '
     res << "[#{ENV['NIMBUS_CLI']}] " if ENV['NIMBUS_MULTI']
     res << str

@@ -73,7 +73,7 @@ module ::Nimbus
   Config[:db][:development][:pool] = ENV['DB_POOL'] || Config[:db][:development][:pool] || Config[:db][:pool] || Config[:puma][:max_threads]
   Config[:db][:development][:username] = ENV['DB_USERNAME'] || Config[:db][:development][:username] || Config[:db][:username] || 'postgres'
   Config[:db][:development][:password] = ENV['DB_PASSWORD'] || Config[:db][:development][:password] || Config[:db][:password] || 'postgres'
-  Config[:db][:development][:host] = ENV['DB_HOST'] || Config[:db][:development][:host] || Config[:db][:host] || (Dir.exist?('/rails') ? ((Addrinfo.ip('dbhost') rescue nil) ? 'dbhost' : 'host.docker.internal') : '')
+  Config[:db][:development][:host] = ENV['DB_HOST'] || Config[:db][:development][:host] || Config[:db][:host] || (ENV['NIMBUS_DOCKER'] ? ((Addrinfo.ip('dbhost') rescue nil) ? 'dbhost' : 'host.docker.internal') : '')
   Config[:db][:development][:port] = ENV['DB_PORT'] || Config[:db][:development][:port] || Config[:db][:port] || ''
 
   Config[:db][:production] ||= {}
