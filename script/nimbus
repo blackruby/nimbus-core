@@ -76,6 +76,7 @@ def back(cli, multi = false)
       STDERR.sync = true
     end
     STDIN.reopen("/dev/null", "r")
+    Process.daemon(true, true)
     exec "RAILS_ENV=production NIMBUS_LOCAL=false #{@init && multi ? 'NIMBUS_MULTI=true' : ''} #{cli ? 'NIMBUS_CLI=' + cli : ''} rails server --pid=#{path}/puma.pid"
   }
   Process.detach(h) unless @init
