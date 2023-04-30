@@ -11,18 +11,20 @@ workers Nimbus::Config[:puma][:workers]
 bind Nimbus::Config[:puma][:bind] ? Nimbus::Config[:puma][:bind] : "tcp://0.0.0.0:#{Nimbus::Config[:puma][:port]}"
 #bind "ssl://0.0.0.0:#{Nimbus::Config[:puma][:port]}?key=path_to_key&cert=path_to_cert"
 
-preload_app! if Nimbus::Config[:puma][:preload_app]
+preload_app! Nimbus::Config[:puma][:preload_app]
 
 # Parece que poniendo esto a false se arreglan problemas de concurrencia cuando un worker
 # está busy y encola nuevos request no cediéndolos a otros workers libres.
-queue_requests if Nimbus::Config[:puma][:queue_requests]
+queue_requests Nimbus::Config[:puma][:queue_requests]
+
+tag ENV['NIMBUS_CLI'] ? ENV['NIMBUS_CLI'] : 'Global'
 
 if ENV['RAILS_ENV'] == 'production' && ENV['NIMBUS_LOCAL'] != 'true'
   log_formatter do |str|
     res = ''
     res << "[#{Time.now.strftime '%d-%m %H:%M'}] " unless ENV['NIMBUS_DOCKER'] 
     res << '[Puma] '
-    res << "[#{ENV['NIMBUS_CLI']}] " if ENV['NIMBUS_MULTI']
+    res << "[#{ENV['NIMBUS_CLI']}] " if ENV['NIMBUS_MULTI'] && ENV['NIMBUS_CLI']
     res << str
   end
 end

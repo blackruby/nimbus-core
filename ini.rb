@@ -34,7 +34,7 @@ module ::Nimbus
 
   Config[:puma] ||= {}
   if Rails.env == 'development'
-    Config[:puma][:min_threads] = 1
+    Config[:puma][:min_threads] = 0
     Config[:puma][:max_threads] = 5
     Config[:puma][:workers] = 0
     Config[:puma][:bind] = nil
@@ -42,24 +42,20 @@ module ::Nimbus
   else
     Config[:puma][:port] = ENV['PUMA_PORT'] || Config[:puma][:port] || 3000
     Config[:puma][:max_threads] = ENV['PUMA_MAX_THREADS'] || Config[:puma][:max_threads] || 5
-    Config[:puma][:min_threads] = ENV['PUMA_MIN_THREADS'] || Config[:puma][:min_threads] || Config[:puma][:max_threads]
+    Config[:puma][:min_threads] = ENV['PUMA_MIN_THREADS'] || Config[:puma][:min_threads] || 0
     Config[:puma][:workers] = ENV['PUMA_WORKERS'] || Config[:puma][:workers] || 0
     Config[:puma][:bind] = ENV['PUMA_BIND'] || Config[:puma][:bind]
 
-    if ENV['PUMA_PRELOAD_APP'].to_s.upcase == 'TRUE' || Config[:puma][:preload_app] == true
-      Config[:puma][:preload_app] = true
-    elsif ENV['PUMA_PRELOAD_APP'].to_s.upcase == 'FALSE' || Config[:puma][:preload_app] == false
-      Config[:puma][:preload_app] = false
+    if ENV['PUMA_PRELOAD_APP']
+      Config[:puma][:preload_app] = (ENV['PUMA_PRELOAD_APP'].upcase == 'TRUE')
     else
-      Config[:puma][:preload_app] = true
+      Config[:puma][:preload_app] = true unless Config[:puma].include?(:preload_app)
     end
-
-    if ENV['PUMA_QUEUE_REQUESTS'].to_s.upcase == 'TRUE' || Config[:puma][:queue_requests] == true
-      Config[:puma][:queue_requests] = true
-    elsif ENV['PUMA_QUEUE_REQUESTS'].to_s.upcase == 'FALSE' || Config[:puma][:queue_requests] == false
-      Config[:puma][:queue_requests] = false
+    
+    if ENV['PUMA_QUEUE_REQUESTS']
+      Config[:puma][:queue_requests] = (ENV['PUMA_QUEUE_REQUESTS'].upcase == 'TRUE')
     else
-      Config[:puma][:queue_requests] = true
+      Config[:puma][:queue_requests] = true unless Config[:puma].include?(:queue_requests)
     end
   end
 

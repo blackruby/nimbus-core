@@ -38,12 +38,12 @@ db:
   
 ## Puma
 # Sobre cualquiera de estas claves tendrán prioridad las siguientes variables de entorno:
-# PUMA_PORT PUMA_MAX_THREADS PUMA_MIN_THREADS PUMA_WORKERS PUMA_BIND PUMA_PRELOAD_APP PUMAQUEUE_REQUESTS
+# PUMA_PORT PUMA_MAX_THREADS PUMA_MIN_THREADS PUMA_WORKERS PUMA_BIND PUMA_PRELOAD_APP PUMA_QUEUE_REQUESTS
 puma:
   port: Puerto del servicio en production (Opcional, Defecto = 3000)
   port_dev: Puerto del servicio en development(Opcional, Defecto = 3000)
   max_threads: Nº máximo de threads (Opcional. Defecto = 5)
-  min_threads: Nº mínimo de threads (Opcional. Defecto = 1 en development y max_threads en production)
+  min_threads: Nº mínimo de threads (Opcional. Defecto = 0)
   workers: Nº de workers. Sólo válido en producción. (Opcional. Defecto = 0)
   bind: Cadena completa para usar en bind. Sólo válido en production (port será ignarado, hay que especificarlo aquí).
         Por defecto vale nil. En ese caso se usará "tcp://0.0.0.0:port"
