@@ -38,7 +38,9 @@ module ::Nimbus
     Config[:puma][:max_threads] = 5
     Config[:puma][:workers] = 0
     Config[:puma][:bind] = nil
-    Config[:puma][:port] = Config[:puma][:port_dev] || 3000
+    Config[:puma][:port] = ENV['PUMA_PORT_DEV'] || Config[:puma][:port_dev] || 3000
+    Config[:puma][:preload_app] = false
+    Config[:puma][:queue_requests] = true
   else
     Config[:puma][:port] = ENV['PUMA_PORT'] || Config[:puma][:port] || 3000
     Config[:puma][:max_threads] = ENV['PUMA_MAX_THREADS'] || Config[:puma][:max_threads] || 5
