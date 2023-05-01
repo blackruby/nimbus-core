@@ -3572,8 +3572,7 @@ class ApplicationController < ActionController::Base
   # Método para destruir una vista cuando se abandona la página
 
   def destroy_vista
-    #Vista.where('id in (?)', params[:vista]).delete_all
-    Vista.where(id: params[:vista]).delete_all
+    Vista.delete(params[:vista])
 
     # Borrar todas las imágenes temporales que queden
     `rm -f /tmp/nimImg-#{params[:vista]}-*`
