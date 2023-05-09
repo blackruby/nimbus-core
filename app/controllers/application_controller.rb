@@ -3658,7 +3658,7 @@ class ApplicationController < ActionController::Base
   def nimbus_cuota_disco
     @mensaje = {
       tit: 'Situación de la ocupación en disco',
-      msg: Nimbus::Config[:cuota_disco] ? nimbus_table_cuota(Nimbus::Config[:cuota_disco], `du -bs #{Nimbus::DataPath}`.to_i) : 'No hay restricciones de uso'
+      msg: Nimbus::Config[:cuota_disco] ? nimbus_table_cuota(Nimbus::Config[:cuota_disco], `du -bsL #{Nimbus::DataPath}`.to_i) : 'No hay restricciones de uso'
     }
     render html: '', layout: 'mensaje'
   end
@@ -3666,7 +3666,7 @@ class ApplicationController < ActionController::Base
   def nimbus_upload_check
     tam = params[:tam].to_i
     cuota = Nimbus::Config[:cuota_disco]
-    usado = `du -bs #{Nimbus::DataPath}`.to_i
+    usado = `du -bsL #{Nimbus::DataPath}`.to_i
     if cuota && tam + usado > cuota
       @ajax << "nimbusUploadStatus=1;"
       mensaje "Está intentando subir archivos con un tamaño de #{number_to_human_size(tam)}.<br>" +
@@ -3687,7 +3687,7 @@ class ApplicationController < ActionController::Base
   ##
   def nimbus_cuota_check(tam)
     cuota = Nimbus::Config[:cuota_disco]
-    usado = `du -bs #{Nimbus::DataPath}`.to_i
+    usado = `du -bsL #{Nimbus::DataPath}`.to_i
     (cuota && tam + usado > cuota) ? false : true
   end
 
