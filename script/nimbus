@@ -12,22 +12,39 @@ def help
   hlp << "{Opciones}:\n"
   hlp << "\n"
   hlp << "{-a}\n" 
-  hlp << "    Se lanazarán instancias de Puma para cada cliente definido, si no hubiera ninguno,\n" 
-  hlp << "    se usará el entorno normal (home de la aplicación). Se usará el modo 'production'\n"
-  hlp << "    y se ignorarán el resto de opciones.\n"
+  hlp << "    Si es la única opción en la línea de comandos, se lanazarán instancias de Puma\n"
+  hlp << "    para cada cliente definido; si no hubiera ninguno, se usará el entorno global\n"
+  hlp << "    (home de la aplicación). Se usará el modo 'production'.\n"
+  hlp << "    Si se usa con las opciones '-k' o '-r', servirá para indicar que dichas opciones\n"
+  hlp << "    se apliquen para todos los clientes existentes.\n"
+  hlp << "    En cualquier otra circunstancia la opción será ignorada.\n"
   hlp << "\n"
   hlp << "{-c}\n"
   hlp << "    Abre una consola Rails.\n"
   hlp << "\n"
+  hlp << "{-d}\n"
+  hlp << "    Se usará el modo 'development'.\n"
+  hlp << "    Si no se especifica ni '-d' ni '-p' se usará la variable de entorno RAILS_ENV,\n"
+  hlp << "    y, si no existiera, se usará 'development'.\n"
+  hlp << "\n"
   hlp << "{-h}\n"
-  hlp << "    Muestra esta ayuda\n"
+  hlp << "    Muestra esta ayuda.\n"
   hlp << "\n"
   hlp << "{-i}\n"
   hlp << "    Modo 'init'. Sirve para usarlo como comando de arranque en un contenedor docker.\n"
-  hlp << "    En este caso el resto de opciones serán ignoradas y no se realizará ninguna tarea.\n"
-  hlp << "    Su único propósito es mantener activo el contenedor para usarlo desde un terminal.\n"
-  hlp << "    También se encarga de acabar con los procesos zombis que se generen.\n"
-  hlp << "    Esta opción será ignorada si se usa fuera del contexto aludido.\n"
+  hlp << "    Sólo será efectivo si es la única opción y el proceso es el cabecera de docker (pid=1).\n"
+  hlp << "    Su único propósito es mantener activo el contenedor y acabar con los procesos zombis\n"
+  hlp << "    que se generen. Esta opción será ignorada si se usa fuera del contexto aludido.\n"
+  hlp << "\n"
+  hlp << "{-k} [signal]\n"
+  hlp << "    Envía la señal <signal> (equivalente al comando kill).\n"
+  hlp << "    Si se especifica un cliente (-u <cli>), la señal se enviará al server (Puma) que\n"
+  hlp << "    tenga lanzado (si lo tiene); si se especifica la opción '-a', la señal se enviará\n"
+  hlp << "    a todos los servers activos de cada uno de los clientes; si no se especifica ni '-a'\n"
+  hlp << "    ni '-u', la señal se enviará al server global (si existe).\n"
+  hlp << "    <signal> puede ser cualquier señal soportada por el S.O., bien especificada por su\n"
+  hlp << "    nombre (con o sin el prefijo 'SIG'), o por su número.\n"
+  hlp << "    Si no se especifica señal, se usará TERM (15), lo que equivale a finalizar el proceso.\n"
   hlp << "\n"
   hlp << "{-l}\n"
   hlp << "    Modo 'local'. Sólo válido con -p. Se lanzará Rails en 'production' pero sin\n"
@@ -36,29 +53,74 @@ def help
   hlp << "\n"
   hlp << "{-p}\n"
   hlp << "    Se usará el modo 'production'.\n"
-  hlp << "\n"
-  hlp << "{-u} <cliente>\n"
-  hlp << "    Se usará el entorno y configuración de <cliente>.\n"
+  hlp << "    Si no se especifica ni '-d' ni '-p' se usará la variable de entorno RAILS_ENV,\n"
+  hlp << "    y, si no existiera, se usará 'development'.\n"
   hlp << "\n"
   hlp << "{-r} <string>\n"
   hlp << "    Se pasará <string> a rake para que realice la tarea especificada.\n"
+  hlp << "    Si se combina con la opción '-a' se realizará la tarea para cada uno de los clientes.\n"
+  hlp << "\n"
+  hlp << "{-s}\n"
+  hlp << "    Muestra una lista con los Pumas activos. Se visualizan tres columnas: el pid del\n"
+  hlp << "    proceso, el modo (PRO=production, DEV=development) y el nombre del cliente (se usará\n"
+  hlp << "    el nombre 'Global' para referirse al server asociado a la gestión global.\n"
+  hlp << "    Al especificar esta opción se ignorarán todas las demás.\n"
+  hlp << "\n"
+  hlp << "{-u} <cliente>\n"
+  hlp << "    Se usará el entorno y configuración de <cliente>. De no existir esta opción, se\n"
+  hlp << "    usará como cliente el de la variable de entorno NIMBUS_CLI; si no existe la\n"
+  hlp << "    variable, se usará el entorno global (Home del proyecto).\n"
+  hlp << "\n"
+  hlp << "{Notas}:\n"
+  hlp << "\n"
+  hlp << "Las opciones '-c', '-k' y '-r' son incompatibles entre sí. Caso de aparecer más de una\n"
+  hlp << "se dará prioridad a '-k' (ignorando las otras), luego a '-r' y por último a '-c'.\n"
+  hlp << "\n"
+  hlp << "Las opciones se pueden agrupar: '-apr' en vez '-a', '-p', -'-r'. Si una opción necesita\n"
+  hlp << "un argumento adional (como -u, -r, etc.), dicha opción deberá ser la última del grupo.\n"
   hlp << "\n"
   hlp << "{Ejemplos}:\n"
   hlp << "\n"
-  hlp << "Lanza Rails en modo 'development' (equivalente a rails server)\n"
+  hlp << "Lanza Rails (equivalente a 'rails server') con el modo definido en RAILS_ENV o development\n"
+  hlp << "si no está definida. Se usará el entorno global al no especificarse ningún cliente.\n"
   hlp << "  {nimbus}\n" 
   hlp << "\n"
-  hlp << "Lanza Rails en modo 'production' con el entorno del cliente pepe\n"
+  hlp << "Lanza Rails en modo 'production' con el entorno del cliente pepe.\n"
   hlp << "  {nimbus} -p -u pepe\n" 
   hlp << "\n"
-  hlp << "Lanza Rails en modo 'production' con el entorno del cliente pepe sin demonizar\n"
+  hlp << "Lanza Rails en modo 'production' con el entorno del cliente pepe sin demonizar y con el\n"
+  hlp << "máximo nivel de debug.\n"
   hlp << "  {nimbus} -p -l -u pepe\n" 
   hlp << "\n"
-  hlp << "Abre una consola Rails en modo 'production' con el entorno del cliente pepe\n"
-  hlp << "  {nimbus} -c -p -u pepe\n" 
+  hlp << "Abre una consola Rails en modo 'production' con el entorno del cliente pepe.\n"
+  hlp << "  {nimbus} -cpu pepe\n" 
   hlp << "\n"
-  hlp << "Precompila los assets en modo 'production'\n"
+  hlp << "Precompila los assets en modo 'production' para la gestión global.\n"
   hlp << "  {nimbus} -p -r assets:prcompile\n"
+  hlp << "\n"
+  hlp << "Precompila los assets en modo 'production' para el cliente pepe.\n"
+  hlp << "  {nimbus} -p -u pepe -r assets:prcompile\n"
+  hlp << "\n"
+  hlp << "Rueda las migraciones en modo 'production' para cada uno de los clientes.\n"
+  hlp << "  {nimbus} -apr db:migrate\n"
+  hlp << "\n"
+  hlp << "Muestra una lista de los Pumas activos.\n"
+  hlp << "  {nimbus} -s\n"
+  hlp << "\n"
+  hlp << "Finaliza (mata) el Puma del cliente pepe (con la señal 15: TERM).\n"
+  hlp << "  {nimbus} -k -u pepe\n"
+  hlp << "\n"
+  hlp << "Envía la señal USR1 (Phased restart) al Puma de cada cliente.\n"
+  hlp << "Esto reiniciaría por fases (worker a worker) todos los pumas activos.\n"
+  hlp << "  {nimbus} -a -k USR1\n"
+  hlp << "\n"
+  hlp << "Envía la señal USR2 (Hot restart) al Puma de cada cliente.\n"
+  hlp << "Esto reiniciaría en caliente todos los pumas activos.\n"
+  hlp << "  {nimbus} -ak USR2\n"
+  hlp << "\n"
+  hlp << "Envía la señal 9 (KILL) al Puma de la gestión global.\n"
+  hlp << "La señal KILL (9) no se puede atrapar y finaliza incondicionalmente el proceso.\n"
+  hlp << "  {nimbus} -k 9\n"
 
   IO.popen({}, 'more', 'w') {|p| p.write hlp.gsub('{', "\e[1m").gsub('}', "\e[0m")}
   exit
@@ -77,12 +139,25 @@ def back(cli, multi = false)
     end
     STDIN.reopen("/dev/null", "r")
     Process.daemon(true, true)
-    exec "RAILS_ENV=production NIMBUS_LOCAL=false #{@init && multi ? 'NIMBUS_MULTI=true' : ''} #{cli ? 'NIMBUS_CLI=' + cli : ''} rails server --pid=#{path}/puma.pid"
+    exec "RAILS_ENV=production NIMBUS_LOCAL=false #{ENV['NIMBUS_DOCKER'] && multi ? 'NIMBUS_MULTI=true' : ''} #{cli ? 'NIMBUS_CLI=' + cli : ''} rails server --pid=#{path}/puma.pid"
   }
   Process.detach(h) unless @init
 end
       
-####### Main
+def kill(cli, sig)
+  begin
+    pid = File.read((cli ? "clientes/#{cli}/" : '') + 'log/puma.pid').to_i
+    Process.kill(sig, pid)
+    puts(cli ? cli : 'Global')
+  rescue
+  end
+end
+
+################################################
+#                     Main                     #
+################################################
+
+opts = ARGV.map{|a| a[0] == '-' && a.size > 2 ? a.chars.drop(1).map{|c| "-#{c}"} : a}.flatten
 
 @init = (Process.pid == 1)
 `rm -f /rails/clientes/*/log/puma.pid /rails/log/puma.pid` if @init
@@ -116,17 +191,37 @@ Signal.trap('TERM') do
   exit
 end
 
-help if ARGV.include?('-h')
+help if opts.include?('-h')
 
-if ARGV.include?('-i')
-  if @init
-    fork {exec 'sleep infinity'}
-    loop{Process.wait} rescue nil
-    exit
-  end
+if @init && opts[0] == '-i' && opts.size == 1
+  fork {exec 'sleep infinity'}
+  loop{Process.wait} rescue nil
+  exit
 end
 
-if ARGV.include?('-a')
+if opts.include?('-s')
+  puts '   Pid Modo  Cliente'
+  puts '--------------------------------'
+  Dir.glob('{clientes/*/log,log}/puma.pid') {|f|
+    pid = File.read(f)
+    mod = 'DEV'
+    begin
+      File.read("/proc/#{pid}/environ").split("\x0").each {|v|
+        if v.start_with?('RAILS_ENV=')
+          mod = v[10..12].upcase
+          break
+        end
+      }
+    rescue
+      mod = '---'
+    end
+    cli = f[0] == 'l' ? 'Global' : f.split('/')[1]
+    puts format('%6d %4s  %s', pid, mod, cli)
+  }
+  exit
+end
+
+if opts[0] == '-a' && opts.size == 1
   cl = Dir.glob('clientes/*')
   cl.size > 0 ? cl.each {|c| back(c.split('/')[1], cl.size > 1) if File.directory?(c)} : back(nil)
   (loop{Process.wait} rescue nil) if @init
@@ -135,44 +230,63 @@ end
 
 env = []
 
-if ARGV.include?('-p')
+if opts.include?('-p')
   renv = 'production'
-elsif ARGV.include?('-d')
+elsif opts.include?('-d')
   renv = 'development'
 else
   renv = ENV['RAILS_ENV'] || 'development'
 end
 env << "RAILS_ENV=#{renv}"
-local = ARGV.include?('-l')
+local = opts.include?('-l')
 env << 'NIMBUS_LOCAL=true' if local
-iu = ARGV.index '-u'
+iu = opts.index '-u'
 if iu
-  usu = ARGV[iu + 1]
+  cli = opts[iu + 1]
 elsif !ENV['NIMBUS_CLI'].to_s.strip.empty?
-  usu = ENV['NIMBUS_CLI']
+  cli = ENV['NIMBUS_CLI']
 else
-  usu = nil
+  cli = nil
 end
 
-if usu
-  unless Dir.exist? "clientes/#{usu}"
-    puts "No existe el cliente #{usu}"
+if cli
+  unless Dir.exist? "clientes/#{cli}"
+    puts "No existe el cliente #{cli}"
     exit 1
   end
-  env << "NIMBUS_CLI=#{usu}"
+  env << "NIMBUS_CLI=#{cli}"
 end
 
-if ARGV.include? '-c'
+if (ik = opts.index('-k'))  # Es una asignación
+  sig = opts[ik + 1] && opts[ik + 1][0] != '-' ? opts[ik + 1].upcase : 'TERM'
+  sig = sig.to_i if sig[0] =~ /[0-9]/
+  if opts.include? '-a'
+    Dir.glob('clientes/*') {|c| kill(c.split('/')[-1], sig)}
+  else
+    kill(cli, sig)
+  end
+  exit
+elsif (ir = opts.index('-r')) # Es una asignación
+  cmd = "rake #{opts[ir + 1]}"
+  if opts.include? '-a'
+    Dir.glob('clientes/*') {|c|
+      cli = c.split('/')[-1]
+      puts "\e[41m\e[97m#{cli.center(50)}\e[0m"
+      system "RAILS_ENV=#{renv} NIMBUS_CLI=#{cli} #{cmd}"
+    } 
+  else
+    exec "#{env.join(' ')} #{cmd}"
+  end
+  exit
+elsif opts.include? '-c'
   cmd = 'rails console'
-elsif (ir = ARGV.index('-r'))
-  cmd = "rake #{ARGV[ir + 1]}"
 else
   if renv == 'production' && !local
-    back usu
+    back cli
     (loop{Process.wait} rescue nil) if @init
     exit
   else
-    path = usu ? "clientes/#{usu}/log" : 'log'
+    path = cli ? "clientes/#{cli}/log" : 'log'
     FileUtils.mkpath(path)
     cmd = "rails server --pid=#{path}/puma.pid"
   end
