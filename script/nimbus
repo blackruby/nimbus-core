@@ -139,7 +139,7 @@ def back(cli, multi = false)
     end
     STDIN.reopen("/dev/null", "r")
     Process.daemon(true, true)
-    exec "RAILS_ENV=production NIMBUS_LOCAL=false #{ENV['NIMBUS_DOCKER'] && multi ? 'NIMBUS_MULTI=true' : ''} #{cli ? 'NIMBUS_CLI=' + cli : ''} rails server --pid=#{path}/puma.pid"
+    exec "RAILS_ENV=production NIMBUS_LOCAL=false #{ENV['NIMBUS_DOCKER'] && multi ? 'NIMBUS_MULTI=true' : ''} #{cli ? 'NIMBUS_CLI=' + cli : ''} #{proxy(cli)}rails server --pid=#{path}/puma.pid"
   }
   Process.detach(h) unless @init
 end
@@ -151,6 +151,10 @@ def kill(cli, sig)
     puts(cli ? cli : 'Global')
   rescue
   end
+end
+  
+def proxy(cli)
+  File.exist?("#{cli ? 'clientes/' + cli + '/': ''}ini.yml") ? 'EAGER_LOAD=false rails runner modulos/nimbus-core/script/nimini.rb ' : ''
 end
 
 ################################################
@@ -279,7 +283,7 @@ elsif (ir = opts.index('-r')) # Es una asignación
   end
   exit
 elsif opts.include? '-c'
-  cmd = 'rails console'
+  cmd = "#{proxy(cli)}rails console"
 else
   if renv == 'production' && !local
     back cli
@@ -288,7 +292,7 @@ else
   else
     path = cli ? "clientes/#{cli}/log" : 'log'
     FileUtils.mkpath(path)
-    cmd = "rails server --pid=#{path}/puma.pid"
+    cmd = "#{proxy(cli)}rails server --pid=#{path}/puma.pid"
   end
 end
 

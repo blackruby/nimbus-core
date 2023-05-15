@@ -5,6 +5,7 @@ require 'csv'
 namespace :nimbus do
   desc 'Importación de valores de configuración (poner rake importconf[h] para ayuda)'
   task :importconf, [:opt] => :environment do |_task, args|
+    arl = ActiveRecord::Base.logger.level
     ActiveRecord::Base.logger.level = Logger::INFO
 
     # Método recursivo para calcular la clave primaria ampliada (pk_a)
@@ -156,5 +157,6 @@ namespace :nimbus do
         pinta 'Ok', :o
       end
     }
+    ActiveRecord::Base.logger.level = arl
   end
 end
