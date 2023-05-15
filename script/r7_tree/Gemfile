@@ -19,6 +19,12 @@ gem 'rest-client'
 gem 'jwt'
 # Opcional (si se detecta, se usará Redis para almacenar @v en controladores)
 gem 'redis'
+# Dependencia para las dos siguientes gemas
+gem 'rexml'
+# Firma XML
+gem 'signer', '1.10'
+# Firma PDF
+gem 'origami'
 
 # Compresión de javascript
 gem 'terser'
