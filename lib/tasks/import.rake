@@ -181,7 +181,7 @@ namespace :nimbus do
           sql_exe("ALTER TABLE #{tab} " + add_cols.chop)
         end
 
-        sql_copy("COPY #{tab} (#{head}) FROM '#{fic}' CSV HEADER")
+        sql_copy(tab: "#{tab} (#{head})", from: fic, fin: 'CSV HEADER')
         sql_exe("SELECT setval('#{tab}_id_seq', (SELECT MAX(id) FROM #{tab}))")
       }
 

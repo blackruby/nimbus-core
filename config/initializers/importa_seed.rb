@@ -12,7 +12,7 @@ def importa_seed(modelo)
 
   ActiveRecord::Base.connection.reset_pk_sequence!(tabla)
   sql_exe "ALTER TABLE #{tabla} " + cmpadd.map{|c| "ADD COLUMN #{c} CHARACTER VARYING"}.join(',') if !cmpadd.empty?
-  sql_copy "COPY #{tabla} (#{campos}) FROM '#{Rails.root}#{modulo}/db/#{csv}' CSV HEADER"
+  sql_copy tab: "#{tabla} (#{campos})", from: "#{Rails.root}#{modulo}/db/#{csv}", fin: 'CSV HEADER'
 
   yield if block_given?
 

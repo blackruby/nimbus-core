@@ -92,9 +92,10 @@ end
 
 # Método para ejecutar sentencias SQL "COPY". Si la base de datos no está en el propio host
 # se hace a través de "psql" y su comando integrado "\COPY", esto nos permite tener los
-# ficheros a importar/exportar en el servidor de Nimbus (y no en el del PostgreSQL)
+# ficheros a importar/exportar en el servidor de Nimbus (y no en el del PostgreSQL).
+# Al apoyarse en un ejecutable externo (psql) no se puede usar dentro de transacciones.
 
-def sql_copy(cad)
+def sql_copy_psql(cad)
   db = Nimbus::Config[:db][Rails.env.to_sym]
   if db[:host].present?
     sql = ''
@@ -105,6 +106,35 @@ def sql_copy(cad)
     `#{sql}`
   else
     sql_exe(cad)
+  end
+end
+
+# Método para hacer "COPY" usando STDIN o STDOUT para poder tener
+# los ficheros en el mismo servidor que la aplicación.
+# Este método es preferible al anterior ya que se puede incluir en transacciones.
+# El argumento 'tab' es la tabla y todo lo que queramos incluir entre el 'COPY'
+# y el 'FROM'/'TO'. 'fin' es una cadena que irá al final de la sentencia.
+# 'from'/'to' (tiene que especificarse uno y sólo uno) hacen referencia al
+# fichero de donde obtener los datos (from) o donde se exportarán (to).
+
+def sql_copy(tab:, from: nil, to: nil, fin: '')
+  raise ArgumentError, "Hay que especificar un 'from' o un 'to'" if from && to || !from && !to
+
+  arc = ActiveRecord::Base.connection.raw_connection
+
+  if from
+    arc.exec("COPY #{tab} FROM STDIN #{fin}") {
+      arc.put_copy_data(File.read(from))
+      arc.put_copy_end
+    }
+  else
+    arc.exec("COPY #{tab} TO STDOUT #{fin}") {
+      File.open(to, 'w') {|f|
+        while (dat = arc.get_copy_data) # Es una asignación
+          f.write(dat.force_encoding('UTF-8'))
+        end
+      }
+    }
   end
 end
 

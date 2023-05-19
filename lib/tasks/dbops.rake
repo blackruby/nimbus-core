@@ -1,6 +1,9 @@
 namespace :nimbus do
   desc 'Info/Dump/Delete sobre tablas dependientes de un modelo'
   task :dbops, [:mod, :opt, :id, :dir] => :environment do |_task, args|
+    arl = ActiveRecord::Base.logger.level
+    ActiveRecord::Base.logger.level = Logger::INFO
+
     puts
 
     modelo_s = args[:mod]
@@ -183,7 +186,7 @@ namespace :nimbus do
               print format('%5d %12s %-50s ', m[:niv], n.to_sep_mil, mod)
               if opt == 'dump'
                 fic = mod.split('::').map(&:underscore).join('_')
-                sql_copy %Q(copy (#{m[sq].to_sql}) to '#{args[:dir]}/#{fic}.csv' (format 'csv', header true))
+                sql_copy tab: "(#{m[sq].to_sql})", to: "#{args[:dir]}/#{fic}.csv", fin: "(format 'csv', header true)"
                 puts 'Volcado'
               else
                 m[sq].delete_all
@@ -193,5 +196,6 @@ namespace :nimbus do
           }
         }
     end
+    ActiveRecord::Base.logger.level = arl
   end
 end
