@@ -1,6 +1,8 @@
 namespace :nimbus do
   desc 'Recalcular tabla de permisos por usuario/menu/empresa'
   task :permisos => :environment do |task|
+    arl = ActiveRecord::Base.logger.level
+    ActiveRecord::Base.logger.level = Logger::INFO
     puts
     puts 'Calculando permisos...'
     puts
@@ -13,5 +15,6 @@ namespace :nimbus do
       menu, pf = Usuario.calcula_permisos(u, menu, pf)
       u.save
     }
+    ActiveRecord::Base.logger.level = arl
   end
 end

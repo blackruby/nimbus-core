@@ -1,3 +1,4 @@
+arl = ActiveRecord::Base.logger.level
 ActiveRecord::Base.logger.level = Logger::INFO
 
 #######################  USUARIOS
@@ -359,3 +360,5 @@ Nimbus::ModulosCli.each {|m|
   s = Nimbus::Home + '/' + m + '/db/seeds.rb'
   require(s) if File.exist?(s)
 }
+
+ActiveRecord::Base.logger.level = arl
