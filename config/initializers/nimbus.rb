@@ -54,14 +54,14 @@ def nt(tex, h={}, mis = false)
   return('') if tex.nil? or tex == ''
 
   begin
-    r = I18n.t(tex)
+    r = I18n.t(tex, nd: h)
     if r.start_with?('translation missing')
-      r = I18n.t(tex.downcase)
+      r = I18n.t(tex.downcase, nd: h)
       if r.start_with?('translation missing')
         if tex[-1] == 's'
-          r = I18n.t(tex.singularize).pluralize(I18n.locale)
+          r = I18n.t(tex.singularize, nd: h).pluralize(I18n.locale)
         elsif tex.ends_with?('_id')
-          r = I18n.t(tex[0..-4])
+          r = I18n.t(tex[0..-4], nd: h)
         end
       end
     end
