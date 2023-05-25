@@ -502,6 +502,3 @@ class NimbusPDF < Prawn::Document
     tb
   end
 end
-
-class NimbusPdf < NimbusPDF
-end
