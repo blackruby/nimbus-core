@@ -21,4 +21,5 @@ $(window).load(function() {
       $(this).text("expand_more");
     }
   });
+  $(".updates label").first().trigger("click");
 });
