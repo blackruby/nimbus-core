@@ -6,6 +6,14 @@ body {
   display: flex;
 }
 
+li p {
+  margin: 0;
+}
+/* Esto es para ocultar unos anchor que añade RDoc::Markdown.parse a los títulos */
+h1 span, h2 span, h3 span, h4 span, h5 span, h6 span {
+  display: none;
+}
+
 .updates-flex {
   display: flex;
   flex-direction: column;
@@ -27,11 +35,13 @@ body {
   overflow-y: auto;
   height: 100vh;
   padding-top: 10px;
-  padding-left: 20px;
+  text-align: center;
 }
 
 .updates label {
-  cursor: pointer
+  cursor: pointer;
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 #detalle {
@@ -75,4 +85,9 @@ body {
 
 .expande {
   cursor: pointer;
+}
+
+.activo {
+  color: var(--color-1_f);
+  background-color: var(--color-1);
 }

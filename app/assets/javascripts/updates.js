@@ -5,7 +5,9 @@ function renderUpdate(dat) {
 }
 
 function getUpdate(el) {
-  callFonServer("get_update", {file: $(el).text()}, renderUpdate);
+  $(".activo").removeClass('activo');
+  $(el).addClass('activo');
+  callFonServer("get_update", {hfec: $(el).text()}, renderUpdate);
 }
 
 $(window).load(function() {
