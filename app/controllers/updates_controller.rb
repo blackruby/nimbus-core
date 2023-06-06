@@ -44,6 +44,7 @@ class UpdatesController < ApplicationController
 
       }
     }
+    htm = '<div class="commit"><i class="material-icons">remove</i><span>Actualizaciones y mejoras generales</span></div>'
     render json: htm.to_json
   end
         
