@@ -242,6 +242,7 @@ namespace :nimbus do
             ON CONFLICT (#{t[:hay_id] ? 'id' : t[:mod].pk.join(',')}) DO UPDATE SET (#{cols}) = (#{t[:cols_csv].map{|c| 'EXCLUDED.' + c}.join(',')})
             RETURNING id
           }).pluck('id')
+          sql_exe("SELECT setval('#{t[:mod].table_name}_id_seq', (SELECT MAX(id) FROM #{t[:mod].table_name}))")
         }
         puts
       end
@@ -280,6 +281,7 @@ namespace :nimbus do
             FROM #{t[:mod].table_name}
             WHERE id #{wh}
           )
+          sql_exe("SELECT setval('#{his.table_name}_id_seq', (SELECT MAX(id) FROM #{his.table_name}))")
         }
       end
     end
