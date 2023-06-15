@@ -37,7 +37,9 @@ body {
   height: 60px;
   z-index: 100;
   white-space: nowrap;
+  overflow: scroll;
 }
+#titulo::-webkit-scrollbar {display: none;}
 
 .div-head {
   display: inline-block;
@@ -259,4 +261,37 @@ body {
   bottom: 0;
   right: 0;
   overflow: auto;
+}
+
+/* De aquí en adelante es para menu_min */
+
+:root {
+  --box-l: 0;
+  --box-f: 0;
+  --box-m: 0;
+}
+
+.box {
+  margin: var(--box-m);
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  vertical-align: middle;
+  color: var(--color-1_f);
+  background-color: var(--color-1);
+  width: var(--box-l);
+  height: var(--box-l);
+  cursor: pointer;
+  opacity: 0.8;
+  border-radius: 10%;
+  overflow: hidden;
+}
+
+.box p {
+  margin: 8px;
+  font-size: var(--box-f);
+  line-height: calc(var(--box-f) * 1.4);
+  overflow: hidden;
 }

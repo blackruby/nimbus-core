@@ -260,11 +260,13 @@ class WelcomeController < ApplicationController
     hm.each {|k, v|
       next if k[0] == '~'
       if v.class == Hash
-        @menu << "<li><span>#{nt(k)}</span><ul>"
+        @menu << "<li><span>#{nt(k)}</span><ul>" unless @menu_min
         gen_menu(v)
-        @menu << '</ul></li>'
+        @menu << '</ul></li>' unless @menu_min
       elsif k.starts_with? 'tag_'
-        @menu << v
+        @menu << v unless @menu_min
+      elsif @menu_min
+        @menu << "<div class='box' url=#{v}><p>#{nt(k)}</p></div>"
       else
         @menu << "<li class=menu-ref><a href=#{v}>#{nt(k)}</a></li>"
       end
@@ -300,8 +302,10 @@ class WelcomeController < ApplicationController
   end
 
   def menu
+    @menu_min = @usu.pref[:menumin]
+
     @assets_stylesheets = %w(welcome/menu)
-    @assets_javascripts = %w(menu ui_resizable_snap)
+    @assets_javascripts = %w(welcome/menu_base) + (@menu_min ? %w(welcome/menu_min) : %w(welcome/menu ui_resizable_snap))
 
     @ajax = ''
 

@@ -1,5 +1,7 @@
 <div id="titulo" class="mm-fixed-top">
-  <a id="a-menu" href="#nim-menu" style="margin-left: 12px;"><i class="material-icons" style="margin-top: 12px;">menu</i></a>
+  <% unless @menu_min %>
+    <a id="a-menu" href="#nim-menu" style="margin-left: 12px;"><i class="material-icons" style="margin-top: 12px;">menu</i></a>
+  <% end %>
 
   <label style="font-size: 20px; margin-left: 15px;"> <%= nt('hola_nimbus') %> </label>
 
@@ -28,6 +30,18 @@
   </div>
 </div>
 
+<% if @menu_min %>
+  <div id="div-body">
+    <div id="bg-img"></div>
+    <%= @menu.html_safe %>
+  </div>
+  <div id="context-menu" class="nim-context-menu">
+    <ul class="nim-context-menu-ul">
+      <li id="li-opacidad" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon">visibility</i><input id="opacidad" type="range" nmin="0" max="1" step="0.01"></li>
+      <li id="save-panel" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon">save</i>Guardar panel</li>
+    </ul>
+  </div>
+<% else %>
 <nav id="nim-menu">
   <ul>
     <%= @menu.html_safe %>
@@ -72,6 +86,7 @@
     <li id="li-opacidad" class="nim-context-menu-li"><i class="material-icons nim-context-menu-icon">visibility</i><input id="opacidad" type="range" nmin="0" max="1" step="0.01"></li>
   </ul>
 </div>
+<% end %>
 
 <script>
   usu_id = <%= @usu.id %>;
