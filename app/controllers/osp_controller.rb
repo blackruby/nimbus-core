@@ -281,9 +281,9 @@ class OspController < ApplicationController
     if files.size == 1 and !File.directory?(file)
       envia_fichero(file: file, rm: false, disposition: %w(pdf jpg jpeg gif png svg txt).include?(files[0].split('.')[-1].downcase) ? 'inline' : 'attachment', popup: true)
     else
-      file = "/tmp/nim#{@v.id}.zip"
+      file = "/tmp/nim#{@v.id}.tgz"
       dir = "#{@dat[:ruta]}/#{@dat[:dir]}".gsub(' ', '\ ')
-      `cd #{dir}; zip -qr #{file} #{files.map {|f| "#{f}".gsub(' ', '\ ')}.join(' ')}`
+      `cd #{dir}; tar czf #{file} #{files.map {|f| "#{f}".gsub(' ', '\ ')}.join(' ')}`
       envia_fichero(file: file, rm: true, popup: true)
     end
 
