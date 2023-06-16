@@ -1,20 +1,17 @@
 function session_out() {
   clearInterval(tmo);
-  //alert("<%= nt('no_session') %>");
   alert("La sesión ha caducado");
   window.location.replace('/');
 }
 
 function well_auto_comp_error(e, ui) {
-  //if (typeof(ui.content) != "undefined" && typeof(ui.content[0]) != "undefined" && ui.content[0].error == 1) {
   if (typeof(ui.content) != "undefined" && ui.content[0] != undefined && ui.content[0].error != undefined) {
     session_out();
   }
 }
 
 function set_cookie_emej() {
-  //document.cookie = "<%= Nimbus::CookieEmEj %>=" + empresa_id + ":" + ejercicio_id + ";path=/";
-  document.cookie = cookieEmEj + "=" + empresa_id + ":" + ejercicio_id + ";path=/";
+  document.cookie = cookieEmEj + "=" + empresa_id + ":" + ejercicio_id + "; path=/; expires=Fri, 01-Jan-2100 00:00:00 GMT";
 }
 
 function nimOpenWindow(url, tag, w, h) {
@@ -99,7 +96,6 @@ window.addEventListener("load", function() {
   });
 
   $("#empresa").autocomplete({
-    //source: '/application/auto?type=grid&mod=Empresa',
     source: '/application/auto?type=grid&mod=Empresa&vista=' + _vista + '&cmp=em',
     minLength: 1,
     select: function (e, ui) {
@@ -111,13 +107,7 @@ window.addEventListener("load", function() {
       $("#ejercicio").val('');
 
       // Consultar si tiene ejercicios la empresa para habilitar el campo ejercicio (lo hace la función del servidor en su respuesta)
-      //callFonServer('ejercicio_en_menu', {eid: empresa_id});
-
       callFonServer('cambio_emej', {eid: empresa_id, jid: ejercicio_id});
-
-      //graba_emej();
-      //set_cookie_emej();
-      //location.reload();
     },
     response: function (e, ui) {
       well_auto_comp_error(e, ui);
@@ -125,16 +115,12 @@ window.addEventListener("load", function() {
   });
 
   $("#ejercicio").autocomplete({
-    //source: '/application/auto?type=grid&mod=Ejercicio&wh=empresa_id=null',
     source: '/application/auto?type=grid&mod=Ejercicio&vista=' + _vista + '&cmp=ej',
     minLength: 1,
     select: function (e, ui) {
       ejercicio_id = ui.item.id;
       ejercicio_nom = ui.item.value;
       callFonServer('cambio_emej', {eid: empresa_id, jid: ejercicio_id});
-      //graba_emej();
-      //set_cookie_emej();
-      //location.reload();
     },
     response: function (e, ui) {
       well_auto_comp_error(e, ui);

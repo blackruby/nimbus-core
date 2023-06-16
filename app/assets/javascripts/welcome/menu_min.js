@@ -24,7 +24,11 @@ window.addEventListener("load", function() {
   nBox = bx.length;
   if (nBox == 0) return;
 
-  bx.on('click', function() {open(this.attributes.url.value, "_blank")});
+  bx.on('click', function() {
+    set_cookie_emej();
+    open(this.attributes.url.value, "_blank");
+  });
+
   addEventListener('resize', redim);
 
   divBody = document.getElementById("div-body");

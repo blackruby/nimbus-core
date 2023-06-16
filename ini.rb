@@ -132,7 +132,7 @@ module ::Nimbus
 
   # Nombre de la cookie de sesión y de empresa/ejercicio
   nombre = ENV['NIMBUS_CLI'] || (Gestion == 'nimbus' ? Config[:db][Rails.env.to_sym][:database] : Gestion)
-  Rails.application.config.session_store :cookie_store, key: '_' + nombre + '_session'
+  Rails.application.config.session_store :cookie_store, key: '_' + nombre + '_session', expire_after: 100.years
   CookieEmEj = ('_' + nombre + '_emej').to_sym
 
   # Obtención de un hash de los meses para campos tipo 'select'
