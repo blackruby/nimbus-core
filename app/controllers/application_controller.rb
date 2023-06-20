@@ -1086,8 +1086,8 @@ class ApplicationController < ActionController::Base
     hijos.each_with_index {|h, i|
       next unless h[:url]
 
-      @ajax << '$("#hijo_' + i.to_s + '").attr("src", "/' + h[:url]
-      @ajax << '?mod=' + class_modelo.to_s
+      @ajax << '$("#hijo_' + i.to_s + '").attr("src", "/' + h[:url] + (h[:url].include?('?') ? '&' : '?')
+      @ajax << 'mod=' + class_modelo.to_s
       @ajax << '&id=' + @fact.id.to_s
       @ajax << '&padre=' + @v.id.to_s
       @ajax << '&eid=' + @dat[:eid].to_s if @dat[:eid]
