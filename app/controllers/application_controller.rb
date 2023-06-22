@@ -572,17 +572,15 @@ class ApplicationController < ActionController::Base
   #   envia_fichero file: '/tmp/zombi.pdf', file_cli: 'datos.pdf', rm: false
   ##
 
-  def envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment', popup: false, tit: file_cli)
-=begin
-    flash[:file] = file
-    flash[:file_cli] = file_cli
-    flash[:rm] = rm
-    flash[:disposition] = disposition
-=end
+  def url_download(file:, file_cli: nil, rm: true, disposition: 'attachment', tit: file_cli)
     cry = ActiveSupport::MessageEncryptor.new Rails.application.secrets[:secret_key_base][0..31]
     arg = {file: file, file_cli: file_cli, rm: rm, disposition: disposition}.to_json
     tit = tit ? '/' + tit.gsub('/', '-').gsub(/[?&]/, ' ') : ''
-    url = "/nim_download#{tit}?#{URI.encode_www_form({data: cry.encrypt_and_sign(arg)})}"
+    "/nim_download#{tit}?#{URI.encode_www_form({data: cry.encrypt_and_sign(arg)})}"
+  end
+
+  def envia_fichero(file:, file_cli: nil, rm: true, disposition: 'attachment', popup: false, tit: file_cli)
+    url = url_download(file: file, file_cli: file_cli, rm: rm, disposition: disposition, tit: tit)
 
     popup = :self if @nimbus_go && !popup
 
