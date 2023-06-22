@@ -7,8 +7,8 @@ class Licencia < ActiveRecord::Base
 
   belongs_to :usuario, :class_name => 'Usuario'
 
-  def self.get_licencia(uid, sid)
-    return true unless Nimbus::Config[:licencias]
+  def self.get_licencia(usu, sid)
+    return true if usu.codigo == 'admin' || !Nimbus::Config[:licencias]
 
     res = false
     Licencia.transaction {
@@ -17,7 +17,7 @@ class Licencia < ActiveRecord::Base
 
       if l || Licencia.count < Nimbus::Config[:licencias]
         l = Licencia.new unless l
-        l.usuario_id = uid
+        l.usuario_id = usu.id
         l.fecha = Nimbus.now
         l.sid = sid
         l.save

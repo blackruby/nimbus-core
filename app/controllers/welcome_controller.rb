@@ -32,7 +32,7 @@ class WelcomeController < ApplicationController
   end
         
   def login_ok(usu)
-    if Licencia.get_licencia(usu.id, session[:session_id])
+    if Licencia.get_licencia(usu, session[:session_id])
       session[:uid] = usu.id
       session[:fec] = @ahora          #Fecha de creación
       session[:fem] = session[:fec]   #Fecha de modificación (último uso)
@@ -251,7 +251,7 @@ class WelcomeController < ApplicationController
     session[:uid] = nil
 
     log_acceso @usu.id, @usu.codigo, 'D', true
-    Licencia.destroy_by sid: session[:session_id] if Nimbus::Config[:licencias]
+    Licencia.delete_by sid: session[:session_id] if Nimbus::Config[:licencias]
 
     head :no_content
   end

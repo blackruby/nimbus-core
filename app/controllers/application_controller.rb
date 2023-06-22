@@ -123,7 +123,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    if Nimbus::Config[:licencias] && %w(index edit new).include?(params[:action]) && !Licencia.get_licencia(@usu.id, session[:session_id])
+    if Nimbus::Config[:licencias] && %w(index edit new).include?(params[:action]) && !Licencia.get_licencia(@usu, session[:session_id])
       @mensaje = {tit: 'Aviso', msg: 'Hay demasiadas licencias en uso.<hr>Espere a que alguna quede libre o póngase en contacto con el administrador'}
       render html: '', layout: 'mensaje'
     end
