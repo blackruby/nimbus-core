@@ -657,7 +657,7 @@ class ApplicationController < ActionController::Base
 
   def nim_path_image(modelo, id, tag)
     src = Dir.glob("#{Nimbus::DataPath}/#{modelo}/#{id}/_imgs/#{tag}.*")
-    src.size > 0 ? "src='/nim_send_file?file=#{src[0][Nimbus::DataPath.size+1..-1]}'" : ''
+    src.size > 0 ? "src='#{url_download(file: src[0], rm: false, disposition: 'inline')}'" : ''
   end
 
   def nim_image(mod: class_modelo, id: (@fact.respond_to?(:id) ? @fact.id : 0), tag:, hid: nil, w: nil, h: nil)
@@ -3234,12 +3234,11 @@ class ApplicationController < ActionController::Base
         # Si tiene la clave "firma" entonces no hay frame asociado y la imagen viene codificada en base64 en "valor"
 
         file_base = "/tmp/nimImg-#{@v.id}-#{campo}"
-        token = Time.now.strftime('%d%H%M%S') # Token para añadir al URL de nim_send_file para forzar el envío si se repite la misma imagen (y ha cambiado)
         `rm -f #{file_base}.*`
         if cs[:img][:firma]
           @fact[campo] = "#{file_base}.png"
           File.write(@fact[campo], Base64.decode64(valor[valor.index(',')+1..-1]), mode: 'wb')
-          @ajax << %Q($("##{campo}_img").attr("src", "/nim_send_file?file=#{@fact[campo]}&#{token}"))
+          @ajax << %Q($("##{campo}_img").attr("src", "#{url_download(file: @fact[campo], rm: false)}"))
           render_ajax
         else
           return unless params[campo] # Por si llega un submit sin fichero para upload
@@ -3249,7 +3248,7 @@ class ApplicationController < ActionController::Base
 
           render html: %Q(
             <script>
-              $(window).load(function(){$("##{campo}_img",parent.document).attr('src', '/nim_send_file?file=#{@fact[campo]}&#{token}')})
+              $(window).load(function(){$("##{campo}_img",parent.document).attr('src', '#{url_download(file: @fact[campo], rm: false)}')})
             </script>
           ).html_safe, layout: 'basico'
         end
